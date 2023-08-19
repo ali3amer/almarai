@@ -6,11 +6,23 @@
             <div class="card bg-white">
                 <div class="card-body">
                     <form action="" wire:submit="save({{ $id }})">
-                        <label for="name" class="form-label">إسم القسم</label>
-                        <input type="text" wire:model="name" class="form-control" placeholder="إسم القسم ..." name="name" id="name">
+                        <label for="name" class="form-label">إسم المورد</label>
+                        <input type="text" wire:model="name" class="form-control" placeholder="إسم المورد ..." id="name">
                         <div>
                             @error('name') <span class="error text-danger">{{ $message }}</span> @enderror
                         </div>
+                        <label for="phone" class="form-label">الهاتف</label>
+                        <input type="text" wire:model="phone" class="form-control" placeholder="الهاتف ..." id="phone">
+                        <div>
+                            @error('phone') <span class="error text-danger">{{ $message }}</span> @enderror
+                        </div>
+
+                        <label for="address" class="form-label">العنوان</label>
+                        <input type="text" wire:model="address" class="form-control" placeholder="العنوان ..." id="address">
+                        <div>
+                            @error('address') <span class="error text-danger">{{ $message }}</span> @enderror
+                        </div>
+
                         <div class="d-grid mt-2">
                             <button class="btn btn- btn-primary">حفـــــــــــــــــــظ</button>
                         </div>
@@ -26,30 +38,32 @@
                 </div>
 
                 <div class="card-body">
-                    @if(count($categories) > 0)
+                    @if(count($suppliers) > 0)
                         <table class="table table-bordered text-center">
                             <thead>
                             <tr>
                                 <th>#</th>
-                                <th>إسم القسم</th>
+                                <th>إسم المورد</th>
+                                <th>الهاتف</th>
                                 <th>التحكم</th>
                             </tr>
                             </thead>
                             <tbody class="text-white">
-                            @foreach($categories as $category)
+                            @foreach($suppliers as $supplier)
                                 <tr>
                                     <td>{{ $loop->index + 1 }}</td>
-                                    <td>{{ $category->name }}</td>
+                                    <td>{{ $supplier->name }}</td>
+                                    <td>{{ $supplier->phone }}</td>
                                     <td>
-                                        <button class="btn btn-sm btn-info text-white" wire:click="edit({{$category}})">Edit</button> /
-                                        <button class="btn btn-sm btn-danger" wire:click="delete({{$category->id}})">delete</button>
+                                        <button class="btn btn-sm btn-info text-white" wire:click="edit({{$supplier}})">Edit</button> /
+                                        <button class="btn btn-sm btn-danger" wire:click="delete({{$supplier->id}})">delete</button>
                                     </td>
                                 </tr>
                             @endforeach
                             </tbody>
                         </table>
                     @else
-                        <div class="alert alert-danger text-center">لايوجد أقسام ....</div>
+                        <div class="alert alert-danger text-center">لايوجد موردين ....</div>
                     @endif
 
                 </div>

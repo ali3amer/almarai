@@ -1,9 +1,5 @@
 <div>
-    <div class="card bg-white mt-3 ">
-        <div class="card-body p-2">
-            <h3 class="text-center m-0 p-0">{{ $title }}</h3>
-        </div>
-    </div>
+    <x-title :$title ></x-title>
 
     <div class="row mt-2">
         <div class="col-4">
@@ -19,8 +15,7 @@
                         <select wire:model="category_id" class="form-select">
                             <option value="">------------------</option>
                             @foreach($categories as $category)
-
-                                <option value="{{ $category->id }}" {{ $category->id == $category_id ? "selected" : '' }}>{{ $category->name }}</option>
+                                <option value="{{ $category->id }}" @selected($category->id == $category_id)>{{ $category->name }}</option>
                             @endforeach
                         </select>
 

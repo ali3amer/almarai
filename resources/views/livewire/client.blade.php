@@ -6,11 +6,17 @@
             <div class="card bg-white">
                 <div class="card-body">
                     <form action="" wire:submit="save({{ $id }})">
-                        <label for="name" class="form-label">إسم القسم</label>
-                        <input type="text" wire:model="name" class="form-control" placeholder="إسم القسم ..." name="name" id="name">
+                        <label for="name" class="form-label">إسم العميل</label>
+                        <input type="text" wire:model="name" class="form-control" placeholder="إسم العميل ..." id="name">
                         <div>
                             @error('name') <span class="error text-danger">{{ $message }}</span> @enderror
                         </div>
+                        <label for="phone" class="form-label">الهاتف</label>
+                        <input type="text" wire:model="phone" class="form-control" placeholder="الهاتف ..." id="phone">
+                        <div>
+                            @error('phone') <span class="error text-danger">{{ $message }}</span> @enderror
+                        </div>
+
                         <div class="d-grid mt-2">
                             <button class="btn btn- btn-primary">حفـــــــــــــــــــظ</button>
                         </div>
@@ -26,30 +32,32 @@
                 </div>
 
                 <div class="card-body">
-                    @if(count($categories) > 0)
+                    @if(count($clients) > 0)
                         <table class="table table-bordered text-center">
                             <thead>
                             <tr>
                                 <th>#</th>
-                                <th>إسم القسم</th>
+                                <th>إسم العميل</th>
+                                <th>الهاتف</th>
                                 <th>التحكم</th>
                             </tr>
                             </thead>
-                            <tbody class="text-white">
-                            @foreach($categories as $category)
+                            <tbody>
+                            @foreach($clients as $client)
                                 <tr>
                                     <td>{{ $loop->index + 1 }}</td>
-                                    <td>{{ $category->name }}</td>
+                                    <td>{{ $client->name }}</td>
+                                    <td>{{ $client->phone }}</td>
                                     <td>
-                                        <button class="btn btn-sm btn-info text-white" wire:click="edit({{$category}})">Edit</button> /
-                                        <button class="btn btn-sm btn-danger" wire:click="delete({{$category->id}})">delete</button>
+                                        <button class="btn btn-sm btn-info text-white" wire:click="edit({{$client}})">Edit</button> /
+                                        <button class="btn btn-sm btn-danger" wire:click="delete({{$client->id}})">delete</button>
                                     </td>
                                 </tr>
                             @endforeach
                             </tbody>
                         </table>
                     @else
-                        <div class="alert alert-danger text-center">لايوجد أقسام ....</div>
+                        <div class="alert alert-danger text-center">لايوجد عملاء ....</div>
                     @endif
 
                 </div>

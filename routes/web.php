@@ -1,10 +1,15 @@
 <?php
 
+use App\Livewire\Category;
+use App\Livewire\Client;
+use App\Livewire\Counter;
+use App\Livewire\Purchase;
+use App\Livewire\Sale;
+use App\Livewire\Supplier;
+use App\Livewire\Product;
 use Illuminate\Support\Facades\Route;
 
-use App\Livewire\Counter;
-use App\Livewire\Category;
-use \App\Livewire\Product;
+use App\Livewire;
 
 /*
 |--------------------------------------------------------------------------
@@ -24,6 +29,10 @@ Route::get('/', function () {
 Route::get('/counter', Counter::class);
 Route::get('/category', Category::class);
 Route::get('/product', Product::class);
+Route::get('/supplier', Supplier::class);
+Route::get('/client', Client::class);
+Route::get('/purchase', Purchase::class);
+Route::get('/sale', Sale::class);
 
 Auth::routes();
 

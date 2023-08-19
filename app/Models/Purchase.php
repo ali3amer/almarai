@@ -10,4 +10,8 @@ class Purchase extends Model
     use HasFactory;
     protected $guarded = [];
 
+    public function purchaseDetails()
+    {
+        return $this->hasMany(PurchaseDetail::class);
+    }
 }
