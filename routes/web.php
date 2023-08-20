@@ -3,8 +3,11 @@
 use App\Livewire\Category;
 use App\Livewire\Client;
 use App\Livewire\Counter;
+use App\Livewire\Employee;
+use App\Livewire\Expense;
 use App\Livewire\Purchase;
 use App\Livewire\Sale;
+use App\Livewire\Store;
 use App\Livewire\Supplier;
 use App\Livewire\Product;
 use Illuminate\Support\Facades\Route;
@@ -27,12 +30,15 @@ Route::get('/', function () {
 });
 
 Route::get('/counter', Counter::class);
+Route::get('/store', Store::class);
 Route::get('/category', Category::class);
 Route::get('/product', Product::class);
 Route::get('/supplier', Supplier::class);
 Route::get('/client', Client::class);
 Route::get('/purchase', Purchase::class);
 Route::get('/sale', Sale::class);
+Route::get('/expense', Expense::class);
+Route::get('/employee', Employee::class);
 
 Auth::routes();
 
