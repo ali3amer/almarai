@@ -16,6 +16,7 @@ return new class extends Migration
             $table->unsignedBigInteger('category_id');
             $table->foreign('category_id')->references('id')->on('categories');
             $table->string('name');
+            $table->string('unit')->nullable();
             $table->decimal('price', 8, 2)->nullable();
             $table->decimal('quantity', 8, 2)->nullable();
             $table->timestamps();
