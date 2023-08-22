@@ -28,7 +28,7 @@
                         </thead>
                         <tbody>
                         @foreach($products as $product)
-                            <tr>
+                            <tr class="{{ array_key_exists($product['id'], $cart) ? 'visually-hidden' : '' }}">
                                 <td>{{ $loop->index + 1 }}</td>
                                 <td>{{ $product->name }}</td>
                                 <td>
@@ -42,12 +42,12 @@
             </div>
         </div>
         <div class="col-8">
-            @if(!empty($chosenSupplier))
+            @if(!empty($cart))
                 <div class="card bg-white">
                     <div class="card-header">
                         <div class="row">
                             <div class="col-2 align-middle">
-                                {{ $chosenSupplier['name'] }}
+
                             </div>
                             <div class="col-8">
                                 <input wire:model.live="search" class="form-control w-50" placeholder="بحث ......">
@@ -57,38 +57,34 @@
                     </div>
 
                     <div class="card-body">
-                        @if(count($purchases) > 0)
-                            <table class="table table-bordered text-center">
-                                <thead>
+                        <table class="table table-bordered text-center">
+                            <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>إسم المنتج</th>
+                                <th>سعر الوحده</th>
+                                <th>الكميه</th>
+                                <th>السعر</th>
+                                <th>التحكم</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            @foreach($cart as $item)
                                 <tr>
-                                    <th>#</th>
-                                    <th>إسم العميل</th>
-                                    <th>الهاتف</th>
-                                    <th>التحكم</th>
+                                    <td>{{ $loop->index + 1 }}</td>
+                                    <td>{{ $item['name'] }}</td>
+                                    <td><input type="text" style="width: 100px" wire:model="cart.{{$item['id']}}.price" wire:change="calcPrice({{$item['id']}})"></td>
+                                    <td><input type="number" style="width: 100px" wire:model="cart.{{$item['id']}}.quantity" wire:change="calcPrice({{$item['id']}})"></td>
+                                    <td>{{ $this->cart[$item['id']]['amount'] ?? '' }}</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-danger" wire:click="deleteList({{ $item['id'] }})">
+                                            -
+                                        </button>
+                                    </td>
                                 </tr>
-                                </thead>
-                                <tbody>
-                                @foreach($purchases as $purchase)
-                                    <tr>
-                                        <td>{{ $loop->index + 1 }}</td>
-                                        <td>{{ $purchase->name }}</td>
-                                        <td>{{ $purchase->phone }}</td>
-                                        <td>
-                                            <button class="btn btn-sm btn-info text-white" wire:click="edit({{$purchase}})">
-                                                Edit
-                                            </button>
-                                            /
-                                            <button class="btn btn-sm btn-danger" wire:click="delete({{$purchase->id}})">
-                                                delete
-                                            </button>
-                                        </td>
-                                    </tr>
-                                @endforeach
-                                </tbody>
-                            </table>
-                        @else
-                            <div class="alert alert-danger text-center">لايوجد عملاء ....</div>
-                        @endif
+                            @endforeach
+                            </tbody>
+                        </table>
 
                     </div>
                 </div>

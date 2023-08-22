@@ -22,7 +22,9 @@ class Purchase extends Component
     public Collection $suppliers;
     public Collection $products;
     public array $cart = [];
-
+    public float $quantity = 0;
+    public float $price = 0;
+    public float $amount = 0;
     public function save($id)
     {
 
@@ -42,13 +44,21 @@ class Purchase extends Component
 
     }
 
+    public function calcPrice($item)
+    {
+        $this->cart[$item]['amount'] = floatval($this->cart[$item]['quantity']) * floatval($this->cart[$item]['price']);
+    }
+
     public function add($product)
     {
         $this->cart[$product['id']] = $product;
-        if(count($this->cart) > 2 )
-            dd($this->cart);
+        unset($this->products[$product['id']]);
     }
 
+    public function deleteList($item)
+    {
+        unset($this->cart[$item]);
+    }
     public function edit($purchase)
     {
         $this->id = $purchase['id'];
@@ -66,7 +76,7 @@ class Purchase extends Component
     {
         $this->purchases = \App\Models\Purchase::all();
         $this->suppliers = \App\Models\Supplier::where('name', 'LIKE', '%' . $this->search . '%')->get();
-        $this->products = \App\Models\Product::where('name', 'LIKE', '%' . $this->search . '%')->get();
+        $this->products = \App\Models\Product::where('name', 'LIKE', '%' . $this->search . '%')->get()->keyBy('id');
         return view('livewire.purchase');
     }
 }
