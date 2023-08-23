@@ -6,7 +6,7 @@
                 <h1 class="modal-title fs-5" id="staticBackdropLabel">{{ $title }}</h1>
             </div>
             <div class="modal-body">
-                {{ $chosenSupplier['name'] }}
+                {{ $slot }}
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>

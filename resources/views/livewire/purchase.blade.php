@@ -3,10 +3,24 @@
     <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
         Launch static backdrop modal
     </button>
+    @persist('modal')
+    <x-modal title="الموردين">
+        <table class="table table-hover table-bordered">
+            <tr>
+                <th>
+                    <input wire:model.live="supplierSearch" wire:ignore wire:key="supplierSearch"
+                           class="form-control" placeholder="بحث ......">
+                </th>
+            </tr>
+            @foreach($suppliers as $supplier)
+                <tr>
+                    <td>{{ $supplier->name }}</td>
+                </tr>
+            @endforeach
+        </table>
+    </x-modal>
+    @endpersist
 
-@if(!empty($chosenSupplier))
-        <x-modal :$title :$chosenSupplier ></x-modal>
-@endif
 
     <!-- Modal -->
     <x-title :$title></x-title>
@@ -15,7 +29,15 @@
         <div class="col-4">
             <div class="card bg-white">
                 <div class="card-header">
-                    <input wire:model.live="search" class="form-control w-50" placeholder="بحث ......">
+                    <div class="row">
+                        <div class="col-6">
+                            <input wire:model.live="search" class="form-control" placeholder="بحث ......">
+                        </div>
+                        <div class="col-6">
+                            <input data-bs-toggle="modal" data-bs-target="#staticBackdrop" readonly class="form-control"
+                                   placeholder="المورد ....">
+                        </div>
+                    </div>
                 </div>
                 <div class="card-body">
                     <table class="table table-bordered text-center">
@@ -32,7 +54,8 @@
                                 <td>{{ $loop->index + 1 }}</td>
                                 <td>{{ $product->name }}</td>
                                 <td>
-                                    <button class="btn btn-sm btn-info text-white" wire:click="add({{$product}})">+</button>
+                                    <button class="btn btn-sm btn-info text-white" wire:click="add({{$product}})">+
+                                    </button>
                                 </td>
                             </tr>
                         @endforeach
@@ -47,7 +70,8 @@
                     <div class="card-header">
                         <div class="row">
                             <div class="col-2 align-middle">
-
+                                <span>الجمله</span>
+                                <span>{{ number_format($amount, 2) }}</span>
                             </div>
                             <div class="col-8">
                                 <input wire:model.live="search" class="form-control w-50" placeholder="بحث ......">
@@ -73,12 +97,15 @@
                                 <tr>
                                     <td>{{ $loop->index + 1 }}</td>
                                     <td>{{ $item['name'] }}</td>
-                                    <td><input type="text" style="width: 100px" wire:model="cart.{{$item['id']}}.price" wire:change="calcPrice({{$item['id']}})"></td>
-                                    <td><input type="number" style="width: 100px" wire:model="cart.{{$item['id']}}.quantity" wire:change="calcPrice({{$item['id']}})"></td>
-                                    <td>{{ $this->cart[$item['id']]['amount'] ?? '' }}</td>
+                                    <td><input type="text" style="width: 100px" wire:model="cart.{{$item['id']}}.price"
+                                               wire:keydown="calcPrice({{$item['id']}})"></td>
+                                    <td><input type="number" style="width: 100px"
+                                               wire:model="cart.{{$item['id']}}.quantity"
+                                               wire:change="calcPrice({{$item['id']}})"></td>
+                                    <td>{{ number_format($this->cart[$item['id']]['amount'], 2) }}</td>
                                     <td>
-                                        <button class="btn btn-sm btn-danger" wire:click="deleteList({{ $item['id'] }})">
-                                            -
+                                        <button class="btn btn-sm btn-danger"
+                                                wire:click="deleteList({{ $item['id'] }})"> -
                                         </button>
                                     </td>
                                 </tr>
