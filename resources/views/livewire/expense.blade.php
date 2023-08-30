@@ -63,7 +63,7 @@
                             </tbody>
                         </table>
                     @else
-                        <div class="alert alert-danger text-center">لايوجد موظفين ....</div>
+                        <div class="alert alert-danger text-center">لاتوجد مصروفات ....</div>
                     @endif
 
                 </div>

@@ -1,34 +1,66 @@
 <div>
 
 
-
     <!-- Modal -->
     <x-title :$title></x-title>
 
     <div class="row mt-2">
         @if(empty($currentSupplier))
-            <div class="col-3">
+            <div class="col-4">
                 <div class="card">
                     <div class="card-header">
                         <h4>إختر المورد</h4>
                     </div>
                     <div class="card-body">
-                        <table class="table table-hover table-bordered">
+                        <table class="table text-center table-bordered">
                             <tr>
-                                <th>
+                                <th colspan="2">
                                     <input wire:model.live="supplierSearch" class="form-control"
                                            placeholder="بحث ......">
                                 </th>
                             </tr>
                             @foreach($suppliers as $supplier)
-                                <tr wire:click="chooseSupplier({{$supplier}})">
+                                <tr>
                                     <td>{{ $supplier->name }}</td>
+                                    <td>
+                                        <button wire:click="chooseSupplier({{$supplier}})"
+                                                class="btn btn-sm btn-primary">+
+                                        </button>
+                                        /
+                                        <button wire:click="edit({{$supplier->id}})" class="btn btn-sm btn-success">+
+                                        </button>
+                                    </td>
                                 </tr>
                             @endforeach
                         </table>
                     </div>
                 </div>
             </div>
+            @if($editMode && !empty($purchases))
+                <div class="col-6">
+                    <div class="card">
+                        <div class="card-header"><h4>{{ $purchases[0]['name'] }}</h4></div>
+                        <div class="card-body">
+                            @foreach($purchases[0]['purchases'] as $purchase)
+                                <table class="table" wire:click="choosePurchase({{$purchase}})">
+                                    <tr>
+                                        <td>إسم المنتج</td>
+                                        <td>سعر الوحده</td>
+                                        <td>الكميه</td>
+                                    </tr>
+                                        @foreach($purchase->purchaseDetails as $detail)
+                                         <tr>
+                                             <td>{{$detail['product']['productName']}}</td>
+                                             <td>{{$detail->sale_price}}</td>
+                                             <td>{{$detail->sale_price}}</td>
+                                         </tr>
+                                        @endforeach
+                                </table>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+            @endif
         @else
             <div class="col-4">
                 <div class="card bg-white">
@@ -57,7 +89,7 @@
                             @foreach($products as $product)
                                 <tr>
                                     <td>{{ $loop->index + 1 }}</td>
-                                    <td>{{ $product->name }}</td>
+                                    <td>{{ $product->productName }}</td>
                                     <td>
                                         <button class="btn btn-sm btn-info text-white"
                                                 wire:click="chooseProduct({{$product}})">+
@@ -75,13 +107,13 @@
                 <div class="col-3">
                     <div class="card">
                         <div class="card-header">
-                            <h4>{{$currentProduct['name']}}</h4>
+                            <h4>{{$currentProduct['productName']}}</h4>
                         </div>
                         <div class="card-body">
                             <form action="" wire:submit="add({{ $currentProduct['id'] }})">
-                                <label for="price" class="form-label">سعر الوحد</label>
-                                <input type="text" wire:keydown="calcPrice()" wire:model.live="currentProduct.price"
-                                       class="form-control text-center" placeholder="سعر الوحده ..." id="price">
+                                <label for="sale_price" class="form-label">سعر الوحد</label>
+                                <input type="text" wire:keydown="calcPrice()" wire:model.live="currentProduct.sale_price"
+                                       class="form-control text-center" placeholder="سعر الوحده ..." id="sale_price">
                                 <label for="quantity" class="form-label">الكميه</label>
                                 <input type="text" wire:keydown="calcPrice()" wire:model.live="currentProduct.quantity"
                                        class="form-control text-center" placeholder="الكميه ..." id="quantity">
@@ -90,7 +122,7 @@
                                            class="form-label">الجمله</label> {{ number_format($currentProduct['amount'], 2) }}
                                 </div>
                                 <div class="d-grid mt-2">
-                                    <button class="btn btn- btn-primary">حفـــــــــــــــــــظ</button>
+                                    <button wire:loading.attr="disabled" class="btn btn- btn-primary">حفـــــــــــــــــــظ</button>
                                 </div>
 
                             </form>
@@ -103,9 +135,9 @@
                     <div class="card bg-white">
                         <div class="card-header">
                             <div class="row">
-                                <div class="col-4 mt-2 align-middle">
+                                <div class="col-4 align-self-center">
                                     <span>الجمله</span>
-                                    <span>{{ number_format($amount, 2) }}</span>
+                                    <span>{{ number_format($total_amount, 2) }}</span>
                                 </div>
                             </div>
 
@@ -127,10 +159,10 @@
                                 @foreach($cart as $item)
                                     <tr>
                                         <td>{{ $loop->index + 1 }}</td>
-                                        <td>{{ $item['name'] }}</td>
-                                        <td>{{ number_format($item['price'], 2) }}</td>
+                                        <td>{{ $item['productName'] }}</td>
+                                        <td>{{ number_format($item['sale_price'], 2) }}</td>
                                         <td>{{ number_format($item['quantity'], 2) }}</td>
-                                        <td>{{ number_format($item['quantity'] * $item['price'], 2) }}</td>
+                                        <td>{{ number_format($item['quantity'] * $item['sale_price'], 2) }}</td>
                                         <td>
                                             <button class="btn btn-sm btn-danger"
                                                     wire:click="deleteList({{ $item['id'] }})"> -
@@ -146,10 +178,14 @@
 
                         <div class="card-footer">
                             <div class="row">
-                                <div class="col-3"><input wire:model="amount" disabled class="form-control" placeholder="التخفيض ...." wire:keydown="calcDiscount()"></div>
-                                <div class="col-3"><input wire:model="discount" class="form-control" placeholder="التخفيض ...." wire:keydown="calcDiscount()"></div>
-                                <div class="col-3"><input wire:model="paid" disabled class="form-control" placeholder="التخفيض ...." wire:keydown="calcDiscount()"></div>
-                                <div class="col-3"><button class="btn btn-primary" wire:click="save()">save</button></div>
+                                <div class="col-3 text-center align-self-center">{{ number_format($total_amount, 2) }}</div>
+                                <div class="col-3"><input wire:model="discount" class="form-control"
+                                                          placeholder="التخفيض ...." wire:keydown="calcDiscount()">
+                                </div>
+                                <div class="col-3 text-center align-self-center">{{ number_format($paid, 2) }}</div>
+                                <div class="col-3">
+                                    <button class="btn btn-primary" wire:click="save()">save</button>
+                                </div>
                             </div>
                         </div>
                     </div>

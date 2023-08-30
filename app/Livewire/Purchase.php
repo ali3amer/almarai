@@ -18,6 +18,7 @@ class Purchase extends Component
     public float $total_amount = 0;
     #[Rule('required|min:2')]
     public string $purchase_date = '';
+    public bool $editMode = false;
     public string $supplierSearch = '';
     public string $search = '';
     public Collection $purchases;
@@ -45,34 +46,37 @@ class Purchase extends Component
                 'purchase_id' => $parchase->id,
                 'product_id' => $item['id'],
                 'quantity' => $item['quantity'],
-                'price' => $item['price'],
+                'sale_price' => $item['sale_price'],
             ]);
         }
 
-        $this->reset('amount', 'discount', 'cart', 'currentSupplier', 'currentProduct');
+        $this->resetData();
+    }
 
+    public function resetData()
+    {
+        $this->reset('amount', 'discount', 'cart', 'currentSupplier', 'currentProduct');
     }
 
     public function calcPrice()
     {
-        $this->amount -= $this->currentProduct['amount'];
-        $this->currentProduct['amount'] = floatval($this->currentProduct['price']) * floatval($this->currentProduct['quantity']);
-        $this->amount += $this->currentProduct['amount'];
+        $this->total_amount -= $this->currentProduct['amount'];
+        $this->currentProduct['amount'] = floatval($this->currentProduct['sale_price']) * floatval($this->currentProduct['quantity']);
+        $this->total_amount += $this->currentProduct['amount'];
     }
 
     public function calcDiscount()
     {
-        $this->paid = $this->amount - $this->discount;
-
+        $this->paid = $this->total_amount - $this->discount;
     }
 
     public function chooseProduct($product)
     {
         $this->currentProduct = [];
         $this->currentProduct = $product;
-        $this->currentProduct['price'] = 0;
+        $this->currentProduct['sale_price'] = 0;
         $this->currentProduct['quantity'] = 1;
-        $this->currentProduct['amount'] = floatval($this->currentProduct['price']) * floatval($this->currentProduct['quantity']);
+        $this->currentProduct['amount'] = floatval($this->currentProduct['sale_price']) * floatval($this->currentProduct['quantity']);
 
     }
 
@@ -80,14 +84,23 @@ class Purchase extends Component
     {
         $this->cart[$id] = [
             'id' => $this->currentProduct['id'],
-            'name' => $this->currentProduct['name'],
-            'price' => $this->currentProduct['price'],
+            'productName' => $this->currentProduct['productName'],
+            'sale_price' => $this->currentProduct['sale_price'],
             'quantity' => $this->currentProduct['quantity'],
             'amount' => $this->currentProduct['amount'],
         ];
 //        $this->currentProduct = [];
     }
 
+    public function choosePurchase($purchase)
+    {
+        $this->cart = $purchase['purchase_details'];
+        dd($this->cart);
+        $this->currentSupplier = ['id' => $this->purchases[0]['id'], 'name' => $this->purchases[0]['name']];
+        $this->editMode = false;
+
+
+    }
 
     public function deleteList($id)
     {
@@ -96,11 +109,15 @@ class Purchase extends Component
     }
 
 
-    public function edit($purchase)
+    public function edit($id)
+
     {
-        $this->id = $purchase['id'];
-        $this->name = $purchase['name'];
-        $this->phone = $purchase['phone'];
+        $this->editMode = true;
+        $this->purchases = \App\Models\Supplier::join('purchases', 'suppliers.id', '=', 'purchases.supplier_id')->join('purchase_details', 'purchases.id', '=', 'purchase_details.purchase_id')->join('products', 'purchase_details.product_id', '=', 'products.id')->where('suppliers.id', $id)->select('suppliers.*', 'products.*')->get();
+        dd($this->purchases);
+//        $this->purchases = \App\Models\Supplier::find($id)->with('purchases.purchaseDetails.product:productName')->get();
+//        dd($this->purchases[0]['purchases'][0]['purchaseDetails']);
+//        dd($this->purchases[0]);
     }
 
     public function delete($id)
@@ -111,6 +128,7 @@ class Purchase extends Component
 
     public function chooseSupplier($supplier = [])
     {
+        $this->editMode = false;
         if (empty($supplier)) {
             $this->currentSupplier = [];
         } else {
@@ -121,9 +139,9 @@ class Purchase extends Component
 
     public function render()
     {
-        $this->purchases = \App\Models\Purchase::all();
         $this->suppliers = \App\Models\Supplier::where('name', 'LIKE', '%' . $this->supplierSearch . '%')->get();
-        $this->products = \App\Models\Product::where('name', 'LIKE', '%' . $this->search . '%')->get(['id', 'name'])->keyBy('id');
+        $this->products = \App\Models\Product::where('productName', 'LIKE', '%' . $this->search . '%')->get(['id', 'productName'])->keyBy('id');
         return view('livewire.purchase');
     }
+
 }

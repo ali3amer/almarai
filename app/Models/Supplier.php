@@ -10,4 +10,9 @@ class Supplier extends Model
     use HasFactory;
     protected $guarded = [];
 
+    public function purchases()
+    {
+        return $this->hasMany(Purchase::class);
+    }
+
 }
