@@ -51,8 +51,8 @@
                                         @foreach($purchase->purchaseDetails as $detail)
                                          <tr>
                                              <td>{{$detail['product']['productName']}}</td>
-                                             <td>{{$detail->sale_price}}</td>
-                                             <td>{{$detail->sale_price}}</td>
+                                             <td>{{$detail->price}}</td>
+                                             <td>{{$detail->price}}</td>
                                          </tr>
                                         @endforeach
                                 </table>
@@ -111,9 +111,9 @@
                         </div>
                         <div class="card-body">
                             <form action="" wire:submit="add({{ $currentProduct['id'] }})">
-                                <label for="sale_price" class="form-label">سعر الوحد</label>
-                                <input type="text" wire:keydown="calcPrice()" wire:model.live="currentProduct.sale_price"
-                                       class="form-control text-center" placeholder="سعر الوحده ..." id="sale_price">
+                                <label for="price" class="form-label">سعر الوحد</label>
+                                <input type="text" wire:keydown="calcPrice()" wire:model.live="currentProduct.price"
+                                       class="form-control text-center" placeholder="سعر الوحده ..." id="price">
                                 <label for="quantity" class="form-label">الكميه</label>
                                 <input type="text" wire:keydown="calcPrice()" wire:model.live="currentProduct.quantity"
                                        class="form-control text-center" placeholder="الكميه ..." id="quantity">
@@ -160,9 +160,9 @@
                                     <tr>
                                         <td>{{ $loop->index + 1 }}</td>
                                         <td>{{ $item['productName'] }}</td>
-                                        <td>{{ number_format($item['sale_price'], 2) }}</td>
+                                        <td>{{ number_format($item['price'], 2) }}</td>
                                         <td>{{ number_format($item['quantity'], 2) }}</td>
-                                        <td>{{ number_format($item['quantity'] * $item['sale_price'], 2) }}</td>
+                                        <td>{{ number_format($item['quantity'] * $item['price'], 2) }}</td>
                                         <td>
                                             <button class="btn btn-sm btn-danger"
                                                     wire:click="deleteList({{ $item['id'] }})"> -

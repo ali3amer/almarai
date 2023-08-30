@@ -46,7 +46,7 @@ class Purchase extends Component
                 'purchase_id' => $parchase->id,
                 'product_id' => $item['id'],
                 'quantity' => $item['quantity'],
-                'sale_price' => $item['sale_price'],
+                'price' => $item['price'],
             ]);
         }
 
@@ -61,7 +61,7 @@ class Purchase extends Component
     public function calcPrice()
     {
         $this->total_amount -= $this->currentProduct['amount'];
-        $this->currentProduct['amount'] = floatval($this->currentProduct['sale_price']) * floatval($this->currentProduct['quantity']);
+        $this->currentProduct['amount'] = floatval($this->currentProduct['price']) * floatval($this->currentProduct['quantity']);
         $this->total_amount += $this->currentProduct['amount'];
     }
 
@@ -74,9 +74,9 @@ class Purchase extends Component
     {
         $this->currentProduct = [];
         $this->currentProduct = $product;
-        $this->currentProduct['sale_price'] = 0;
+        $this->currentProduct['price'] = 0;
         $this->currentProduct['quantity'] = 1;
-        $this->currentProduct['amount'] = floatval($this->currentProduct['sale_price']) * floatval($this->currentProduct['quantity']);
+        $this->currentProduct['amount'] = floatval($this->currentProduct['price']) * floatval($this->currentProduct['quantity']);
 
     }
 
@@ -85,7 +85,7 @@ class Purchase extends Component
         $this->cart[$id] = [
             'id' => $this->currentProduct['id'],
             'productName' => $this->currentProduct['productName'],
-            'sale_price' => $this->currentProduct['sale_price'],
+            'price' => $this->currentProduct['price'],
             'quantity' => $this->currentProduct['quantity'],
             'amount' => $this->currentProduct['amount'],
         ];
@@ -95,7 +95,6 @@ class Purchase extends Component
     public function choosePurchase($purchase)
     {
         $this->cart = $purchase['purchase_details'];
-        dd($this->cart);
         $this->currentSupplier = ['id' => $this->purchases[0]['id'], 'name' => $this->purchases[0]['name']];
         $this->editMode = false;
 
@@ -113,8 +112,9 @@ class Purchase extends Component
 
     {
         $this->editMode = true;
-        $this->purchases = \App\Models\Supplier::join('purchases', 'suppliers.id', '=', 'purchases.supplier_id')->join('purchase_details', 'purchases.id', '=', 'purchase_details.purchase_id')->join('products', 'purchase_details.product_id', '=', 'products.id')->where('suppliers.id', $id)->select('suppliers.*', 'products.*')->get();
+        $this->purchases = \App\Models\Purchase::with('purchaseDetails.product', 'supplier')->where('supplier_id', $id)->get();
         dd($this->purchases);
+        $this->purchases = \App\Models\Supplier::join('purchases', 'suppliers.id', '=', 'purchases.supplier_id')->join('purchase_details', 'purchases.id', '=', 'purchase_details.purchase_id')->join('products', 'purchase_details.product_id', '=', 'products.id')->where('suppliers.id', $id)->select('suppliers.*', 'products.*')->get();
 //        $this->purchases = \App\Models\Supplier::find($id)->with('purchases.purchaseDetails.product:productName')->get();
 //        dd($this->purchases[0]['purchases'][0]['purchaseDetails']);
 //        dd($this->purchases[0]);
