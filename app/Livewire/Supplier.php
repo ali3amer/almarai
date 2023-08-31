@@ -11,7 +11,7 @@ class Supplier extends Component
     public string $title = 'الموردين';
     public int $id = 0;
     #[Rule('required|min:2')]
-    public string $name = '';
+    public string $supplierName = '';
     #[Rule('required|min:2')]
     public string $phone = '';
     #[Rule('required|min:2')]
@@ -24,16 +24,18 @@ class Supplier extends Component
 
         if ($this->validate()) {
             if ($this->id == 0) {
-                \App\Models\Supplier::create(['name' => $this->name, 'phone' => $this->phone, 'address' => $this->address,]);
+                \App\Models\Supplier::create(['supplierName' => $this->supplierName, 'phone' => $this->phone, 'address' => $this->address,]);
+                session()->flash('success', 'تمت الاضافه بنجاح');
             } else {
                 $supplier = \App\Models\Supplier::find($id);
-                $supplier->name = $this->name;
+                $supplier->supplierName = $this->supplierName;
                 $supplier->phone = $this->phone;
                 $supplier->address = $this->address;
                 $supplier->save();
+                session()->flash('success', 'تم التعديل بنجاح');
             }
             $this->id = 0;
-            $this->name = '';
+            $this->supplierName = '';
             $this->phone = '';
             $this->address = '';
         }
@@ -43,7 +45,9 @@ class Supplier extends Component
     public function edit($supplier)
     {
         $this->id = $supplier['id'];
-        $this->name = $supplier['name'];
+        $this->supplierName = $supplier['supplierName'];
+        $this->address = $supplier['address'];
+        $this->phone = $supplier['phone'];
     }
 
     public function delete($id)
@@ -54,7 +58,7 @@ class Supplier extends Component
 
     public function render()
     {
-        $this->suppliers = \App\Models\Supplier::where('name', 'like', '%' . $this->search . '%')->get();
+        $this->suppliers = \App\Models\Supplier::where('supplierName', 'like', '%' . $this->search . '%')->get();
         return view('livewire.supplier');
     }
 }

@@ -6,10 +6,10 @@
             <div class="card bg-white">
                 <div class="card-body">
                     <form action="" wire:submit="save({{ $id }})">
-                        <label for="name" class="form-label">إسم العميل</label>
-                        <input type="text" wire:model="name" class="form-control" placeholder="إسم العميل ..." id="name">
+                        <label for="clientName" class="form-label">إسم العميل</label>
+                        <input type="text" wire:model="clientName" class="form-control" placeholder="إسم العميل ..." id="clientName">
                         <div>
-                            @error('name') <span class="error text-danger">{{ $message }}</span> @enderror
+                            @error('clientName') <span class="error text-danger">{{ $message }}</span> @enderror
                         </div>
                         <label for="phone" class="form-label">الهاتف</label>
                         <input type="text" wire:model="phone" class="form-control" placeholder="الهاتف ..." id="phone">
@@ -46,7 +46,7 @@
                             @foreach($clients as $client)
                                 <tr>
                                     <td>{{ $loop->index + 1 }}</td>
-                                    <td>{{ $client->name }}</td>
+                                    <td>{{ $client->clientName }}</td>
                                     <td>{{ $client->phone }}</td>
                                     <td>
                                         <button class="btn btn-sm btn-info text-white" wire:click="edit({{$client}})">Edit</button> /

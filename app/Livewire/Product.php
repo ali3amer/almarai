@@ -26,6 +26,7 @@ class Product extends Component
         if ($this->validate()) {
             if ($this->form->id == 0) {
                 $this->form->store();
+                session()->flash('success', 'تمت الاضافه بنجاح');
             } else {
                 $this->form->update();
             }
@@ -35,8 +36,11 @@ class Product extends Component
 
     public function edit($product)
     {
-        $this->form = $product;
-        dd($this->form);
+        $this->form->id = $product['id'];
+        $this->form->category_id = $product['category_id'];
+        $this->form->store_id = $product['store_id'];
+        $this->form->productName = $product['productName'];
+        $this->form->sale_price = $product['sale_price'];
     }
 
     public function delete($id)
@@ -48,13 +52,13 @@ class Product extends Component
     public function render()
     {
         if ($this->store_id != 0 && $this->category_id != 0) {
-            $this->products = \App\Models\Product::join('categories', 'products.category_id', '=', 'categories.id')->join('stores', 'products.store_id', '=', 'stores.id')->select('products.*', 'categories.name as cat_name', 'stores.name as store_name')->where('productName', 'LIKE', '%' . $this->search . '%')->where('store_id', $this->store_id)->where('category_id', $this->category_id)->get();
+            $this->products = \App\Models\Product::join('categories', 'products.category_id', '=', 'categories.id')->join('stores', 'products.store_id', '=', 'stores.id')->select('products.*', 'categories.categoryName', 'stores.storeName')->where('productName', 'LIKE', '%' . $this->search . '%')->where('store_id', $this->store_id)->where('category_id', $this->category_id)->get();
         } elseif ($this->store_id != 0) {
-            $this->products = \App\Models\Product::join('categories', 'products.category_id', '=', 'categories.id')->join('stores', 'products.store_id', '=', 'stores.id')->select('products.*', 'categories.name as cat_name', 'stores.name as store_name')->where('productName', 'LIKE', '%' . $this->search . '%')->where('store_id', $this->store_id)->get();
+            $this->products = \App\Models\Product::join('categories', 'products.category_id', '=', 'categories.id')->join('stores', 'products.store_id', '=', 'stores.id')->select('products.*', 'categories.categoryName', 'stores.storeName')->where('productName', 'LIKE', '%' . $this->search . '%')->where('store_id', $this->store_id)->get();
         } elseif ($this->category_id != 0) {
-            $this->products = \App\Models\Product::join('categories', 'products.category_id', '=', 'categories.id')->join('stores', 'products.store_id', '=', 'stores.id')->select('products.*', 'categories.name as cat_name', 'stores.name as store_name')->where('productName', 'LIKE', '%' . $this->search . '%')->where('category_id', $this->category_id)->get();
+            $this->products = \App\Models\Product::join('categories', 'products.category_id', '=', 'categories.id')->join('stores', 'products.store_id', '=', 'stores.id')->select('products.*', 'categories.categoryName', 'stores.storeName')->where('productName', 'LIKE', '%' . $this->search . '%')->where('category_id', $this->category_id)->get();
         } else {
-            $this->products = \App\Models\Product::join('categories', 'products.category_id', '=', 'categories.id')->join('stores', 'products.store_id', '=', 'stores.id')->select('products.*', 'categories.name as cat_name', 'stores.name as store_name')->where('productName', 'LIKE', '%' . $this->search . '%')->get();
+            $this->products = \App\Models\Product::join('categories', 'products.category_id', '=', 'categories.id')->join('stores', 'products.store_id', '=', 'stores.id')->select('products.*', 'categories.categoryName', 'stores.storeName')->where('productName', 'LIKE', '%' . $this->search . '%')->get();
         }
         $this->stores = \App\Models\Store::all();
         $this->categories = \App\Models\Category::all();

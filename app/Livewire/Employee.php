@@ -12,7 +12,7 @@ class Employee extends Component
     public string $title = 'الموظفين';
     public int $id = 0;
     #[Rule('required|min:2')]
-    public string $name = '';
+    public string $employeeName = '';
     #[Rule('required|min:2')]
     public float $salary = 0;
     public  string $search = '';
@@ -23,15 +23,15 @@ class Employee extends Component
 
         if ($this->validate()) {
             if ($this->id == 0) {
-                \App\Models\Employee::create(['name' => $this->name, 'salary' => $this->salary]);
+                \App\Models\Employee::create(['employeeName' => $this->employeeName, 'salary' => $this->salary]);
             } else {
                 $employee = \App\Models\Employee::find($id);
-                $employee->name = $this->name;
+                $employee->employeeName = $this->employeeName;
                 $employee->salary = $this->salary;
                 $employee->save();
             }
             $this->id = 0;
-            $this->name = '';
+            $this->employeeName = '';
             $this->salary = 0;
         }
 
@@ -40,7 +40,7 @@ class Employee extends Component
     public function edit($employee)
     {
         $this->id = $employee['id'];
-        $this->name = $employee['name'];
+        $this->employeeName = $employee['employeeName'];
         $this->salary = $employee['salary'];
     }
 
@@ -54,7 +54,7 @@ class Employee extends Component
 
     public function render()
     {
-        $this->employees = \App\Models\Employee::where('name', 'like', '%' . $this->search . '%')->get();
+        $this->employees = \App\Models\Employee::where('employeeName', 'like', '%' . $this->search . '%')->get();
 
         return view('livewire.employee');
     }

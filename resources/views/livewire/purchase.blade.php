@@ -21,7 +21,7 @@
                             </tr>
                             @foreach($suppliers as $supplier)
                                 <tr>
-                                    <td>{{ $supplier->name }}</td>
+                                    <td>{{ $supplier->supplierName }}</td>
                                     <td>
                                         <button wire:click="chooseSupplier({{$supplier}})"
                                                 class="btn btn-sm btn-primary">+
@@ -38,27 +38,30 @@
             </div>
             @if($editMode && !empty($purchases))
                 <div class="col-6">
-                    <div class="card">
-                        <div class="card-header"><h4>{{ $purchases[0]['name'] }}</h4></div>
-                        <div class="card-body">
-                            @foreach($purchases[0]['purchases'] as $purchase)
+                    @foreach($purchases as $purchase)
+                        <div class="card">
+                            <div class="card-header" data-bs-toggle="collapse" data-bs-target="{{'#collapseExample'.$purchase->id}}"
+                                 aria-expanded="false" aria-controls="{{'collapseExample'.$purchase->id}}"><h4>{{$purchase->id}}</h4></div>
+                            <div class="card-body collapse" id="{{'collapseExample'.$purchase->id}}">
                                 <table class="table" wire:click="choosePurchase({{$purchase}})">
                                     <tr>
                                         <td>إسم المنتج</td>
                                         <td>سعر الوحده</td>
                                         <td>الكميه</td>
+                                        <td>الجمله</td>
                                     </tr>
-                                        @foreach($purchase->purchaseDetails as $detail)
-                                         <tr>
-                                             <td>{{$detail['product']['productName']}}</td>
-                                             <td>{{$detail->price}}</td>
-                                             <td>{{$detail->price}}</td>
-                                         </tr>
-                                        @endforeach
+                                    @foreach($purchase->purchaseDetails as $detail)
+                                        <tr>
+                                            <td>{{ $detail->product->productName }}</td>
+                                            <td>{{ $detail->price }}</td>
+                                            <td>{{ $detail->quantity }}</td>
+                                            <td>{{ $detail->price * $detail->quantity }}</td>
+                                        </tr>
+                                    @endforeach
                                 </table>
-                            @endforeach
+                            </div>
                         </div>
-                    </div>
+                    @endforeach
                 </div>
             @endif
         @else
@@ -122,7 +125,9 @@
                                            class="form-label">الجمله</label> {{ number_format($currentProduct['amount'], 2) }}
                                 </div>
                                 <div class="d-grid mt-2">
-                                    <button wire:loading.attr="disabled" class="btn btn- btn-primary">حفـــــــــــــــــــظ</button>
+                                    <button wire:loading.attr="disabled" class="btn btn- btn-primary">
+                                        حفـــــــــــــــــــظ
+                                    </button>
                                 </div>
 
                             </form>
@@ -178,7 +183,8 @@
 
                         <div class="card-footer">
                             <div class="row">
-                                <div class="col-3 text-center align-self-center">{{ number_format($total_amount, 2) }}</div>
+                                <div
+                                    class="col-3 text-center align-self-center">{{ number_format($total_amount, 2) }}</div>
                                 <div class="col-3"><input wire:model="discount" class="form-control"
                                                           placeholder="التخفيض ...." wire:keydown="calcDiscount()">
                                 </div>

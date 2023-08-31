@@ -12,10 +12,11 @@ class ProductForm extends Form
     #[Rule('required|min:2')]
     public string $productName = '';
 
-    #[Rule('required|integer')]
+    #[Rule('required|numeric|min:1')]
     public int $store_id = 0;
-    #[Rule('required|integer')]
+    #[Rule('required|numeric|min:1')]
     public int $category_id = 0;
+    #[Rule('required|numeric|min:1')]
     public float $sale_price = 0;
 
     public function store()

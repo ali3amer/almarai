@@ -11,7 +11,7 @@ class Client extends Component
     public string $title = 'العملاء';
     public int $id = 0;
     #[Rule('required|min:2')]
-    public string $name = '';
+    public string $clientName = '';
     #[Rule('required|min:2')]
     public string $phone = '';
     public string $search = '';
@@ -22,15 +22,15 @@ class Client extends Component
 
         if ($this->validate()) {
             if ($this->id == 0) {
-                \App\Models\Client::create(['name' => $this->name, 'phone' => $this->phone]);
+                \App\Models\Client::create(['clientName' => $this->clientName, 'phone' => $this->phone]);
             } else {
                 $client = \App\Models\Client::find($id);
-                $client->name = $this->name;
+                $client->clientName = $this->clientName;
                 $client->phone = $this->phone;
                 $client->save();
             }
             $this->id = 0;
-            $this->name = '';
+            $this->clientName = '';
             $this->phone = '';
         }
 
@@ -39,7 +39,7 @@ class Client extends Component
     public function edit($client)
     {
         $this->id = $client['id'];
-        $this->name = $client['name'];
+        $this->clientName = $client['clientName'];
         $this->phone = $client['phone'];
     }
 
@@ -50,7 +50,7 @@ class Client extends Component
     }
     public function render()
     {
-        $this->clients = \App\Models\Client::where('name', 'like', '%' . $this->search . '%')->orWhere('phone', 'like', '%' . $this->search . '%')->get();
+        $this->clients = \App\Models\Client::where('clientName', 'like', '%' . $this->search . '%')->orWhere('phone', 'like', '%' . $this->search . '%')->get();
         return view('livewire.client');
     }
 }

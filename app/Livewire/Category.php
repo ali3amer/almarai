@@ -11,7 +11,7 @@ class Category extends Component
     public string $title = 'الأقسام';
     public int $id = 0;
     #[Rule('required|min:2')]
-    public string $name = '';
+    public string $categoryName = '';
     public  string $search = '';
     public Collection $categories;
 
@@ -20,14 +20,14 @@ class Category extends Component
 
         if ($this->validate()) {
             if ($this->id == 0) {
-                \App\Models\Category::create(['name' => $this->name]);
+                \App\Models\Category::create(['categoryName' => $this->categoryName]);
             } else {
                 $category = \App\Models\Category::find($id);
-                $category->name = $this->name;
+                $category->categoryName = $this->categoryName;
                 $category->save();
             }
             $this->id = 0;
-            $this->name = '';
+            $this->categoryName = '';
         }
 
     }
@@ -35,7 +35,7 @@ class Category extends Component
     public function edit($category)
     {
         $this->id = $category['id'];
-        $this->name = $category['name'];
+        $this->categoryName = $category['categoryName'];
     }
 
     public function delete($id)
@@ -49,7 +49,7 @@ class Category extends Component
 
     public function render()
     {
-        $this->categories = \App\Models\Category::where('name', 'like', '%' . $this->search . '%')->get();
+        $this->categories = \App\Models\Category::where('categoryName', 'like', '%' . $this->search . '%')->get();
 
         return view('livewire.category');
     }

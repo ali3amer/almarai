@@ -6,8 +6,8 @@
             <div class="card bg-white mb-2">
                 <div class="card-body">
                     <form action="" wire:submit="save({{ $id }})">
-                        <label for="name" class="form-label">إسم المخزن</label>
-                        <input type="text" wire:model="name" class="form-control" placeholder="إسم المخزن ..." name="name" id="name">
+                        <label for="storeName" class="form-label">إسم المخزن</label>
+                        <input type="text" wire:model="storeName" autocomplete="off" autofocus class="form-control" placeholder="إسم المخزن ..." id="storeName">
                         <div>
                             @error('name') <span class="error text-danger">{{ $message }}</span> @enderror
                         </div>
@@ -38,17 +38,17 @@
                             @foreach($stores as $store)
                                 <tr>
                                     <td>{{ $loop->index + 1 }}</td>
-                                    <td>{{ $store->name }}</td>
+                                    <td>{{ $store->storeName }}</td>
                                     <td>
                                         <button class="btn btn-sm btn-info text-white" wire:click="edit({{$store}})">Edit</button> /
-                                        <button class="btn btn-sm btn-danger" wire:click="delete({{$store->id}})">delete</button>
+                                        <button class="btn btn-sm btn-danger" wire:loading.attr="disabled" wire:click="delete({{$store->id}})">delete</button>
                                     </td>
                                 </tr>
                             @endforeach
                             </tbody>
                         </table>
                     @else
-                        <div class="alert alert-danger text-center">لايوجد أقسام ....</div>
+                        <div class="alert alert-danger text-center">لايوجد مخازن ....</div>
                     @endif
 
                 </div>

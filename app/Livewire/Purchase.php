@@ -94,8 +94,16 @@ class Purchase extends Component
 
     public function choosePurchase($purchase)
     {
-        $this->cart = $purchase['purchase_details'];
-        $this->currentSupplier = ['id' => $this->purchases[0]['id'], 'name' => $this->purchases[0]['name']];
+        $this->currentSupplier = $purchase['supplier'];
+        foreach ($purchase['purchase_details'] as $item) {
+            $this->cart[$item['id']] = [
+                'id' => $item['product_id'],
+                'productName' => $item['product']['productName'],
+                'price' => $item['price'],
+                'quantity' => $item['quantity'],
+            ];
+        }
+
         $this->editMode = false;
 
 
@@ -113,11 +121,6 @@ class Purchase extends Component
     {
         $this->editMode = true;
         $this->purchases = \App\Models\Purchase::with('purchaseDetails.product', 'supplier')->where('supplier_id', $id)->get();
-        dd($this->purchases);
-        $this->purchases = \App\Models\Supplier::join('purchases', 'suppliers.id', '=', 'purchases.supplier_id')->join('purchase_details', 'purchases.id', '=', 'purchase_details.purchase_id')->join('products', 'purchase_details.product_id', '=', 'products.id')->where('suppliers.id', $id)->select('suppliers.*', 'products.*')->get();
-//        $this->purchases = \App\Models\Supplier::find($id)->with('purchases.purchaseDetails.product:productName')->get();
-//        dd($this->purchases[0]['purchases'][0]['purchaseDetails']);
-//        dd($this->purchases[0]);
     }
 
     public function delete($id)
@@ -128,6 +131,7 @@ class Purchase extends Component
 
     public function chooseSupplier($supplier = [])
     {
+        $this->cart = [];
         $this->editMode = false;
         if (empty($supplier)) {
             $this->currentSupplier = [];
@@ -139,7 +143,7 @@ class Purchase extends Component
 
     public function render()
     {
-        $this->suppliers = \App\Models\Supplier::where('name', 'LIKE', '%' . $this->supplierSearch . '%')->get();
+        $this->suppliers = \App\Models\Supplier::where('supplierName', 'LIKE', '%' . $this->supplierSearch . '%')->get();
         $this->products = \App\Models\Product::where('productName', 'LIKE', '%' . $this->search . '%')->get(['id', 'productName'])->keyBy('id');
         return view('livewire.purchase');
     }

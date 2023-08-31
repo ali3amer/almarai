@@ -6,10 +6,10 @@
             <div class="card bg-white">
                 <div class="card-body">
                     <form action="" wire:submit="save({{ $id }})">
-                        <label for="name" class="form-label">إسم القسم</label>
-                        <input type="text" wire:model="name" class="form-control" placeholder="إسم القسم ..." name="name" id="name">
+                        <label for="categoryName" class="form-label">إسم القسم</label>
+                        <input type="text" wire:model="categoryName" class="form-control" placeholder="إسم القسم ..." id="categoryName">
                         <div>
-                            @error('name') <span class="error text-danger">{{ $message }}</span> @enderror
+                            @error('categoryName') <span class="error text-danger">{{ $message }}</span> @enderror
                         </div>
                         <div class="d-grid mt-2">
                             <button class="btn btn- btn-primary">حفـــــــــــــــــــظ</button>
@@ -39,7 +39,7 @@
                             @foreach($categories as $category)
                                 <tr>
                                     <td>{{ $loop->index + 1 }}</td>
-                                    <td>{{ $category->name }}</td>
+                                    <td>{{ $category->categoryName }}</td>
                                     <td>
                                         <button class="btn btn-sm btn-info text-white" wire:click="edit({{$category}})">Edit</button> /
                                         <button class="btn btn-sm btn-danger" wire:click="delete({{$category->id}})">delete</button>

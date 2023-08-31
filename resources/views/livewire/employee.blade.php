@@ -6,13 +6,13 @@
             <div class="card bg-white">
                 <div class="card-body">
                     <form action="" wire:submit="save({{ $id }})">
-                        <label for="name" class="form-label">إسم الموظف</label>
-                        <input type="text" wire:model="name" class="form-control" placeholder="إسم الموظف ..." name="name" id="name">
+                        <label for="employeeName" class="form-label">إسم الموظف</label>
+                        <input type="text" wire:model="employeeName" class="form-control" placeholder="إسم الموظف ..." id="employeeName">
                         <div>
-                            @error('name') <span class="error text-danger">{{ $message }}</span> @enderror
+                            @error('employeeName') <span class="error text-danger">{{ $message }}</span> @enderror
                         </div>
-                        <label for="name" class="form-label">المرتب</label>
-                        <input type="text" wire:model="salary" class="form-control" placeholder="المرتب" name="salary" id="salary">
+                        <label for="employeeName" class="form-label">المرتب</label>
+                        <input type="text" wire:model="salary" class="form-control" placeholder="المرتب" id="salary">
                         <div>
                             @error('salary') <span class="error text-danger">{{ $message }}</span> @enderror
                         </div>
@@ -45,7 +45,7 @@
                             @foreach($employees as $category)
                                 <tr>
                                     <td>{{ $loop->index + 1 }}</td>
-                                    <td>{{ $category->name }}</td>
+                                    <td>{{ $category->employeeName }}</td>
                                     <td>{{ number_format($category->salary, 2) }}</td>
                                     <td>
                                         <button class="btn btn-sm btn-info text-white" wire:click="edit({{$category}})">Edit</button> /
