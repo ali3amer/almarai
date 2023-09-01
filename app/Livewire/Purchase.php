@@ -21,6 +21,7 @@ class Purchase extends Component
     public bool $editMode = false;
     public string $supplierSearch = '';
     public string $search = '';
+    public string $searchPurchase = '';
     public Collection $purchases;
     public Collection $suppliers;
     public Collection $products;
@@ -33,21 +34,41 @@ class Purchase extends Component
 
     public function save()
     {
-        $parchase = \App\Models\Purchase::create([
-            'supplier_id' => $this->currentSupplier['id'],
-            'discount' => $this->discount,
-            'paid' => $this->paid,
-            'total_amount' => $this->amount,
-            'purchase_date' => now()
-        ]);
-
-        foreach ($this->cart as $item) {
-            PurchaseDetail::create([
-                'purchase_id' => $parchase->id,
-                'product_id' => $item['id'],
-                'quantity' => $item['quantity'],
-                'price' => $item['price'],
+        if($this->id == 0) {
+            $parchase = \App\Models\Purchase::create([
+                'supplier_id' => $this->currentSupplier['id'],
+                'discount' => $this->discount,
+                'paid' => $this->paid,
+                'total_amount' => $this->total_amount,
+                'purchase_date' => now()
             ]);
+
+            foreach ($this->cart as $item) {
+                PurchaseDetail::create([
+                    'purchase_id' => $parchase->id,
+                    'product_id' => $item['id'],
+                    'quantity' => $item['quantity'],
+                    'price' => $item['price'],
+                ]);
+            }
+        } else {
+            $purchase = \App\Models\Purchase::find($this->id)->update([
+                'discount' => $this->discount,
+                'paid' => $this->paid,
+                'total_amount' => $this->total_amount,
+                'purchase_date' => now()
+            ]);
+
+            PurchaseDetail::where('purchase_id', $this->id)->delete();
+
+            foreach ($this->cart as $item) {
+                PurchaseDetail::create([
+                    'purchase_id' => $this->id,
+                    'product_id' => $item['id'],
+                    'quantity' => $item['quantity'],
+                    'price' => $item['price'],
+                ]);
+            }
         }
 
         $this->resetData();
@@ -55,7 +76,7 @@ class Purchase extends Component
 
     public function resetData()
     {
-        $this->reset('amount', 'discount', 'cart', 'currentSupplier', 'currentProduct');
+        $this->reset('amount', 'discount', 'cart', 'currentSupplier', 'currentProduct', 'id', 'total_amount');
     }
 
     public function calcPrice()
@@ -89,18 +110,24 @@ class Purchase extends Component
             'quantity' => $this->currentProduct['quantity'],
             'amount' => $this->currentProduct['amount'],
         ];
+        $this->calcDiscount();
 //        $this->currentProduct = [];
     }
 
     public function choosePurchase($purchase)
     {
+        $this->total_amount = $purchase['total_amount'];
+        $this->discount = $purchase['discount'];
+        $this->paid = $purchase['paid'];
+        $this->id = $purchase['id'];
         $this->currentSupplier = $purchase['supplier'];
         foreach ($purchase['purchase_details'] as $item) {
-            $this->cart[$item['id']] = [
+            $this->cart[$item['product_id']] = [
                 'id' => $item['product_id'],
                 'productName' => $item['product']['productName'],
                 'price' => $item['price'],
                 'quantity' => $item['quantity'],
+                'amount' => $item['quantity'] * $item['price'],
             ];
         }
 
@@ -111,16 +138,25 @@ class Purchase extends Component
 
     public function deleteList($id)
     {
-        $this->amount -= $this->cart[$id]['amount'];
+        $this->total_amount -= $this->cart[$id]['amount'];
+        $this->calcDiscount();
         unset($this->cart[$id]);
     }
 
 
-    public function edit($id)
+    public function edit($supplier)
 
     {
+        $this->currentSupplier = $supplier;
         $this->editMode = true;
-        $this->purchases = \App\Models\Purchase::with('purchaseDetails.product', 'supplier')->where('supplier_id', $id)->get();
+        $this->purchases = \App\Models\Purchase::with('purchaseDetails.product', 'supplier')->where('supplier_id', $supplier['id'])->get();
+    }
+
+    public function purchaseSearch()
+    {
+
+        $this->purchases = \App\Models\Purchase::with('purchaseDetails.product', 'supplier')
+            ->join('suppliers',  'suppliers.id', '=', 'purchases.supplier_id')->select('purchases.*', 'suppliers.supplierName')->where('supplier_id', $this->currentSupplier['id'])->where('purchases.id', $this->searchPurchase)->get();
     }
 
     public function delete($id)
@@ -131,8 +167,7 @@ class Purchase extends Component
 
     public function chooseSupplier($supplier = [])
     {
-        $this->cart = [];
-        $this->editMode = false;
+        $this->resetData();
         if (empty($supplier)) {
             $this->currentSupplier = [];
         } else {

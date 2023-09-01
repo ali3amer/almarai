@@ -1,11 +1,55 @@
 <div>
+    <button class="btn btn-primary" type="button" data-bs-toggle="offcanvas" data-bs-target="#staticBackdrop"
+            aria-controls="staticBackdrop">
+        Button with data-bs-target
+    </button>
 
 
-    <!-- Modal -->
+    <div wire:ignore.self class="offcanvas offcanvas-end" data-bs-backdrop="static" tabindex="-1" id="staticBackdrop"
+         aria-labelledby="staticBackdropLabel">
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="offcanvasExampleLabel">Offcanvas</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+            <div class="card">
+                <div class="card-header">
+                    <h4>إختر المورد</h4>
+                </div>
+                <div class="card-body">
+                    <table class="table text-center table-bordered">
+                        <tr>
+                            <th colspan="2">
+                                <input wire:model.live="supplierSearch" class="form-control"
+                                       placeholder="بحث ......">
+                            </th>
+                        </tr>
+                        @foreach($suppliers as $supplier)
+                            <tr>
+                                <td>{{ $supplier->supplierName }}</td>
+                                <td>
+                                    <button wire:click="chooseSupplier({{$supplier}})"
+                                            class="btn btn-sm btn-primary">+
+                                    </button>
+                                    /
+                                    <button wire:click="edit({{$supplier}})" class="btn btn-sm btn-success">+
+                                    </button>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <x-modal :$title/>
+
     <x-title :$title></x-title>
 
     <div class="row mt-2">
-        @if(empty($currentSupplier))
+        @if($editMode || empty($currentSupplier))
             <div class="col-4">
                 <div class="card">
                     <div class="card-header">
@@ -27,7 +71,7 @@
                                                 class="btn btn-sm btn-primary">+
                                         </button>
                                         /
-                                        <button wire:click="edit({{$supplier->id}})" class="btn btn-sm btn-success">+
+                                        <button wire:click="edit({{$supplier}})" class="btn btn-sm btn-success">+
                                         </button>
                                     </td>
                                 </tr>
@@ -38,10 +82,17 @@
             </div>
             @if($editMode && !empty($purchases))
                 <div class="col-6">
+                    <input wire:model.live="searchPurchase" wire:click="purchaseSearch()" class="form-control">
                     @foreach($purchases as $purchase)
-                        <div class="card">
-                            <div class="card-header" data-bs-toggle="collapse" data-bs-target="{{'#collapseExample'.$purchase->id}}"
-                                 aria-expanded="false" aria-controls="{{'collapseExample'.$purchase->id}}"><h4>{{$purchase->id}}</h4></div>
+                        <div class="card mt-2">
+                            <div class="card-header" data-bs-toggle="collapse"
+                                 data-bs-target="{{'#collapseExample'.$purchase->id}}"
+                                 aria-expanded="false" aria-controls="{{'collapseExample'.$purchase->id}}">
+                                <div class="row">
+                                    <div class="col-6"><h6>{{$purchase->id}}</h6></div>
+                                    <div class="col-6"><h6>{{$purchase->purchase_date}}</h6></div>
+                                </div>
+                            </div>
                             <div class="card-body collapse" id="{{'collapseExample'.$purchase->id}}">
                                 <table class="table" wire:click="choosePurchase({{$purchase}})">
                                     <tr>
@@ -59,6 +110,13 @@
                                         </tr>
                                     @endforeach
                                 </table>
+                                <div class="row">
+                                    <div class="col-4"><span>الجمله: </span><span>{{$purchase['total_amount']}}</span>
+                                    </div>
+                                    <div class="col-4"><span>التخفيض: </span><span>{{$purchase['discount']}}</span>
+                                    </div>
+                                    <div class="col-4"><span>الصافي: </span><span>{{$purchase['paid']}}</span></div>
+                                </div>
                             </div>
                         </div>
                     @endforeach
@@ -73,8 +131,8 @@
                                 <input wire:model.live="search" class="form-control" placeholder="بحث ......">
                             </div>
                             <div class="col-6">
-                                <input readonly wire:click="chooseSupplier()" class="form-control"
-                                       style="cursor: pointer" wire:model="currentSupplier.name"
+                                <input readonly wire:click="chooseSupplier()" class="form-control text-center"
+                                       style="cursor: pointer" wire:model="currentSupplier.supplierName"
                                        placeholder="المورد ....">
                             </div>
                         </div>
