@@ -76,7 +76,7 @@ class Purchase extends Component
 
     public function resetData()
     {
-        $this->reset('amount', 'discount', 'cart', 'currentSupplier', 'currentProduct', 'id', 'total_amount');
+        $this->reset('amount', 'discount', 'cart', 'currentSupplier', 'currentProduct', 'id', 'total_amount', 'editMode');
     }
 
     public function calcPrice()
