@@ -19,9 +19,9 @@ return new class extends Migration
             $table->foreign('store_id')->references('id')->on('stores');
             $table->string('productName');
             $table->string('unit')->nullable();
-            $table->string('purchase_price')->nullable();
-            $table->decimal('sale_price', 8, 2)->nullable();
-            $table->decimal('stock', 8, 2)->nullable();
+            $table->string('purchase_price')->default(0);
+            $table->decimal('sale_price', 8, 2)->default(0);
+            $table->decimal('stock', 8, 2)->default(0);
             $table->timestamps();
         });
     }

@@ -41,6 +41,8 @@ class Product extends Component
         $this->form->store_id = $product['store_id'];
         $this->form->productName = $product['productName'];
         $this->form->sale_price = $product['sale_price'];
+        $this->form->purchase_price = $product['purchase_price'];
+        $this->form->unit = $product['unit'];
     }
 
     public function delete($id)

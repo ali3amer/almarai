@@ -10,108 +10,132 @@ use Livewire\Component;
 class Purchase extends Component
 {
     public string $title = 'المشتريات';
-    public string $name = '';
     public int $id = 0;
-    #[Rule('required|min:1')]
-    public int $supplier_id = 0;
-    #[Rule('required|min:2')]
-    public float $total_amount = 0;
-    #[Rule('required|min:2')]
-    public string $purchase_date = '';
-    public bool $editMode = false;
-    public string $supplierSearch = '';
+    public string $modalName = '';
+
     public string $search = '';
-    public string $searchPurchase = '';
     public Collection $purchases;
     public Collection $suppliers;
     public Collection $products;
-    public array $cart = [];
-    public float $discount = 0;
+    public string $productSearch = '';
+    public string $supplierSearch = '';
+
+    public float $total_amount = 0;
+    public $discount = 0;
     public float $paid = 0;
-    public float $amount = 0;
+
     public array $currentSupplier = [];
+    public array $oldQuantities = [];
     public array $currentProduct = [];
+    public array $cart = [];
 
     public function save()
     {
-        if($this->id == 0) {
-            $parchase = \App\Models\Purchase::create([
+        if ($this->id == 0) {
+            $purchase = \App\Models\Purchase::create([
                 'supplier_id' => $this->currentSupplier['id'],
-                'discount' => $this->discount,
                 'paid' => $this->paid,
+                'discount' => $this->discount,
                 'total_amount' => $this->total_amount,
-                'purchase_date' => now()
+                'purchase_date' => now(),
             ]);
 
             foreach ($this->cart as $item) {
                 PurchaseDetail::create([
-                    'purchase_id' => $parchase->id,
+                    'purchase_id' => $purchase['id'],
                     'product_id' => $item['id'],
                     'quantity' => $item['quantity'],
-                    'price' => $item['price'],
+                    'price' => $item['sale_price'],
                 ]);
+                \App\Models\Product::where('id', $item['id'])->increment('stock', $item['quantity']);
             }
+            session()->flash('success', 'تم الحفظ بنجاح');
+
         } else {
-            $purchase = \App\Models\Purchase::find($this->id)->update([
-                'discount' => $this->discount,
+            \App\Models\Purchase::where('id', $this->id)->update([
                 'paid' => $this->paid,
+                'discount' => $this->discount,
                 'total_amount' => $this->total_amount,
-                'purchase_date' => now()
             ]);
 
             PurchaseDetail::where('purchase_id', $this->id)->delete();
+
+            foreach ($this->oldQuantities as $key => $quantity) {
+                \App\Models\Product::where('id', $key)->decrement('stock', $quantity);
+            }
 
             foreach ($this->cart as $item) {
                 PurchaseDetail::create([
                     'purchase_id' => $this->id,
                     'product_id' => $item['id'],
                     'quantity' => $item['quantity'],
-                    'price' => $item['price'],
+                    'price' => $item['sale_price'],
                 ]);
+                \App\Models\Product::where('id', $item['id'])->increment('stock', $item['quantity']);
             }
+            session()->flash('success', 'تم التعديل بنجاح');
+
+
         }
-
         $this->resetData();
+
     }
 
-    public function resetData()
+    public function edit($purchase)
     {
-        $this->reset('amount', 'discount', 'cart', 'currentSupplier', 'currentProduct', 'id', 'total_amount', 'editMode');
+
     }
 
-    public function calcPrice()
+    public function delete($id)
     {
-        $this->total_amount -= $this->currentProduct['amount'];
-        $this->currentProduct['amount'] = floatval($this->currentProduct['price']) * floatval($this->currentProduct['quantity']);
-        $this->total_amount += $this->currentProduct['amount'];
+
     }
 
-    public function calcDiscount()
+    public function chooseSupplier($supplier)
     {
-        $this->paid = $this->total_amount - $this->discount;
+        $this->currentSupplier = [];
+        $this->currentSupplier = $supplier;
     }
 
     public function chooseProduct($product)
     {
-        $this->currentProduct = [];
         $this->currentProduct = $product;
-        $this->currentProduct['price'] = 0;
         $this->currentProduct['quantity'] = 1;
-        $this->currentProduct['amount'] = floatval($this->currentProduct['price']) * floatval($this->currentProduct['quantity']);
-
+        $this->currentProduct['amount'] = $product['sale_price'];
+        $this->productSearch = '';
     }
 
-    public function add($id)
+    public function calcCurrentProduct()
     {
-        $this->cart[$id] = [
-            'id' => $this->currentProduct['id'],
-            'productName' => $this->currentProduct['productName'],
-            'price' => $this->currentProduct['price'],
-            'quantity' => $this->currentProduct['quantity'],
-            'amount' => $this->currentProduct['amount'],
-        ];
-        $this->calcDiscount();
-//        $this->currentProduct = [];
+
+        $this->currentProduct['amount'] = floatval($this->currentProduct['sale_price']) * floatval($this->currentProduct['quantity']);
+    }
+
+
+    public function addToCart()
+    {
+        $this->cart[$this->currentProduct['id']] = $this->currentProduct;
+        $this->cart[$this->currentProduct['id']]['amount'] = $this->currentProduct['sale_price'] * $this->currentProduct['quantity'];
+        $this->total_amount += $this->cart[$this->currentProduct['id']]['amount'];
+        $this->paid = $this->total_amount - $this->discount;
+        $this->currentProduct = [];
+    }
+
+    public function deleteFromCart($id)
+    {
+        $this->total_amount -= $this->cart[$id]['amount'];
+        $this->paid = $this->total_amount - $this->discount;
+        unset($this->cart[$id]);
+    }
+
+    public function calcDiscount()
+    {
+        $this->paid = $this->total_amount - floatval($this->discount);
+    }
+
+    public function getPurchases()
+    {
+        $this->purchases = \App\Models\Purchase::where('supplier_id', $this->currentSupplier['id'])->with('purchaseDetails.product')->get();
     }
 
     public function choosePurchase($purchase)
@@ -120,66 +144,30 @@ class Purchase extends Component
         $this->discount = $purchase['discount'];
         $this->paid = $purchase['paid'];
         $this->id = $purchase['id'];
-        $this->currentSupplier = $purchase['supplier'];
-        foreach ($purchase['purchase_details'] as $item) {
-            $this->cart[$item['product_id']] = [
-                'id' => $item['product_id'],
-                'productName' => $item['product']['productName'],
-                'price' => $item['price'],
-                'quantity' => $item['quantity'],
-                'amount' => $item['quantity'] * $item['price'],
+        foreach ($purchase['sale_details'] as $detail) {
+            $this->cart[$detail['product_id']] = [
+                'id' => $detail['product_id'],
+                'purchase_id' => $detail['purchase_id'],
+                'product_id' => $detail['product_id'],
+                'productName' => $detail['product']['productName'],
+                'quantity' => $detail['quantity'],
+                'sale_price' => $detail['price'],
+                'amount' => $detail['price'] * $detail['quantity'],
             ];
+
+            $this->oldQuantities[$detail['product_id']] = $detail['quantity'];
         }
 
-        $this->editMode = false;
-
-
     }
-
-    public function deleteList($id)
+    public function resetData()
     {
-        $this->total_amount -= $this->cart[$id]['amount'];
-        $this->calcDiscount();
-        unset($this->cart[$id]);
+        $this->reset('currentSupplier', 'currentProduct', 'cart', 'search', 'supplierSearch', 'discount', 'paid', 'total_amount', 'id', 'oldQuantities');
     }
-
-
-    public function edit($supplier)
-
-    {
-        $this->currentSupplier = $supplier;
-        $this->editMode = true;
-        $this->purchases = \App\Models\Purchase::with('purchaseDetails.product', 'supplier')->where('supplier_id', $supplier['id'])->get();
-    }
-
-    public function purchaseSearch()
-    {
-
-        $this->purchases = \App\Models\Purchase::with('purchaseDetails.product', 'supplier')
-            ->join('suppliers',  'suppliers.id', '=', 'purchases.supplier_id')->select('purchases.*', 'suppliers.supplierName')->where('supplier_id', $this->currentSupplier['id'])->where('purchases.id', $this->searchPurchase)->get();
-    }
-
-    public function delete($id)
-    {
-        $purchase = \App\Models\Purchase::find($id);
-        $purchase->delete();
-    }
-
-    public function chooseSupplier($supplier = [])
-    {
-        $this->resetData();
-        if (empty($supplier)) {
-            $this->currentSupplier = [];
-        } else {
-            $this->currentSupplier = $supplier;
-        }
-    }
-
 
     public function render()
     {
         $this->suppliers = \App\Models\Supplier::where('supplierName', 'LIKE', '%' . $this->supplierSearch . '%')->get();
-        $this->products = \App\Models\Product::where('productName', 'LIKE', '%' . $this->search . '%')->get(['id', 'productName'])->keyBy('id');
+        $this->products = \App\Models\Product::where('productName', 'LIKE', '%' . $this->productSearch . '%')->get();
         return view('livewire.purchase');
     }
 

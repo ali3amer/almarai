@@ -12,7 +12,7 @@ class modal extends Component
     /**
      * Create a new component instance.
      */
-    public function __construct(public string $title)
+    public function __construct(public collection $clients, public string $id)
     {
         //
     }

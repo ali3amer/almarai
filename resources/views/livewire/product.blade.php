@@ -6,7 +6,6 @@
         <div class="col-4">
             <div class="card bg-white">
                 <div class="card-body">
-                    <x-alert />
                     <form action="" wire:submit="save({{ $form->id }})">
                         <label for="productName" class="form-label">إسم المنتج</label>
                         <input type="text" wire:model="form.productName" class="form-control"
@@ -14,6 +13,14 @@
                         <div>
                             @error('form.productName') <span class="error text-danger">{{ $message }}</span> @enderror
                         </div>
+
+                        <label for="unit" class="form-label">الوحده</label>
+                        <input type="text" wire:model="form.unit" class="form-control"
+                               placeholder="الوحده ..." id="unit">
+                        <div>
+                            @error('form.productName') <span class="error text-danger">{{ $message }}</span> @enderror
+                        </div>
+
                         <label for="store_id" class="form-label">المخزن</label>
                         <select wire:model="form.store_id" class="form-select">
                             <option value=0>------------------</option>
@@ -38,10 +45,16 @@
                             @error('form.category_id') <span class="error text-danger">{{ $message }}</span> @enderror
                         </div>
 
-                        <label for="sale_price" class="form-label">السعر</label>
-                        <input type="text" wire:model="form.sale_price" class="form-control" placeholder="السعر ..." id="productName">
+                        <label for="sale_price" class="form-label">سعر البيع</label>
+                        <input type="text" wire:model="form.sale_price" class="form-control" placeholder="السعر البيع..." id="productName">
                         <div>
                             @error('form.sale_price') <span class="error text-danger">{{ $message }}</span> @enderror
+                        </div>
+
+                        <label for="purchase_price" class="form-label">سعر الجرد</label>
+                        <input type="text" wire:model="form.purchase_price" class="form-control" placeholder="السعر الجرد ..." id="purchase_price">
+                        <div>
+                            @error('form.purchase_price') <span class="error text-danger">{{ $message }}</span> @enderror
                         </div>
                         <div class="d-grid mt-2">
                             <button wire:loading.attr="disabled" class="btn btn- btn-primary">حفــــــــــــــــظ</button>
@@ -84,9 +97,12 @@
                             <tr>
                                 <th>#</th>
                                 <th>إسم المنتج</th>
+                                <th>الوحده</th>
                                 <th>المخزن</th>
                                 <th>القسم</th>
-                                <th>السعر</th>
+                                <th>سعر البيع</th>
+                                <th>سعر الجرد</th>
+                                <th>الكميه</th>
                                 <th>التحكم</th>
                             </tr>
                             </thead>
@@ -95,9 +111,12 @@
                                 <tr>
                                     <td>{{ $loop->index + 1}}</td>
                                     <td>{{ $product->productName }}</td>
+                                    <td>{{ $product->unit }}</td>
                                     <td>{{ $product->storeName }}</td>
                                     <td>{{ $product->categoryName }}</td>
                                     <td>{{ number_format($product->sale_price, 2) }}</td>
+                                    <td>{{ number_format($product->purchase_price, 2) }}</td>
+                                    <td>{{ number_format($product->stock, 2) }}</td>
                                     <td>
                                         <button class="btn btn-sm btn-info text-white" wire:click="edit({{$product}})">
                                             تعديل

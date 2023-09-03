@@ -10,4 +10,14 @@ class SaleDetail extends Model
     use HasFactory;
     protected $guarded = [];
 
+    public function sale()
+    {
+        return $this->belongsTo(Sale::class);
+    }
+
+    public function product()
+    {
+        return $this->belongsTo(Product::class)->select('id', 'productName');
+    }
+
 }

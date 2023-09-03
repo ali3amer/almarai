@@ -10,4 +10,13 @@ class Sale extends Model
     use HasFactory;
     protected $guarded = [];
 
+    public function client()
+    {
+        return $this->belongsTo(Client::class);
+    }
+    public function saleDetails()
+    {
+        return $this->hasMany(SaleDetail::class);
+    }
+
 }

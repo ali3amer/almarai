@@ -1,42 +1,121 @@
 <div>
     <x-title :$title>{{ $currentClient['clientName'] ?? '' }}</x-title>
 
-    <x-modal title="العملاء">
-        <div class="card">
-            <div class="card-body">
-                <div class="card-title">
-                    <div class="row">
-                        <div class="col-4 align-self-center"><h5>العملاء</h5></div>
-                        <div class="col-6"><input type="text" placeholder="بحث ..." class="form-control"
-                                                  wire:model.live="clientSearch"></div>
+    <div wire:ignore.self class="modal fade" id="editPurchase" tabindex="-1" aria-labelledby="exampleModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <h1 class="modal-title fs-5" id="exampleModalLabel">الفواتير</h1>
+                </div>
+                <div class="modal-body">
+                    <div class="card">
+                        <div class="card-body">
+
+                            <div class="accordion" id="accordionExample">
+                                @if(!empty($sales))
+                                    @foreach($sales as $sale)
+                                        <div class="accordion-item">
+                                            <h2 class="accordion-header">
+                                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse.{{$sale->id}}" aria-expanded="false" aria-controls="collapse.{{$sale->id}}">
+                                                    {{$sale->id}}: {{$sale->sale_date}}
+                                                </button>
+                                            </h2>
+                                            <div id="collapse.{{$sale->id}}" class="accordion-collapse collapse" data-bs-parent="#accordionExample">
+                                                <div class="accordion-body">
+                                                    <table class="table table-responsive" data-bs-dismiss="modal" aria-label="Close" wire:click="chooseSale({{$sale}})">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>إسم المنتج</th>
+                                                                <th>السعر</th>
+                                                                <th>الكميه</th>
+                                                                <th>الجمله</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                        @foreach($sale->saleDetails as $detail)
+                                                            <tr>
+                                                                <td>{{$detail->product->productName}}</td>
+                                                                <td>{{$detail->price}}</td>
+                                                                <td>{{$detail->quantity}}</td>
+                                                                <td>{{$detail->price*$detail->quantity}}</td>
+                                                            </tr>
+                                                        @endforeach
+                                                        <tr><td>الجمله: </td><td>{{$sale->total_amount}}</td></tr>
+                                                        <tr><td>التخفيض: </td><td>{{$sale->discount}}</td></tr>
+                                                        <tr><td>المدفوع: </td><td>{{$sale->paid}}</td></tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                @endif
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <table class="table table-responsive">
-                    <thead>
-                    <tr>
-                        <th scope="col">#</th>
-                        <th scope="col">إسم العميل</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    @foreach($clients as $client)
-                        <tr style="cursor: pointer" wire:click="chooseClient({{$client}})" data-bs-dismiss="modal"
-                            aria-label="Close">
-                            <td scope="row">{{$loop->index + 1}}</td>
-                            <td>{{$client->clientName}}</td>
-                        </tr>
-                    @endforeach
-                    </tbody>
-                </table>
             </div>
         </div>
-    </x-modal>
+    </div>
+
+    <div wire:ignore.self class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <h1 class="modal-title fs-5" id="exampleModalLabel">العملاء</h1>
+                </div>
+                <div class="modal-body">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="card-title">
+                                <div class="row">
+                                    <div class="col-4 align-self-center"><h5>العملاء</h5></div>
+                                    <div class="col-6"><input type="text" placeholder="بحث ..." class="form-control"
+                                                              wire:model.live="clientSearch"></div>
+                                </div>
+                            </div>
+                            <table class="table table-responsive">
+                                <thead>
+                                <tr>
+                                    <th scope="col">#</th>
+                                    <th scope="col">إسم العميل</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                @foreach($clients as $client)
+                                    <tr style="cursor: pointer" wire:click="chooseClient({{$client}})"
+                                        data-bs-dismiss="modal"
+                                        aria-label="Close">
+                                        <td scope="row">{{$loop->index + 1}}</td>
+                                        <td>{{$client->clientName}}</td>
+                                    </tr>
+                                @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
 
     <div class="row mt-2">
         <div class="col-4">
             <div class="card">
                 <div class="card-body">
-                    <div class="card-title">
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal"
+                            style="cursor: pointer"><i class="bi bi-plus-square"></i></button>
+                    <button class="btn btn-warning" wire:click="getSales()" {{empty($currentClient) ? 'disabled':''}} data-bs-toggle="modal" data-bs-target="#editPurchase"
+                            style="cursor: pointer"><i class="bi bi-pen"></i></button>
+                    <button class="btn btn-success"  wire:click="save()"  {{empty($cart) ? 'disabled':''}} ><i class="bi bi-bookmark-check"></i></button>
+                    <button class="btn btn-danger"  wire:click="resetData()" {{empty($currentClient) ? 'disabled':''}}><i class="bi bi-x"></i></button>
+                    {{ $currentClient['clientName'] ?? '' }}
+                    <div class="card-title mt-2">
                         <div class="row">
                             <div class="col-4 align-self-center"><h5>المنتجات</h5></div>
                             <div class="col-8"><input type="text" placeholder="بحث ..." class="form-control"
@@ -102,7 +181,7 @@
                 <div class="card">
                     <div class="card-body">
                         <div class="card-title">
-                            <h5>الفاتوره</h5>
+                            <h5>الفاتوره {{$id != 0 ? '#'. $id : ''}}</h5>
                         </div>
                         <table class="table text-center table-responsive table-responsive table-responsive">
                             <thead>
@@ -133,7 +212,7 @@
                             @endforeach
                             <tr>
                                 <td>الجمله</td>
-                                <td>{{$total_amount}}</td>
+                                <td>{{number_format($total_amount, 2)}}</td>
                             </tr>
                             <tr>
                                 <td>التخفيض</td>
@@ -143,7 +222,7 @@
                             </tr>
                             <tr>
                                 <td>المدفوع</td>
-                                <td>{{$paid}}</td>
+                                <td>{{number_format($paid, 2)}}</td>
                             </tr>
                             </tbody>
                         </table>

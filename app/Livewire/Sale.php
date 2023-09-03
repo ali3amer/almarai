@@ -11,6 +11,8 @@ class Sale extends Component
 {
 
     public string $title = 'المبيعات';
+    public int $id = 0;
+    public string $modalName = '';
 
     public string $search = '';
     public Collection $sales;
@@ -24,31 +26,60 @@ class Sale extends Component
     public float $paid = 0;
 
     public array $currentClient = [];
+    public array $oldQuantities = [];
     public array $currentProduct = [];
     public array $cart = [];
 
     public function save()
     {
-        $sale = \App\Models\Sale::create([
-            'client_id' => $this->currentClient['id'],
-            'paid' => $this->paid,
-            'discount' => $this->discount,
-            'total_amount' => $this->total_amount,
-            'sale_date' => now(),
-        ]);
-
-        foreach ($this->cart as $item) {
-            SaleDetail::create([
-                'sale_id' => $sale['id'],
-                'product_id' => $item['id'],
-                'quantity' => $item['quantity'],
-                'price' => $item['sale_price'],
+        if ($this->id == 0) {
+            $sale = \App\Models\Sale::create([
+                'client_id' => $this->currentClient['id'],
+                'paid' => $this->paid,
+                'discount' => $this->discount,
+                'total_amount' => $this->total_amount,
+                'sale_date' => now(),
             ]);
 
+            foreach ($this->cart as $item) {
+                SaleDetail::create([
+                    'sale_id' => $sale['id'],
+                    'product_id' => $item['id'],
+                    'quantity' => $item['quantity'],
+                    'price' => $item['sale_price'],
+                ]);
+                \App\Models\Product::where('id', $item['id'])->decrement('stock', $item['quantity']);
+            }
             session()->flash('success', 'تم الحفظ بنجاح');
 
-            $this->resetData();
+        } else {
+            \App\Models\Sale::where('id', $this->id)->update([
+                'paid' => $this->paid,
+                'discount' => $this->discount,
+                'total_amount' => $this->total_amount,
+            ]);
+
+            SaleDetail::where('sale_id', $this->id)->delete();
+
+            foreach ($this->oldQuantities as $key => $quantity) {
+                \App\Models\Product::where('id', $key)->increment('stock', $quantity);
+            }
+
+            foreach ($this->cart as $item) {
+                SaleDetail::create([
+                    'sale_id' => $this->id,
+                    'product_id' => $item['id'],
+                    'quantity' => $item['quantity'],
+                    'price' => $item['sale_price'],
+                ]);
+                \App\Models\Product::where('id', $item['id'])->decrement('stock', $item['quantity']);
+            }
+            session()->flash('success', 'تم التعديل بنجاح');
+
+
         }
+        $this->resetData();
+
     }
 
     public function edit($sale)
@@ -103,16 +134,41 @@ class Sale extends Component
         $this->paid = $this->total_amount - floatval($this->discount);
     }
 
+    public function getSales()
+    {
+        $this->sales = \App\Models\Sale::where('client_id', $this->currentClient['id'])->with('saleDetails.product')->get();
+    }
+
+    public function chooseSale($sale)
+    {
+        $this->total_amount = $sale['total_amount'];
+        $this->discount = $sale['discount'];
+        $this->paid = $sale['paid'];
+        $this->id = $sale['id'];
+        foreach ($sale['sale_details'] as $detail) {
+            $this->cart[$detail['product_id']] = [
+                'id' => $detail['product_id'],
+                'sale_id' => $detail['sale_id'],
+                'product_id' => $detail['product_id'],
+                'productName' => $detail['product']['productName'],
+                'quantity' => $detail['quantity'],
+                'sale_price' => $detail['price'],
+                'amount' => $detail['price'] * $detail['quantity'],
+            ];
+
+            $this->oldQuantities[$detail['product_id']] = $detail['quantity'];
+        }
+
+    }
     public function resetData()
     {
-        $this->reset('currentClient', 'currentProduct', 'cart', 'search', 'clientSearch', 'discount', 'paid', 'total_amount');
+        $this->reset('currentClient', 'currentProduct', 'cart', 'search', 'clientSearch', 'discount', 'paid', 'total_amount', 'id', 'oldQuantities');
     }
 
     public function render()
     {
         $this->clients = \App\Models\Client::where('clientName', 'LIKE', '%' . $this->clientSearch . '%')->get();
         $this->products = \App\Models\Product::where('productName', 'LIKE', '%' . $this->productSearch . '%')->get();
-        $this->sales = \App\Models\Sale::all();
         return view('livewire.sale');
     }
 }
