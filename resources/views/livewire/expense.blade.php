@@ -55,8 +55,8 @@
                                     <td>{{ number_format($expense->amount, 2) }}</td>
                                     <td>{{ $expense->expense_date }}</td>
                                     <td>
-                                        <button class="btn btn-sm btn-info text-white" wire:click="edit({{$expense}})">Edit</button> /
-                                        <button class="btn btn-sm btn-danger" wire:click="delete({{$expense->id}})">delete</button>
+                                        <button class="btn btn-sm btn-info text-white" wire:click="edit({{$expense}})"><i class="bi bi-pen"></i></button> /
+                                        <button class="btn btn-sm btn-danger" wire:click="delete({{$expense->id}})"><i class="bi bi-trash"></i></button>
                                     </td>
                                 </tr>
                             @endforeach

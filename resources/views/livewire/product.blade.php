@@ -90,7 +90,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="card-body overflow-scroll" style="max-height: 350px">
+                <div class="card-body">
                     @if(count($products) > 0)
                         <table class="table table-bordered text-center">
                             <thead>
@@ -106,7 +106,7 @@
                                 <th>التحكم</th>
                             </tr>
                             </thead>
-                            <tbody class="text-white">
+                            <tbody class="text-white overflow-scroll" style="max-height: 350px">
                             @foreach($products as $product)
                                 <tr>
                                     <td>{{ $loop->index + 1}}</td>
@@ -119,11 +119,11 @@
                                     <td>{{ number_format($product->stock, 2) }}</td>
                                     <td>
                                         <button class="btn btn-sm btn-info text-white" wire:click="edit({{$product}})">
-                                            تعديل
+                                            <i class="bi bi-pen"></i>
                                         </button>
                                         /
                                         <button class="btn btn-sm btn-danger" wire:click="delete({{$product->id}})">
-                                            حذف
+                                            <i class="bi bi-trash"></i>
                                         </button>
                                     </td>
                                 </tr>

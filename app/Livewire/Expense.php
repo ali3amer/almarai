@@ -15,7 +15,7 @@ class Expense extends Component
     public string $description = '';
     #[Rule('required|min:2')]
     public float $amount = 0;
-    #[Rule('required|min:2')]
+//    #[Rule('required|min:2')]
     public string $expense_date = '';
     public  string $search = '';
     public Collection $expenses;
@@ -61,6 +61,9 @@ class Expense extends Component
 
     public function render()
     {
+        if ($this->description == ''){
+            $this->expense_date = now('Africa/Khartoum')->format('Y-m-d');
+        }
         $this->expenses = \App\Models\Expense::where('description', 'like', '%' . $this->search . '%')->get();
 
         return view('livewire.expense');

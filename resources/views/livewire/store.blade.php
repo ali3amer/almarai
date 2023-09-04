@@ -40,8 +40,8 @@
                                     <td>{{ $loop->index + 1 }}</td>
                                     <td>{{ $store->storeName }}</td>
                                     <td>
-                                        <button class="btn btn-sm btn-info text-white" wire:click="edit({{$store}})">Edit</button> /
-                                        <button class="btn btn-sm btn-danger" wire:loading.attr="disabled" wire:click="delete({{$store->id}})">delete</button>
+                                        <button class="btn btn-sm btn-info text-white" wire:click="edit({{$store}})"><i class="bi bi-pen"></i></button> /
+                                        <button class="btn btn-sm btn-danger" wire:loading.attr="disabled" wire:click="delete({{$store->id}})"><i class="bi bi-trash"></i></button>
                                     </td>
                                 </tr>
                             @endforeach

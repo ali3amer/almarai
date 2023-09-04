@@ -29,6 +29,7 @@ class Sale extends Component
     public array $oldQuantities = [];
     public array $currentProduct = [];
     public array $cart = [];
+    public string $saleSearch = '';
 
     public function save()
     {
@@ -136,7 +137,7 @@ class Sale extends Component
 
     public function getSales()
     {
-        $this->sales = \App\Models\Sale::where('client_id', $this->currentClient['id'])->with('saleDetails.product')->get();
+//        $this->sales = \App\Models\Sale::where('client_id', $this->currentClient['id'])->with('saleDetails.product')->get();
     }
 
     public function chooseSale($sale)
@@ -167,6 +168,11 @@ class Sale extends Component
 
     public function render()
     {
+        if (!empty($this->currentClient)) {
+            $this->sales = \App\Models\Sale::where('client_id', $this->currentClient['id'])
+                ->where('id', 'LIKE', '%' . $this->saleSearch . '%')->orWhere('sale_date', 'LIKE', '%' . $this->saleSearch . '%')
+                ->with('saleDetails.product')->get();
+        }
         $this->clients = \App\Models\Client::where('clientName', 'LIKE', '%' . $this->clientSearch . '%')->get();
         $this->products = \App\Models\Product::where('productName', 'LIKE', '%' . $this->productSearch . '%')->get();
         return view('livewire.sale');

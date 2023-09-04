@@ -48,8 +48,8 @@
                                     <td>{{ $category->employeeName }}</td>
                                     <td>{{ number_format($category->salary, 2) }}</td>
                                     <td>
-                                        <button class="btn btn-sm btn-info text-white" wire:click="edit({{$category}})">Edit</button> /
-                                        <button class="btn btn-sm btn-danger" wire:click="delete({{$category->id}})">delete</button>
+                                        <button class="btn btn-sm btn-info text-white" wire:click="edit({{$category}})"><i class="bi bi-pen"></i></button> /
+                                        <button class="btn btn-sm btn-danger" wire:click="delete({{$category->id}})"><i class="bi bi-trash"></i></button>
                                     </td>
                                 </tr>
                             @endforeach

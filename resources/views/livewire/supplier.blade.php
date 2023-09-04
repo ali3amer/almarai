@@ -55,8 +55,8 @@
                                     <td>{{ $supplier->supplierName }}</td>
                                     <td>{{ $supplier->phone }}</td>
                                     <td>
-                                        <button class="btn btn-sm btn-info text-white" wire:click="edit({{$supplier}})">Edit</button> /
-                                        <button class="btn btn-sm btn-danger" wire:click="delete({{$supplier->id}})">delete</button>
+                                        <button class="btn btn-sm btn-info text-white" wire:click="edit({{$supplier}})"><i class="bi bi-pen"></i></button> /
+                                        <button class="btn btn-sm btn-danger" wire:click="delete({{$supplier->id}})"><i class="bi bi-trash"></i></button>
                                     </td>
                                 </tr>
                             @endforeach

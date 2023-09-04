@@ -28,6 +28,7 @@ class Purchase extends Component
     public array $oldQuantities = [];
     public array $currentProduct = [];
     public array $cart = [];
+    public string $purchaseSearch = '';
 
     public function save()
     {
@@ -135,7 +136,6 @@ class Purchase extends Component
 
     public function getPurchases()
     {
-        $this->purchases = \App\Models\Purchase::where('supplier_id', $this->currentSupplier['id'])->with('purchaseDetails.product')->get();
     }
 
     public function choosePurchase($purchase)
@@ -166,6 +166,11 @@ class Purchase extends Component
 
     public function render()
     {
+        if (!empty($this->currentSupplier)) {
+            $this->purchases = \App\Models\Purchase::where('supplier_id', $this->currentSupplier['id'])
+                ->where('id', 'LIKE', '%' . $this->purchaseSearch . '%')->orWhere('purchase_date', 'LIKE', '%' . $this->purchaseSearch . '%')
+                ->with('purchaseDetails.product')->get();
+        }
         $this->suppliers = \App\Models\Supplier::where('supplierName', 'LIKE', '%' . $this->supplierSearch . '%')->get();
         $this->products = \App\Models\Product::where('productName', 'LIKE', '%' . $this->productSearch . '%')->get();
         return view('livewire.purchase');

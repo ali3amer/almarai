@@ -12,8 +12,7 @@ class ProductForm extends Form
     #[Rule('required|min:2')]
     public string $productName = '';
 
-    #[Rule('required|min:1')]
-    public string $unit = '';
+    public string|null $unit = null;
     #[Rule('required|numeric|min:1')]
     public int $store_id = 0;
     #[Rule('required|numeric|min:1')]

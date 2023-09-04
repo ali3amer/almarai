@@ -12,7 +12,8 @@
                 <div class="modal-body">
                     <div class="card">
                         <div class="card-body">
-
+                            <input type="text" placeholder="بحث ..." class="form-control"
+                                   wire:model.live="purchaseSearch">
                             <div class="accordion" id="accordionExample">
                                 @if(!empty($purchases))
                                     @foreach($purchases as $purchase)
@@ -110,7 +111,7 @@
                 <div class="card-body">
                     <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal"
                             style="cursor: pointer"><i class="bi bi-plus-square"></i></button>
-                    <button class="btn btn-warning" wire:click="getPurchases()" {{empty($currentSupplier) ? 'disabled':''}} data-bs-toggle="modal" data-bs-target="#editPurchase"
+                    <button class="btn btn-warning" {{empty($currentSupplier) ? 'disabled':''}} data-bs-toggle="modal" data-bs-target="#editPurchase"
                             style="cursor: pointer"><i class="bi bi-pen"></i></button>
                     <button class="btn btn-success"  wire:click="save()"  {{empty($cart) ? 'disabled':''}} ><i class="bi bi-bookmark-check"></i></button>
                     <button class="btn btn-danger"  wire:click="resetData()" {{empty($currentSupplier) ? 'disabled':''}}><i class="bi bi-x"></i></button>

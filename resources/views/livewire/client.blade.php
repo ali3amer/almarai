@@ -49,8 +49,8 @@
                                     <td>{{ $client->clientName }}</td>
                                     <td>{{ $client->phone }}</td>
                                     <td>
-                                        <button class="btn btn-sm btn-info text-white" wire:click="edit({{$client}})">Edit</button> /
-                                        <button class="btn btn-sm btn-danger" wire:click="delete({{$client->id}})">delete</button>
+                                        <button class="btn btn-sm btn-info text-white" wire:click="edit({{$client}})"><i class="bi bi-pen"></i></button> /
+                                        <button class="btn btn-sm btn-danger" wire:click="delete({{$client->id}})"><i class="bi bi-trash"></i></button>
                                     </td>
                                 </tr>
                             @endforeach
