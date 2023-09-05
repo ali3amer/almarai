@@ -22,13 +22,15 @@ class Purchase extends Component
 
     public float $total_amount = 0;
     public $discount = 0;
-    public float $paid = 0;
+    public $paid = 0;
 
     public array $currentSupplier = [];
     public array $oldQuantities = [];
     public array $currentProduct = [];
     public array $cart = [];
     public string $purchaseSearch = '';
+    public string $purchase_date = '';
+    public $remainder = 0;
 
     public function save()
     {
@@ -38,7 +40,7 @@ class Purchase extends Component
                 'paid' => $this->paid,
                 'discount' => $this->discount,
                 'total_amount' => $this->total_amount,
-                'purchase_date' => now(),
+                'purchase_date' => $this->purchase_date,
             ]);
 
             foreach ($this->cart as $item) {
@@ -57,6 +59,7 @@ class Purchase extends Component
                 'paid' => $this->paid,
                 'discount' => $this->discount,
                 'total_amount' => $this->total_amount,
+                'purchase_date' => $this->purchase_date
             ]);
 
             PurchaseDetail::where('purchase_id', $this->id)->delete();
@@ -125,14 +128,26 @@ class Purchase extends Component
     public function deleteFromCart($id)
     {
         $this->total_amount -= $this->cart[$id]['amount'];
-        $this->paid = $this->total_amount - $this->discount;
+        $this->calcDiscount();
+        $this->calcRemainder();
         unset($this->cart[$id]);
+        if (empty($this->cart)) {
+            $this->discount = 0;
+            $this->remainder = 0;
+            $this->paid = 0;
+        }
     }
 
     public function calcDiscount()
     {
         $this->paid = $this->total_amount - floatval($this->discount);
     }
+
+    public function calcRemainder()
+    {
+        $this->remainder = $this->total_amount - floatval($this->discount) - floatval($this->paid);
+    }
+
 
     public function getPurchases()
     {
@@ -143,8 +158,9 @@ class Purchase extends Component
         $this->total_amount = $purchase['total_amount'];
         $this->discount = $purchase['discount'];
         $this->paid = $purchase['paid'];
+        $this->purchase_date = $purchase['purchase_date'];
         $this->id = $purchase['id'];
-        foreach ($purchase['sale_details'] as $detail) {
+        foreach ($purchase['purchase_details'] as $detail) {
             $this->cart[$detail['product_id']] = [
                 'id' => $detail['product_id'],
                 'purchase_id' => $detail['purchase_id'],
@@ -161,7 +177,7 @@ class Purchase extends Component
     }
     public function resetData()
     {
-        $this->reset('currentSupplier', 'currentProduct', 'cart', 'search', 'supplierSearch', 'discount', 'paid', 'total_amount', 'id', 'oldQuantities');
+        $this->reset('currentSupplier', 'currentProduct', 'cart', 'search', 'supplierSearch', 'discount', 'paid', 'remainder', 'total_amount', 'id', 'oldQuantities');
     }
 
     public function render()
@@ -170,6 +186,8 @@ class Purchase extends Component
             $this->purchases = \App\Models\Purchase::where('supplier_id', $this->currentSupplier['id'])
                 ->where('id', 'LIKE', '%' . $this->purchaseSearch . '%')->orWhere('purchase_date', 'LIKE', '%' . $this->purchaseSearch . '%')
                 ->with('purchaseDetails.product')->get();
+        } else {
+            $this->purchase_date = date('Y-m-d');
         }
         $this->suppliers = \App\Models\Supplier::where('supplierName', 'LIKE', '%' . $this->supplierSearch . '%')->get();
         $this->products = \App\Models\Product::where('productName', 'LIKE', '%' . $this->productSearch . '%')->get();

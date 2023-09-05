@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Models\SaleDetail;
+use Cassandra\Date;
 use Illuminate\Database\Eloquent\Collection;
 use Livewire\Attributes\Rule;
 use Livewire\Component;
@@ -12,7 +13,8 @@ class Sale extends Component
 
     public string $title = 'المبيعات';
     public int $id = 0;
-    public string $modalName = '';
+    public string $sale_date = '';
+    public bool $print = false;
 
     public string $search = '';
     public Collection $sales;
@@ -23,13 +25,14 @@ class Sale extends Component
 
     public float $total_amount = 0;
     public $discount = 0;
-    public float $paid = 0;
+    public $paid = 0;
 
     public array $currentClient = [];
     public array $oldQuantities = [];
     public array $currentProduct = [];
     public array $cart = [];
     public string $saleSearch = '';
+    public float $remainder = 0;
 
     public function save()
     {
@@ -39,7 +42,7 @@ class Sale extends Component
                 'paid' => $this->paid,
                 'discount' => $this->discount,
                 'total_amount' => $this->total_amount,
-                'sale_date' => now(),
+                'sale_date' => $this->sale_date,
             ]);
 
             foreach ($this->cart as $item) {
@@ -51,6 +54,9 @@ class Sale extends Component
                 ]);
                 \App\Models\Product::where('id', $item['id'])->decrement('stock', $item['quantity']);
             }
+
+            $this->id = $sale['id'];
+
             session()->flash('success', 'تم الحفظ بنجاح');
 
         } else {
@@ -58,6 +64,7 @@ class Sale extends Component
                 'paid' => $this->paid,
                 'discount' => $this->discount,
                 'total_amount' => $this->total_amount,
+                'sale_date' => $this->sale_date
             ]);
 
             SaleDetail::where('sale_id', $this->id)->delete();
@@ -79,8 +86,13 @@ class Sale extends Component
 
 
         }
-        $this->resetData();
+//        $this->resetData();
 
+    }
+
+    public function printInvoice($print)
+    {
+        dd($print);
     }
 
     public function edit($sale)
@@ -126,13 +138,24 @@ class Sale extends Component
     public function deleteFromCart($id)
     {
         $this->total_amount -= $this->cart[$id]['amount'];
-        $this->paid = $this->total_amount - $this->discount;
+        $this->calcDiscount();
+        $this->calcRemainder();
         unset($this->cart[$id]);
+        if (empty($this->cart)) {
+            $this->discount = 0;
+            $this->remainder = 0;
+            $this->paid = 0;
+        }
     }
 
     public function calcDiscount()
     {
         $this->paid = $this->total_amount - floatval($this->discount);
+    }
+
+    public function calcRemainder()
+    {
+        $this->remainder = $this->total_amount - floatval($this->discount) - floatval($this->paid);
     }
 
     public function getSales()
@@ -145,6 +168,7 @@ class Sale extends Component
         $this->total_amount = $sale['total_amount'];
         $this->discount = $sale['discount'];
         $this->paid = $sale['paid'];
+        $this->sale_date = $sale['sale_date'];
         $this->id = $sale['id'];
         foreach ($sale['sale_details'] as $detail) {
             $this->cart[$detail['product_id']] = [
@@ -161,17 +185,22 @@ class Sale extends Component
         }
 
     }
+
     public function resetData()
     {
-        $this->reset('currentClient', 'currentProduct', 'cart', 'search', 'clientSearch', 'discount', 'paid', 'total_amount', 'id', 'oldQuantities');
+        $this->reset('currentClient', 'currentProduct', 'cart', 'search', 'clientSearch', 'discount', 'paid', 'remainder', 'total_amount', 'id', 'oldQuantities');
     }
 
     public function render()
     {
+
         if (!empty($this->currentClient)) {
+
             $this->sales = \App\Models\Sale::where('client_id', $this->currentClient['id'])
                 ->where('id', 'LIKE', '%' . $this->saleSearch . '%')->orWhere('sale_date', 'LIKE', '%' . $this->saleSearch . '%')
                 ->with('saleDetails.product')->get();
+        } else {
+            $this->sale_date = date('Y-m-d');
         }
         $this->clients = \App\Models\Client::where('clientName', 'LIKE', '%' . $this->clientSearch . '%')->get();
         $this->products = \App\Models\Product::where('productName', 'LIKE', '%' . $this->productSearch . '%')->get();

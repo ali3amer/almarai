@@ -104,7 +104,6 @@
         </div>
     </div>
 
-
     <div class="row mt-2">
         <div class="col-4">
             <div class="card">
@@ -182,7 +181,10 @@
                 <div class="card">
                     <div class="card-body">
                         <div class="card-title">
-                            <h5>الفاتوره {{$id != 0 ? '#'. $id : ''}}</h5>
+                            <div class="row">
+                                <div class="col-6"><h5>الفاتوره {{$id != 0 ? '#'. $id : ''}}</h5></div>
+                                <div class="col-6"><input type="date" wire:model.live="purchase_date" class="form-control"></div>
+                            </div>
                         </div>
                         <table class="table text-center table-responsive table-responsive table-responsive">
                             <thead>
@@ -223,7 +225,12 @@
                             </tr>
                             <tr>
                                 <td>المدفوع</td>
-                                <td>{{number_format($paid, 2)}}</td>
+                                <td><input type="number" min="0" wire:keydown.debounce.150ms="calcRemainder()"
+                                           wire:model.live.debounce.150ms="paid" class="form-control text-center"></td>
+                            </tr>
+                            <tr>
+                                <td>المتبقي</td>
+                                <td>{{number_format($remainder, 2)}}</td>
                             </tr>
                             </tbody>
                         </table>

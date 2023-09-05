@@ -39,6 +39,9 @@ Route::get('/purchase', Purchase::class);
 Route::get('/sale', Sale::class);
 Route::get('/expense', Expense::class);
 Route::get('/employee', Employee::class);
+Route::get('/report', Livewire\Report::class);
+Route::get('/returns', Livewire\Returns::class);
+Route::get('/safe', Livewire\Safe::class);
 
 Auth::routes();
 

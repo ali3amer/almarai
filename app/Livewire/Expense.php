@@ -62,7 +62,7 @@ class Expense extends Component
     public function render()
     {
         if ($this->description == ''){
-            $this->expense_date = now('Africa/Khartoum')->format('Y-m-d');
+            $this->expense_date = now();
         }
         $this->expenses = \App\Models\Expense::where('description', 'like', '%' . $this->search . '%')->get();
 

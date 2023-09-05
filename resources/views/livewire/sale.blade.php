@@ -1,6 +1,7 @@
 <div>
     <x-title :$title>{{ $currentClient['clientName'] ?? '' }}</x-title>
 
+    <!-- Edit Purchase Modal -->
     <div wire:ignore.self class="modal fade" id="editPurchase" tabindex="-1" aria-labelledby="exampleModalLabel"
          aria-hidden="true">
         <div class="modal-dialog">
@@ -61,6 +62,7 @@
         </div>
     </div>
 
+    <!-- Choose Client Modal -->
     <div wire:ignore.self class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel"
          aria-hidden="true">
         <div class="modal-dialog">
@@ -104,16 +106,73 @@
         </div>
     </div>
 
+    <!-- Print Invoice Modal -->
+    <div wire:ignore.self class="modal fade" id="printModal" tabindex="-1" aria-labelledby="exampleModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header d-print-none">
+                    <button type="button" wire:click="printInvoice(false)" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <h1 class="modal-title fs-5" id="exampleModalLabel"><button class="btn btn-primary" wire:click="printInvoice(true)"><i class="bi bi-printer"></i></button></h1>
+                </div>
+                <div class="modal-body">
+                    <div class="card d-print-table">
+                        <div class="card-body">
+                            <div class="card-title">
+                                <h5>الفاتوره {{$id != 0 ? '#'. $id : ''}}</h5>
+                            </div>
+                            <table class="table text-center table-responsive table-responsive table-responsive">
+                                <thead>
+                                <tr>
+                                    <th scope="col">#</th>
+                                    <th scope="col">إسم المنتج</th>
+                                    <th scope="col">سعر الوحده</th>
+                                    <th scope="col">الكميه</th>
+                                    <th scope="col">الجمله</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                @foreach($cart as $item)
+                                    <tr style="cursor: pointer" class="align-items-center">
+                                        <td scope="row">{{$loop->index + 1}}</td>
+                                        <td>{{$item['productName']}}</td>
+                                        <td>{{number_format($item['sale_price'], 2)}}</td>
+                                        <td>{{number_format($item['quantity'], 2)}}</td>
+                                        <td>{{number_format($item['amount'], 2)}}</td>
+                                    </tr>
+                                @endforeach
+                                <tr>
+                                    <td>الجمله</td>
+                                    <td>{{number_format($total_amount, 2)}}</td>
+                                </tr>
+                                <tr>
+                                    <td>التخفيض</td>
+                                    <td>{{number_format($discount, 2)}}</td>
+                                </tr>
+                                <tr>
+                                    <td>المدفوع</td>
+                                    <td>{{number_format($paid, 2)}}</td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-    <div class="row mt-2">
+
+    <div class="row mt-2 d-print-none">
         <div class="col-4">
             <div class="card">
                 <div class="card-body">
                     <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal"
                             style="cursor: pointer"><i class="bi bi-plus-square"></i></button>
-                    <button class="btn btn-warning"{{empty($currentClient) ? 'disabled':''}} data-bs-toggle="modal" data-bs-target="#editPurchase"
+                    <button class="btn btn-warning" {{empty($currentClient) ? 'disabled':''}} data-bs-toggle="modal" data-bs-target="#editPurchase"
                             style="cursor: pointer"><i class="bi bi-pen"></i></button>
-                    <button class="btn btn-success"  wire:click="save()"  {{empty($cart) ? 'disabled':''}} ><i class="bi bi-bookmark-check"></i></button>
+                    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#printModal"
+                            style="cursor: pointer"  wire:click="save()"  {{empty($cart) ? 'disabled':''}} ><i class="bi bi-bookmark-check"></i></button>
                     <button class="btn btn-danger"  wire:click="resetData()" {{empty($currentClient) ? 'disabled':''}}><i class="bi bi-x"></i></button>
                     {{ $currentClient['clientName'] ?? '' }}
                     <div class="card-title mt-2">
@@ -136,13 +195,13 @@
                         <tbody style="max-height: 300px">
                         @foreach($products as $product)
                             @if(!key_exists($product->id, $cart))
-                                <tr wire:click="chooseProduct({{$product}})" style="cursor: pointer">
+                                <tr style="cursor: pointer">
                                     <td scope="row">{{$loop->index + 1}}</td>
                                     <td>{{$product->productName}}</td>
                                     <td>{{number_format($product->sale_price, 2)}}</td>
                                     <td>{{number_format($product->stock, 2)}}</td>
                                     <td>
-                                        <button class="btn btn-primary btn-sm">+</button>
+                                        <button {{ $product->stock < 1 ? "disabled" : "" }} wire:click="chooseProduct({{$product}})" class="btn btn-primary btn-sm">+</button>
                                     </td>
                                 </tr>
                             @endif
@@ -182,7 +241,11 @@
                 <div class="card">
                     <div class="card-body">
                         <div class="card-title">
-                            <h5>الفاتوره {{$id != 0 ? '#'. $id : ''}}</h5>
+                            <div class="row">
+                                <div class="col-6"><h5>الفاتوره {{$id != 0 ? '#'. $id : ''}}</h5></div>
+                                <div class="col-6"><input type="date" wire:model.live="sale_date" class="form-control"></div>
+                            </div>
+
                         </div>
                         <table class="table text-center table-responsive table-responsive table-responsive">
                             <thead>
@@ -223,7 +286,12 @@
                             </tr>
                             <tr>
                                 <td>المدفوع</td>
-                                <td>{{number_format($paid, 2)}}</td>
+                                <td><input type="number" min="0" wire:keydown.debounce.150ms="calcRemainder()"
+                                           wire:model.live.debounce.150ms="paid" class="form-control text-center"></td>
+                            </tr>
+                            <tr>
+                                <td>المتبقي</td>
+                                <td>{{number_format($remainder, 2)}}</td>
                             </tr>
                             </tbody>
                         </table>
