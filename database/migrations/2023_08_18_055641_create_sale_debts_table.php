@@ -15,7 +15,10 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('sale_id');
             $table->foreign('sale_id')->references('id')->on('sales');
-            $table->decimal('credit_amount', 8, 2);
+            $table->decimal('remainder', 8, 2);
+            $table->enum('payment', ['cash', 'bank'])->default('cash');
+            $table->string('bank')->nullable();
+            $table->decimal('paid', 8, 2);
             $table->date('due_date');
             $table->timestamps();
         });

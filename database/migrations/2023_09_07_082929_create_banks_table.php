@@ -11,13 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('purchases', function (Blueprint $table) {
+        Schema::create('banks', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('supplier_id');
-            $table->foreign('supplier_id')->references('id')->on('suppliers');
-            $table->decimal('discount', 8, 2);
-            $table->decimal('total_amount', 8, 2);
-            $table->date('purchase_date');
+            $table->string('bankName');
+            $table->string('number');
+            $table->decimal('firstBalance', 8,2);
+            $table->decimal('currentBalance', 8,2);
             $table->timestamps();
         });
     }
@@ -27,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('purchases');
+        Schema::dropIfExists('banks');
     }
 };

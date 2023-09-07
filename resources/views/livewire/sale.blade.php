@@ -1,6 +1,5 @@
 <div>
     <x-title :$title>{{ $currentClient['clientName'] ?? '' }}</x-title>
-
     <!-- Edit Purchase Modal -->
     <div wire:ignore.self class="modal fade" id="editPurchase" tabindex="-1" aria-labelledby="exampleModalLabel"
          aria-hidden="true">
@@ -46,7 +45,7 @@
                                                         @endforeach
                                                         <tr><td>الجمله: </td><td>{{$sale->total_amount}}</td></tr>
                                                         <tr><td>التخفيض: </td><td>{{$sale->discount}}</td></tr>
-                                                        <tr><td>المدفوع: </td><td>{{$sale->paid}}</td></tr>
+                                                        <tr><td>المدفوع: </td><td>{{$sale->saleDebts[0]['paid']}}</td></tr>
                                                         </tbody>
                                                     </table>
                                                 </div>
@@ -212,7 +211,7 @@
             </div>
         </div>
         @if(!empty($currentClient))
-            <div class="col-3">
+            <div class="col-2">
                 <div class="card">
                     <div class="card-body">
                         <label for="productName">إسم المنتج</label>
@@ -237,13 +236,20 @@
                 </div>
             </div>
 
-            <div class="col-5">
+            <div class="col-6">
                 <div class="card">
                     <div class="card-body">
                         <div class="card-title">
                             <div class="row">
-                                <div class="col-6"><h5>الفاتوره {{$id != 0 ? '#'. $id : ''}}</h5></div>
-                                <div class="col-6"><input type="date" wire:model.live="sale_date" class="form-control"></div>
+                                <div class="col-4"><h5>الفاتوره {{$id != 0 ? '#'. $id : ''}}</h5></div>
+                                <div class="col-4"><input type="date" wire:model.live="sale_date" class="form-control"></div>
+                                <div class="col-4">
+                                    <select wire:model.live="payment" class="form-select">
+                                        <option value="cash">كاش</option>
+                                        <option value="bank">بنك</option>
+                                    </select>
+                                </div>
+                                <div class="col-4 mt-1"><input type="text" placeholder="رقم الاشعار ....." @disabled($payment == 'cash') wire:model.live="bank" class="form-control"></div>
                             </div>
 
                         </div>

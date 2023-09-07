@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Models\SaleDebt;
 use App\Models\SaleDetail;
 use Cassandra\Date;
 use Illuminate\Database\Eloquent\Collection;
@@ -26,6 +27,8 @@ class Sale extends Component
     public float $total_amount = 0;
     public $discount = 0;
     public $paid = 0;
+    public string $payment = 'cash';
+    public string $bank = '';
 
     public array $currentClient = [];
     public array $oldQuantities = [];
@@ -39,10 +42,18 @@ class Sale extends Component
         if ($this->id == 0) {
             $sale = \App\Models\Sale::create([
                 'client_id' => $this->currentClient['id'],
-                'paid' => $this->paid,
                 'discount' => $this->discount,
                 'total_amount' => $this->total_amount,
                 'sale_date' => $this->sale_date,
+            ]);
+
+            SaleDebt::create([
+                'sale_id' => $sale['id'],
+                'paid' => $this->paid,
+                'bank' => $this->bank,
+                'payment' => $this->payment,
+                'remainder' => $this->remainder,
+                'due_date' => $this->sale_date
             ]);
 
             foreach ($this->cart as $item) {
@@ -61,10 +72,18 @@ class Sale extends Component
 
         } else {
             \App\Models\Sale::where('id', $this->id)->update([
-                'paid' => $this->paid,
                 'discount' => $this->discount,
                 'total_amount' => $this->total_amount,
                 'sale_date' => $this->sale_date
+            ]);
+
+            SaleDebt::where('purchase_id', $this->id)->first()->update([
+                'sale_id' => $this->id,
+                'paid' => $this->paid,
+                'bank' => $this->bank,
+                'payment' => $this->payment,
+                'remainder' => $this->remainder,
+                'due_date' => $this->sale_date
             ]);
 
             SaleDetail::where('sale_id', $this->id)->delete();
@@ -167,7 +186,9 @@ class Sale extends Component
     {
         $this->total_amount = $sale['total_amount'];
         $this->discount = $sale['discount'];
-        $this->paid = $sale['paid'];
+        $this->paid = $sale['sale_debts'][0]['paid'];
+        $this->payment = $sale['sale_debts'][0]['payment'];
+        $this->bank = $sale['sale_debts'][0]['bank'];
         $this->sale_date = $sale['sale_date'];
         $this->id = $sale['id'];
         foreach ($sale['sale_details'] as $detail) {
@@ -198,7 +219,7 @@ class Sale extends Component
 
             $this->sales = \App\Models\Sale::where('client_id', $this->currentClient['id'])
                 ->where('id', 'LIKE', '%' . $this->saleSearch . '%')->orWhere('sale_date', 'LIKE', '%' . $this->saleSearch . '%')
-                ->with('saleDetails.product')->get();
+                ->with('saleDetails.product', 'saleDebts')->get();
         } else {
             $this->sale_date = date('Y-m-d');
         }

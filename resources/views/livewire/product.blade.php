@@ -26,7 +26,7 @@
                             <option value=0>------------------</option>
                             @foreach($stores as $store)
                                 <option
-                                    value="{{ $store->id }}" @selected($store->id == $form->store_id)>{{ $store->storeName }}</option>
+                                    value="{{ $store->id }}">{{ $store->storeName }}</option>
                             @endforeach
                         </select>
                         <div>
@@ -38,7 +38,7 @@
                             <option value=0>------------------</option>
                             @foreach($categories as $category)
                                 <option
-                                    value="{{ $category->id }}" @selected($category->id == $form->category_id)>{{ $category->categoryName }}</option>
+                                    value="{{ $category->id }}" >{{ $category->categoryName }}</option>
                             @endforeach
                         </select>
                         <div>

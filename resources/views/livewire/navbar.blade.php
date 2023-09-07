@@ -15,7 +15,6 @@ $links = [
 ];
 
 ?>
-
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <a class="navbar-brand visually-hidden" href="#">المراعي</a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
@@ -31,6 +30,14 @@ $links = [
                     </a>
                 </li>
             @endforeach
+            <li class="nav-item">
+                <form method="POST" action="{{ route('logout') }}">
+                    @csrf
+                    <button  class="btn btn-danger">
+                        <i class="bi bi-door-closed"></i> {{auth()->user()->name}}
+                    </button>
+                </form>
+            </li>
         </ul>
     </div>
 </nav>

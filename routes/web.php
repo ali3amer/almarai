@@ -26,23 +26,25 @@ use App\Livewire;
 */
 
 Route::get('/', function () {
-    return view('welcome');
+    return view('auth.login');
 });
 
-Route::get('/counter', Counter::class);
-Route::get('/store', Store::class);
-Route::get('/category', Category::class);
-Route::get('/product', Product::class);
-Route::get('/supplier', Supplier::class);
-Route::get('/client', Client::class);
-Route::get('/purchase', Purchase::class);
-Route::get('/sale', Sale::class);
-Route::get('/expense', Expense::class);
-Route::get('/employee', Employee::class);
-Route::get('/report', Livewire\Report::class);
-Route::get('/returns', Livewire\Returns::class);
-Route::get('/safe', Livewire\Safe::class);
+Route::middleware(['auth', 'auth.session'])->group(function () {
+    Route::get('/counter', Counter::class);
+    Route::get('/store', Store::class);
+    Route::get('/category', Category::class);
+    Route::get('/product', Product::class);
+    Route::get('/supplier', Supplier::class);
+    Route::get('/client', Client::class);
+    Route::get('/purchase', Purchase::class);
+    Route::get('/sale', Sale::class);
+    Route::get('/expense', Expense::class);
+    Route::get('/employee', Employee::class);
+    Route::get('/report', Livewire\Report::class);
+    Route::get('/returns', Livewire\Returns::class);
+    Route::get('/safe', Livewire\Safe::class);
+});
 
 Auth::routes();
 
-Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+//Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');

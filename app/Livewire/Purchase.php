@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Models\PurchaseDebt;
 use App\Models\PurchaseDetail;
 use Illuminate\Database\Eloquent\Collection;
 use Livewire\Attributes\Rule;
@@ -30,6 +31,8 @@ class Purchase extends Component
     public array $cart = [];
     public string $purchaseSearch = '';
     public string $purchase_date = '';
+    public string $payment = 'cash';
+    public string $bank = '';
     public $remainder = 0;
 
     public function save()
@@ -37,10 +40,18 @@ class Purchase extends Component
         if ($this->id == 0) {
             $purchase = \App\Models\Purchase::create([
                 'supplier_id' => $this->currentSupplier['id'],
-                'paid' => $this->paid,
                 'discount' => $this->discount,
                 'total_amount' => $this->total_amount,
                 'purchase_date' => $this->purchase_date,
+            ]);
+
+            PurchaseDebt::create([
+                'purchase_id' => $purchase['id'],
+                'paid' => $this->paid,
+                'bank' => $this->bank,
+                'payment' => $this->payment,
+                'remainder' => $this->remainder,
+                'due_date' => $purchase['purchase_date']
             ]);
 
             foreach ($this->cart as $item) {
@@ -48,7 +59,7 @@ class Purchase extends Component
                     'purchase_id' => $purchase['id'],
                     'product_id' => $item['id'],
                     'quantity' => $item['quantity'],
-                    'price' => $item['sale_price'],
+                    'price' => $item['purchase_price'],
                 ]);
                 \App\Models\Product::where('id', $item['id'])->increment('stock', $item['quantity']);
             }
@@ -56,12 +67,19 @@ class Purchase extends Component
 
         } else {
             \App\Models\Purchase::where('id', $this->id)->update([
-                'paid' => $this->paid,
                 'discount' => $this->discount,
                 'total_amount' => $this->total_amount,
                 'purchase_date' => $this->purchase_date
             ]);
 
+            PurchaseDebt::where('purchase_id', $this->id)->first()->update([
+                'purchase_id' => $this->id,
+                'paid' => $this->paid,
+                'bank' => $this->bank,
+                'payment' => $this->payment,
+                'remainder' => $this->remainder,
+                'due_date' => $this->purchase_date
+            ]);
             PurchaseDetail::where('purchase_id', $this->id)->delete();
 
             foreach ($this->oldQuantities as $key => $quantity) {
@@ -73,7 +91,7 @@ class Purchase extends Component
                     'purchase_id' => $this->id,
                     'product_id' => $item['id'],
                     'quantity' => $item['quantity'],
-                    'price' => $item['sale_price'],
+                    'price' => $item['purchase_price'],
                 ]);
                 \App\Models\Product::where('id', $item['id'])->increment('stock', $item['quantity']);
             }
@@ -105,21 +123,21 @@ class Purchase extends Component
     {
         $this->currentProduct = $product;
         $this->currentProduct['quantity'] = 1;
-        $this->currentProduct['amount'] = $product['sale_price'];
+        $this->currentProduct['amount'] = $product['purchase_price'];
         $this->productSearch = '';
     }
 
     public function calcCurrentProduct()
     {
 
-        $this->currentProduct['amount'] = floatval($this->currentProduct['sale_price']) * floatval($this->currentProduct['quantity']);
+        $this->currentProduct['amount'] = floatval($this->currentProduct['purchase_price']) * floatval($this->currentProduct['quantity']);
     }
 
 
     public function addToCart()
     {
         $this->cart[$this->currentProduct['id']] = $this->currentProduct;
-        $this->cart[$this->currentProduct['id']]['amount'] = $this->currentProduct['sale_price'] * $this->currentProduct['quantity'];
+        $this->cart[$this->currentProduct['id']]['amount'] = $this->currentProduct['purchase_price'] * $this->currentProduct['quantity'];
         $this->total_amount += $this->cart[$this->currentProduct['id']]['amount'];
         $this->paid = $this->total_amount - $this->discount;
         $this->currentProduct = [];
@@ -148,16 +166,13 @@ class Purchase extends Component
         $this->remainder = $this->total_amount - floatval($this->discount) - floatval($this->paid);
     }
 
-
-    public function getPurchases()
-    {
-    }
-
     public function choosePurchase($purchase)
     {
         $this->total_amount = $purchase['total_amount'];
         $this->discount = $purchase['discount'];
-        $this->paid = $purchase['paid'];
+        $this->paid = $purchase['purchase_debts'][0]['paid'];
+        $this->payment = $purchase['purchase_debts'][0]['payment'];
+        $this->bank = $purchase['purchase_debts'][0]['bank'];
         $this->purchase_date = $purchase['purchase_date'];
         $this->id = $purchase['id'];
         foreach ($purchase['purchase_details'] as $detail) {
@@ -167,7 +182,7 @@ class Purchase extends Component
                 'product_id' => $detail['product_id'],
                 'productName' => $detail['product']['productName'],
                 'quantity' => $detail['quantity'],
-                'sale_price' => $detail['price'],
+                'purchase_price' => $detail['price'],
                 'amount' => $detail['price'] * $detail['quantity'],
             ];
 
@@ -175,6 +190,7 @@ class Purchase extends Component
         }
 
     }
+
     public function resetData()
     {
         $this->reset('currentSupplier', 'currentProduct', 'cart', 'search', 'supplierSearch', 'discount', 'paid', 'remainder', 'total_amount', 'id', 'oldQuantities');
@@ -185,7 +201,8 @@ class Purchase extends Component
         if (!empty($this->currentSupplier)) {
             $this->purchases = \App\Models\Purchase::where('supplier_id', $this->currentSupplier['id'])
                 ->where('id', 'LIKE', '%' . $this->purchaseSearch . '%')->orWhere('purchase_date', 'LIKE', '%' . $this->purchaseSearch . '%')
-                ->with('purchaseDetails.product')->get();
+                ->with('purchaseDetails.product', 'purchaseDebts')->get();
+//            dd($this->purchases);
         } else {
             $this->purchase_date = date('Y-m-d');
         }

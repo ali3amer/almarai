@@ -12,7 +12,7 @@
                 <div class="modal-body">
                     <div class="card">
                         <div class="card-body">
-                            <input type="text" placeholder="بحث ..." class="form-control"
+                            <input type="text" placeholder="بحث ..." class="form-control mb-2"
                                    wire:model.live="purchaseSearch">
                             <div class="accordion" id="accordionExample">
                                 @if(!empty($purchases))
@@ -45,7 +45,7 @@
                                                         @endforeach
                                                         <tr><td>الجمله: </td><td>{{$purchase->total_amount}}</td></tr>
                                                         <tr><td>التخفيض: </td><td>{{$purchase->discount}}</td></tr>
-                                                        <tr><td>المدفوع: </td><td>{{$purchase->paid}}</td></tr>
+                                                        <tr><td>المدفوع: </td><td>{{ $purchase->purchaseDebts[0]['paid']  }}</td></tr>
                                                         </tbody>
                                                     </table>
                                                 </div>
@@ -138,7 +138,7 @@
                                 <tr wire:click="chooseProduct({{$product}})" style="cursor: pointer">
                                     <td scope="row">{{$loop->index + 1}}</td>
                                     <td>{{$product->productName}}</td>
-                                    <td>{{number_format($product->sale_price, 2)}}</td>
+                                    <td>{{number_format($product->purchase_price, 2)}}</td>
                                     <td>{{number_format($product->stock, 2)}}</td>
                                     <td>
                                         <button class="btn btn-primary btn-sm">+</button>
@@ -152,21 +152,21 @@
             </div>
         </div>
         @if(!empty($currentSupplier))
-            <div class="col-3">
+            <div class="col-2">
                 <div class="card">
                     <div class="card-body">
                         <label for="productName">إسم المنتج</label>
                         <input type="text" id="productName" class="form-control" disabled
                                wire:model="currentProduct.productName">
-                        <label for="sale_price">سعر الوحده</label>
-                        <input type="text" id="sale_price" class="form-control"
-                               {{ empty($currentProduct) ? 'disabled' : '' }} wire:model.live="currentProduct.sale_price">
+                        <label for="purchase_price">سعر الوحده</label>
+                        <input type="text" id="purchase_price" class="form-control"
+                               {{ empty($currentProduct) ? 'disabled' : '' }} wire:model.live="currentProduct.purchase_price">
                         <label for="quantity">الكميه</label>
                         <input type="text" id="quantity" class="form-control"
                                {{ empty($currentProduct) ? 'disabled' : '' }} wire:model.live="currentProduct.quantity">
                         <label for="amount">الجمله</label>
                         <input type="text" class="form-control" disabled
-                               value="{{ !empty($currentProduct) ? number_format($currentProduct['sale_price'] * $currentProduct['quantity'], 2) : '' }}">
+                               value="{{ !empty($currentProduct) ? number_format($currentProduct['purchase_price'] * $currentProduct['quantity'], 2) : '' }}">
 
                         <div wire:click="addToCart()"
                              class="btn btn-primary d-block {{ empty($currentProduct) ? 'disabled' : '' }} text-white mt-2">
@@ -177,13 +177,20 @@
                 </div>
             </div>
 
-            <div class="col-5">
+            <div class="col-6">
                 <div class="card">
                     <div class="card-body">
                         <div class="card-title">
                             <div class="row">
-                                <div class="col-6"><h5>الفاتوره {{$id != 0 ? '#'. $id : ''}}</h5></div>
-                                <div class="col-6"><input type="date" wire:model.live="purchase_date" class="form-control"></div>
+                                <div class="col-4"><h5>الفاتوره {{$id != 0 ? '#'. $id : ''}}</h5></div>
+                                <div class="col-4"><input type="date" wire:model.live="purchase_date" class="form-control"></div>
+                                <div class="col-4">
+                                    <select wire:model.live="payment" class="form-select">
+                                        <option value="cash">كاش</option>
+                                        <option value="bank">بنك</option>
+                                    </select>
+                                </div>
+                                <div class="col-4 mt-1"><input type="text" placeholder="رقم الاشعار ....." @disabled($payment == 'cash') wire:model.live="bank" class="form-control"></div>
                             </div>
                         </div>
                         <table class="table text-center table-responsive table-responsive table-responsive">
@@ -202,7 +209,7 @@
                                 <tr style="cursor: pointer" class="align-items-center">
                                     <td scope="row">{{$loop->index + 1}}</td>
                                     <td>{{$item['productName']}}</td>
-                                    <td>{{number_format($item['sale_price'], 2)}}</td>
+                                    <td>{{number_format($item['purchase_price'], 2)}}</td>
                                     <td>{{number_format($item['quantity'], 2)}}</td>
                                     <td>{{number_format($item['amount'], 2)}}</td>
                                     <td>
@@ -226,7 +233,7 @@
                             <tr>
                                 <td>المدفوع</td>
                                 <td><input type="number" min="0" wire:keydown.debounce.150ms="calcRemainder()"
-                                           wire:model.live.debounce.150ms="paid" class="form-control text-center"></td>
+                                           wire:model.live="paid" class="form-control text-center"></td>
                             </tr>
                             <tr>
                                 <td>المتبقي</td>

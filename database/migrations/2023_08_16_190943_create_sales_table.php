@@ -15,11 +15,8 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('client_id');
             $table->foreign('client_id')->references('id')->on('clients');
-            $table->decimal('paid', 8, 2);
             $table->decimal('discount', 8, 2);
             $table->decimal('total_amount', 8, 2);
-            $table->enum('payment', ['cash', 'bank']);
-            $table->string('bank')->nullable();
             $table->date('sale_date');
             $table->timestamps();
         });
