@@ -46,7 +46,7 @@
 
 
     <x-title :$title/>
-    <button class="btn btn-primary position-fixed " style="bottom: 10px; border-radius: 50%" type="button"
+    <button class="d-print-none btn btn-primary position-fixed " style="bottom: 10px; border-radius: 50%" type="button"
             data-bs-toggle="offcanvas" data-bs-target="#offcanvasScrolling" aria-controls="offcanvasScrolling"><i
             class="bi bi-gear"></i></button>
 
@@ -67,33 +67,41 @@
                         @endforeach
                     </select>
 
-                    <label for="reportType">فترة التقرير</label>
-                    <select @disabled($reportType == 0) class="form-select" wire:model.live="reportDuration"
-                            id="reportType">
-                        @foreach($reportDurations as $key => $duration)
-                            <option value="{{$key}}">{{$duration}}</option>
-                        @endforeach
-                    </select>
+                    @if($reportType != 'inventory')
+                        <label for="reportType">فترة التقرير</label>
+                        <select @disabled($reportType == 0) class="form-select" wire:model.live="reportDuration"
+                                id="reportType">
+                            @foreach($reportDurations as $key => $duration)
+                                <option value="{{$key}}">{{$duration}}</option>
+                            @endforeach
+                        </select>
 
-                    <label for="client">العميل</label>
-                    <input data-bs-toggle="modal" wire:model="currentClient.clientName" readonly
-                           placeholder="إسم العميل ...." class="form-control" data-bs-target="#clientModal">
+                        <label for="client">العميل</label>
+                        <input data-bs-toggle="modal" wire:model="currentClient.clientName" readonly
+                               placeholder="إسم العميل ...." class="form-control" data-bs-target="#clientModal">
+                    @else
+                        <select class="form-select mt-2" wire:model.live="store_id" id="store_id">
+                            <option value="0">-----------------</option>
+                            @foreach($stores as $store)
+                                <option value="{{$store->id}}">{{$store->storeName}}</option>
+                            @endforeach
+                        </select>
+                    @endif
                 </div>
             </div>
 
             <div class="card mt-2">
                 <div class="card-body">
-                    @if($reportDuration == 1)
+                    @if($reportDuration == 'day')
                         <label for="day">من</label>
                         <input type="date" class="form-control" wire:model.live="day" id="day">
-                    @elseif($reportDuration == 2)
+                    @elseif($reportDuration == 'duration')
                         <label for="from">من</label>
                         <input type="date" class="form-control" wire:model.live="from" id="from">
                         <label for="to">الى</label>
                         <input type="date" class="form-control" wire:model.live="to" id="to">
                     @endif
-                    <button class="btn btn-primary w-100 mt-2"
-                            @disabled(empty($currentClient)) wire:click="chooseReport()">جلب التقرير
+                    <button class="btn btn-primary w-100 mt-2" wire:click="chooseReport()">جلب التقرير
                     </button>
                 </div>
             </div>
@@ -101,9 +109,37 @@
     </div>
 
     <div class="card mt-2">
-        <div class="card-body bg-white">
-            @if($reportType == 1)
-            @elseif($reportType == 2 && !empty($currentClient) && !empty($sales))
+        <div class="card-body">
+            @if($reportType == 'inventory' && !empty($products))
+                <table class="table text-center">
+                    <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>إسم المنتج</th>
+                        <th>الكميه</th>
+                        <th>سعر الجرد</th>
+                        <th>الجمله</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    @foreach($products as $product)
+                        <tr>
+                            <td>{{$loop->index + 1}}</td>
+                            <td>{{$product->productName}}</td>
+                            <td>{{number_format($product->stock, 2)}}</td>
+                            <td>{{number_format($product->purchase_price, 2)}}</td>
+                            <td>{{ number_format($product->stock * $product->purchase_price, 2) }}</td>
+                        </tr>
+                    @endforeach
+                    </tbody>
+                    <tfoot>
+                    <tr>
+                        <td colspan="4">الجمــــــــــــــــــله</td>
+                        <td>{{number_format($sum, 2)}}</td>
+                    </tr>
+                    </tfoot>
+                </table>
+            @elseif($reportType == 'client' && !empty($currentClient) && !empty($sales))
                 <caption style="direction: rtl ">{{$currentClient['clientName']}}</caption>
                 <table class="table text-center">
                     <thead>
@@ -130,7 +166,7 @@
                     @endforeach
                     </tbody>
                 </table>
-            @elseif($reportType == 3) @elseif($reportType == 4) @elseif($reportType == 5) @elseif($reportType == 6)@endif
+            @elseif($reportType == 'supplier') @elseif($reportType == 'safe') @elseif($reportType == 'sales') @elseif($reportType == 'purchases')@endif
         </div>
     </div>
 </div>
