@@ -44,7 +44,6 @@
                                                             </tr>
                                                         @endforeach
                                                         <tr><td>الجمله: </td><td>{{$sale->total_amount}}</td></tr>
-                                                        <tr><td>التخفيض: </td><td>{{$sale->discount}}</td></tr>
                                                         <tr><td>المدفوع: </td><td>{{$sale->saleDebts[0]['paid']}}</td></tr>
                                                         </tbody>
                                                     </table>
@@ -143,10 +142,6 @@
                                 <tr>
                                     <td>الجمله</td>
                                     <td>{{number_format($total_amount, 2)}}</td>
-                                </tr>
-                                <tr>
-                                    <td>التخفيض</td>
-                                    <td>{{number_format($discount, 2)}}</td>
                                 </tr>
                                 <tr>
                                     <td>المدفوع</td>
@@ -283,12 +278,6 @@
                             <tr>
                                 <td>الجمله</td>
                                 <td>{{number_format($total_amount, 2)}}</td>
-                            </tr>
-                            <tr>
-                                <td>التخفيض</td>
-                                <td><input type="number" min="0" wire:keydown.debounce.150ms="calcDiscount()"
-                                           wire:model.live.debounce.150ms="discount" class="form-control text-center">
-                                </td>
                             </tr>
                             <tr>
                                 <td>المدفوع</td>

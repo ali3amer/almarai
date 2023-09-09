@@ -22,7 +22,6 @@ class Purchase extends Component
     public string $supplierSearch = '';
 
     public float $total_amount = 0;
-    public $discount = 0;
     public $paid = 0;
 
     public array $currentSupplier = [];
@@ -40,7 +39,6 @@ class Purchase extends Component
         if ($this->id == 0) {
             $purchase = \App\Models\Purchase::create([
                 'supplier_id' => $this->currentSupplier['id'],
-                'discount' => $this->discount,
                 'total_amount' => $this->total_amount,
                 'purchase_date' => $this->purchase_date,
             ]);
@@ -67,7 +65,6 @@ class Purchase extends Component
 
         } else {
             \App\Models\Purchase::where('id', $this->id)->update([
-                'discount' => $this->discount,
                 'total_amount' => $this->total_amount,
                 'purchase_date' => $this->purchase_date
             ]);
@@ -139,7 +136,6 @@ class Purchase extends Component
         $this->cart[$this->currentProduct['id']] = $this->currentProduct;
         $this->cart[$this->currentProduct['id']]['amount'] = $this->currentProduct['purchase_price'] * $this->currentProduct['quantity'];
         $this->total_amount += $this->cart[$this->currentProduct['id']]['amount'];
-        $this->paid = $this->total_amount - $this->discount;
         $this->currentProduct = [];
     }
 
@@ -150,26 +146,20 @@ class Purchase extends Component
         $this->calcRemainder();
         unset($this->cart[$id]);
         if (empty($this->cart)) {
-            $this->discount = 0;
             $this->remainder = 0;
             $this->paid = 0;
         }
     }
 
-    public function calcDiscount()
-    {
-        $this->paid = $this->total_amount - floatval($this->discount);
-    }
 
     public function calcRemainder()
     {
-        $this->remainder = $this->total_amount - floatval($this->discount) - floatval($this->paid);
+        $this->remainder = $this->total_amount - floatval($this->paid);
     }
 
     public function choosePurchase($purchase)
     {
         $this->total_amount = $purchase['total_amount'];
-        $this->discount = $purchase['discount'];
         $this->paid = $purchase['purchase_debts'][0]['paid'];
         $this->payment = $purchase['purchase_debts'][0]['payment'];
         $this->bank = $purchase['purchase_debts'][0]['bank'];
@@ -193,7 +183,7 @@ class Purchase extends Component
 
     public function resetData()
     {
-        $this->reset('currentSupplier', 'currentProduct', 'cart', 'search', 'supplierSearch', 'discount', 'paid', 'remainder', 'total_amount', 'id', 'oldQuantities');
+        $this->reset('currentSupplier', 'currentProduct', 'cart', 'search', 'supplierSearch', 'paid', 'remainder', 'total_amount', 'id', 'oldQuantities');
     }
 
     public function render()

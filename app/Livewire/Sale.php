@@ -25,7 +25,6 @@ class Sale extends Component
     public string $clientSearch = '';
 
     public float $total_amount = 0;
-    public $discount = 0;
     public $paid = 0;
     public string $payment = 'cash';
     public string $bank = '';
@@ -42,7 +41,6 @@ class Sale extends Component
         if ($this->id == 0) {
             $sale = \App\Models\Sale::create([
                 'client_id' => $this->currentClient['id'],
-                'discount' => $this->discount,
                 'total_amount' => $this->total_amount,
                 'sale_date' => $this->sale_date,
             ]);
@@ -63,6 +61,7 @@ class Sale extends Component
                     'quantity' => $item['quantity'],
                     'price' => $item['sale_price'],
                 ]);
+
                 \App\Models\Product::where('id', $item['id'])->decrement('stock', $item['quantity']);
             }
 
@@ -72,7 +71,6 @@ class Sale extends Component
 
         } else {
             \App\Models\Sale::where('id', $this->id)->update([
-                'discount' => $this->discount,
                 'total_amount' => $this->total_amount,
                 'sale_date' => $this->sale_date
             ]);
@@ -105,13 +103,12 @@ class Sale extends Component
 
 
         }
-//        $this->resetData();
+        $this->resetData();
 
     }
 
     public function printInvoice($print)
     {
-        dd($print);
     }
 
     public function edit($sale)
@@ -150,7 +147,6 @@ class Sale extends Component
         $this->cart[$this->currentProduct['id']] = $this->currentProduct;
         $this->cart[$this->currentProduct['id']]['amount'] = $this->currentProduct['sale_price'] * $this->currentProduct['quantity'];
         $this->total_amount += $this->cart[$this->currentProduct['id']]['amount'];
-        $this->paid = $this->total_amount - $this->discount;
         $this->currentProduct = [];
     }
 
@@ -161,20 +157,15 @@ class Sale extends Component
         $this->calcRemainder();
         unset($this->cart[$id]);
         if (empty($this->cart)) {
-            $this->discount = 0;
             $this->remainder = 0;
             $this->paid = 0;
         }
     }
 
-    public function calcDiscount()
-    {
-        $this->paid = $this->total_amount - floatval($this->discount);
-    }
 
     public function calcRemainder()
     {
-        $this->remainder = $this->total_amount - floatval($this->discount) - floatval($this->paid);
+        $this->remainder = $this->total_amount - floatval($this->paid);
     }
 
     public function getSales()
@@ -185,7 +176,6 @@ class Sale extends Component
     public function chooseSale($sale)
     {
         $this->total_amount = $sale['total_amount'];
-        $this->discount = $sale['discount'];
         $this->paid = $sale['sale_debts'][0]['paid'];
         $this->payment = $sale['sale_debts'][0]['payment'];
         $this->bank = $sale['sale_debts'][0]['bank'];
@@ -209,7 +199,7 @@ class Sale extends Component
 
     public function resetData()
     {
-        $this->reset('currentClient', 'currentProduct', 'cart', 'search', 'clientSearch', 'discount', 'paid', 'remainder', 'total_amount', 'id', 'oldQuantities');
+        $this->reset('currentClient', 'currentProduct', 'cart', 'search', 'clientSearch', 'paid', 'remainder', 'total_amount', 'id', 'oldQuantities');
     }
 
     public function render()

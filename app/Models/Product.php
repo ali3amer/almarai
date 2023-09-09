@@ -25,4 +25,14 @@ class Product extends Model
         return $this->hasMany(PurchaseDetail::class);
     }
 
+    public function saleReturns()
+    {
+        return $this->hasMany(SaleReturn::class);
+    }
+
+    public function damageds()
+    {
+        return $this->hasMany(Damaged::class);
+    }
+
 }

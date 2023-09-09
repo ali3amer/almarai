@@ -44,19 +44,19 @@
 
     <div class="row mt-2">
         <div class="col-4">
-            <div class="card bg-white my-2">
+            <div class="card my-2">
                 <div class="card-body">
                     <input disabled type="text" class="form-control" placeholder="الرصيد ...........">
                 </div>
             </div>
 
-            <div class="card bg-white">
+            <div class="card">
                 <div class="card-body">
                    <div class="card-title">
                        <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#bankModal"><i class="bi bi-bag-plus"></i></button>
                    </div>
 
-                    <table class="table table-responsive">
+                    <table class="table">
                         <thead>
                         <tr>
                             <th>إسم البنك</th>

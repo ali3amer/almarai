@@ -31,6 +31,8 @@ class Store extends Component
             $this->storeName = '';
         }
 
+        session()->flash('success', 'تم الحفظ بنجاح');
+
     }
 
     public function edit($store)
@@ -43,6 +45,8 @@ class Store extends Component
     {
         $store = \App\Models\Store::find($id);
         $store->delete();
+        session()->flash('success', 'تم الحذف بنجاح');
+
     }
 
 
