@@ -4,7 +4,7 @@
     <div class="row mt-2">
 
         <div class="col-4">
-            <div class="card bg-white">
+            <div class="card ">
                 <div class="card-body">
                     <form action="" wire:submit="save({{ $form->id }})">
                         <label for="productName" class="form-label">إسم المنتج</label>
@@ -66,7 +66,7 @@
         </div>
 
         <div class="col-8">
-            <div class="card bg-white">
+            <div class="card">
                 <div class="card-header">
                     <div class="row">
                         <div class="col-4">
@@ -92,7 +92,7 @@
                 </div>
                 <div class="card-body">
                     @if(count($products) > 0)
-                        <table class="table table-bordered text-center">
+                        <table class="table text-center">
                             <thead>
                             <tr>
                                 <th>#</th>
@@ -106,7 +106,7 @@
                                 <th>التحكم</th>
                             </tr>
                             </thead>
-                            <tbody class="text-white overflow-scroll" style="max-height: 350px">
+                            <tbody class=" overflow-scroll" style="max-height: 350px">
                             @foreach($products as $product)
                                 <tr>
                                     <td>{{ $loop->index + 1}}</td>

@@ -1,5 +1,6 @@
 <div>
 
+    <!-- Client Modal -->
     <div wire:ignore.self class="modal fade" id="clientsModal" tabindex="-1" aria-labelledby="clientsModalLabel"
          aria-hidden="true">
         <div class="modal-dialog">
@@ -35,6 +36,59 @@
     </div>
 
 
+    <!-- Sale Modal -->
+    <div wire:ignore.self class="modal fade" id="saleModal" tabindex="-1" aria-labelledby="saleModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <h1 class="modal-title fs-5" id="saleModalLabel"></h1>
+                </div>
+                <div class="modal-body">
+                    @if(!empty($currentSale))
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="card-title">
+                                    <div class="row">
+                                        <div class="col-4"><h6>فاتوره رقم {{ $id }}</h6></div>
+                                        <div class="col"><h6>{{$currentSale['sale_date']}}</h6></div>
+                                    </div>
+                                </div>
+                                <table class="table text-center table-hover">
+                                    <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>إسم المنتج</th>
+                                        <th>سعر الوحده</th>
+                                        <th>الكميه</th>
+                                        <th>الجمله</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    @foreach($saleDetails as $detail)
+                                        <tr wire:click="chooseDetail({{$detail}}, {{$detail['product']}})" data-bs-dismiss="modal">
+                                            <td>{{$loop->index + 1}}</td>
+                                            <td>{{$detail['product']['productName']}}</td>
+                                            <td>{{number_format($detail['price'], 2)}}</td>
+                                            <td>{{number_format($detail['quantity'], 2)}}</td>
+                                            <td>{{number_format($detail['quantity'] * $detail['price'], 2)}}</td>
+                                        </tr>
+                                    @endforeach
+                                    <tr>
+                                        <td>الجمله</td>
+                                        <td>{{$currentSale['total_amount']}}</td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    @endif
+                </div>
+            </div>
+        </div>
+    </div>
+
     <x-title :$title/>
 
     <div class="row my-2">
@@ -63,14 +117,19 @@
                                 <th>#</th>
                                 <th>المبلغ</th>
                                 <th>التاريخ</th>
+                                <th>التحكم</th>
                             </tr>
                             </thead>
                             <tbody>
                             @foreach($sales as $sale)
-                                <tr wire:click="chooseSale({{$sale}})">
+                                <tr>
                                     <td>{{$sale['id']}}</td>
                                     <td>{{number_format($sale['total_amount'], 2)}}</td>
                                     <td>{{$sale['sale_date']}}</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-primary" wire:click="getReturns({{$sale}})"><i class="bi bi-pen"></i></button> /
+                                    <button  data-bs-toggle="modal" data-bs-target="#saleModal" wire:click="chooseSale({{$sale}}, false)" class="btn btn-sm btn-danger"><i class="bi bi-arrow-return-left"></i></button>
+                                    </td>
                                 </tr>
                             @endforeach
                             </tbody>
@@ -80,7 +139,6 @@
             @endif
         </div>
 
-        @if(!empty($saleDetails))
             <div class="col-8">
                 <div class="card mb-2">
                     <div class="card-body">
@@ -112,38 +170,45 @@
                             </div>
 
                             <div class="col">
-                                <button @disabled(empty($currentProduct) || ($quantityReturn == 0)) class="btn btn-primary" wire:click="save()">حــــــــــــــفظ</button>
+                                <button @disabled(empty($currentDetail) || ($quantityReturn == 0)) class="btn {{ $editMode ? 'btn-success' : 'btn-primary' }}" wire:click="save()">{{ $editMode ? 'تعـــــــــــــــديل' : 'حــــــــــــــفظ' }}</button>
                             </div>
                         </div>
                     </div>
                 </div>
-                @if(!empty($currentSale))
+                @if(!empty($returns) && !empty($currentSale))
                     <div class="card">
                         <div class="card-body">
                             <div class="card-title">
                                 <div class="row">
-                                    <div class="col-2"><h6>فاتوره رقم {{ $id }}</h6></div>
+                                    <div class="col-4"><h6>المنتجات المرجعه بفاترة رقم {{ $currentSale['id'] }}</h6></div>
                                     <div class="col"><h6>{{$currentSale['sale_date']}}</h6></div>
                                 </div>
                             </div>
-                            <table class="table text-center">
+                            <table class="table table-hover text-center">
                                 <thead>
                                 <tr>
                                     <th>#</th>
                                     <th>إسم المنتج</th>
                                     <th>سعر الوحده</th>
-                                    <th>الكميه</th>
+                                    <th> الكمية</th>
                                     <th>الجمله</th>
+                                    <th>التاريخ</th>
+                                    <th>التحكم</th>
                                 </tr>
                                 </thead>
                                 <tbody>
-                                @foreach($saleDetails as $detail)
-                                    <tr wire:click="chooseProduct({{$detail}}, {{$detail['product']}})">
+                                @foreach($returns as $return)
+                                    <tr>
                                         <td>{{$loop->index + 1}}</td>
-                                        <td>{{$detail['product']['productName']}}</td>
-                                        <td>{{number_format($detail['price'], 2)}}</td>
-                                        <td>{{number_format($detail['quantity'], 2)}}</td>
-                                        <td>{{number_format($detail['quantity'] * $detail['price'], 2)}}</td>
+                                        <td>{{$return['product']['productName']}}</td>
+                                        <td>{{number_format($return['price'], 2)}}</td>
+                                        <td>{{number_format($return['quantity'], 2)}}</td>
+                                        <td>{{number_format($return['quantity'] * $return['price'], 2)}}</td>
+                                        <td></td>
+                                        <td>
+                                            <button  wire:click="chooseDetail({{$return}}, {{$return['product']}})" class="btn btn-sm btn-primary"><i class="bi bi-pen"></i></button>
+                                            <button  wire:click="delete({{$return}})" class="btn btn-sm btn-danger"><i class="bi bi-trash"></i></button>
+                                        </td>
                                     </tr>
                                 @endforeach
                                 <tr>
@@ -156,6 +221,5 @@
                     </div>
                 @endif
             </div>
-        @endif
     </div>
 </div>

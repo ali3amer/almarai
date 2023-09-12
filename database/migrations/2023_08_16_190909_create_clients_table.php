@@ -15,6 +15,8 @@ return new class extends Migration
             $table->id();
             $table->string('clientName');
             $table->string('phone')->nullable();
+            $table->decimal('initialBalance', 8, 2)->default(0);
+            $table->decimal('currentBalance', 8, 2)->default(0);
             $table->timestamps();
         });
     }

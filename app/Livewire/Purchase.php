@@ -45,12 +45,23 @@ class Purchase extends Component
 
             PurchaseDebt::create([
                 'purchase_id' => $purchase['id'],
-                'paid' => $this->paid,
-                'bank' => $this->bank,
-                'payment' => $this->payment,
-                'remainder' => $this->remainder,
+                'paid' => 0,
+                'bank' => '',
+                'payment' => 'cash',
+                'remainder' => $this->total_amount,
                 'due_date' => $purchase['purchase_date']
             ]);
+
+            if ($this->paid != 0) {
+                PurchaseDebt::create([
+                    'purchase_id' => $purchase['id'],
+                    'paid' => $this->paid,
+                    'bank' => $this->bank,
+                    'payment' => $this->payment,
+                    'remainder' => $this->remainder,
+                    'due_date' => $purchase['purchase_date']
+                ]);
+            }
 
             foreach ($this->cart as $item) {
                 PurchaseDetail::create([
@@ -142,7 +153,6 @@ class Purchase extends Component
     public function deleteFromCart($id)
     {
         $this->total_amount -= $this->cart[$id]['amount'];
-        $this->calcDiscount();
         $this->calcRemainder();
         unset($this->cart[$id]);
         if (empty($this->cart)) {

@@ -16,6 +16,8 @@ return new class extends Migration
             $table->unsignedBigInteger('employee_id');
             $table->foreign('employee_id')->references('id')->on('employees');
             $table->decimal('gift_amount', 8, 2);
+            $table->date('gift_date');
+            $table->string('note')->nullable();
             $table->timestamps();
         });
     }

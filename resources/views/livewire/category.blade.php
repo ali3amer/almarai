@@ -20,14 +20,14 @@
             </div>
         </div>
         <div class="col-8">
-            <div class="card bg-white">
+            <div class="card">
                 <div class="card-header">
                     <input wire:model.live="search" class="form-control w-50" placeholder="بحث ......">
                 </div>
 
                 <div class="card-body">
                     @if(count($categories) > 0)
-                        <table class="table table-bordered text-center">
+                        <table class="table text-center">
                             <thead>
                             <tr>
                                 <th>#</th>

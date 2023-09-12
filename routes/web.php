@@ -44,6 +44,8 @@ Route::middleware(['auth', 'auth.session'])->group(function () {
     Route::get('/returns', Livewire\Returns::class);
     Route::get('/safe', Livewire\Safe::class);
     Route::get('/damaged', Livewire\Damaged::class);
+    Route::get('/debt', Livewire\Debt::class);
+    Route::get('/claim', Livewire\Claim::class);
 });
 
 Auth::routes();

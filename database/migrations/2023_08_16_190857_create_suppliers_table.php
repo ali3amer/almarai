@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('supplierName');
             $table->string('address');
             $table->string('phone')->nullable();
+            $table->decimal('initialBalance', 8, 2)->default(0);
             $table->timestamps();
         });
     }

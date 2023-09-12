@@ -165,7 +165,7 @@
                                {{ empty($currentProduct) ? 'disabled' : '' }} wire:model.live="currentProduct.quantity">
                         <label for="amount">الجمله</label>
                         <input type="text" class="form-control" disabled
-                               value="{{ !empty($currentProduct) ? number_format($currentProduct['purchase_price'] * $currentProduct['quantity'], 2) : '' }}">
+                               value="{{ !empty($currentProduct) ? number_format(floatval($currentProduct['purchase_price']) * floatval($currentProduct['quantity']), 2) : '' }}">
 
                         <div wire:click="addToCart()"
                              class="btn btn-primary d-block {{ empty($currentProduct) ? 'disabled' : '' }} text-white mt-2">

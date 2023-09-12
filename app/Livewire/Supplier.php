@@ -16,6 +16,7 @@ class Supplier extends Component
     public string $phone = '';
     #[Rule('required|min:2')]
     public string $address = '';
+    public $initialBalance = 0;
     public string $search = '';
     public Collection $suppliers;
 
@@ -24,13 +25,14 @@ class Supplier extends Component
 
         if ($this->validate()) {
             if ($this->id == 0) {
-                \App\Models\Supplier::create(['supplierName' => $this->supplierName, 'phone' => $this->phone, 'address' => $this->address,]);
+                \App\Models\Supplier::create(['supplierName' => $this->supplierName, 'phone' => $this->phone, 'address' => $this->address, 'initialBalance' => $this->initialBalance]);
                 session()->flash('success', 'تمت الاضافه بنجاح');
             } else {
                 $supplier = \App\Models\Supplier::find($id);
                 $supplier->supplierName = $this->supplierName;
                 $supplier->phone = $this->phone;
                 $supplier->address = $this->address;
+                $supplier->initialBalance = $this->initialBalance;
                 $supplier->save();
                 session()->flash('success', 'تم التعديل بنجاح');
             }
@@ -38,6 +40,7 @@ class Supplier extends Component
             $this->supplierName = '';
             $this->phone = '';
             $this->address = '';
+            $this->initialBalance = '';
         }
 
     }
@@ -48,6 +51,7 @@ class Supplier extends Component
         $this->supplierName = $supplier['supplierName'];
         $this->address = $supplier['address'];
         $this->phone = $supplier['phone'];
+        $this->initialBalance = $supplier['initialBalance'];
     }
 
     public function delete($id)

@@ -18,15 +18,16 @@
                     </form>
                 </div>
             </div>
-
-            <div class="card bg-white">
+        </div>
+        <div class="col-8">
+            <div class="card">
                 <div class="card-header">
                     <input wire:model.live="search" class="form-control w-50" placeholder="بحث ......">
                 </div>
 
                 <div class="card-body">
                     @if(count($stores) > 0)
-                        <table class="table table-bordered text-center">
+                        <table class="table text-center">
                             <thead>
                             <tr>
                                 <th>#</th>
@@ -34,7 +35,7 @@
                                 <th>التحكم</th>
                             </tr>
                             </thead>
-                            <tbody class="text-white">
+                            <tbody>
                             @foreach($stores as $store)
                                 <tr>
                                     <td>{{ $loop->index + 1 }}</td>
@@ -52,12 +53,6 @@
                     @endif
 
                 </div>
-            </div>
-        </div>
-        <div class="col-8">
-            <div class="card">
-                <div class="card-header">a</div>
-                <div class="card-body">a</div>
             </div>
         </div>
     </div>

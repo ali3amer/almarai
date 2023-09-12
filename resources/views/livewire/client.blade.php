@@ -16,9 +16,14 @@
                         <div>
                             @error('phone') <span class="error text-danger">{{ $message }}</span> @enderror
                         </div>
+                        <label for="initialBalance" class="form-label">الرصيد الافتتاحي</label>
+                        <input type="text" wire:model="initialBalance" class="form-control" placeholder="الرصيد الافتتاحي ..." id="initialBalance">
+                        <div>
+                            @error('initialBalance') <span class="error text-danger">{{ $message }}</span> @enderror
+                        </div>
 
                         <div class="d-grid mt-2">
-                            <button class="btn btn- btn-primary">حفـــــــــــــــــــظ</button>
+                            <button class="btn btn- btn-{{$id == 0 ? 'primary' : 'success'}}">{{$id == 0 ? 'حفـــــــــــــــــــظ' : 'تعـــــــــــــــــديل'}}</button>
                         </div>
 
                     </form>
@@ -26,19 +31,20 @@
             </div>
         </div>
         <div class="col-8">
-            <div class="card bg-white">
+            <div class="card">
                 <div class="card-header">
                     <input wire:model.live="search" class="form-control w-50" placeholder="بحث ......">
                 </div>
 
                 <div class="card-body">
                     @if(count($clients) > 0)
-                        <table class="table table-bordered text-center">
+                        <table class="table text-center">
                             <thead>
                             <tr>
                                 <th>#</th>
                                 <th>إسم العميل</th>
                                 <th>الهاتف</th>
+                                <th>الرصيد الافتتاحي</th>
                                 <th>التحكم</th>
                             </tr>
                             </thead>
@@ -48,6 +54,7 @@
                                     <td>{{ $loop->index + 1 }}</td>
                                     <td>{{ $client->clientName }}</td>
                                     <td>{{ $client->phone }}</td>
+                                    <td>{{ number_format($client->initialBalance, 2) }}</td>
                                     <td>
                                         <button class="btn btn-sm btn-info text-white" wire:click="edit({{$client}})"><i class="bi bi-pen"></i></button> /
                                         <button class="btn btn-sm btn-danger" wire:click="delete({{$client->id}})"><i class="bi bi-trash"></i></button>

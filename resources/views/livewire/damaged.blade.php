@@ -23,11 +23,13 @@
                         </thead>
                         <tbody>
                         @foreach($products as $product)
-                            <tr wire:click="chooseProduct({{$product}})">
-                                <td>{{$loop->index + 1}}</td>
-                                <td>{{$product->productName}}</td>
-                                <td>{{$product->stock}}</td>
-                            </tr>
+                            @if($product->stock > 0)
+                                <tr  wire:click="chooseProduct({{$product}})">
+                                    <td>{{$loop->index + 1}}</td>
+                                    <td>{{$product->productName}}</td>
+                                    <td>{{$product->stock}}</td>
+                                </tr>
+                            @endif
                         @endforeach
                         </tbody>
                     </table>

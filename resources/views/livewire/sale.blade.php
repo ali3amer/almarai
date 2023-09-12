@@ -1,6 +1,6 @@
 <div>
-    <x-title :$title>{{ $currentClient['clientName'] ?? '' }}</x-title>
-    <!-- Edit Purchase Modal -->
+    <x-title :$title />
+    <!-- Edit Sale Modal -->
     <div wire:ignore.self class="modal fade" id="editPurchase" tabindex="-1" aria-labelledby="exampleModalLabel"
          aria-hidden="true">
         <div class="modal-dialog">
@@ -12,27 +12,32 @@
                 <div class="modal-body">
                     <div class="card">
                         <div class="card-body">
-                            <input type="text" placeholder="بحث ..." class="form-control"
+                            <input type="text" placeholder="بحث ..." class="form-control mb-2 text-center"
                                    wire:model.live="saleSearch">
                             <div class="accordion" id="accordionExample">
                                 @if(!empty($sales))
                                     @foreach($sales as $sale)
                                         <div class="accordion-item">
                                             <h2 class="accordion-header">
-                                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse.{{$sale->id}}" aria-expanded="false" aria-controls="collapse.{{$sale->id}}">
+                                                <button class="accordion-button collapsed" type="button"
+                                                        data-bs-toggle="collapse"
+                                                        data-bs-target="#collapse.{{$sale->id}}" aria-expanded="false"
+                                                        aria-controls="collapse.{{$sale->id}}">
                                                     {{$sale->id}}: {{$sale->sale_date}}
                                                 </button>
                                             </h2>
-                                            <div id="collapse.{{$sale->id}}" class="accordion-collapse collapse" data-bs-parent="#accordionExample">
+                                            <div id="collapse.{{$sale->id}}" class="accordion-collapse collapse"
+                                                 data-bs-parent="#accordionExample">
                                                 <div class="accordion-body">
-                                                    <table class="table table-responsive" data-bs-dismiss="modal" aria-label="Close" wire:click="chooseSale({{$sale}})">
+                                                    <table class="table table-responsive" data-bs-dismiss="modal"
+                                                           aria-label="Close" wire:click="chooseSale({{$sale}})">
                                                         <thead>
-                                                            <tr>
-                                                                <th>إسم المنتج</th>
-                                                                <th>السعر</th>
-                                                                <th>الكميه</th>
-                                                                <th>الجمله</th>
-                                                            </tr>
+                                                        <tr>
+                                                            <th>إسم المنتج</th>
+                                                            <th>السعر</th>
+                                                            <th>الكميه</th>
+                                                            <th>الجمله</th>
+                                                        </tr>
                                                         </thead>
                                                         <tbody>
                                                         @foreach($sale->saleDetails as $detail)
@@ -43,8 +48,14 @@
                                                                 <td>{{$detail->price*$detail->quantity}}</td>
                                                             </tr>
                                                         @endforeach
-                                                        <tr><td>الجمله: </td><td>{{$sale->total_amount}}</td></tr>
-                                                        <tr><td>المدفوع: </td><td>{{$sale->saleDebts[0]['paid']}}</td></tr>
+                                                        <tr>
+                                                            <td>الجمله:</td>
+                                                            <td>{{$sale->total_amount}}</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>المدفوع:</td>
+                                                            <td></td>
+                                                        </tr>
                                                         </tbody>
                                                     </table>
                                                 </div>
@@ -75,7 +86,7 @@
                             <div class="card-title">
                                 <div class="row">
                                     <div class="col-4 align-self-center"><h5>العملاء</h5></div>
-                                    <div class="col-6"><input type="text" placeholder="بحث ..." class="form-control"
+                                    <div class="col-8"><input type="text" placeholder="بحث ..." class="form-control"
                                                               wire:model.live="clientSearch"></div>
                                 </div>
                             </div>
@@ -104,14 +115,81 @@
         </div>
     </div>
 
+    <!-- Show Sale Model -->
+
+    <div wire:ignore.self class="modal fade" id="showSaleModal" tabindex="-1" aria-labelledby="showSaleModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <h1 class="modal-title fs-5" id="showSaleModalLabel">فاتوره</h1>
+                </div>
+                <div class="modal-body">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="card-body">
+                                <div class="card-title">
+                                    <div class="row">
+                                        <div class="col-4"><h5>الفاتوره {{$id != 0 ? '#'. $id : ''}}</h5></div>
+                                    </div>
+
+                                </div>
+                                <table class="table text-center table-responsive table-responsive table-responsive">
+                                    <thead>
+                                    <tr>
+                                        <th scope="col">#</th>
+                                        <th scope="col">إسم المنتج</th>
+                                        <th scope="col">سعر الوحده</th>
+                                        <th scope="col">الكميه</th>
+                                        <th scope="col">الجمله</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    @foreach($cart as $item)
+                                        <tr class="align-items-center">
+                                            <td scope="row">{{$loop->index + 1}}</td>
+                                            <td>{{$item['productName']}}</td>
+                                            <td>{{number_format($item['sale_price'], 2)}}</td>
+                                            <td>{{number_format($item['quantity'], 2)}}</td>
+                                            <td>{{number_format($item['amount'], 2)}}</td>
+                                        </tr>
+                                    @endforeach
+                                    <tr>
+                                        <td>الجمله</td>
+                                        <td>{{number_format($total_amount, 2)}}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>المدفوع</td>
+                                        <td>{{number_format($paid, 2)}}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>المتبقي</td>
+                                        <td>{{number_format($total_amount - $paid, 2)}}</td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
     <!-- Print Invoice Modal -->
     <div wire:ignore.self class="modal fade" id="printModal" tabindex="-1" aria-labelledby="exampleModalLabel"
          aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header d-print-none">
-                    <button type="button" wire:click="printInvoice(false)" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    <h1 class="modal-title fs-5" id="exampleModalLabel"><button class="btn btn-primary" wire:click="printInvoice(true)"><i class="bi bi-printer"></i></button></h1>
+                    <button type="button" wire:click="printInvoice(false)" class="btn-close" data-bs-dismiss="modal"
+                            aria-label="Close"></button>
+                    <h1 class="modal-title fs-5" id="exampleModalLabel">
+                        <button class="btn btn-primary" wire:click="printInvoice(true)"><i class="bi bi-printer"></i>
+                        </button>
+                    </h1>
                 </div>
                 <div class="modal-body">
                     <div class="card d-print-table">
@@ -163,45 +241,52 @@
                 <div class="card-body">
                     <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal"
                             style="cursor: pointer"><i class="bi bi-plus-square"></i></button>
-                    <button class="btn btn-warning" {{empty($currentClient) ? 'disabled':''}} data-bs-toggle="modal" data-bs-target="#editPurchase"
+                    <button class="btn btn-warning" {{empty($currentClient) ? 'disabled':''}} data-bs-toggle="modal"
+                            data-bs-target="#editPurchase"
                             style="cursor: pointer"><i class="bi bi-pen"></i></button>
                     <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#printModal"
-                            style="cursor: pointer"  wire:click="save()"  {{empty($cart) ? 'disabled':''}} ><i class="bi bi-bookmark-check"></i></button>
-                    <button class="btn btn-danger"  wire:click="resetData()" {{empty($currentClient) ? 'disabled':''}}><i class="bi bi-x"></i></button>
+                            style="cursor: pointer" wire:click="save()" {{empty($cart) ? 'disabled':''}} ><i
+                            class="bi bi-bookmark-check"></i></button>
+                    <button class="btn btn-danger" wire:click="resetData()" {{empty($currentClient) ? 'disabled':''}}><i
+                            class="bi bi-x"></i></button>
+
                     {{ $currentClient['clientName'] ?? '' }}
-                    <div class="card-title mt-2">
-                        <div class="row">
-                            <div class="col-4 align-self-center"><h5>المنتجات</h5></div>
-                            <div class="col-8"><input type="text" placeholder="بحث ..." class="form-control"
-                                                      wire:model.live="productSearch"></div>
+                        <div class="card-title mt-2">
+                            <div class="row">
+                                <div class="col-4 align-self-center"><h5>المنتجات</h5></div>
+                                <div class="col-8"><input type="text" placeholder="بحث ..." class="form-control"
+                                                          wire:model.live="productSearch"></div>
+                            </div>
                         </div>
-                    </div>
-                    <table class="table table-responsive overflow-scroll" style="max-height: 200px">
-                        <thead>
-                        <tr>
-                            <th scope="col">#</th>
-                            <th scope="col">إسم المنتج</th>
-                            <th scope="col">سعر الوحده</th>
-                            <th scope="col">الكميه</th>
-                            <th scope="col">التحكم</th>
-                        </tr>
-                        </thead>
-                        <tbody style="max-height: 300px">
-                        @foreach($products as $product)
-                            @if(!key_exists($product->id, $cart))
-                                <tr style="cursor: pointer">
-                                    <td scope="row">{{$loop->index + 1}}</td>
-                                    <td>{{$product->productName}}</td>
-                                    <td>{{number_format($product->sale_price, 2)}}</td>
-                                    <td>{{number_format($product->stock, 2)}}</td>
-                                    <td>
-                                        <button {{ $product->stock < 1 ? "disabled" : "" }} wire:click="chooseProduct({{$product}})" class="btn btn-primary btn-sm">+</button>
-                                    </td>
-                                </tr>
-                            @endif
-                        @endforeach
-                        </tbody>
-                    </table>
+                        <table class="table table-responsive overflow-scroll">
+                            <thead>
+                            <tr>
+                                <th scope="col">#</th>
+                                <th scope="col">إسم المنتج</th>
+                                <th scope="col">سعر الوحده</th>
+                                <th scope="col">الكميه</th>
+                                <th scope="col">التحكم</th>
+                            </tr>
+                            </thead>
+                            <tbody style="max-height: 300px">
+                            @foreach($products as $product)
+                                @if(!key_exists($product->id, $cart))
+                                    <tr style="cursor: pointer">
+                                        <td scope="row">{{$loop->index + 1}}</td>
+                                        <td>{{$product->productName}}</td>
+                                        <td>{{number_format($product->sale_price, 2)}}</td>
+                                        <td>{{number_format($product->stock, 2)}}</td>
+                                        <td>
+                                            <button
+                                                {{ $product->stock < 1 ? "disabled" : "" }} wire:click="chooseProduct({{$product}})"
+                                                class="btn btn-primary btn-sm">+
+                                            </button>
+                                        </td>
+                                    </tr>
+                                @endif
+                            @endforeach
+                            </tbody>
+                        </table>
                 </div>
             </div>
         </div>
@@ -220,11 +305,11 @@
                                {{ empty($currentProduct) ? 'disabled' : '' }} wire:model.live="currentProduct.quantity">
                         <label for="amount">الجمله</label>
                         <input type="text" class="form-control" disabled
-                               value="{{ !empty($currentProduct) ? number_format($currentProduct['sale_price'] * $currentProduct['quantity'], 2) : '' }}">
+                               value="{{ !empty($currentProduct) ? number_format(floatval($currentProduct['sale_price']) * floatval($currentProduct['quantity']), 2) : '' }}">
 
                         <div wire:click="addToCart()"
                              class="btn btn-primary d-block {{ empty($currentProduct) ? 'disabled' : '' }} text-white mt-2">
-                            حـــــــــــــــــفظ
+                            إضــــــــــافة
                         </div>
 
                     </div>
@@ -237,14 +322,17 @@
                         <div class="card-title">
                             <div class="row">
                                 <div class="col-4"><h5>الفاتوره {{$id != 0 ? '#'. $id : ''}}</h5></div>
-                                <div class="col-4"><input type="date" wire:model.live="sale_date" class="form-control"></div>
+                                <div class="col-4"><input type="date" wire:model.live="sale_date" class="form-control">
+                                </div>
                                 <div class="col-4">
                                     <select wire:model.live="payment" class="form-select">
                                         <option value="cash">كاش</option>
                                         <option value="bank">بنك</option>
                                     </select>
                                 </div>
-                                <div class="col-4 mt-1"><input type="text" placeholder="رقم الاشعار ....." @disabled($payment == 'cash') wire:model.live="bank" class="form-control"></div>
+                                <div class="col-4 mt-1"><input type="text" placeholder="رقم الاشعار ....."
+                                                               @disabled($payment == 'cash') wire:model.live="bank"
+                                                               class="form-control"></div>
                             </div>
 
                         </div>
