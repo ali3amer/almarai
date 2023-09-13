@@ -110,7 +110,7 @@ class Sale extends Component
             \App\Models\Client::where('id', $this->currentClient['id'])->increment('currentBalance', $this->total_amount);
             $this->currentClient['currentBalance'] += $this->total_amount;
 
-            SaleDebt::where('purchase_id', $this->id)->first()->update([
+            SaleDebt::where('sale_id', $this->id)->first()->update([
                 'sale_id' => $this->id,
                 'paid' => $this->paid,
                 'bank' => $this->bank,
@@ -197,7 +197,29 @@ class Sale extends Component
         }
     }
 
+    public function chooseSale($sale)
+    {
+        $this->total_amount = $sale['total_amount'];
+        $this->paid = $sale['sale_debts'][0]['paid'];
+        $this->payment = $sale['sale_debts'][0]['payment'];
+        $this->bank = $sale['sale_debts'][0]['bank'];
+        $this->sale_date = $sale['sale_date'];
+        $this->id = $sale['id'];
+        foreach ($sale['sale_details'] as $detail) {
+            $this->cart[$detail['product_id']] = [
+                'id' => $detail['product_id'],
+                'sale_id' => $detail['sale_id'],
+                'product_id' => $detail['product_id'],
+                'productName' => $detail['product']['productName'],
+                'quantity' => $detail['quantity'],
+                'sale_price' => $detail['price'],
+                'amount' => $detail['price'] * $detail['quantity'],
+            ];
 
+            $this->oldQuantities[$detail['product_id']] = $detail['quantity'];
+        }
+
+    }
     public function calcRemainder()
     {
         $this->remainder = $this->total_amount - floatval($this->paid);
