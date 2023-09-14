@@ -11,13 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('banks', function (Blueprint $table) {
+        Schema::create('transfers', function (Blueprint $table) {
             $table->id();
-            $table->string('bankName');
-            $table->string('accountName');
-            $table->string('number');
-            $table->decimal('initialBalance', 8,2);
-            $table->decimal('currentBalance', 8,2);
+            $table->enum('type', ['debt', 'pay', 'transfer']);
+            $table->enum('transfer_type', ['safe_to_bank', 'bank_to_safe']);
+            $table->decimal('amount', 8, 2);
+            $table->string('number')->nullable();
             $table->timestamps();
         });
     }
@@ -27,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('banks');
+        Schema::dropIfExists('transfers');
     }
 };

@@ -39,6 +39,7 @@ class Debt extends Component
 
     public function showSale($sale)
     {
+        $this->id = $sale['id'];
         $this->details = $sale['sale_details'];
         $this->paid = $sale['sale_debts_sum_paid'];
         $this->total_amount = $sale['total_amount'];

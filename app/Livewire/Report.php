@@ -2,7 +2,10 @@
 
 namespace App\Livewire;
 
+use App\Models\PurchaseDebt;
+use App\Models\PurchaseDetail;
 use App\Models\SaleDebt;
+use App\Models\SaleDetail;
 use Illuminate\Contracts\Database\Eloquent\Builder;
 
 ;
@@ -49,16 +52,22 @@ class Report extends Component
     public collection $sales;
     public collection $stores;
     public collection $saleDebts;
+    public Collection $purchaseDebts;
     public collection $clients;
-    public collection $products;
     public collection $suppliers;
+    public collection $products;
     public string $clientSearch = '';
+    public string $supplierSearch = '';
 
     public function chooseClient($client)
     {
         $this->currentClient = $client;
     }
 
+    public function chooseSupplier($supplier)
+    {
+        $this->currentSupplier = $supplier;
+    }
     public function chooseReport()
     {
         if ($this->reportType == 0) {
@@ -75,30 +84,15 @@ class Report extends Component
             }
         } elseif ($this->reportType == 'client') { // client
             if ($this->reportDuration == 'day') {
-//                $sales = \App\Models\Sale::where('client_id', $this->currentClient['id'])->where('sale_date', $this->day)->get()->keyBy('id')->toArray();
-//                $keys = array_keys($sales);
-                $sale_debts = SaleDebt::join('sales', 'sales.id', '=', 'sale_debts.sale_id')->where('sales.client_id', $this->currentClient['id'])->where('due_date', $this->day)->select('sale_debts.*', 'sales.created_at as sale_at', 'sales.sale_date')->get();
-                dd($sale_debts);
-
-                $combined = [];
-                foreach ($sales as $sale) {
-                    $combined[] = $sale;
-                }
-                foreach ($sale_debts as $sale_debt) {
-                    $combined[] = $sale_debt;
-                }
-
-                usort($combined, function ($a, $b) {
-                    return $a->created_at <=> $b->created_at;
-                });
-
-                dd($combined);
+                $this->saleDebts = SaleDebt::join('sales', 'sales.id', '=', 'sale_debts.sale_id')->where('sales.client_id', $this->currentClient['id'])->where('sale_debts.due_date', $this->day)->get();
             } elseif ($this->reportDuration == 'duration') {
-                $this->sales = \App\Models\Sale::with('client', 'saleDetails.product', 'saleDebts')->where('client_id', $this->currentClient['id'])->whereBetween('sale_date', [$this->from, $this->to])->get();
+                $this->saleDebts = SaleDebt::join('sales', 'sales.id', '=', 'sale_debts.sale_id')->where('sales.client_id', $this->currentClient['id'])->whereBetween('sale_debts.due_date', [$this->from, $this->to])->get();
             }
         } elseif ($this->reportType == 'supplier') {   // supplier
             if ($this->reportDuration == 'day') {
+                $this->purchaseDebts = PurchaseDebt::join('purchases', 'purchases.id', '=', 'purchase_debts.purchase_id')->where('purchases.supplier_id', $this->currentSupplier['id'])->where('purchase_debts.due_date', $this->day)->get();
             } elseif ($this->reportDuration == 'duration') {
+                $this->purchaseDebts = PurchaseDebt::join('purchases', 'purchases.id', '=', 'purchase_debts.purchase_id')->where('purchases.supplier_id', $this->currentSupplier['id'])->whereBetween('sale_debts.due_date', [$this->from, $this->to])->get();
             }
         } elseif ($this->reportType == 'safe') {   // safe
             if ($this->reportDuration == 'day') {
@@ -106,11 +100,15 @@ class Report extends Component
             }
         } elseif ($this->reportType == 'sales') {  // sale
             if ($this->reportDuration == 'day') {
+                $this->sales = SaleDetail::join('sales', 'sales.id', '=', 'sale_details.sale_id')->select('sale_details.*', 'sales.sale_date')->with('product', 'sale.client')->where('sales.sale_date', $this->day)->get();
             } elseif ($this->reportDuration == 'duration') {
+                $this->sales = SaleDetail::join('sales', 'sales.id', '=', 'sale_details.sale_id')->select('sale_details.*', 'sales.sale_date')->with('product', 'sale.client')->whereBetween('sales.sale_date', [$this->from, $this->to])->get();
             }
         } elseif ($this->reportType == 'purchases') {  // purchase
             if ($this->reportDuration == 'day') {
+                $this->purchases = PurchaseDetail::join('purchases', 'purchases.id', '=', 'purchase_details.purchase_id')->select('purchase_details.*', 'purchases.purchase_date')->with('product', 'purchase.supplier')->where('purchases.purchase_date', $this->day)->get();
             } elseif ($this->reportDuration == 'duration') {
+                $this->purchases = PurchaseDetail::join('purchases', 'purchases.id', '=', 'purchase_details.purchase_id')->select('purchase_details.*', 'purchases.purchase_date')->with('product', 'purchase.supplier')->whereBetween('purchases.purchase_date', [$this->from, $this->to])->get();
             }
         }
     }
@@ -118,7 +116,11 @@ class Report extends Component
     public function render()
     {
         $this->stores = \App\Models\Store::all();
-        $this->clients = \App\Models\Client::where('clientName', 'LIKE', '%' . $this->clientSearch . '%')->get();
+        if ($this->reportType == 'client') {
+            $this->clients = \App\Models\Client::where('clientName', 'LIKE', '%' . $this->clientSearch . '%')->get();
+        } elseif ($this->reportType == 'supplier') {
+            $this->suppliers = \App\Models\Supplier::where('supplierName', 'LIKE', '%' . $this->supplierSearch . '%')->get();
+        }
         return view('livewire.report');
     }
 }

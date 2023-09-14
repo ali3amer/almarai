@@ -236,7 +236,7 @@ class Sale extends Component
         if (!empty($this->currentClient)) {
 
             $this->sales = \App\Models\Sale::where('client_id', $this->currentClient['id'])
-                ->where('id', 'LIKE', '%' . $this->saleSearch . '%')->orWhere('sale_date', 'LIKE', '%' . $this->saleSearch . '%')
+                ->where('id', 'LIKE', '%' . $this->saleSearch . '%')->where('sale_date', 'LIKE', '%' . $this->saleSearch . '%')
                 ->with('saleDetails.product', 'saleDebts')->get();
         }  else {
             $this->sale_date = date('Y-m-d');

@@ -39,6 +39,7 @@ class Claim extends Component
 
     public function showPurchase($purchase)
     {
+        $this->id = $purchase['id'];
         $this->details = $purchase['purchase_details'];
         $this->paid = $purchase['purchase_debts_sum_paid'];
         $this->total_amount = $purchase['total_amount'];

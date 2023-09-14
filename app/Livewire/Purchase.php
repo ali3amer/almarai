@@ -214,7 +214,7 @@ class Purchase extends Component
         if (!empty($this->currentSupplier)) {
 
             $this->purchases = \App\Models\Purchase::where('supplier_id', $this->currentSupplier['id'])
-                ->where('id', 'LIKE', '%' . $this->purchaseSearch . '%')->orWhere('purchase_date', 'LIKE', '%' . $this->purchaseSearch . '%')
+                ->where('id', 'LIKE', '%' . $this->purchaseSearch . '%')->where('purchase_date', 'LIKE', '%' . $this->purchaseSearch . '%')
                 ->with('purchaseDetails.product', 'purchaseDebts')->get();
         }  else {
             $this->purchase_date = date('Y-m-d');

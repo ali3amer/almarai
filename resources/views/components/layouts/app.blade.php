@@ -6,6 +6,7 @@
     @livewireStyles
     <title>{{ $title ?? 'Page Title' }}</title>
     @vite(['resources/sass/app.scss', 'resources/js/app.js'])
+
 </head>
 <body dir="rtl" lang="ar">
 
@@ -14,7 +15,12 @@
 <div class="container-fluid">
     {{ $slot }}
 </div>
-
 @livewireScripts
 </body>
+
+<script>
+    $('#print').click(
+        $('.printThis').printThis()
+    );
+</script>
 </html>

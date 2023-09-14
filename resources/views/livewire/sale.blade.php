@@ -1,7 +1,7 @@
 <div>
     <x-title :$title />
     <!-- Edit Sale Modal -->
-    <div wire:ignore.self class="modal fade" id="editPurchase" tabindex="-1" aria-labelledby="exampleModalLabel"
+    <div wire:ignore.self class="modal fade" id="editSale" tabindex="-1" aria-labelledby="exampleModalLabel"
          aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -242,7 +242,7 @@
                     <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal"
                             style="cursor: pointer"><i class="bi bi-plus-square"></i></button>
                     <button class="btn btn-warning" {{empty($currentClient) ? 'disabled':''}} data-bs-toggle="modal"
-                            data-bs-target="#editPurchase"
+                            data-bs-target="#editSale"
                             style="cursor: pointer"><i class="bi bi-pen"></i></button>
                     <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#printModal"
                             style="cursor: pointer" wire:click="save()" {{empty($cart) ? 'disabled':''}} ><i
