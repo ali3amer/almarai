@@ -167,7 +167,44 @@
         </div>
     </div>
 
-    @if($reportType == 'inventory' && !empty($products))
+    @if($reportType == 'general')
+        <div class="card mt-2">
+            <div class="card-body">
+                <table class="table text-center">
+                    <thead>
+                    <tr>
+                        <th>البيان</th>
+                        <th>الجمله</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td>المبيعات</td>
+                        <td>{{$salesSum}}</td>
+                    </tr>
+                    <tr>
+                        <td>المشتريات</td>
+                        <td>{{$purchasesSum}}</td>
+                    </tr>
+                    <tr>
+                        <td>المصروفات</td>
+                        <td>{{$expensesSum}}</td>
+                    </tr>
+                    <tr>
+                        <td>مصروفات الموظفين</td>
+                        <td>{{$employeesSum}}</td>
+                    </tr>
+                    </tbody>
+                    <tfoot>
+                    <tr>
+                        <th>الجمله</th>
+                        <th>{{ $salesSum - $purchasesSum - $expensesSum - $employeesSum }}</th>
+                    </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    @elseif($reportType == 'inventory' && !empty($products))
         <div class="card mt-2">
             <div class="card-body">
                 <table class="table text-center d-print-table">
@@ -266,7 +303,7 @@
         <div class="card mt-2">
             <div class="card-body">
                 <div class="card-title"><h5>المبيعات</h5></div>
-                <table class="table text-center">
+                <table class="table text-center demo">
                     <thead>
                     <tr>
                         <th>رقم الفاتوره</th>

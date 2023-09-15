@@ -34,6 +34,7 @@ class Report extends Component
 
     public array $reportTypes = [
         0 => '-------------------------',
+        'general' => 'تقرير عام',
         'inventory' => 'تقرير جرد',
         'client' => 'تقرير عميل',
         'supplier' => 'تقرير مورد',
@@ -58,6 +59,10 @@ class Report extends Component
     public collection $products;
     public string $clientSearch = '';
     public string $supplierSearch = '';
+    public float $salesSum = 0;
+    public float $purchasesSum = 0;
+    public float $expensesSum = 0;
+    public float $employeesSum = 0;
 
     public function chooseClient($client)
     {
@@ -72,6 +77,19 @@ class Report extends Component
     {
         if ($this->reportType == 0) {
             $this->reset();
+        } elseif ($this->reportType == 'general') {
+            if ($this->reportDuration == 'day') {
+                $this->salesSum = SaleDebt::where('due_date', $this->day)->sum('paid');
+                $this->purchasesSum = PurchaseDebt::where('due_date', $this->day)->sum('paid');
+                $this->expensesSum = \App\Models\Expense::where('expense_date', $this->day)->sum('amount');
+                $this->employeesSum = \App\Models\EmployeeGift::where('gift_date', $this->day)->sum('gift_amount');
+            } elseif ($this->reportDuration == 'duration') {
+                $this->salesSum = SaleDebt::whereBetween('due_date', [$this->from, $this->to])->sum('paid');
+                $this->purchasesSum = PurchaseDebt::whereBetween('due_date', [$this->from, $this->to])->sum('paid');
+                $this->expensesSum = \App\Models\Expense::whereBetween('expense_date', [$this->from, $this->to])->sum('amount');
+                $this->employeesSum = \App\Models\EmployeeGift::whereBetween('gift_date', [$this->from, $this->to])->sum('gift_amount');
+
+            }
         } elseif ($this->reportType == 'inventory') {
             if ($this->store_id == 0) {
                 $this->products = \App\Models\Product::all();

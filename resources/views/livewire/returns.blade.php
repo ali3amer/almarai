@@ -211,10 +211,6 @@
                                         </td>
                                     </tr>
                                 @endforeach
-                                <tr>
-                                    <td>الجمله</td>
-                                    <td>{{$currentSale['total_amount']}}</td>
-                                </tr>
                                 </tbody>
                             </table>
                         </div>

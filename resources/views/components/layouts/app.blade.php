@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     @livewireStyles
     <title>{{ $title ?? 'Page Title' }}</title>
+
     @vite(['resources/sass/app.scss', 'resources/js/app.js'])
 
 </head>
@@ -17,10 +18,4 @@
 </div>
 @livewireScripts
 </body>
-
-<script>
-    $('#print').click(
-        $('.printThis').printThis()
-    );
-</script>
 </html>
