@@ -197,6 +197,29 @@ class Purchase extends Component
         }
     }
 
+    public function choosePurchase($purchase)
+    {
+        $this->total_amount = $purchase['total_amount'];
+        $this->paid = $purchase['purchase_debts'][0]['paid'];
+        $this->payment = $purchase['purchase_debts'][0]['payment'];
+        $this->bank = $purchase['purchase_debts'][0]['bank'];
+        $this->purchase_date = $purchase['purchase_date'];
+        $this->id = $purchase['id'];
+        foreach ($purchase['purchase_details'] as $detail) {
+            $this->cart[$detail['product_id']] = [
+                'id' => $detail['product_id'],
+                'purchase_id' => $detail['purchase_id'],
+                'product_id' => $detail['product_id'],
+                'productName' => $detail['product']['productName'],
+                'quantity' => $detail['quantity'],
+                'purchase_price' => $detail['price'],
+                'amount' => $detail['price'] * $detail['quantity'],
+            ];
+
+            $this->oldQuantities[$detail['product_id']] = $detail['quantity'];
+        }
+
+    }
 
     public function calcRemainder()
     {

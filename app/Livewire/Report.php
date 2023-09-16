@@ -63,6 +63,7 @@ class Report extends Component
     public float $purchasesSum = 0;
     public float $expensesSum = 0;
     public float $employeesSum = 0;
+    public float $damagedsSum = 0;
 
     public function chooseClient($client)
     {
@@ -73,22 +74,35 @@ class Report extends Component
     {
         $this->currentSupplier = $supplier;
     }
+
     public function chooseReport()
     {
         if ($this->reportType == 0) {
             $this->reset();
+
         } elseif ($this->reportType == 'general') {
             if ($this->reportDuration == 'day') {
                 $this->salesSum = SaleDebt::where('due_date', $this->day)->sum('paid');
                 $this->purchasesSum = PurchaseDebt::where('due_date', $this->day)->sum('paid');
                 $this->expensesSum = \App\Models\Expense::where('expense_date', $this->day)->sum('amount');
                 $this->employeesSum = \App\Models\EmployeeGift::where('gift_date', $this->day)->sum('gift_amount');
+
+                if (\App\Models\Damaged::where('damaged_date', $this->day)->count() > 0) {
+                    $this->damagedsSum = \App\Models\Damaged::where('damaged_date', $this->day)->join('products', 'damageds.product_id', '=', 'products.id')
+                        ->select(DB::raw('SUM(damageds.quantity * products.purchase_price) AS total_damage_cost'))
+                        ->groupBy('damageds.product_id')->first()->total_damage_cost;
+                }
+
             } elseif ($this->reportDuration == 'duration') {
                 $this->salesSum = SaleDebt::whereBetween('due_date', [$this->from, $this->to])->sum('paid');
                 $this->purchasesSum = PurchaseDebt::whereBetween('due_date', [$this->from, $this->to])->sum('paid');
                 $this->expensesSum = \App\Models\Expense::whereBetween('expense_date', [$this->from, $this->to])->sum('amount');
                 $this->employeesSum = \App\Models\EmployeeGift::whereBetween('gift_date', [$this->from, $this->to])->sum('gift_amount');
-
+                if (\App\Models\Damaged::whereBetween('damaged_date', [$this->from , $this->to])->count() > 0) {
+                    $this->damagedsSum = \App\Models\Damaged::whereBetween('damaged_date', [$this->from, $this->to])->join('products', 'damageds.product_id', '=', 'products.id')
+                        ->select(DB::raw('SUM(damageds.quantity * products.purchase_price) AS total_damage_cost'))
+                        ->groupBy('damageds.product_id')->first()->total_damage_cost;
+                }
             }
         } elseif ($this->reportType == 'inventory') {
             if ($this->store_id == 0) {

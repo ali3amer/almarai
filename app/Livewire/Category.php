@@ -10,7 +10,7 @@ class Category extends Component
 {
     public string $title = 'الأقسام';
     public int $id = 0;
-    #[Rule('required|min:2')]
+    #[Rule('required|min:2', message: 'أدخل إسم القسم')]
     public string $categoryName = '';
     public  string $search = '';
     public Collection $categories;

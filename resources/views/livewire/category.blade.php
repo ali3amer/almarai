@@ -7,7 +7,7 @@
                 <div class="card-body">
                     <form action="" wire:submit="save({{ $id }})">
                         <label for="categoryName" class="form-label">إسم القسم</label>
-                        <input type="text" wire:model="categoryName" class="form-control" placeholder="إسم القسم ..." id="categoryName">
+                        <input type="text" wire:model="categoryName" class="form-control @error('categoryName') is-invalid @enderror" placeholder="إسم القسم ..." id="categoryName">
                         <div>
                             @error('categoryName') <span class="error text-danger">{{ $message }}</span> @enderror
                         </div>

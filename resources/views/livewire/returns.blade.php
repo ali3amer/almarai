@@ -145,32 +145,46 @@
                         <div class="card-title"></div>
                         <div class="row">
                             <div class="col">
-                                <input type="text" disabled wire:model="productName" class="form-control text-center"
+                                <label for="productName">إسم المنتج</label>
+                                <input id="productName" type="text" disabled wire:model="productName" class="form-control text-center"
                                        placeholder="إسم المنتج">
                             </div>
                             <div class="col">
-                                <input type="text" disabled wire:model="price" class="form-control text-center"
+                                <label for="price">سعر الوحده</label>
+
+                                <input type="text" id="price" disabled wire:model="price" class="form-control text-center"
                                        placeholder="سعر الوحده">
                             </div>
                             <div class="col">
-                                <input type="text" disabled wire:model="quantity" class="form-control text-center"
+                                <label for="quantity">الكمية</label>
+
+                                <input type="text" id="quantity" disabled wire:model="quantity" class="form-control text-center"
                                        placeholder="الكمية">
                             </div>
                             <div class="col">
-                                <input type="text" disabled wire:model="amount" class="form-control text-center"
+                                <label for="amount">الجمله</label>
+
+                                <input type="text" id="amount" disabled wire:model="amount" class="form-control text-center"
                                        placeholder="الجمله">
                             </div>
                         </div>
 
                         <div class="row mt-2">
                             <div class="col">
-                                <input type="text" wire:model="quantityReturn" wire:change="calcQuantity()"
+                                <label for="quantityReturn">الكمية المرجعه</label>
+
+                                <input type="text" id="quantityReturn" wire:model="quantityReturn" wire:keydown="calcQuantity()"
                                        class="form-control text-center"
-                                       placeholder="سعر الوحده">
+                                       placeholder="الكمية المرجعه">
                             </div>
 
                             <div class="col">
-                                <button @disabled(empty($currentDetail) || ($quantityReturn == 0)) class="btn {{ $editMode ? 'btn-success' : 'btn-primary' }}" wire:click="save()">{{ $editMode ? 'تعـــــــــــــــديل' : 'حــــــــــــــفظ' }}</button>
+                                <label for="return_date">تاريخ الارجاع</label>
+                                <input type="date" wire:model="return_date" class="form-control text-center">
+                            </div>
+
+                            <div class="col d-flex align-items-end">
+                                <button @disabled(empty($currentDetail) || ($quantityReturn == 0)) class="btn {{ $editMode ? 'btn-success' : 'btn-primary' }} " wire:click="save()">{{ $editMode ? 'تعـــــــــــــــديل' : 'حــــــــــــــفظ' }}</button>
                             </div>
                         </div>
                     </div>
@@ -193,6 +207,7 @@
                                     <th> الكمية</th>
                                     <th>الجمله</th>
                                     <th>التاريخ</th>
+                                    <th>التاريخ</th>
                                     <th>التحكم</th>
                                 </tr>
                                 </thead>
@@ -204,6 +219,7 @@
                                         <td>{{number_format($return['price'], 2)}}</td>
                                         <td>{{number_format($return['quantity'], 2)}}</td>
                                         <td>{{number_format($return['quantity'] * $return['price'], 2)}}</td>
+                                        <td>{{$return['return_date']}}</td>
                                         <td></td>
                                         <td>
                                             <button  wire:click="chooseDetail({{$return}}, {{$return['product']}})" class="btn btn-sm btn-primary"><i class="bi bi-pen"></i></button>

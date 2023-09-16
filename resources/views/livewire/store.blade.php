@@ -7,9 +7,9 @@
                 <div class="card-body">
                     <form action="" wire:submit="save({{ $id }})">
                         <label for="storeName" class="form-label">إسم المخزن</label>
-                        <input type="text" wire:model="storeName" autocomplete="off" autofocus class="form-control" placeholder="إسم المخزن ..." id="storeName">
+                        <input type="text" wire:model="storeName" autocomplete="off" autofocus class="form-control @error('storeName') is-invalid @enderror" placeholder="إسم المخزن ..." id="storeName">
                         <div>
-                            @error('name') <span class="error text-danger">{{ $message }}</span> @enderror
+                            @error('storeName') <span class="error text-danger">{{ $message }}</span> @enderror
                         </div>
                         <div class="d-grid mt-2">
                             <button class="btn btn- btn-primary">حفـــــــــــــــــــظ</button>

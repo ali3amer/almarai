@@ -11,7 +11,7 @@ class Store extends Component
 
     public string $title = 'المخازن';
     public int $id = 0;
-    #[Rule('required|min:2')]
+    #[Rule('required|min:2', message: 'أدخل إسم المخزن')]
     public string $storeName = '';
     public  string $search = '';
     public Collection $stores;

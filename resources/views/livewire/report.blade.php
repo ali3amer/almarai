@@ -194,11 +194,15 @@
                         <td>مصروفات الموظفين</td>
                         <td>{{$employeesSum}}</td>
                     </tr>
+                    <tr>
+                        <td>التالف</td>
+                        <td>{{$damagedsSum}}</td>
+                    </tr>
                     </tbody>
                     <tfoot>
                     <tr>
                         <th>الجمله</th>
-                        <th>{{ $salesSum - $purchasesSum - $expensesSum - $employeesSum }}</th>
+                        <th>{{ $salesSum - $purchasesSum - $expensesSum - $employeesSum - $damagedsSum }}</th>
                     </tr>
                     </tfoot>
                 </table>

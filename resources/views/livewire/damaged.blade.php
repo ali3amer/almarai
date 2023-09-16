@@ -13,7 +13,7 @@
                             </div>
                         </div>
                     </div>
-                    <table class="table text-center">
+                    <table class="table text-center table-hover">
                         <thead>
                         <tr>
                             <th>#</th>
@@ -24,7 +24,7 @@
                         <tbody>
                         @foreach($products as $product)
                             @if($product->stock > 0)
-                                <tr  wire:click="chooseProduct({{$product}})">
+                                <tr style="cursor: pointer"  wire:click="chooseProduct({{$product}})">
                                     <td>{{$loop->index + 1}}</td>
                                     <td>{{$product->productName}}</td>
                                     <td>{{$product->stock}}</td>
@@ -46,6 +46,10 @@
                     <label for="quantity">الكميه التالفه</label>
                     <input type="text" id="quantity" wire:model.live="quantity" class="form-control text-center"
                            placeholder="الكمية التالفه">
+                    <label for="quantity">التاريخ</label>
+                    <input type="date" id="damaged_date" wire:model.live="damaged_date" class="form-control text-center">
+
+
                     <button @disabled(empty($currentProduct) || ($quantity == 0)) class="btn {{ $id == 0 ? 'btn-primary' : 'btn-success' }} w-100 mt-2" wire:click="save()">{{$id == 0 ? 'حفـــــــــــــــظ' : 'تعـــــــــــــديل'}}</button>
                 </div>
             </div>
@@ -60,6 +64,7 @@
                         <tr>
                             <th>إسم المنتج</th>
                             <th>الكمية التالفه</th>
+                            <th>التاريخ</th>
                             <th>التحكم</th>
                         </tr>
                         </thead>
@@ -68,6 +73,7 @@
                                 <tr>
                                     <td>{{$damaged->product->productName}}</td>
                                     <td>{{$damaged->quantity}}</td>
+                                    <td>{{$damaged->damaged_date}}</td>
                                     <td>
                                         <button class="btn btn-sm btn-primary" wire:click="edit({{$damaged}})"><i class="bi bi-pen"></i></button> /
                                         <button class="btn btn-sm btn-danger" wire:click="delete({{$damaged}})"><i class="bi bi-trash"></i></button>

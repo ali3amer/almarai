@@ -22,6 +22,7 @@ class Returns extends Component
     public float $quantityReturn = 0;
     public float $priceReturn = 0;
 
+    public string $return_date = '';
     public string $clientSearch = '';
     public Collection $clients;
     public Collection $returns;
@@ -56,6 +57,8 @@ class Returns extends Component
         $this->productName = $product['productName'];
         $this->quantity = $detail['quantity'];
         $this->price = $detail['price'];
+
+        $this->return_date = $detail['return_date'] ?? $this->return_date;
         $this->amount = $detail['quantity'] * $detail['price'];
     }
 
@@ -86,6 +89,7 @@ class Returns extends Component
                 'sale_id' => $this->currentDetail['sale_id'],
                 'product_id' => $this->currentDetail['product_id'],
                 'quantity' => $this->quantityReturn,
+                'return_date' => $this->return_date,
                 'price' => $this->currentDetail['price']
             ]);
         } else {
@@ -97,6 +101,7 @@ class Returns extends Component
 
             SaleReturn::where('id', $this->id)->update([
                 'quantity' => $this->currentDetail['quantity'] - floatval($this->quantityReturn),
+                'return_date' => $this->return_date
             ]);
         }
 
@@ -114,11 +119,14 @@ class Returns extends Component
 
     public function resetData()
     {
-        $this->reset('productName', 'editMode', 'amount', 'quantity', 'price', 'quantityReturn', 'clientSearch', 'currentClient', 'currentDetail', 'currentSale', 'saleSearch',);
+        $this->reset('productName', 'editMode', 'amount', 'quantity', 'price', 'quantityReturn', 'clientSearch', 'currentClient', 'currentDetail', 'currentSale', 'saleSearch', 'return_date');
     }
 
     public function render()
     {
+        if ($this->return_date == '') {
+            $this->return_date = date('Y-m-d');
+        }
         $this->clients = \App\Models\Client::where('clientName', 'LIKE', '%' . $this->clientSearch . '%')->get();
         if (!empty($this->currentClient)) {
             $this->sales = \App\Models\Sale::where('client_id', $this->currentClient['id'])->where('id', 'LIKE', '%' . $this->saleSearch . '%')->get();
