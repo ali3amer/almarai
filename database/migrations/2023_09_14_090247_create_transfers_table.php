@@ -13,10 +13,11 @@ return new class extends Migration
     {
         Schema::create('transfers', function (Blueprint $table) {
             $table->id();
-            $table->enum('type', ['debt', 'pay', 'transfer']);
-            $table->enum('transfer_type', ['safe_to_bank', 'bank_to_safe']);
-            $table->decimal('amount', 8, 2);
-            $table->string('number')->nullable();
+            $table->enum('transfer_type', ['cash_to_bank', 'bank_to_cash']);
+            $table->decimal('transfer_amount', 8, 2);
+            $table->string('transfer_number')->nullable();
+            $table->date('transfer_date');
+            $table->string('note')->nullable();
             $table->timestamps();
         });
     }
