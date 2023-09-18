@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Models\Bank;
 use App\Models\SaleDebt;
 use App\Models\SaleDetail;
 use Cassandra\Date;
@@ -14,6 +15,7 @@ class Sale extends Component
 
     public string $title = 'المبيعات';
     public int $id = 0;
+    public int $bank_id = 0;
     public int $debtId = 0;
     public string $sale_date = '';
     public string $due_date = '';
@@ -23,6 +25,7 @@ class Sale extends Component
     public Collection $sales;
     public Collection $clients;
     public Collection $products;
+    public Collection $banks;
     public string $productSearch = '';
     public string $clientSearch = '';
 
@@ -75,11 +78,13 @@ class Sale extends Component
                     'paid' => $this->paid,
                     'bank' => $this->bank,
                     'payment' => $this->payment,
+                    'bank_id' => $this->payment == 'bank' ? $this->bank_id : '',
                     'remainder' => $this->remainder,
                     'client_balance' => $this->currentClient['currentBalance'],
                     'due_date' => $this->sale_date
                 ]);
 
+                \App\Models\Safe::first()->increment('currentBalance', $this->paid);
 
                 \App\Models\Client::where('id', $this->currentClient['id'])->decrement('currentBalance', $this->paid);
             }
@@ -102,6 +107,7 @@ class Sale extends Component
         } else {
             $sale = \App\Models\Sale::where('id', $this->id)->first();
             $this->currentClient['currentBalance'] -= $sale['total_amount'];
+            \App\Models\Safe::first()->decrement('currentBalance', $this->paid);
             \App\Models\Client::where('id', $this->currentClient['id'])->decrement('currentBalance', $sale['total_amount']);
             \App\Models\Sale::where('id', $this->id)->update([
                 'total_amount' => $this->total_amount,
@@ -115,6 +121,7 @@ class Sale extends Component
                 'paid' => $this->paid,
                 'bank' => $this->bank,
                 'payment' => $this->payment,
+                'bank_id' => $this->payment  == 'bank' ? $this->bank_id : '',
                 'remainder' => $this->remainder,
                 'current_balance' => $this->currentClient['currentBalance'],
                 'due_date' => $this->sale_date
@@ -183,12 +190,15 @@ class Sale extends Component
         $this->cart[$this->currentProduct['id']] = $this->currentProduct;
         $this->cart[$this->currentProduct['id']]['amount'] = $this->currentProduct['sale_price'] * $this->currentProduct['quantity'];
         $this->total_amount += $this->cart[$this->currentProduct['id']]['amount'];
+        $this->paid = $this->total_amount;
         $this->currentProduct = [];
     }
 
     public function deleteFromCart($id)
     {
         $this->total_amount -= $this->cart[$id]['amount'];
+        $this->paid = $this->total_amount;
+
         $this->calcRemainder();
         unset($this->cart[$id]);
         if (empty($this->cart)) {
@@ -241,6 +251,8 @@ class Sale extends Component
         }  else {
             $this->sale_date = date('Y-m-d');
         }
+
+        $this->banks = Bank::all();
         $this->clients = \App\Models\Client::where('clientName', 'LIKE', '%' . $this->clientSearch . '%')->get();
         $this->products = \App\Models\Product::where('productName', 'LIKE', '%' . $this->productSearch . '%')->get();
         return view('livewire.sale');

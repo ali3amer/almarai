@@ -1,5 +1,4 @@
 <div>
-
     <div wire:ignore.self class="modal fade" id="bankModal" tabindex="-1" aria-labelledby="bankModalLabel"
          aria-hidden="true">
         <div class="modal-dialog">
@@ -85,7 +84,7 @@
                         <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#bankModal"><i
                                 class="bi bi-bag-plus"></i></button>
                     </div>
-                    <table class="table">
+                    <table class="table text-center">
                         <thead>
                         <tr>
                             <th>إسم البنك</th>
@@ -101,8 +100,8 @@
                                 <td>{{$bank->bankName}}</td>
                                 <td>{{$bank->accountName}}</td>
                                 <td>{{$bank->number}}</td>
-                                <td>{{$bank->initialBalance}}</td>
-                                <td>{{$bank->currentBalance}}</td>
+                                <td>{{number_format($bank->initialBalance, 2)}}</td>
+                                <td>{{number_format($bank->currentBalance, 2)}}</td>
                             </tr>
                         @endforeach
                         </tbody>
@@ -118,7 +117,7 @@
                         <div class="row">
                             <div class="col-4">
                                 <label for="type">نوع التحويل</label>
-                                <select id="type" class="form-select" wire:model.live="transferType">
+                                <select id="type" class="form-select text-center" wire:model.live="transfer_type">
                                     <option value="cash_to_bank">من كاش الى بنك</option>
                                     <option value="bank_to_cash">من بنك الى كاش</option>
                                 </select>
@@ -126,22 +125,42 @@
 
                             <div class="col-4">
                                 <label for="transfer_amount">المبلغ</label>
-                                <input type="text" id="transfer_amount" wire:model="transfer_amount" class="form-control text-center" placeholder="المبلغ ....">
+                                <input type="text" id="transfer_amount" wire:model.live="transfer_amount"
+                                       class="form-control text-center" placeholder="المبلغ ....">
                             </div>
 
                             <div class="col-4">
                                 <label for="transfer_number">رقم الاشعار</label>
-                                <input type="text" @disabled($transfer_type == 'bank_to_cash' ) wire:model="transfer_number" id="transfer_amount" class="form-control text-center" placeholder="رقم الاشعار ....">
+                                <input type="text" wire:model.live="transfer_number" id="transfer_amount"
+                                       class="form-control text-center" placeholder="رقم الاشعار ....">
                             </div>
                         </div>
                         <div class="row mt-2">
-                            <div class="col-4">
-                                <label for="transfer_date">رقم الاشعار</label>
-                                <input type="date" wire:model="transfer_date" id="transfer_date" class="form-control text-center" placeholder="رقم الاشعار ....">
+                            <div class="col-3">
+                                <label for="transfer_date">تاريخ التحويل</label>
+                                <input type="date" wire:model="transfer_date" id="transfer_date"
+                                       class="form-control text-center" placeholder="رقم الاشعار ....">
+                            </div>
+
+                            <div class="col-3">
+                                <label for="type">البنك</label>
+                                <select id="type" class="form-select text-center" wire:model.live="bank_id">
+                                    @foreach($banks as $bank)
+                                        <option value="{{$bank->id}}">{{$bank->bankName}}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <div class="col-3">
+                                <label for="note">ملاحظات</label>
+                                <input type="text" wire:model.live="note" id="note"
+                                       class="form-control text-center" placeholder="محلاظات ....">
                             </div>
 
                             <div class="col-2 d-flex align-items-end">
-                                <button class="btn w-100 btn-{{$transferId == 0 ? 'primary' : 'success'}}" type="submit">{{$transferId == 0 ? 'حــــفظ' : 'تعـــديل'}}</button>
+                                <button
+                                    @disabled($transfer_number == 0 || $transfer_amount == 0) class="btn w-100 btn-{{$transferId == 0 ? 'primary' : 'success'}}"
+                                    type="submit">{{$transferId == 0 ? 'حــــفظ' : 'تعـــديل'}}</button>
                             </div>
                         </div>
                     </form>
@@ -155,9 +174,11 @@
                         <tr>
                             <th>#</th>
                             <th>التاريخ</th>
+                            <th>البنك</th>
                             <th>نوع التحويل</th>
                             <th>المبلغ</th>
                             <th>رقم الإشعار</th>
+                            <th>ملاحظات</th>
                             <th>التحكم</th>
                         </tr>
                         </thead>
@@ -166,12 +187,17 @@
                             <tr>
                                 <td>{{$loop->index + 1}}</td>
                                 <td>{{$transfer->transfer_date}}</td>
+                                <td>{{$transfer->bank->bankName}}</td>
                                 <td>{{$transfer->transfer_type == 'cash_to_bank' ? 'من كاش الى بنك' : 'من بنك الى كاش'}}</td>
-                                <td>{{$transfer->transfer_amount}}</td>
+                                <td>{{number_format($transfer->transfer_amount, 2)}}</td>
                                 <td>{{$transfer->transfer_number}}</td>
+                                <td>{{$transfer->note}}</td>
                                 <td>
-                                    <button class="btn btn-info btn-sm text-white" wire:click="editTransfer({{$transfer}})"><i class="bi bi-pen"></i></button> /
-                                    <button class="btn btn-danger btn-sm"  wire:click="deleteTransfer({{$transfer}})"><i class="bi bi-trash"></i></button>
+                                    <button class="btn btn-info btn-sm text-white"
+                                            wire:click="editTransfer({{$transfer}})"><i class="bi bi-pen"></i></button>
+                                    /
+                                    <button class="btn btn-danger btn-sm" wire:click="deleteTransfer({{$transfer}})"><i
+                                            class="bi bi-trash"></i></button>
                                 </td>
                             </tr>
                         @endforeach

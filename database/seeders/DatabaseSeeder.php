@@ -3,10 +3,12 @@
 namespace Database\Seeders;
 
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\Bank;
 use App\Models\Category;
 use App\Models\Client;
 use App\Models\Permission;
 use App\Models\Product;
+use App\Models\Safe;
 use App\Models\Store;
 use App\Models\Supplier;
 use App\Models\User;
@@ -21,17 +23,21 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        $this->call(LaratrustSeeder::class);
+
         // \App\Models\User::factory(10)->create();
 
         // \App\Models\User::factory()->create([
         //     'name' => 'Test User',
         //     'email' => 'test@example.com',
         // ]);
-        User::create([
+        $user = User::create([
             'name' => 'admin',
             'username' => 'admin',
             'password' => Hash::make(123456),
         ]);
+
+        $user->addRole('super_admin');
 
         for ($i = 1; $i <= 2; $i++) {
             Category::create(['categoryName' => 'category_' . $i]);
@@ -65,6 +71,17 @@ class DatabaseSeeder extends Seeder
             ]);
         }
 
+        Safe::create([
+            'initialBalance' => 1000,
+            'currentBalance' => 1000
+            ]);
+        Bank::create([
+            'bankName' => 'mbok',
+            'accountName' => 'ali',
+            'number' => '1234567',
+            'initialBalance' => 1000,
+            'currentBalance' => 1000,
+        ]);
 //  $permissions = ["create-banks",
 //  "read-banks",
 //  "update-banks",

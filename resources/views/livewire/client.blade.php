@@ -45,6 +45,7 @@
                                 <th>إسم العميل</th>
                                 <th>الهاتف</th>
                                 <th>الرصيد الافتتاحي</th>
+                                <th>الرصيد الحالي</th>
                                 <th>التحكم</th>
                             </tr>
                             </thead>
@@ -55,6 +56,7 @@
                                     <td>{{ $client->clientName }}</td>
                                     <td>{{ $client->phone }}</td>
                                     <td>{{ number_format($client->initialBalance, 2) }}</td>
+                                    <td>{{ number_format($client->currentBalance, 2) }}</td>
                                     <td>
                                         <button class="btn btn-sm btn-info text-white" wire:click="edit({{$client}})"><i class="bi bi-pen"></i></button> /
                                         <button class="btn btn-sm btn-danger" wire:click="delete({{$client->id}})"><i class="bi bi-trash"></i></button>

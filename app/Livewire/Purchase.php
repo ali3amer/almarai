@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Models\Bank;
 use App\Models\PurchaseDebt;
 use App\Models\PurchaseDetail;
 use Cassandra\Date;
@@ -14,6 +15,7 @@ class Purchase extends Component
 
     public string $title = 'المشتريات';
     public int $id = 0;
+    public int $bank_id = 1;
     public int $debtId = 0;
     public string $purchase_date = '';
     public string $due_date = '';
@@ -21,6 +23,7 @@ class Purchase extends Component
 
     public string $search = '';
     public Collection $purchases;
+    public Collection $banks;
     public Collection $suppliers;
     public Collection $products;
     public string $productSearch = '';
@@ -40,9 +43,7 @@ class Purchase extends Component
     public bool $payMode = false;
     public array $currentPurchaseDebts = [];
     public array $currentPurchase = [];
-    /**
-     * @var \Illuminate\Database\Eloquent\Builder[]|Collection
-     */
+
     public Collection $purchaseDebts;
 
     public function save()
@@ -61,6 +62,7 @@ class Purchase extends Component
                 'paid' => 0,
                 'bank' => '',
                 'payment' => 'cash',
+                'bank_id' => '',
                 'remainder' => $this->total_amount,
                 'supplier_balance' => $this->currentSupplier['currentBalance'],
                 'due_date' => $this->purchase_date
@@ -75,6 +77,7 @@ class Purchase extends Component
                     'paid' => $this->paid,
                     'bank' => $this->bank,
                     'payment' => $this->payment,
+                    'bank_id' => $this->payment == 'bank' ? $this->bank_id : '',
                     'remainder' => $this->remainder,
                     'supplier_balance' => $this->currentSupplier['currentBalance'],
                     'due_date' => $this->purchase_date
@@ -115,6 +118,7 @@ class Purchase extends Component
                 'paid' => $this->paid,
                 'bank' => $this->bank,
                 'payment' => $this->payment,
+                'bank_id' => $this->payment == 'bank' ? $this->bank_id : '',
                 'remainder' => $this->remainder,
                 'current_balance' => $this->currentSupplier['currentBalance'],
                 'due_date' => $this->purchase_date
@@ -136,7 +140,6 @@ class Purchase extends Component
                 \App\Models\Product::where('id', $item['id'])->increment('stock', $item['quantity']);
             }
             session()->flash('success', 'تم التعديل بنجاح');
-
 
         }
         $this->resetData();
@@ -242,6 +245,7 @@ class Purchase extends Component
         }  else {
             $this->purchase_date = date('Y-m-d');
         }
+        $this->banks = Bank::all();
         $this->suppliers = \App\Models\Supplier::where('supplierName', 'LIKE', '%' . $this->supplierSearch . '%')->get();
         $this->products = \App\Models\Product::where('productName', 'LIKE', '%' . $this->productSearch . '%')->get();
         return view('livewire.purchase');

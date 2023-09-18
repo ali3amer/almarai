@@ -330,9 +330,20 @@
                                         <option value="bank">بنك</option>
                                     </select>
                                 </div>
-                                <div class="col-4 mt-1"><input type="text" placeholder="رقم الاشعار ....."
-                                                               @disabled($payment == 'cash') wire:model.live="bank"
-                                                               class="form-control"></div>
+                            </div>
+
+                            <div class="row mt-1">
+                                <div class="col-4"><input type="text" placeholder="رقم الاشعار ....."
+                                                          @disabled($payment == 'cash') wire:model.live="bank"
+                                                          class="form-control"></div>
+
+                                <div class="col-4">
+                                    <select wire:model.live="bank_id" class="form-select">
+                                        @foreach($banks as $bank)
+                                            <option value="{{$bank->id}}">{{$bank->bankName}}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
                             </div>
 
                         </div>

@@ -52,6 +52,7 @@
                                 <th>إسم المورد</th>
                                 <th>الهاتف</th>
                                 <th>الرصيد الافتتاحي</th>
+                                <th>الرصيد الحالي</th>
                                 <th>التحكم</th>
                             </tr>
                             </thead>
@@ -62,6 +63,7 @@
                                     <td>{{ $supplier->supplierName }}</td>
                                     <td>{{ $supplier->phone }}</td>
                                     <td>{{ number_format($supplier->initialBalance, 2) }}</td>
+                                    <td>{{ number_format($supplier->currentBalance, 2) }}</td>
                                     <td>
                                         <button class="btn btn-sm btn-info text-white" wire:click="edit({{$supplier}})"><i class="bi bi-pen"></i></button> /
                                         <button class="btn btn-sm btn-danger" wire:click="delete({{$supplier->id}})"><i class="bi bi-trash"></i></button>

@@ -1,5 +1,4 @@
 <div>
-    <x-title :$title />
     <!-- Edit Purchase Modal -->
     <div wire:ignore.self class="modal fade" id="editPurchase" tabindex="-1" aria-labelledby="exampleModalLabel"
          aria-hidden="true">
@@ -50,7 +49,7 @@
                                                         @endforeach
                                                         <tr>
                                                             <td>الجمله:</td>
-                                                            <td>{{$purchase->total_amount}}</td>
+                                                            <td>{{number_format($purchase->total_amount, 2)}}</td>
                                                         </tr>
                                                         <tr>
                                                             <td>المدفوع:</td>
@@ -234,6 +233,7 @@
         </div>
     </div>
 
+    <x-title :$title />
 
     <div class="row mt-2 d-print-none">
         <div class="col-4">
@@ -330,9 +330,19 @@
                                         <option value="bank">بنك</option>
                                     </select>
                                 </div>
-                                <div class="col-4 mt-1"><input type="text" placeholder="رقم الاشعار ....."
+                            </div>
+                            <div class="row mt-1">
+                                <div class="col-4"><input type="text" placeholder="رقم الاشعار ....."
                                                                @disabled($payment == 'cash') wire:model.live="bank"
                                                                class="form-control"></div>
+
+                                <div class="col-4">
+                                    <select wire:model.live="bank_id" class="form-select">
+                                        @foreach($banks as $bank)
+                                            <option value="{{$bank->id}}">{{$bank->bankName}}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
                             </div>
 
                         </div>

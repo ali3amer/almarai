@@ -15,8 +15,10 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('sale_id');
             $table->foreign('sale_id')->references('id')->on('sales');
+            $table->unsignedBigInteger('bank_id');
+            $table->foreign('bank_id')->references('id')->on('banks');
             $table->decimal('remainder', 8, 2);
-            $table->enum('payment', ['cash', 'bank'])->default('cash');
+            $table->enum('payment', ['cash', 'bank']);
             $table->string('bank')->nullable();
             $table->decimal('paid', 8, 2);
             $table->decimal('client_balance', 8, 2);
