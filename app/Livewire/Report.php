@@ -30,6 +30,7 @@ class Report extends Component
 
     public array $currentClient = [];
     public array $currentSupplier = [];
+    public array $currentProduct = [];
     public array $cart = [];
 
     public array $reportTypes = [
@@ -38,9 +39,10 @@ class Report extends Component
         'inventory' => 'تقرير جرد',
         'client' => 'تقرير عميل',
         'supplier' => 'تقرير مورد',
-        'safe' => 'تقرير خزنة',
+//        'safe' => 'تقرير خزنة',
         'sales' => 'تقرير مبيعات',
         'purchases' => 'تقرير مشتريات',
+//        'category' => 'تقرير قسم معين',
     ];
     public array $reportDurations = [
         0 => '-------------------------',
@@ -64,6 +66,8 @@ class Report extends Component
     public float $expensesSum = 0;
     public float $employeesSum = 0;
     public float $damagedsSum = 0;
+    public float $percent = 0;
+    public string $productSearch = '';
 
     public function chooseClient($client)
     {
@@ -74,6 +78,12 @@ class Report extends Component
     {
         $this->currentSupplier = $supplier;
     }
+
+    public function chooseProduct($supplier)
+    {
+        $this->currentProduct = $supplier;
+    }
+
 
     public function chooseReport()
     {
@@ -98,7 +108,7 @@ class Report extends Component
                 $this->purchasesSum = PurchaseDebt::whereBetween('due_date', [$this->from, $this->to])->sum('paid');
                 $this->expensesSum = \App\Models\Expense::whereBetween('expense_date', [$this->from, $this->to])->sum('amount');
                 $this->employeesSum = \App\Models\EmployeeGift::whereBetween('gift_date', [$this->from, $this->to])->sum('gift_amount');
-                if (\App\Models\Damaged::whereBetween('damaged_date', [$this->from , $this->to])->count() > 0) {
+                if (\App\Models\Damaged::whereBetween('damaged_date', [$this->from, $this->to])->count() > 0) {
                     $this->damagedsSum = \App\Models\Damaged::whereBetween('damaged_date', [$this->from, $this->to])->join('products', 'damageds.product_id', '=', 'products.id')
                         ->select(DB::raw('SUM(damageds.quantity * products.purchase_price) AS total_damage_cost'))
                         ->groupBy('damageds.product_id')->first()->total_damage_cost;
@@ -132,15 +142,115 @@ class Report extends Component
             }
         } elseif ($this->reportType == 'sales') {  // sale
             if ($this->reportDuration == 'day') {
-                $this->sales = SaleDetail::join('sales', 'sales.id', '=', 'sale_details.sale_id')->select('sale_details.*', 'sales.sale_date')->with('product', 'sale.client')->where('sales.sale_date', $this->day)->get();
+                if ($this->store_id != 0 && empty($this->currentProduct)) {
+                    $this->sales = SaleDetail::join('sales', 'sales.id', '=', 'sale_details.sale_id')
+                        ->join('products', 'products.id', '=', 'sale_details.product_id')
+                        ->join('stores', 'stores.id', '=', 'products.store_id')
+                        ->select('sale_details.*', 'sales.sale_date')
+                        ->with('product', 'sale.client')
+                        ->where('sales.sale_date', $this->day)->where('products.store_id', $this->store_id)
+                        ->get();
+                } elseif (!empty($this->currentProduct)) {
+                    $this->sales = SaleDetail::join('sales', 'sales.id', '=', 'sale_details.sale_id')
+                        ->join('products', 'products.id', '=', 'sale_details.product_id')
+                        ->join('stores', 'stores.id', '=', 'products.store_id')
+                        ->select('sale_details.*', 'sales.sale_date')
+                        ->with('product', 'sale.client')
+                        ->where('sales.sale_date', $this->day)->where('products.id', $this->currentProduct['id'])
+                        ->get();
+                } else {
+                    $this->sales = SaleDetail::join('sales', 'sales.id', '=', 'sale_details.sale_id')
+                        ->select('sale_details.*', 'sales.sale_date')
+                        ->with('product', 'sale.client')
+                        ->where('sales.sale_date', $this->day)
+                        ->get();
+                }
             } elseif ($this->reportDuration == 'duration') {
-                $this->sales = SaleDetail::join('sales', 'sales.id', '=', 'sale_details.sale_id')->select('sale_details.*', 'sales.sale_date')->with('product', 'sale.client')->whereBetween('sales.sale_date', [$this->from, $this->to])->get();
+
+                if ($this->store_id != 0 && empty($this->currentProduct)) {
+                    $this->sales = SaleDetail::join('sales', 'sales.id', '=', 'sale_details.sale_id')
+                        ->join('products', 'products.id', '=', 'sale_details.product_id')
+                        ->join('stores', 'stores.id', '=', 'products.store_id')
+                        ->select('sale_details.*', 'sales.sale_date')
+                        ->with('product', 'sale.client')
+                        ->whereBetween('sales.sale_date', [$this->from, $this->to])->where('products.store_id', $this->store_id)
+                        ->get();
+                } elseif (!empty($this->currentProduct)) {
+                    $this->sales = SaleDetail::join('sales', 'sales.id', '=', 'sale_details.sale_id')
+                        ->join('products', 'products.id', '=', 'sale_details.product_id')
+                        ->join('stores', 'stores.id', '=', 'products.store_id')
+                        ->select('sale_details.*', 'sales.sale_date')
+                        ->with('product', 'sale.client')
+                        ->whereBetween('sales.sale_date', [$this->from, $this->to])->where('products.id', $this->currentProduct['id'])
+                        ->get();
+                } else {
+                    $this->sales = SaleDetail::join('sales', 'sales.id', '=', 'sale_details.sale_id')
+                        ->select('sale_details.*', 'sales.sale_date')
+                        ->with('product', 'sale.client')
+                        ->whereBetween('sales.sale_date', [$this->from, $this->to])
+                        ->get();
+                }
             }
+
+            $this->sum = 0;
+            foreach ($this->sales as $sale) {
+                $this->sum += $sale->quantity * $sale->price;
+            }
+
         } elseif ($this->reportType == 'purchases') {  // purchase
             if ($this->reportDuration == 'day') {
-                $this->purchases = PurchaseDetail::join('purchases', 'purchases.id', '=', 'purchase_details.purchase_id')->select('purchase_details.*', 'purchases.purchase_date')->with('product', 'purchase.supplier')->where('purchases.purchase_date', $this->day)->get();
+                if ($this->store_id != 0 && empty($this->currentProduct)) {
+                    $this->purchases = PurchaseDetail::join('purchases', 'purchases.id', '=', 'purchase_details.purchase_id')
+                        ->join('products', 'products.id', '=', 'purchase_details.product_id')
+                        ->join('stores', 'stores.id', '=', 'products.store_id')
+                        ->select('purchase_details.*', 'purchases.purchase_date')
+                        ->with('product', 'purchase.supplier')
+                        ->where('purchases.purchase_date', $this->day)->where('products.store_id', $this->store_id)
+                        ->get();
+                } elseif (!empty($this->currentProduct)) {
+                    $this->purchases = PurchaseDetail::join('purchases', 'purchases.id', '=', 'purchase_details.purchase_id')
+                        ->join('products', 'products.id', '=', 'purchase_details.product_id')
+                        ->join('stores', 'stores.id', '=', 'products.store_id')
+                        ->select('purchase_details.*', 'purchases.purchase_date')
+                        ->with('product', 'purchase.supplier')
+                        ->where('purchases.purchase_date', $this->day)->where('products.id', $this->currentProduct['id'])
+                        ->get();
+                } else {
+                    $this->purchases = PurchaseDetail::join('purchases', 'purchases.id', '=', 'purchase_details.purchase_id')
+                        ->select('purchase_details.*', 'purchases.purchase_date')
+                        ->with('product', 'purchase.supplier')
+                        ->where('purchases.purchase_date', $this->day)
+                        ->get();
+                }
             } elseif ($this->reportDuration == 'duration') {
-                $this->purchases = PurchaseDetail::join('purchases', 'purchases.id', '=', 'purchase_details.purchase_id')->select('purchase_details.*', 'purchases.purchase_date')->with('product', 'purchase.supplier')->whereBetween('purchases.purchase_date', [$this->from, $this->to])->get();
+
+                if ($this->store_id != 0 && empty($this->currentProduct)) {
+                    $this->purchases = PurchaseDetail::join('purchases', 'purchases.id', '=', 'purchase_details.purchase_id')
+                        ->join('products', 'products.id', '=', 'purchase_details.product_id')
+                        ->join('stores', 'stores.id', '=', 'products.store_id')
+                        ->select('purchase_details.*', 'purchases.purchase_date')
+                        ->with('product', 'purchase.supplier')
+                        ->whereBetween('purchases.purchase_date', [$this->from, $this->to])->where('products.store_id', $this->store_id)
+                        ->get();
+                } elseif (!empty($this->currentProduct)) {
+                    $this->purchases = PurchaseDetail::join('purchases', 'purchases.id', '=', 'purchase_details.purchase_id')
+                        ->join('products', 'products.id', '=', 'purchase_details.product_id')
+                        ->join('stores', 'stores.id', '=', 'products.store_id')
+                        ->select('purchase_details.*', 'purchases.purchase_date')
+                        ->with('product', 'purchase.supplier')
+                        ->whereBetween('purchases.purchase_date', [$this->from, $this->to])->where('products.id', $this->currentProduct['id'])
+                        ->get();
+                } else {
+                    $this->purchases = PurchaseDetail::join('purchases', 'purchases.id', '=', 'purchase_details.purchase_id')
+                        ->select('purchase_details.*', 'purchases.purchase_date')
+                        ->with('product', 'purchase.supplier')
+                        ->whereBetween('purchases.purchase_date', [$this->from, $this->to])
+                        ->get();
+                }
+            }
+            $this->sum = 0;
+            foreach ($this->purchases as $purchase) {
+                $this->sum += $purchase->quantity * $purchase->price;
             }
         }
     }
@@ -152,6 +262,12 @@ class Report extends Component
             $this->clients = \App\Models\Client::where('clientName', 'LIKE', '%' . $this->clientSearch . '%')->get();
         } elseif ($this->reportType == 'supplier') {
             $this->suppliers = \App\Models\Supplier::where('supplierName', 'LIKE', '%' . $this->supplierSearch . '%')->get();
+        } elseif ($this->reportType == 'sales' || $this->reportType == 'purchases') {
+            if ($this->store_id == 0) {
+                $this->products = \App\Models\Product::where('productName', 'LIKE', '%' . $this->productSearch . '%')->get();
+            } else {
+                $this->products = \App\Models\Product::where('productName', 'LIKE', '%' . $this->productSearch . '%')->where('store_id', $this->store_id)->get();
+            }
         }
         return view('livewire.report');
     }

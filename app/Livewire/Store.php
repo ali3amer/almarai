@@ -11,11 +11,22 @@ class Store extends Component
 
     public string $title = 'المخازن';
     public int $id = 0;
-    #[Rule('required|min:2', message: 'أدخل إسم المخزن')]
     public string $storeName = '';
-    public  string $search = '';
+    public string $search = '';
     public Collection $stores;
 
+    protected function rules() {
+        return [
+            'storeName' => 'required|unique:stores,storeName,'.$this->id
+        ];
+    }
+
+    protected function messages() {
+        return [
+            'storeName.required' => 'الرجاء إدخال إسم المخزن',
+            'storeName.unique' => 'هذا المخزن موجود مسبقاً'
+        ];
+    }
     public function save($id)
     {
 
@@ -48,8 +59,6 @@ class Store extends Component
         session()->flash('success', 'تم الحذف بنجاح');
 
     }
-
-
 
 
     public function render()

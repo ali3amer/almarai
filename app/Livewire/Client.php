@@ -10,7 +10,6 @@ class Client extends Component
 {
     public string $title = 'العملاء';
     public int $id = 0;
-    #[Rule('required|min:2', message: 'قم بإدخال إسم العميل')]
     public string $clientName = '';
     #[Rule('required|min:2', message: 'قم بإدخال رقم الهاتف')]
     public string $phone = '';
@@ -18,12 +17,27 @@ class Client extends Component
     public $initialBalance = 0;
     public Collection $clients;
 
+    protected function rules() {
+        return [
+            'clientName' => 'required|unique:clients,clientName,'.$this->id
+        ];
+    }
+
+    protected function messages() {
+        return [
+            'clientName.required' => 'الرجاء إدخال إسم العميل',
+            'clientName.unique' => 'هذا العميل موجود مسبقاً'
+        ];
+    }
+
+
     public function save($id)
     {
 
         if ($this->validate()) {
             if ($this->id == 0) {
                 \App\Models\Client::create(['clientName' => $this->clientName, 'phone' => $this->phone, 'initialBalance'=> floatval($this->initialBalance), 'currentBalance'=> floatval($this->initialBalance)]);
+                session()->flash('success', 'تم الحفظ بنجاح');
             } else {
                 $client = \App\Models\Client::find($id);
                 $client->clientName = $this->clientName;
@@ -34,6 +48,7 @@ class Client extends Component
 
                 }
                 $client->save();
+                session()->flash('success', 'تم التعديل بنجاح');
             }
             $this->id = 0;
             $this->clientName = '';
@@ -55,6 +70,8 @@ class Client extends Component
     {
         $client = \App\Models\Client::find($id);
         $client->delete();
+        session()->flash('success', 'تم الحذف بنجاح');
+
     }
     public function render()
     {

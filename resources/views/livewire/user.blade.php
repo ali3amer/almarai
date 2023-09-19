@@ -6,40 +6,41 @@
             <div class="card">
                 <div class="card-body">
                     <label for="name">الإسم</label>
-                    <input type="text" id="name" wire:model="name" class="form-control text-center my-2"
+                    <input type="text" id="name" wire:model="name" class="form-control text-center my-2 @error('name') is-invalid @enderror"
                            placeholder="إسم المستخدم ....">
-                    <label for="username" class="mt-2">إسم الدخول</label>
-                    <input type="text" id="username" wire:model="username" class="form-control text-center my-2"
-                           placeholder="إسم الالدخول ....">
-                    <label for="password" class="mt-2">كلمة المرور</label>
-                    <input type="password" id="password" wire:model="password" class="form-control text-center my-2"
-                           placeholder="كلمة المرور ....">
-
-                    <!-- Nav tabs -->
-                    <ul class="nav nav-tabs my-3">
-                        @foreach($tabPermissions as $index => $permission)
-                            <li class="nav-item">
-                                <a class="nav-link" data-bs-toggle="tab" href="{{'#'.$index}}">{{$index}}</a>
-                            </li>
-                        @endforeach
-                    </ul>
-
-                    <!-- Tab panes -->
-                    <div wire:ignore.self class="tab-content mb-3">
-                        @foreach($tabPermissions as $index => $permission)
-                            <div class="tab-pane container" id="{{$index}}">
-
-                                @foreach($permission as $role)
-                                    <div class="form-check form-check-inline">
-                                        <input class="form-check-input" type="checkbox" value="{{$index .'-'. $role}}" wire:model="permissions" id="{{$role}}">
-                                        <label class="form-check-label" for="{{$role}}">{{$role}}</label>
-                                    </div>
-                                @endforeach
-
-                            </div>
-                        @endforeach
+                    <div>
+                        @error('name') <span class="error text-danger">{{ $message }}</span> @enderror
                     </div>
+                    <label for="username" class="mt-2">إسم الدخول</label>
+                    <input type="text" id="username" wire:model="username" class="form-control text-center my-2 @error('username') is-invalid @enderror"
+                           placeholder="إسم الالدخول ....">
+                    <div>
+                        @error('username') <span class="error text-danger">{{ $message }}</span> @enderror
+                    </div>
+                    <label for="password" class="mt-2">كلمة المرور</label>
+                        <input type="password" id="password" wire:model="password" class="form-control text-center my-2"
+                               placeholder="كلمة المرور ....">
 
+                    <table class="table table-responsive table-bordered text-center table-striped my-2">
+                        <thead>
+                        <tr>
+                            <th>الصلاحية</th>
+                            <th>عرض</th>
+                            <th>إنشاء</th>
+                            <th>تعديل</th>
+                            <th>حذف</th>
+                        </tr>
+                        </thead>
+                        @foreach($permissionsList as $permission)
+                            <tr>
+                                <td>{{$permission[1]}}</td>
+                                <td><input class="form-check-input" type="checkbox" wire:model="permissions" value="{{$permission[0] . '-read'}}" value="" aria-label="..."></td>
+                                <td><input class="form-check-input" type="checkbox" wire:model="permissions" value="{{$permission[0] . '-create'}}" value="" aria-label="..."></td>
+                                <td><input class="form-check-input" type="checkbox" wire:model="permissions" value="{{$permission[0] . '-update'}}" value="" aria-label="..."></td>
+                                <td><input class="form-check-input" type="checkbox" wire:model="permissions" value="{{$permission[0] . '-delete'}}" value="" aria-label="..."></td>
+                            </tr>
+                        @endforeach
+                    </table>
 
                     <div class="row">
                         <div class="col-10">

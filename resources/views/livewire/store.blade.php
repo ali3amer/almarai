@@ -12,7 +12,7 @@
                             @error('storeName') <span class="error text-danger">{{ $message }}</span> @enderror
                         </div>
                         <div class="d-grid mt-2">
-                            <button class="btn btn- btn-primary">حفـــــــــــــــــــظ</button>
+                            <button class="btn btn btn-{{$id == 0 ? 'primary' : 'success'}}">{{$id == 0 ? 'حفـــــــــــــــــــظ' : 'تعـــــــــــديل'}}</button>
                         </div>
 
                     </form>

@@ -62,7 +62,6 @@ class Purchase extends Component
                 'paid' => 0,
                 'bank' => '',
                 'payment' => 'cash',
-                'bank_id' => '',
                 'remainder' => $this->total_amount,
                 'supplier_balance' => $this->currentSupplier['currentBalance'],
                 'due_date' => $this->purchase_date
@@ -77,7 +76,7 @@ class Purchase extends Component
                     'paid' => $this->paid,
                     'bank' => $this->bank,
                     'payment' => $this->payment,
-                    'bank_id' => $this->payment == 'bank' ? $this->bank_id : '',
+                    'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
                     'remainder' => $this->remainder,
                     'supplier_balance' => $this->currentSupplier['currentBalance'],
                     'due_date' => $this->purchase_date
@@ -118,7 +117,7 @@ class Purchase extends Component
                 'paid' => $this->paid,
                 'bank' => $this->bank,
                 'payment' => $this->payment,
-                'bank_id' => $this->payment == 'bank' ? $this->bank_id : '',
+                'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
                 'remainder' => $this->remainder,
                 'current_balance' => $this->currentSupplier['currentBalance'],
                 'due_date' => $this->purchase_date

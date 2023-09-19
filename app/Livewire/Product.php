@@ -21,6 +21,19 @@ class Product extends Component
 
     public ProductForm $form;
 
+    protected function rules() {
+        return [
+            'form.productName' => 'required|unique:products,productName,'.$this->form->id
+        ];
+    }
+
+    protected function messages() {
+        return [
+            'form.productName.required' => 'الرجاء إدخال إسم المنتج',
+            'form.productName.unique' => 'هذا المنتج موجود مسبقاً'
+        ];
+    }
+
     public function save($id)
     {
         if ($this->validate()) {
@@ -29,6 +42,7 @@ class Product extends Component
                 session()->flash('success', 'تمت الاضافه بنجاح');
             } else {
                 $this->form->update();
+                session()->flash('success', 'تم التعديل بنجاح');
             }
         }
     }
@@ -49,6 +63,7 @@ class Product extends Component
     {
         $product = \App\Models\Product::find($id);
         $product->delete();
+        session()->flash('success', 'تم الحذف بنجاح');
     }
 
     public function render()

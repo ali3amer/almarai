@@ -78,7 +78,7 @@ class Sale extends Component
                     'paid' => $this->paid,
                     'bank' => $this->bank,
                     'payment' => $this->payment,
-                    'bank_id' => $this->payment == 'bank' ? $this->bank_id : '',
+                    'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
                     'remainder' => $this->remainder,
                     'client_balance' => $this->currentClient['currentBalance'],
                     'due_date' => $this->sale_date
@@ -121,7 +121,7 @@ class Sale extends Component
                 'paid' => $this->paid,
                 'bank' => $this->bank,
                 'payment' => $this->payment,
-                'bank_id' => $this->payment  == 'bank' ? $this->bank_id : '',
+                'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
                 'remainder' => $this->remainder,
                 'current_balance' => $this->currentClient['currentBalance'],
                 'due_date' => $this->sale_date

@@ -9,7 +9,6 @@ use Livewire\Form;
 class ProductForm extends Form
 {
     public int $id = 0;
-    #[Rule('required|min:2', message: 'أدخل إسم المنتج')]
     public string $productName = '';
 
     public string|null $unit = null;

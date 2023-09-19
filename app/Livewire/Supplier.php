@@ -10,15 +10,27 @@ class Supplier extends Component
 {
     public string $title = 'الموردين';
     public int $id = 0;
-    #[Rule('required|min:2')]
     public string $supplierName = '';
-    #[Rule('required|min:2')]
+    #[Rule('required|min:2', message: 'الرجاءإدخال رقم الهاتف')]
     public string $phone = '';
-    #[Rule('required|min:2')]
+    #[Rule('required|min:2', message: 'الرجاءإدخال العنوان')]
     public string $address = '';
     public $initialBalance = 0;
     public string $search = '';
     public Collection $suppliers;
+
+    protected function rules() {
+        return [
+            'supplierName' => 'required|unique:suppliers,supplierName,'.$this->id
+        ];
+    }
+
+    protected function messages() {
+        return [
+            'supplierName.required' => 'الرجاء إدخال إسم المورد',
+            'supplierName.unique' => 'هذا المورد موجود مسبقاً'
+        ];
+    }
 
     public function save($id)
     {
@@ -58,6 +70,8 @@ class Supplier extends Component
     {
         $supplier = \App\Models\Supplier::find($id);
         $supplier->delete();
+        session()->flash('success', 'تم الحذف بنجاح');
+
     }
 
     public function render()

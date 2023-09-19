@@ -55,7 +55,7 @@
                             @error('form.purchase_price') <span class="error text-danger">{{ $message }}</span> @enderror
                         </div>
                         <div class="d-grid mt-2">
-                            <button wire:loading.attr="disabled" class="btn btn- btn-primary">حفــــــــــــــــظ</button>
+                            <button wire:loading.attr="disabled" class="btn btn- btn-{{$form->id == 0 ? 'primary' : 'success'}}">{{$form->id == 0 ? 'حفــــــــــــــــظ' : 'تعـــــــــــــديل'}}</button>
                         </div>
 
                     </form>

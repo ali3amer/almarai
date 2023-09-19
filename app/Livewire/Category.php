@@ -10,10 +10,22 @@ class Category extends Component
 {
     public string $title = 'الأقسام';
     public int $id = 0;
-    #[Rule('required|min:2', message: 'أدخل إسم القسم')]
     public string $categoryName = '';
     public  string $search = '';
     public Collection $categories;
+
+    protected function rules() {
+        return [
+            'categoryName' => 'required|unique:categories,categoryName,'.$this->id
+        ];
+    }
+
+    protected function messages() {
+        return [
+            'categoryName.required' => 'الرجاء إدخال إسم القسم',
+            'categoryName.unique' => 'هذا القسم موجود مسبقاً'
+        ];
+    }
 
     public function save($id)
     {
@@ -21,10 +33,14 @@ class Category extends Component
         if ($this->validate()) {
             if ($this->id == 0) {
                 \App\Models\Category::create(['categoryName' => $this->categoryName]);
+                session()->flash('success', 'تم الحفظ بنجاح');
+
             } else {
                 $category = \App\Models\Category::find($id);
                 $category->categoryName = $this->categoryName;
                 $category->save();
+                session()->flash('success', 'تم التعديل بنجاح');
+
             }
             $this->id = 0;
             $this->categoryName = '';
@@ -42,6 +58,8 @@ class Category extends Component
     {
         $category = \App\Models\Category::find($id);
         $category->delete();
+        session()->flash('success', 'تم الحذف بنجاح');
+
     }
 
 

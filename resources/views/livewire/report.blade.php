@@ -92,6 +92,54 @@
         </div>
     </div>
 
+    <!-- Choose Product Modal -->
+    <div wire:ignore.self class="modal fade" id="productModal" tabindex="-1" aria-labelledby="productModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <h1 class="modal-title fs-5" id="productModalLabel">الموردين</h1>
+                </div>
+                <div class="modal-body">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="card-title">
+                                <div class="row">
+                                    <div class="col-4 align-self-center"><h5>المنتجات</h5></div>
+                                    <div class="col-6"><input type="text" placeholder="بحث ..." class="form-control"
+                                                              wire:model.live="productSearch"></div>
+                                </div>
+                            </div>
+                            <table class="table table-responsive">
+                                <thead>
+                                <tr>
+                                    <th scope="col">#</th>
+                                    <th scope="col">إسم المنتج</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                @if(!empty($products))
+                                    @foreach($products as $product)
+                                        <tr style="cursor: pointer" wire:click="chooseProduct({{$product}})"
+                                            data-bs-dismiss="modal"
+                                            aria-label="Close">
+                                            <td scope="row">{{$loop->index + 1}}</td>
+                                            <td>{{$product->productName}}</td>
+                                        </tr>
+                                    @endforeach
+                                @endif
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
 
     <x-title :$title/>
     <button class="d-print-none btn btn-primary position-fixed z-3" style="bottom: 10px; border-radius: 50%"
@@ -99,7 +147,8 @@
             data-bs-toggle="offcanvas" data-bs-target="#offcanvasScrolling" aria-controls="offcanvasScrolling"><i
             class="bi bi-gear"></i></button>
 
-    <button class="d-print-none btn btn-secondary position-fixed z-3" id="print" style="bottom: 10px; right: 60px; border-radius: 50%"
+    <button class="d-print-none btn btn-secondary position-fixed z-3" id="print"
+            style="bottom: 10px; right: 60px; border-radius: 50%"
             type="button"><i
             class="bi bi-printer"></i></button>
 
@@ -128,23 +177,31 @@
                                 <option value="{{$key}}">{{$duration}}</option>
                             @endforeach
                         </select>
+                    @endif
 
-                        @if($reportType == 'client')
-                            <label for="client">العميل</label>
-                            <input data-bs-toggle="modal" wire:model="currentClient.clientName" readonly
-                                   placeholder="إسم العميل ...." class="form-control" data-bs-target="#clientModal">
-                        @elseif($reportType == 'supplier')
-                            <label for="client">المورد</label>
-                            <input data-bs-toggle="modal" wire:model="currentSupplier.supplierName" readonly
-                                   placeholder="إسم المورد ...." class="form-control" data-bs-target="#supplierModal">
-                        @endif
-                    @else
+                    @if($reportType == 'client')
+                        <label for="client">العميل</label>
+                        <input data-bs-toggle="modal" wire:model="currentClient.clientName" readonly
+                               placeholder="إسم العميل ...." class="form-control" data-bs-target="#clientModal">
+                    @elseif($reportType == 'supplier')
+                        <label for="client">المورد</label>
+                        <input data-bs-toggle="modal" wire:model="currentSupplier.supplierName" readonly
+                               placeholder="إسم المورد ...." class="form-control" data-bs-target="#supplierModal">
+                    @endif
+                    @if($reportType =='inventory' || $reportType =='sales' || $reportType =='purchases')
+                        <label for="store_id">المخزن</label>
                         <select class="form-select mt-2" wire:model.live="store_id" id="store_id">
                             <option value="0">-----------------</option>
                             @foreach($stores as $store)
                                 <option value="{{$store->id}}">{{$store->storeName}}</option>
                             @endforeach
                         </select>
+
+                        @if($store_id != 0)
+                            <label for="product">المورد</label>
+                            <input id="product" data-bs-toggle="modal" wire:model="currentProduct.productName" readonly
+                                   placeholder="إسم ألمنتج ...." class="form-control" data-bs-target="#productModal">
+                        @endif
                     @endif
                 </div>
             </div>
@@ -180,29 +237,29 @@
                     <tbody>
                     <tr>
                         <td>المبيعات</td>
-                        <td>{{$salesSum}}</td>
+                        <td>{{number_format($salesSum, 2)}}</td>
                     </tr>
                     <tr>
                         <td>المشتريات</td>
-                        <td>{{$purchasesSum}}</td>
+                        <td>{{number_format($purchasesSum, 2)}}</td>
                     </tr>
                     <tr>
                         <td>المصروفات</td>
-                        <td>{{$expensesSum}}</td>
+                        <td>{{number_format($expensesSum, 2)}}</td>
                     </tr>
                     <tr>
                         <td>مصروفات الموظفين</td>
-                        <td>{{$employeesSum}}</td>
+                        <td>{{number_format($employeesSum, 2)}}</td>
                     </tr>
                     <tr>
                         <td>التالف</td>
-                        <td>{{$damagedsSum}}</td>
+                        <td>{{number_format($damagedsSum, 2)}}</td>
                     </tr>
                     </tbody>
                     <tfoot>
                     <tr>
                         <th>الجمله</th>
-                        <th>{{ $salesSum - $purchasesSum - $expensesSum - $employeesSum - $damagedsSum }}</th>
+                        <th>{{ number_format($salesSum - $purchasesSum - $expensesSum - $employeesSum - $damagedsSum, 2) }}</th>
                     </tr>
                     </tfoot>
                 </table>
@@ -262,9 +319,9 @@
                             <td>{{$debt->due_date}}</td>
                             <td>{{$debt->sale_id}}</td>
                             <td>{{ $debt->paid == 0 ? 'تم الشراء بالآجل' : 'تم لإستلام مبلغ' }}</td>
-                            <td>{{$debt->remainder}}</td>
-                            <td>{{$debt->paid}}</td>
-                            <td>{{$debt->client_balance}}</td>
+                            <td>{{number_format($debt->remainder, 2)}}</td>
+                            <td>{{number_format($debt->paid, 2)}}</td>
+                            <td>{{number_format($debt->client_balance, 2)}}</td>
                         </tr>
                     @endforeach
                     </tbody>
@@ -292,9 +349,9 @@
                             <td>{{$debt->due_date}}</td>
                             <td>{{$debt->sale_id}}</td>
                             <td>{{ $debt->paid == 0 ? 'تم الشراء بالآجل' : 'تم لإستلام مبلغ' }}</td>
-                            <td>{{$debt->remainder}}</td>
-                            <td>{{floatval($debt->paid)}}</td>
-                            <td>{{$debt->supplier_balance}}</td>
+                            <td>{{number_format($debt->remainder, 2)}}</td>
+                            <td>{{number_format(floatval($debt->paid), 2)}}</td>
+                            <td>{{number_format($debt->supplier_balance, 2)}}</td>
                         </tr>
                     @endforeach
                     </tbody>
@@ -306,7 +363,16 @@
     @elseif($reportType == 'sales' && !empty($sales))
         <div class="card mt-2">
             <div class="card-body">
-                <div class="card-title"><h5>المبيعات</h5></div>
+                <div class="card-title">
+                   <div class="row">
+                       <div class="col-3">
+                           <h5>المبيعات</h5>
+                       </div>
+                       <div class="col-3">
+                           <input type="text" wire:model.live="percent" placeholder="نسبة الربح" class="form-control text-center">
+                       </div>
+                   </div>
+                </div>
                 <table class="table text-center demo">
                     <thead>
                     <tr>
@@ -325,13 +391,23 @@
                             <td>{{$sale->sale_id}}</td>
                             <td>{{$sale->sale->client->clientName}}</td>
                             <td>{{ $sale->product->productName }}</td>
-                            <td>{{$sale->price}}</td>
+                            <td>{{number_format($sale->price, 2)}}</td>
                             <td>{{$sale->quantity}}</td>
-                            <td>{{$sale->quantity * $sale->price}}</td>
+                            <td>{{number_format($sale->quantity * $sale->price, 2)}}</td>
                             <td>{{$sale->sale_date}}</td>
                         </tr>
                     @endforeach
                     </tbody>
+                    <tfoot>
+                    <tr>
+                        <td colspan="5">الجــــــــــــــــــــملة</td>
+                        <td>{{number_format($sum, 2)}}</td>
+                    </tr>
+                    <tr>
+                        <td colspan="5">الأرباح</td>
+                        <td>{{ number_format($sum * $percent / 100, 2) }}</td>
+                    </tr>
+                    </tfoot>
                 </table>
             </div>
         </div>
@@ -357,13 +433,19 @@
                             <td>{{$purchase->purchase_id}}</td>
                             <td>{{$purchase->purchase->supplier->supplierName}}</td>
                             <td>{{ $purchase->product->productName }}</td>
-                            <td>{{$purchase->price}}</td>
+                            <td>{{number_format($purchase->price, 2)}}</td>
                             <td>{{$purchase->quantity}}</td>
-                            <td>{{$purchase->quantity * $purchase->price}}</td>
+                            <td>{{number_format($purchase->quantity * $purchase->price, 2)}}</td>
                             <td>{{$purchase->purchase_date}}</td>
                         </tr>
                     @endforeach
                     </tbody>
+                    <tfoot>
+                    <tr>
+                        <td colspan="5">الجــــــــــــــــــــملة</td>
+                        <td>{{number_format($sum, 2)}}</td>
+                    </tr>
+                    </tfoot>
                 </table>
             </div>
         </div>
