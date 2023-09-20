@@ -198,9 +198,9 @@
                         </select>
 
                         @if($store_id != 0)
-                            <label for="product">المورد</label>
+                            <label for="product">المنتج</label>
                             <input id="product" data-bs-toggle="modal" wire:model="currentProduct.productName" readonly
-                                   placeholder="إسم ألمنتج ...." class="form-control" data-bs-target="#productModal">
+                                   placeholder="إسم المنتج ...." class="form-control" data-bs-target="#productModal">
                         @endif
                     @endif
                 </div>

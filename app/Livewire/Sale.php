@@ -84,7 +84,11 @@ class Sale extends Component
                     'due_date' => $this->sale_date
                 ]);
 
-                \App\Models\Safe::first()->increment('currentBalance', $this->paid);
+                if ($this->payment == 'cash') {
+                    \App\Models\Safe::first()->increment('currentBalance', $this->paid);
+                } else {
+                    Bank::where('id', $this->bank_id)->increment('currentBalance', $this->paid);
+                }
 
                 \App\Models\Client::where('id', $this->currentClient['id'])->decrement('currentBalance', $this->paid);
             }
@@ -107,7 +111,7 @@ class Sale extends Component
         } else {
             $sale = \App\Models\Sale::where('id', $this->id)->first();
             $this->currentClient['currentBalance'] -= $sale['total_amount'];
-            \App\Models\Safe::first()->decrement('currentBalance', $this->paid);
+
             \App\Models\Client::where('id', $this->currentClient['id'])->decrement('currentBalance', $sale['total_amount']);
             \App\Models\Sale::where('id', $this->id)->update([
                 'total_amount' => $this->total_amount,
@@ -116,7 +120,15 @@ class Sale extends Component
             \App\Models\Client::where('id', $this->currentClient['id'])->increment('currentBalance', $this->total_amount);
             $this->currentClient['currentBalance'] += $this->total_amount;
 
-            SaleDebt::where('sale_id', $this->id)->first()->update([
+            $debt = SaleDebt::where('sale_id', $this->id)->first();
+
+            if ($debt['payment'] == 'cash') {
+                \App\Models\Safe::first()->decrement('currentBalance', $debt['paid']);
+            } else {
+                Bank::where('id', $debt['bank_id'])->decrement('currentBalance', $debt['paid']);
+            }
+
+            $debt->update([
                 'sale_id' => $this->id,
                 'paid' => $this->paid,
                 'bank' => $this->bank,
@@ -126,6 +138,12 @@ class Sale extends Component
                 'current_balance' => $this->currentClient['currentBalance'],
                 'due_date' => $this->sale_date
             ]);
+
+            if ($this->payment == 'cash') {
+                \App\Models\Safe::first()->increment('currentBalance', $this->paid);
+            } else {
+                Bank::where('id', $this->bank_id)->increment('currentBalance', $this->paid);
+            }
 
             SaleDetail::where('sale_id', $this->id)->delete();
 
@@ -188,7 +206,7 @@ class Sale extends Component
     public function addToCart()
     {
         $this->cart[$this->currentProduct['id']] = $this->currentProduct;
-        $this->cart[$this->currentProduct['id']]['amount'] = $this->currentProduct['sale_price'] * $this->currentProduct['quantity'];
+        $this->cart[$this->currentProduct['id']]['amount'] = floatval($this->currentProduct['sale_price']) * floatval($this->currentProduct['quantity']);
         $this->total_amount += $this->cart[$this->currentProduct['id']]['amount'];
         $this->paid = $this->total_amount;
         $this->currentProduct = [];
@@ -230,6 +248,7 @@ class Sale extends Component
         }
 
     }
+
     public function calcRemainder()
     {
         $this->remainder = $this->total_amount - floatval($this->paid);
@@ -248,7 +267,7 @@ class Sale extends Component
             $this->sales = \App\Models\Sale::where('client_id', $this->currentClient['id'])
                 ->where('id', 'LIKE', '%' . $this->saleSearch . '%')->where('sale_date', 'LIKE', '%' . $this->saleSearch . '%')
                 ->with('saleDetails.product', 'saleDebts')->get();
-        }  else {
+        } else {
             $this->sale_date = date('Y-m-d');
         }
 

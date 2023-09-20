@@ -1,0 +1,6 @@
+.card .card-body .table {
+    background-color: #eee !important;
+    max-height: 200px;
+    overflow-y: hidden;
+}
+

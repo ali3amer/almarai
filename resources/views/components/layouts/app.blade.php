@@ -7,6 +7,8 @@
     <title>{{ $title ?? 'Page Title' }}</title>
 
     @vite(['resources/sass/app.scss', 'resources/js/app.js'])
+    <link rel="stylesheet" href="{{ asset('css/table.css') }}"/>
+
 
 </head>
 <body dir="rtl" lang="ar">

@@ -150,8 +150,8 @@
                                         <tr class="align-items-center">
                                             <td scope="row">{{$loop->index + 1}}</td>
                                             <td>{{$item['productName']}}</td>
-                                            <td>{{number_format($item['sale_price'], 2)}}</td>
-                                            <td>{{number_format($item['quantity'], 2)}}</td>
+                                            <td>{{number_format(floatval($item['sale_price']), 2)}}</td>
+                                            <td>{{number_format(floatval($item['quantity']), 2)}}</td>
                                             <td>{{number_format($item['amount'], 2)}}</td>
                                         </tr>
                                     @endforeach
@@ -212,8 +212,8 @@
                                     <tr style="cursor: pointer" class="align-items-center">
                                         <td scope="row">{{$loop->index + 1}}</td>
                                         <td>{{$item['productName']}}</td>
-                                        <td>{{number_format($item['sale_price'], 2)}}</td>
-                                        <td>{{number_format($item['quantity'], 2)}}</td>
+                                        <td>{{number_format(floatval($item['sale_price']), 2)}}</td>
+                                        <td>{{number_format(floatval($item['quantity']), 2)}}</td>
                                         <td>{{number_format($item['amount'], 2)}}</td>
                                     </tr>
                                 @endforeach
@@ -363,8 +363,8 @@
                                 <tr style="cursor: pointer" class="align-items-center">
                                     <td scope="row">{{$loop->index + 1}}</td>
                                     <td>{{$item['productName']}}</td>
-                                    <td>{{number_format($item['sale_price'], 2)}}</td>
-                                    <td>{{number_format($item['quantity'], 2)}}</td>
+                                    <td>{{number_format(floatval($item['sale_price']), 2)}}</td>
+                                    <td>{{number_format(floatval($item['quantity']), 2)}}</td>
                                     <td>{{number_format($item['amount'], 2)}}</td>
                                     <td>
                                         <button wire:click="deleteFromCart({{$item['id']}})"

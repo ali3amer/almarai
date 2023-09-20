@@ -18,8 +18,9 @@
                         @error('username') <span class="error text-danger">{{ $message }}</span> @enderror
                     </div>
                     <label for="password" class="mt-2">كلمة المرور</label>
-                        <input type="password" id="password" wire:model="password" class="form-control text-center my-2"
+                        <input type="password" id="password" wire:model="password" class="form-control text-center my-2  @error('password') is-invalid @enderror"
                                placeholder="كلمة المرور ....">
+                    @error('password') <span class="error text-danger">{{ $message }}</span> @enderror
 
                     <table class="table table-responsive table-bordered text-center table-striped my-2">
                         <thead>

@@ -22,7 +22,7 @@
                             @error('expense_date') <span class="error text-danger">{{ $message }}</span> @enderror
                         </div>
                         <div class="d-grid mt-2">
-                            <button class="btn btn- btn-primary">حفـــــــــــــــــــظ</button>
+                            <button @disabled(!Auth::user()->hasPermission('expenses-create')) class="btn btn- btn-primary">حفـــــــــــــــــــظ</button>
                         </div>
 
                     </form>
@@ -36,7 +36,7 @@
                 </div>
 
                 <div class="card-body">
-                    @if(count($expenses) > 0)
+                    @if(count($expenses) > 0 && Auth::user()->hasPermission('expenses-read'))
                         <table class="table text-center">
                             <thead>
                             <tr>
@@ -55,8 +55,8 @@
                                     <td>{{ number_format($expense->amount, 2) }}</td>
                                     <td>{{ $expense->expense_date }}</td>
                                     <td>
-                                        <button class="btn btn-sm btn-info text-white" wire:click="edit({{$expense}})"><i class="bi bi-pen"></i></button> /
-                                        <button class="btn btn-sm btn-danger" wire:click="delete({{$expense->id}})"><i class="bi bi-trash"></i></button>
+                                        <button class="btn btn-sm btn-info text-white" @disabled(!Auth::user()->hasPermission('expenses-update')) wire:click="edit({{$expense}})"><i class="bi bi-pen"></i></button> /
+                                        <button class="btn btn-sm btn-danger" @disabled(!Auth::user()->hasPermission('expenses-delete')) wire:click="delete({{$expense->id}})"><i class="bi bi-trash"></i></button>
                                     </td>
                                 </tr>
                             @endforeach

@@ -47,7 +47,7 @@
                     <div class="card-title">
                         <div class="row">
                             <div class="col-2">
-                                <button wire:click="resetData()" data-bs-toggle="modal" data-bs-target="#employeeModal"
+                                <button wire:click="resetData()" @disabled(!Auth::user()->hasPermission('employees-create')) data-bs-toggle="modal" data-bs-target="#employeeModal"
                                         class="btn btn-primary">
                                     <i class="bi bi-plus"></i></button>
                             </div>
@@ -55,7 +55,7 @@
                                                     placeholder="بحث ......"></div>
                         </div>
                     </div>
-                    @if(count($employees) > 0)
+                    @if(count($employees) > 0 && Auth::user()->hasPermission('employees-read'))
                         <table class="table text-center">
                             <thead>
                             <tr>
@@ -72,11 +72,11 @@
                                     <td>{{ $employee->employeeName }}</td>
                                     <td>{{ number_format($employee->salary, 2) }}</td>
                                     <td>
-                                        <button data-bs-toggle="modal" data-bs-target="#employeeModal"
+                                        <button data-bs-toggle="modal"  @disabled(!Auth::user()->hasPermission('employees-update')) data-bs-target="#employeeModal"
                                                 class="btn btn-sm btn-info text-white" wire:click="edit({{$employee}})">
                                             <i class="bi bi-pen"></i></button>
                                         /
-                                        <button class="btn btn-sm btn-danger" wire:click="delete({{$employee->id}})"><i
+                                        <button class="btn btn-sm btn-danger" @disabled(!Auth::user()->hasPermission('employees-delete')) wire:click="delete({{$employee->id}})"><i
                                                 class="bi bi-trash"></i></button>
                                         /
                                         <button class="btn btn-sm btn-warning text-white"

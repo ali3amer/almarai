@@ -23,7 +23,7 @@
                         </div>
 
                         <div class="d-grid mt-2">
-                            <button class="btn btn- btn-{{$id == 0 ? 'primary' : 'success'}}">{{$id == 0 ? 'حفـــــــــــــــــــظ' : 'تعـــــــــــــــــديل'}}</button>
+                            <button @disabled(!Auth::user()->hasPermission('clients-create')) class="btn btn- btn-{{$id == 0 ? 'primary' : 'success'}}">{{$id == 0 ? 'حفـــــــــــــــــــظ' : 'تعـــــــــــــــــديل'}}</button>
                         </div>
 
                     </form>
@@ -37,7 +37,7 @@
                 </div>
 
                 <div class="card-body">
-                    @if(count($clients) > 0)
+                    @if(count($clients) > 0 && Auth::user()->hasPermission('clients-read'))
                         <table class="table text-center">
                             <thead>
                             <tr>
@@ -58,8 +58,8 @@
                                     <td>{{ number_format($client->initialBalance, 2) }}</td>
                                     <td>{{ number_format($client->currentBalance, 2) }}</td>
                                     <td>
-                                        <button class="btn btn-sm btn-info text-white" wire:click="edit({{$client}})"><i class="bi bi-pen"></i></button> /
-                                        <button class="btn btn-sm btn-danger" wire:click="delete({{$client->id}})"><i class="bi bi-trash"></i></button>
+                                        <button @disabled(!Auth::user()->hasPermission('clients-update')) class="btn btn-sm btn-info text-white" wire:click="edit({{$client}})"><i class="bi bi-pen"></i></button> /
+                                        <button @disabled(!Auth::user()->hasPermission('clients-delete')) class="btn btn-sm btn-danger" wire:click="delete({{$client->id}})"><i class="bi bi-trash"></i></button>
                                     </td>
                                 </tr>
                             @endforeach

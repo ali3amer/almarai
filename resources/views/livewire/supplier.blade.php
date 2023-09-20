@@ -23,14 +23,14 @@
                             @error('address') <span class="error text-danger">{{ $message }}</span> @enderror
                         </div>
 
-                        <label for="initialBalance" class="form-label">العنوان</label>
+                        <label for="initialBalance" class="form-label">الرصيد الافتتاحي</label>
                         <input type="text" wire:model="initialBalance" class="form-control" placeholder="الرصيد الافتتاحي ..." id="initialBalance">
                         <div>
                             @error('initialBalance') <span class="error text-danger">{{ $message }}</span> @enderror
                         </div>
 
                         <div class="d-grid mt-2">
-                            <button class="btn btn btn-{{$id == 0 ? 'primary' : 'success'}}">{{$id == 0 ? 'حفـــــــــــــــــــظ' : 'تعــــــــــــــديل'}}</button>
+                            <button @disabled(!Auth::user()->hasPermission('suppliers-create')) class="btn btn btn-{{$id == 0 ? 'primary' : 'success'}}">{{$id == 0 ? 'حفـــــــــــــــــــظ' : 'تعــــــــــــــديل'}}</button>
                         </div>
 
                     </form>
@@ -44,7 +44,7 @@
                 </div>
 
                 <div class="card-body">
-                    @if(count($suppliers) > 0)
+                    @if(count($suppliers) > 0 && Auth::user()->hasPermission('suppliers-read'))
                         <table class="table text-center">
                             <thead>
                             <tr>
@@ -65,8 +65,8 @@
                                     <td>{{ number_format($supplier->initialBalance, 2) }}</td>
                                     <td>{{ number_format($supplier->currentBalance, 2) }}</td>
                                     <td>
-                                        <button class="btn btn-sm btn-info text-white" wire:click="edit({{$supplier}})"><i class="bi bi-pen"></i></button> /
-                                        <button class="btn btn-sm btn-danger" wire:click="delete({{$supplier->id}})"><i class="bi bi-trash"></i></button>
+                                        <button @disabled(!Auth::user()->hasPermission('suppliers-update')) class="btn btn-sm btn-info text-white" wire:click="edit({{$supplier}})"><i class="bi bi-pen"></i></button> /
+                                        <button @disabled(!Auth::user()->hasPermission('suppliers-delete')) class="btn btn-sm btn-danger" wire:click="delete({{$supplier->id}})"><i class="bi bi-trash"></i></button>
                                     </td>
                                 </tr>
                             @endforeach

@@ -149,8 +149,8 @@
                                         <tr class="align-items-center">
                                             <td scope="row">{{$loop->index + 1}}</td>
                                             <td>{{$item['productName']}}</td>
-                                            <td>{{number_format($item['purchase_price'], 2)}}</td>
-                                            <td>{{number_format($item['quantity'], 2)}}</td>
+                                            <td>{{number_format(floatval($item['purchase_price']), 2)}}</td>
+                                            <td>{{number_format(floatval($item['quantity']), 2)}}</td>
                                             <td>{{number_format($item['amount'], 2)}}</td>
                                         </tr>
                                     @endforeach
@@ -211,8 +211,8 @@
                                     <tr style="cursor: pointer" class="align-items-center">
                                         <td scope="row">{{$loop->index + 1}}</td>
                                         <td>{{$item['productName']}}</td>
-                                        <td>{{number_format($item['purchase_price'], 2)}}</td>
-                                        <td>{{number_format($item['quantity'], 2)}}</td>
+                                        <td>{{number_format(floatval($item['purchase_price']), 2)}}</td>
+                                        <td>{{number_format(floatval($item['quantity']), 2)}}</td>
                                         <td>{{number_format($item['amount'], 2)}}</td>
                                     </tr>
                                 @endforeach
@@ -235,7 +235,7 @@
 
     <x-title :$title />
 
-    <div class="row mt-2 d-print-none">
+    <div class="row mt-2">
         <div class="col-4">
             <div class="card">
                 <div class="card-body">
@@ -258,7 +258,7 @@
                                                       wire:model.live="productSearch"></div>
                         </div>
                     </div>
-                    <table class="table table-responsive overflow-scroll">
+                    <table class="table d-print-block">
                         <thead>
                         <tr>
                             <th scope="col">#</th>
@@ -362,8 +362,8 @@
                                 <tr style="cursor: pointer" class="align-items-center">
                                     <td scope="row">{{$loop->index + 1}}</td>
                                     <td>{{$item['productName']}}</td>
-                                    <td>{{number_format($item['purchase_price'], 2)}}</td>
-                                    <td>{{number_format($item['quantity'], 2)}}</td>
+                                    <td>{{number_format(floatval($item['purchase_price']), 2)}}</td>
+                                    <td>{{number_format(floatval($item['quantity']), 2)}}</td>
                                     <td>{{number_format($item['amount'], 2)}}</td>
                                     <td>
                                         <button wire:click="deleteFromCart({{$item['id']}})"

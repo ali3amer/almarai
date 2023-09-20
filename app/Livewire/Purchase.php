@@ -82,7 +82,11 @@ class Purchase extends Component
                     'due_date' => $this->purchase_date
                 ]);
 
-
+                if ($this->payment == 'cash') {
+                    \App\Models\Safe::first()->increment('currentBalance', $this->paid);
+                } else {
+                    Bank::where('id', $this->bank_id)->first()->increment('currentBalance', $this->paid);
+                }
                 \App\Models\Supplier::where('id', $this->currentSupplier['id'])->decrement('currentBalance', $this->paid);
             }
 
@@ -112,7 +116,13 @@ class Purchase extends Component
             \App\Models\Supplier::where('id', $this->currentSupplier['id'])->increment('currentBalance', $this->total_amount);
             $this->currentSupplier['currentBalance'] += $this->total_amount;
 
-            PurchaseDebt::where('purchase_id', $this->id)->first()->update([
+            $debt = PurchaseDebt::where('purchase_id', $this->id)->first();
+            if ($debt['payment'] == 'cash') {
+                \App\Models\Safe::first()->decrement('currentBalance', $debt['paid']);
+            } else {
+                Bank::where('id', $debt['bank_id'])->decrement('currentBalance', $debt['paid']);
+            }
+            $debt->update([
                 'purchase_id' => $this->id,
                 'paid' => $this->paid,
                 'bank' => $this->bank,
@@ -122,6 +132,12 @@ class Purchase extends Component
                 'current_balance' => $this->currentSupplier['currentBalance'],
                 'due_date' => $this->purchase_date
             ]);
+
+            if ($this->payment == 'cash') {
+                \App\Models\Safe::first()->increment('currentBalance', $this->paid);
+            } else {
+                Bank::where('id', $this->bank_id)->increment('currentBalance', $this->paid);
+            }
 
             PurchaseDetail::where('purchase_id', $this->id)->delete();
 
@@ -183,7 +199,7 @@ class Purchase extends Component
     public function addToCart()
     {
         $this->cart[$this->currentProduct['id']] = $this->currentProduct;
-        $this->cart[$this->currentProduct['id']]['amount'] = $this->currentProduct['purchase_price'] * $this->currentProduct['quantity'];
+        $this->cart[$this->currentProduct['id']]['amount'] = floatval($this->currentProduct['purchase_price']) * floatval($this->currentProduct['quantity']);
         $this->total_amount += $this->cart[$this->currentProduct['id']]['amount'];
         $this->currentProduct = [];
     }

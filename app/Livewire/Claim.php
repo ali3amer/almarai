@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Models\Bank;
 use App\Models\PurchaseDebt;
 use Illuminate\Database\Eloquent\Collection;
 use Livewire\Component;
@@ -14,6 +15,7 @@ class Claim extends Component
     public string $purchaseSearch = '';
     public Collection $suppliers;
     public Collection $purchaseDebts;
+    public Collection $banks;
 
     public array $currentSupplier = [];
     public array $currentPurchase = [];
@@ -27,6 +29,7 @@ class Claim extends Component
     public float $remainder = 0;
     public float $debtRemainder = 0;
     public string $bank = '';
+    public int $bank_id = 0;
     public string $due_date = '';
     public string $payment = 'cash';
     public array $debts = [];
@@ -92,25 +95,46 @@ class Claim extends Component
                 'paid' => $this->debtPaid,
                 'bank' => $this->bank,
                 'payment' => $this->payment,
+                'bank_id' => $this->payment == 'bank' ? $this->bank_id : null ,
                 'remainder' => $this->debtRemainder,
                 'current_balance' => $this->currentSupplier['currentBalance'],
                 'due_date' => $this->due_date
             ]);
             \App\Models\Supplier::where($this->currentSupplier['id'])->decrement('currentBalance', $this->debtPaid);
 
+            if ($this->payment == 'cash') {
+                \App\Models\Safe::first()->decrement('currentBalance', $this->debtPaid);
+            } else {
+                Bank::where('id', $this->bank_id)->decrement('currentBalance', $this->debtPaid);
+            }
             session()->flash('success', 'تم الحفظ بنجاح');
         } else {
             $debtbalance = PurchaseDebt::where('id', $this->debtId)->first();
-            $this->currentSupplier['currentBalance'] -= $debtbalance['current_balance'];
+            \App\Models\Supplier::where('id', $this->currentSupplier['id'])->increment('currentBalance', $debtbalance['paid']);
+            if ($debtbalance['payment'] == 'cash') {
+                \App\Models\Safe::first()->decrement('currentBalance', $debtbalance['paid']);
+            } else {
+                \App\Models\Bank::where('id', $debtbalance['bank_id'])->decrement('currentBalance', $debtbalance['paid']);
+            }
+            $this->currentSupplier['currentBalance'] -= $debtbalance['paid'];
             $this->currentSupplier['currentBalance'] += $this->debtPaid;
             PurchaseDebt::where('id', $this->debtId)->update([
                 'paid' => $this->debtPaid,
                 'bank' => $this->bank,
                 'payment' => $this->payment,
+                'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
                 'remainder' => $this->debtRemainder,
                 'current_balance' => $this->currentSupplier['currentBalance'],
                 'due_date' => $this->due_date
             ]);
+
+            \App\Models\Supplier::where('id', $this->currentSupplier['id'])->decrement('currentBalance', $this->debtPaid);
+            if ($this->payment == 'cash') {
+                \App\Models\Safe::first()->increment('currentBalance', $this->debtPaid);
+            } else {
+                \App\Models\Bank::where('id', $debtbalance['bank_id'])->increment('currentBalance', $this->debtPaid);
+            }
+
             session()->flash('success', 'تم التعديل بنجاح');
 
         }
@@ -124,6 +148,7 @@ class Claim extends Component
         $debt = PurchaseDebt::where('id', $id)->first();
         $this->debtPaid = $debt['paid'];
         $this->bank = $debt['bank'];
+        $this->bank_id = $debt['bank_id'];
         $this->payment = $debt['payment'];
         $this->debtRemainder = floatval($debt['reminder']);
         $this->due_date = $debt['due_date'];
@@ -133,11 +158,18 @@ class Claim extends Component
     {
         $debt = PurchaseDebt::where('id', $id)->first();
         \App\Models\Supplier::where('id', $this->currentSupplier['id'])->increment('currentBalance', $debt['paid']);
+        if ($debt['payment'] == 'cash') {
+            \App\Models\Safe::first()->decrement('currentBalance', $debt['paid']);
+        } else {
+            \App\Models\Bank::where('id', $debt['bank_id'])->decrement('currentBalance', $debt['paid']);
+        }
         $this->debts = PurchaseDebt::where('purchase_id', $this->currentPurchase['id'])->get()->toArray();
     }
 
     public function render()
     {
+        $this->banks = Bank::all();
+
         $this->suppliers = \App\Models\Supplier::where('supplierName', 'LIKE', '%' . $this->supplierSearch . '%')->get();
         if (!empty($this->currentSupplier)) {
             $this->purchaseDebts = \App\Models\Purchase::with('purchaseDebts', 'purchaseDetails.product')->withSum('purchaseDebts', 'paid')->where('supplier_id', $this->currentSupplier['id'])->where('id', 'LIKE', '%' . $this->purchaseSearch . '%')->get()->keyBy('id');

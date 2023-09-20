@@ -15,10 +15,8 @@ class User extends Component
     #[Rule('required', message: 'أدخل إسم المستخدم كامل')]
     public string $name = '';
     public string $userSearch = '';
-    #[Rule('unique:users', message: 'هذا الاسم موجود مسبقاً')]
-    #[Rule('required', message: 'أدخل إسم الدخول')]
+
     public string $username = '';
-    #[Rule('required', message: 'قم بإدخال كلمة السر')]
     public string $password = '';
     public Collection $users;
     public array $permissions = [];
@@ -42,6 +40,20 @@ class User extends Component
     ];
     public array $tabPermissions = [];
     public Collection $userPermissions;
+
+    protected function rules() {
+        return [
+            'username' => 'required|unique:users,username,'.$this->id
+        ];
+    }
+
+    protected function messages() {
+        return [
+            'username.required' => 'الرجاء إدخال إسم الدخول',
+            'username.unique' => 'هذا المستخدم موجود مسبقاً'
+        ];
+    }
+
 
     public function save()
     {

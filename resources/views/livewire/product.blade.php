@@ -55,7 +55,7 @@
                             @error('form.purchase_price') <span class="error text-danger">{{ $message }}</span> @enderror
                         </div>
                         <div class="d-grid mt-2">
-                            <button wire:loading.attr="disabled" class="btn btn- btn-{{$form->id == 0 ? 'primary' : 'success'}}">{{$form->id == 0 ? 'حفــــــــــــــــظ' : 'تعـــــــــــــديل'}}</button>
+                            <button @disabled(!Auth::user()->hasPermission('products-create')) class="btn btn- btn-{{$form->id == 0 ? 'primary' : 'success'}}">{{$form->id == 0 ? 'حفــــــــــــــــظ' : 'تعـــــــــــــديل'}}</button>
                         </div>
 
                     </form>
@@ -89,7 +89,7 @@
                     </div>
                 </div>
                 <div class="card-body">
-                    @if(count($products) > 0)
+                    @if(count($products) > 0 && Auth::user()->hasPermission('products-read'))
                         <table class="table text-center">
                             <thead>
                             <tr>
@@ -116,11 +116,11 @@
                                     <td>{{ number_format($product->purchase_price, 2) }}</td>
                                     <td>{{ number_format($product->stock, 2) }}</td>
                                     <td>
-                                        <button class="btn btn-sm btn-info text-white" wire:click="edit({{$product}})">
+                                        <button @disabled(!Auth::user()->hasPermission('products-update')) class="btn btn-sm btn-info text-white" wire:click="edit({{$product}})">
                                             <i class="bi bi-pen"></i>
                                         </button>
                                         /
-                                        <button class="btn btn-sm btn-danger" wire:click="delete({{$product->id}})">
+                                        <button @disabled(!Auth::user()->hasPermission('products-delete')) class="btn btn-sm btn-danger" wire:click="delete({{$product->id}})">
                                             <i class="bi bi-trash"></i>
                                         </button>
                                     </td>

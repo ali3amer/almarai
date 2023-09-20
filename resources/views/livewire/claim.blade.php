@@ -185,6 +185,16 @@
                             </div>
                         </div>
                         <div class="row mt-2">
+
+                            <div class="col-3">
+                                <label for="payment">البنك</label>
+                                <select class="form-select text-center" wire:model.live="bank_id">
+                                    @foreach($banks as $bank)
+                                        <option value="{{$bank->id}}">{{$bank->bankName}}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+
                             <div class="col-3">
                                 <label for="bank">رقم الايصال</label>
                                 <input type="text" wire:model="bank" id="bank" class="form-control text-center"

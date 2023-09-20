@@ -2,6 +2,8 @@
 
 namespace App\Livewire;
 
+use App\Models\Bank;
+use App\Models\SaleDebt;
 use App\Models\SaleDetail;
 use App\Models\SaleReturn;
 use Illuminate\Database\Eloquent\Collection;
@@ -77,6 +79,8 @@ class Returns extends Component
 
     public function save()
     {
+        $debt = SaleDebt::where('id', $this->currentDetail['sale_id'])->where('paid', '!=', 0)->first();
+
         if ($this->id == 0) {
 
             SaleDetail::where('id', $this->currentDetail['id'])->decrement('quantity', $this->quantityReturn);
@@ -85,6 +89,16 @@ class Returns extends Component
 
             \App\Models\Sale::where('id', $this->currentDetail['sale_id'])->decrement('total_amount', $this->priceReturn);
 
+
+            if (isset($debt['paid'])) {
+                if ($debt['payment'] == 'cash') {
+                    \App\Models\Safe::first()->decrement('currentBalance', $debt['paid']);
+                } else {
+                    Bank::where('id', $debt['bank_id'])->decrement('currentBalance', $debt['paid']);
+                }
+                \App\Models\Client::where('id', $this->currentClient['id'])->decrement('currentBalance', $debt['paid']);
+            }
+
             SaleReturn::create([
                 'sale_id' => $this->currentDetail['sale_id'],
                 'product_id' => $this->currentDetail['product_id'],
@@ -92,12 +106,23 @@ class Returns extends Component
                 'return_date' => $this->return_date,
                 'price' => $this->currentDetail['price']
             ]);
+            session()->flash('success', 'تم الحفظ بنجاح');
         } else {
             SaleDetail::where('sale_id', $this->currentDetail['sale_id'])->where('product_id', $this->currentDetail['product_id'])->increment('quantity', $this->quantityReturn);
 
             \App\Models\Product::where('id', $this->currentDetail['product_id'])->decrement('stock', $this->quantityReturn);
 
             \App\Models\Sale::where('id', $this->currentDetail['sale_id'])->increment('total_amount', $this->priceReturn);
+
+
+            if (isset($debt['paid'])) {
+                if ($debt['payment'] == 'cash') {
+                    \App\Models\Safe::first()->decrement('currentBalance', $debt['paid']);
+                } else {
+                    Bank::where('id', $debt['bank_id'])->decrement('currentBalance', $debt['paid']);
+                }
+                \App\Models\Client::where('id', $this->currentClient['id'])->decrement('currentBalance', $debt['paid']);
+            }
 
             SaleReturn::where('id', $this->id)->update([
                 'quantity' => $this->currentDetail['quantity'] - floatval($this->quantityReturn),
@@ -115,6 +140,18 @@ class Returns extends Component
         \App\Models\Sale::where('id', $return['sale_id'])->increment('total_amount', $return['quantity'] * $return['price']);
         SaleDetail::where('sale_id', $return['sale_id'])->where('product_id', $return['product_id'])->increment('quantity', $return['quantity']);
         \App\Models\Product::where('id', $return['product_id'])->decrement('stock', $return['quantity']);
+        $debt = SaleDebt::where('id', $this->currentDetail['sale_id'])->where('paid', '!=', 0)->first();
+
+        if (isset($debt['paid'])) {
+            \App\Models\Client::where('id', $this->currentClient['id'])->increment('currentBalance', $debt['paid']);
+            if ($debt['payment'] == 'cash') {
+                \App\Models\Safe::first()->increment('currentBalance', $debt['paid']);
+            } else {
+                \App\Models\Bank::where('id', $debt['bank_id'])->increment('currentBalance', $debt['paid']);
+            }
+        }
+        session()->flash('success', 'تم الحذف بنجاح');
+
     }
 
     public function resetData()

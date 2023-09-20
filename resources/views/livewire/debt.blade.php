@@ -106,17 +106,19 @@
     </div>
 
 
-    <x-title :$title />
+    <x-title :$title/>
 
     <div class="row mt-2">
         <div class="col-4">
             <div class="card">
                 <div class="card-body">
-                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#clientModal"><i class="bi bi-person"></i></button>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#clientModal"><i
+                            class="bi bi-person"></i></button>
                     <div class="card-title mt-2">
                         <div class="row">
                             <div class="col-3 align-self-center"><h5>الفواتير</h5></div>
-                            <div class="col"><input type="text" wire:model.live="saleSearch" class="form-control text-center" placeholder="بحث ....."></div>
+                            <div class="col"><input type="text" wire:model.live="saleSearch"
+                                                    class="form-control text-center" placeholder="بحث ....."></div>
                         </div>
                     </div>
                     <table class="table table-responsive text-center">
@@ -137,10 +139,11 @@
                                     <td>{{$sale->total_amount - $sale->sale_debts_sum_paid}}</td>
                                     <td>
                                         <button class="btn btn-sm btn-info text-white" data-bs-toggle="modal"
-                                                data-bs-target="#showSaleModal"  wire:click="showSale({{$sale}})"><i class="bi bi-eye"></i>
+                                                data-bs-target="#showSaleModal" wire:click="showSale({{$sale}})"><i
+                                                class="bi bi-eye"></i>
                                         </button>
                                         /
-                                        <button class="btn btn-sm btn-success"  wire:click="getDebts({{$sale}})"><i
+                                        <button class="btn btn-sm btn-success" wire:click="getDebts({{$sale}})"><i
                                                 class="bi bi-currency-dollar"></i></button>
                                     </td>
                                 </tr>
@@ -160,7 +163,8 @@
                         <div class="row">
                             <div class="col-3">
                                 <label for="debtPaid">المبلغ المدفوع</label>
-                                <input type="text" wire:model.live="debtPaid" id="debtPaid" class="form-control text-center"
+                                <input type="text" wire:model.live="debtPaid" id="debtPaid"
+                                       class="form-control text-center"
                                        placeholder="المدفوع ....">
                             </div>
 
@@ -185,6 +189,16 @@
                             </div>
                         </div>
                         <div class="row mt-2">
+
+                            <div class="col-3">
+                                <label for="payment">البنك</label>
+                                <select class="form-select text-center" wire:model.live="bank_id">
+                                    @foreach($banks as $bank)
+                                        <option value="{{$bank->id}}">{{$bank->bankName}}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+
                             <div class="col-3">
                                 <label for="bank">رقم الايصال</label>
                                 <input type="text" wire:model="bank" id="bank" class="form-control text-center"
@@ -192,7 +206,8 @@
                             </div>
 
                             <div class="col-2 d-flex align-items-end">
-                                <button class="btn btn-{{$debtId == 0 ? 'primary' : 'success'}} w-100" wire:click="payDebt()">{{$debtId == 0 ? 'دفــــع' : 'تعــــديل'}}</button>
+                                <button class="btn btn-{{$debtId == 0 ? 'primary' : 'success'}} w-100"
+                                        wire:click="payDebt()">{{$debtId == 0 ? 'دفــــع' : 'تعــــديل'}}</button>
                             </div>
                         </div>
                     </div>
@@ -226,8 +241,11 @@
                                 <td>{{$debt['payment']}}</td>
                                 <td>{{$debt['bank']}}</td>
                                 <td>
-                                    <button class="btn btn-sm btn-info text-white"  wire:click="chooseDebt({{$debt['id']}})"><i class="bi bi-pen"></i></button> /
-                                    <button class="btn btn-sm btn-danger" wire:click="deleteDebt({{$debt['id']}})"><i class="bi bi-trash"></i></button>
+                                    <button class="btn btn-sm btn-info text-white"
+                                            wire:click="chooseDebt({{$debt['id']}})"><i class="bi bi-pen"></i></button>
+                                    /
+                                    <button class="btn btn-sm btn-danger" wire:click="deleteDebt({{$debt['id']}})"><i
+                                            class="bi bi-trash"></i></button>
                                 </td>
                             </tr>
                         @endforeach

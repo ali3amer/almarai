@@ -9,7 +9,6 @@
 
     <title>{{ config('app.name', 'Laravel') }}</title>
 
-{{--    <link rel="stylesheet" href="{{ asset('dashboard/css/table.css') }}"/>--}}
 
     <!-- Fonts -->
 {{--    <link rel="dns-prefetch" href="//fonts.bunny.net">--}}
