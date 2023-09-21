@@ -38,6 +38,7 @@
         </div>
     </div>
 
+    <livewire:invoice />
     <x-title :$title></x-title>
 
     <div class="row mt-2">
@@ -47,7 +48,9 @@
                     <div class="card-title">
                         <div class="row">
                             <div class="col-2">
-                                <button wire:click="resetData()" @disabled(!Auth::user()->hasPermission('employees-create')) data-bs-toggle="modal" data-bs-target="#employeeModal"
+                                <button wire:click="resetData()"
+                                        @disabled(!Auth::user()->hasPermission('employees-create')) data-bs-toggle="modal"
+                                        data-bs-target="#employeeModal"
                                         class="btn btn-primary">
                                     <i class="bi bi-plus"></i></button>
                             </div>
@@ -72,11 +75,14 @@
                                     <td>{{ $employee->employeeName }}</td>
                                     <td>{{ number_format($employee->salary, 2) }}</td>
                                     <td>
-                                        <button data-bs-toggle="modal"  @disabled(!Auth::user()->hasPermission('employees-update')) data-bs-target="#employeeModal"
+                                        <button data-bs-toggle="modal"
+                                                @disabled(!Auth::user()->hasPermission('employees-update')) data-bs-target="#employeeModal"
                                                 class="btn btn-sm btn-info text-white" wire:click="edit({{$employee}})">
                                             <i class="bi bi-pen"></i></button>
                                         /
-                                        <button class="btn btn-sm btn-danger" @disabled(!Auth::user()->hasPermission('employees-delete')) wire:click="delete({{$employee->id}})"><i
+                                        <button class="btn btn-sm btn-danger"
+                                                @disabled(!Auth::user()->hasPermission('employees-delete')) wire:click="delete({{$employee->id}})">
+                                            <i
                                                 class="bi bi-trash"></i></button>
                                         /
                                         <button class="btn btn-sm btn-warning text-white"
@@ -99,19 +105,50 @@
                 <div class="card mb-2">
                     <div class="card-body">
                         <div class="row">
-                            <div class="col-4"><input type="text" disabled class="form-control text-center"
-                                                      wire:model.live="currentEmployee.employeeName"></div>
-                            <div class="col-4"><input type="date" class="form-control text-center"
-                                                      wire:model.live="gift_date"></div>
-                            <div class="col-4"><input type="text" class="form-control text-center"
-                                                      placeholder="المبلغ ...." wire:model.live="gift_amount"></div>
+                            <div class="col-4">
+                                <input type="text" disabled class="form-control text-center" wire:model.live="currentEmployee.employeeName">
+                            </div>
+                            <div class="col-3">
+                                <input type="date" class="form-control text-center" wire:model.live="gift_date">
+                            </div>
+                            <div class="col-2">
+                                <select id="payment" class="form-select text-center" wire:model.live="payment">
+                                    <option value="cash">كاش</option>
+                                    <option value="bank">بنك</option>
+                                </select>
+                                <div>
+                                    @error('payment') <span class="error text-danger">{{ $message }}</span> @enderror
+                                </div>
+                            </div>
+
+                            <div class="col-3">
+                                <select id="bank_id" @disabled($payment == 'cash') class="form-select text-center" wire:model="bank_id">
+                                    @foreach($banks as $bank)
+                                        <option value="{{$bank->id}}">{{$bank->bankName}}</option>
+                                    @endforeach
+                                </select>
+                                <div>
+                                    @error('bank_id') <span class="error text-danger">{{ $message }}</span> @enderror
+                                </div>
+                            </div>
                         </div>
                         <div class="row mt-2">
-                            <div class="col-10"><input type="text" class="form-control text-center"
-                                                       placeholder="ملاحظات ...." wire:model.live="note"></div>
+                            <div class="col-3">
+                                <input type="text" class="form-control text-center" @disabled($payment == 'cash') placeholder="رقم الإيصال ...." wire:model.live="bank">
+                            </div>
+
+                            <div class="col-3">
+                                <input type="text" class="form-control text-center" placeholder="المبلغ ...." wire:model.live="gift_amount">
+                            </div>
+
+                            <div class="col-4">
+                                <input type="text" class="form-control text-center" placeholder="ملاحظات ...." wire:model.live="note">
+                            </div>
                             <div class="col-2">
                                 @if($editGiftMode)
-                                    <button class="btn btn-success w-100" wire:click="updateGift({{$currentGift['id']}})">تعديل</button>
+                                    <button class="btn btn-success w-100"
+                                            wire:click="updateGift({{$currentGift['id']}})">تعديل
+                                    </button>
                                 @else
                                     <button class="btn btn-primary w-100" wire:click="payGift()">دفع</button>
                                 @endif
@@ -140,9 +177,12 @@
                                         <td>{{number_format($gift->gift_amount, 2)}}</td>
                                         <td>{{$gift->note}}</td>
                                         <td>
-                                            <button class="btn btn-sm btn-info text-white" wire:click="editGift({{$gift}})"><i class="bi bi-pen"></i></button>
+                                            <button class="btn btn-sm btn-info text-white"
+                                                    wire:click="editGift({{$gift}})"><i class="bi bi-pen"></i></button>
                                             /
-                                            <button class="btn btn-sm btn-danger" wire:click="deleteGift({{$gift->id}})"><i class="bi bi-trash"></i></button>
+                                            <button class="btn btn-sm btn-danger"
+                                                    wire:click="deleteGift({{$gift->id}})"><i class="bi bi-trash"></i>
+                                            </button>
                                         </td>
                                     </tr>
                                 @endforeach

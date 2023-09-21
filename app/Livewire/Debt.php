@@ -29,7 +29,7 @@ class Debt extends Component
     public float $remainder = 0;
     public float $debtRemainder = 0;
     public string $bank = '';
-    public int $bank_id = 0;
+    public int $bank_id = 1;
     public string $due_date = '';
     public string $payment = 'cash';
     public array $debts = [];

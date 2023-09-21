@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Models\Bank;
 use App\Models\EmployeeGift;
 use Illuminate\Database\Eloquent\Collection;
 use Livewire\Attributes\Rule;
@@ -12,12 +13,15 @@ class Employee extends Component
 
     public string $title = 'الموظفين';
     public int $id = 0;
+    public int $bank_id = 0;
     #[Rule('required|min:2')]
     public string $employeeName = '';
     #[Rule('required|min:2')]
     public float $salary = 0;
     public string $search = '';
     public string $gift_date = '';
+    public string $bank = '';
+    public string $payment = 'cash';
     public string $note = '';
     public $gift_amount = 0;
 
@@ -26,6 +30,7 @@ class Employee extends Component
     public bool $editGiftMode = false;
     public Collection $employees;
     public Collection $gifts;
+    public Collection $banks;
     public array $currentGift = [];
 
     public function save($id)
@@ -72,10 +77,19 @@ class Employee extends Component
     {
         EmployeeGift::create([
             'employee_id' => $this->currentEmployee['id'],
+            'payment' => $this->payment,
+            'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
             'gift_amount' => $this->gift_amount,
             'gift_date' => $this->gift_date,
             'note' => $this->note
         ]);
+
+        if ($this->payment == 'cash') {
+            \App\Models\Safe::first()->decrement('currentBalance', $this->gift_amount);
+        } else {
+            Bank::where('id', $this->bank_id)->decrement('currentBalance', $this->gift_amount);
+        }
+
         $this->getGifts($this->currentEmployee);
         session()->flash('success', 'تم الدفع بنجاح');
 
@@ -90,12 +104,29 @@ class Employee extends Component
         $this->note = $this->currentGift['note'];
     }
 
-    public function updateGift($id) {
-        EmployeeGift::where('id', $id)->update([
+    public function updateGift($id)
+    {
+        $gift = EmployeeGift::where('id', $id)->first();
+
+        if ($gift['payment'] == 'cash') {
+            \App\Models\Safe::first()->increment('currentBalance', $gift['gift_amount']);
+        } else {
+            Bank::where('id', $gift['bank_id'])->increment('currentBalance', $gift['gift_amount']);
+        }
+
+        $gift->update([
             'gift_amount' => $this->gift_amount,
             'gift_date' => $this->gift_date,
             'note' => $this->note
         ]);
+
+
+        if ($this->payment == 'cash') {
+            \App\Models\Safe::first()->decrement('currentBalance', $this->gift_amount);
+        } else {
+            Bank::where('id', $this->bank_id)->decrement('currentBalance', $this->gift_amount);
+        }
+
         $this->getGifts($this->currentEmployee);
         $this->gift_date = date('Y-m-d');
         $this->reset('currentGift', 'editGiftMode', 'gift_amount', 'note');
@@ -104,7 +135,13 @@ class Employee extends Component
 
     public function deleteGift($id)
     {
-        EmployeeGift::where('id', $id)->delete();
+        $gift = EmployeeGift::where('id', $id)->first();
+        if ($gift['payment'] == 'cash') {
+            \App\Models\Safe::first()->increment('currentBalance', $gift['gift_amount']);
+        } else {
+            Bank::where('id', $gift['bank_id'])->increment('currentBalance', $gift['gift_amount']);
+        }
+        $gift->delete();
         $this->getGifts($this->currentEmployee);
         session()->flash('success', 'تم الحذف بنجاح');
     }
@@ -117,7 +154,7 @@ class Employee extends Component
     public function render()
     {
         $this->employees = \App\Models\Employee::where('employeeName', 'like', '%' . $this->search . '%')->get();
-
+        $this->banks = Bank::all();
         return view('livewire.employee');
     }
 }

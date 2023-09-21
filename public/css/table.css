@@ -1,6 +1,25 @@
-.card .card-body .table {
-    background-color: #eee !important;
-    max-height: 200px;
-    overflow-y: hidden;
+#printInvoice  {
+    width: 100%;
+    border-collapse: collapse;
 }
 
+#invoice #printInvoice th, #invoice #printInvoice td {
+    border: 1px solid black;
+    padding: 5px;
+}
+
+#invoice #printInvoice th {
+    background-color: #333 !important;
+    color: white !important;
+}
+
+#invoice #printInvoice tfoot {
+    font-weight: bold;
+}
+
+@media print {
+    #invoice #printInvoice th {
+        background-color: #333 !important;
+        color: white !important;
+    }
+}
