@@ -87,7 +87,7 @@
                                 <div class="row">
                                     <div class="col-4 align-self-center"><h5>العملاء</h5></div>
                                     <div class="col-8"><input type="text" placeholder="بحث ..." class="form-control"
-                                                              wire:model.live="clientSearch"></div>
+                                                              wire:keydown.enter="chooseClient({{$clients[0]}})" wire:model.live="clientSearch"></div>
                                 </div>
                             </div>
                             <table class="table table-responsive">
@@ -161,11 +161,11 @@
                                     </tr>
                                     <tr>
                                         <td>المدفوع</td>
-                                        <td>{{number_format($paid, 2)}}</td>
+                                        <td>{{number_format(floatval($paid), 2)}}</td>
                                     </tr>
                                     <tr>
                                         <td>المتبقي</td>
-                                        <td>{{number_format($total_amount - $paid, 2)}}</td>
+                                        <td>{{number_format($total_amount - floatval($paid), 2)}}</td>
                                     </tr>
                                     </tbody>
                                 </table>
@@ -223,7 +223,7 @@
                                 </tr>
                                 <tr>
                                     <td>المدفوع</td>
-                                    <td>{{number_format($paid, 2)}}</td>
+                                    <td>{{number_format(floatval($paid), 2)}}</td>
                                 </tr>
                                 </tbody>
                             </table>
@@ -247,28 +247,28 @@
                     <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#printModal"
                             style="cursor: pointer" wire:click="save()" {{empty($cart) ? 'disabled':''}} ><i
                             class="bi bi-bookmark-check"></i></button>
-                    <button class="btn btn-danger" wire:click="resetData()" {{empty($currentClient) ? 'disabled':''}}><i
+                    <button class="btn btn-danger" wire:click="resetData('currentClient')" {{empty($currentClient) ? 'disabled':''}}><i
                             class="bi bi-x"></i></button>
 
                     {{ $currentClient['clientName'] ?? '' }}
                         <div class="card-title mt-2">
                             <div class="row">
                                 <div class="col-4 align-self-center"><h5>المنتجات</h5></div>
-                                <div class="col-8"><input type="text" placeholder="بحث ..." class="form-control"
+                                <div class="col-8"><input type="text" placeholder="بحث ..." wire:keydown.enter="chooseProduct({{$products[0]}})" class="form-control"
                                                           wire:model.live="productSearch"></div>
                             </div>
                         </div>
-                        <table class="table table-responsive overflow-scroll">
+                        <table class="table text-center">
                             <thead>
                             <tr>
-                                <th scope="col">#</th>
+                                <th scope="col" style="width: 10px">#</th>
                                 <th scope="col">إسم المنتج</th>
                                 <th scope="col">سعر الوحده</th>
                                 <th scope="col">الكميه</th>
                                 <th scope="col">التحكم</th>
                             </tr>
                             </thead>
-                            <tbody style="max-height: 300px">
+                            <tbody>
                             @foreach($products as $product)
                                 @if(!key_exists($product->id, $cart))
                                     <tr style="cursor: pointer">
@@ -380,7 +380,7 @@
                             </tr>
                             <tr>
                                 <td>المدفوع</td>
-                                <td><input type="number" min="0" wire:keydown.debounce.150ms="calcRemainder()"
+                                <td><input type="text" min="0" wire:keydown.debounce.150ms="calcRemainder()"
                                            wire:model.live.debounce.150ms="paid" class="form-control text-center"></td>
                             </tr>
                             <tr>

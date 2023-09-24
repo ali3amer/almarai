@@ -20,7 +20,11 @@ class Sale extends Component
     public string $sale_date = '';
     public string $due_date = '';
     public bool $print = false;
-
+    public array $buyer = [
+        'client' => 'عميل',
+        'employee' => 'موظف',
+        'supplier' => 'مورد',
+    ];
     public string $search = '';
     public Collection $sales;
     public Collection $clients;
@@ -48,6 +52,10 @@ class Sale extends Component
      */
     public Collection $saleDebts;
 
+    public function mount()
+    {
+        $this->currentClient = \App\Models\Client::find(1)->toArray();
+    }
     public function save()
     {
         if ($this->id == 0) {
@@ -254,9 +262,9 @@ class Sale extends Component
         $this->remainder = $this->total_amount - floatval($this->paid);
     }
 
-    public function resetData()
+    public function resetData($item = null)
     {
-        $this->reset('currentClient', 'currentProduct', 'cart', 'search', 'clientSearch', 'paid', 'remainder', 'total_amount', 'id', 'oldQuantities');
+        $this->reset( 'currentProduct', 'cart', 'search', 'clientSearch', 'paid', 'remainder', 'total_amount', 'id', 'oldQuantities', $item);
     }
 
     public function render()
@@ -267,7 +275,8 @@ class Sale extends Component
             $this->sales = \App\Models\Sale::where('client_id', $this->currentClient['id'])
                 ->where('id', 'LIKE', '%' . $this->saleSearch . '%')->where('sale_date', 'LIKE', '%' . $this->saleSearch . '%')
                 ->with('saleDetails.product', 'saleDebts')->get();
-        } else {
+        }
+        if ($this->sale_date == '') {
             $this->sale_date = date('Y-m-d');
         }
 

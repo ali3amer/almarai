@@ -160,11 +160,11 @@
                                     </tr>
                                     <tr>
                                         <td>المدفوع</td>
-                                        <td>{{number_format($paid, 2)}}</td>
+                                        <td>{{number_format(floatval($paid), 2)}}</td>
                                     </tr>
                                     <tr>
                                         <td>المتبقي</td>
-                                        <td>{{number_format($total_amount - $paid, 2)}}</td>
+                                        <td>{{number_format($total_amount - floatval($paid), 2)}}</td>
                                     </tr>
                                     </tbody>
                                 </table>
@@ -222,7 +222,7 @@
                                 </tr>
                                 <tr>
                                     <td>المدفوع</td>
-                                    <td>{{number_format($paid, 2)}}</td>
+                                    <td>{{number_format(floatval($paid), 2)}}</td>
                                 </tr>
                                 </tbody>
                             </table>
@@ -379,7 +379,7 @@
                             </tr>
                             <tr>
                                 <td>المدفوع</td>
-                                <td><input type="number" min="0" wire:keydown.debounce.150ms="calcRemainder()"
+                                <td><input type="text" min="0" wire:keydown.debounce.150ms="calcRemainder()"
                                            wire:model.live.debounce.150ms="paid" class="form-control text-center"></td>
                             </tr>
                             <tr>

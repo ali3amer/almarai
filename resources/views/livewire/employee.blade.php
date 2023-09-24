@@ -38,7 +38,7 @@
         </div>
     </div>
 
-    <livewire:invoice />
+{{--    <livewire:invoice />--}}
     <x-title :$title></x-title>
 
     <div class="row mt-2">

@@ -104,7 +104,7 @@
                                 <th>التحكم</th>
                             </tr>
                             </thead>
-                            <tbody class=" overflow-scroll" style="max-height: 350px">
+                            <tbody>
                             @foreach($products as $product)
                                 <tr>
                                     <td>{{ $loop->index + 1}}</td>
