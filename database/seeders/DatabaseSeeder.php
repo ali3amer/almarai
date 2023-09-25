@@ -6,6 +6,7 @@ namespace Database\Seeders;
 use App\Models\Bank;
 use App\Models\Category;
 use App\Models\Client;
+use App\Models\Employee;
 use App\Models\Permission;
 use App\Models\Product;
 use App\Models\Safe;
@@ -44,6 +45,10 @@ class DatabaseSeeder extends Seeder
 
             Store::create(['storeName' => 'store_' . $i]);
 
+            Employee::create([
+                'employeeName' => 'Employee_'.$i,
+                'salary' => '200000'
+            ]);
             Client::create([
                 'clientName' => 'client_' . $i,
                 'phone' => '0100200300',

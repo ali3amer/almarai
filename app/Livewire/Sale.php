@@ -20,11 +20,7 @@ class Sale extends Component
     public string $sale_date = '';
     public string $due_date = '';
     public bool $print = false;
-    public array $buyer = [
-        'client' => 'عميل',
-        'employee' => 'موظف',
-        'supplier' => 'مورد',
-    ];
+    public string $buyer = 'client';
     public string $search = '';
     public Collection $sales;
     public Collection $clients;
@@ -44,12 +40,9 @@ class Sale extends Component
     public array $cart = [];
     public string $saleSearch = '';
     public float $remainder = 0;
-    public bool $payMode = false;
+    public bool $editMode = false;
     public array $currentSaleDebts = [];
     public array $currentSale = [];
-    /**
-     * @var \Illuminate\Database\Eloquent\Builder[]|Collection
-     */
     public Collection $saleDebts;
 
     public function mount()
@@ -60,7 +53,9 @@ class Sale extends Component
     {
         if ($this->id == 0) {
             $sale = \App\Models\Sale::create([
-                'client_id' => $this->currentClient['id'],
+                'client_id' => $this->buyer == 'client' ? $this->currentClient['id'] : null,
+                'employee_id' => $this->buyer == 'employee' ? $this->currentClient['id'] : null,
+                'supplier_id' => $this->buyer == 'supplier' ? $this->currentClient['id'] : null,
                 'total_amount' => $this->total_amount,
                 'sale_date' => $this->sale_date,
             ]);
@@ -143,7 +138,7 @@ class Sale extends Component
                 'payment' => $this->payment,
                 'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
                 'remainder' => $this->remainder,
-                'current_balance' => $this->currentClient['currentBalance'],
+                'client_balance' => $this->currentClient['currentBalance'],
                 'due_date' => $this->sale_date
             ]);
 
@@ -233,8 +228,13 @@ class Sale extends Component
         }
     }
 
+    public function showSales()
+    {
+        $this->editMode = !$this->editMode;
+    }
     public function chooseSale($sale)
     {
+        $this->editMode = !$this->editMode;
         $this->total_amount = $sale['total_amount'];
         $this->paid = $sale['sale_debts'][0]['paid'];
         $this->payment = $sale['sale_debts'][0]['payment'];
@@ -270,6 +270,8 @@ class Sale extends Component
     public function render()
     {
 
+
+
         if (!empty($this->currentClient)) {
 
             $this->sales = \App\Models\Sale::where('client_id', $this->currentClient['id'])
@@ -281,7 +283,14 @@ class Sale extends Component
         }
 
         $this->banks = Bank::all();
-        $this->clients = \App\Models\Client::where('clientName', 'LIKE', '%' . $this->clientSearch . '%')->get();
+        if ($this->buyer == 'client') {
+            $this->clients = \App\Models\Client::where('clientName', 'LIKE', '%' . $this->clientSearch . '%')->get();
+        } elseif($this->buyer == 'employee') {
+            $this->clients = \App\Models\Employee::where('employeeName', 'LIKE', '%' . $this->clientSearch . '%')->get();
+
+        } elseif ($this->buyer == 'supplier') {
+            $this->clients = \App\Models\Supplier::where('supplierName', 'LIKE', '%' . $this->clientSearch . '%')->get();
+        }
         $this->products = \App\Models\Product::where('productName', 'LIKE', '%' . $this->productSearch . '%')->get();
         return view('livewire.sale');
     }

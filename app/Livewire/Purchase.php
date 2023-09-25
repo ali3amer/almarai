@@ -40,11 +40,16 @@ class Purchase extends Component
     public array $cart = [];
     public string $purchaseSearch = '';
     public float $remainder = 0;
-    public bool $payMode = false;
+    public bool $editMode = false;
     public array $currentPurchaseDebts = [];
     public array $currentPurchase = [];
 
     public Collection $purchaseDebts;
+
+    public function mount()
+    {
+        $this->currentSupplier = \App\Models\Supplier::find(1)->toArray();
+    }
 
     public function save()
     {
@@ -129,7 +134,7 @@ class Purchase extends Component
                 'payment' => $this->payment,
                 'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
                 'remainder' => $this->remainder,
-                'current_balance' => $this->currentSupplier['currentBalance'],
+                'supplier_balance' => $this->currentSupplier['currentBalance'],
                 'due_date' => $this->purchase_date
             ]);
 
@@ -215,8 +220,14 @@ class Purchase extends Component
         }
     }
 
+    public function showPurchases()
+    {
+        $this->editMode = !$this->editMode;
+    }
+
     public function choosePurchase($purchase)
     {
+        $this->editMode = !$this->editMode;
         $this->total_amount = $purchase['total_amount'];
         $this->paid = $purchase['purchase_debts'][0]['paid'];
         $this->payment = $purchase['purchase_debts'][0]['payment'];
@@ -244,9 +255,9 @@ class Purchase extends Component
         $this->remainder = $this->total_amount - floatval($this->paid);
     }
 
-    public function resetData()
+    public function resetData($item = null)
     {
-        $this->reset('currentSupplier', 'currentProduct', 'cart', 'search', 'supplierSearch', 'paid', 'remainder', 'total_amount', 'id', 'oldQuantities');
+        $this->reset( 'currentProduct', 'cart', 'search', 'supplierSearch', 'paid', 'remainder', 'total_amount', 'id', 'oldQuantities', $item);
     }
 
     public function render()
@@ -257,7 +268,9 @@ class Purchase extends Component
             $this->purchases = \App\Models\Purchase::where('supplier_id', $this->currentSupplier['id'])
                 ->where('id', 'LIKE', '%' . $this->purchaseSearch . '%')->where('purchase_date', 'LIKE', '%' . $this->purchaseSearch . '%')
                 ->with('purchaseDetails.product', 'purchaseDebts')->get();
-        }  else {
+        }
+
+        if ($this->purchase_date == '') {
             $this->purchase_date = date('Y-m-d');
         }
         $this->banks = Bank::all();
