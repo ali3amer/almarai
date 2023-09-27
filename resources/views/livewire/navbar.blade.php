@@ -29,7 +29,7 @@ $links = [
         <ul class="navbar-nav ml-auto">
             @foreach($links as $link)
                 <li class="nav-item">
-                    <a wire:navigate class="nav-link" href="{{ $link[0] }}">
+                    <a wire:navigate class="nav-link {{request()->path() == $link[0] ? 'active-link' : ''}}" href="{{ $link[0] }}">
                         {{ $link[1] }}
                     </a>
                 </li>
@@ -45,3 +45,4 @@ $links = [
         </ul>
     </div>
 </nav>
+

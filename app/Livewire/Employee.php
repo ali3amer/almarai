@@ -18,7 +18,9 @@ class Employee extends Component
     public string $employeeName = '';
     #[Rule('required|min:2')]
     public float $salary = 0;
+    public float $total_sum_paid = 0;
     public string $search = '';
+    public string $saleSearch = '';
     public string $gift_date = '';
     public string $bank = '';
     public string $payment = 'cash';
@@ -31,6 +33,7 @@ class Employee extends Component
     public Collection $employees;
     public Collection $gifts;
     public Collection $banks;
+    public Collection $sales;
     public array $currentGift = [];
 
     public function save($id)
@@ -70,7 +73,19 @@ class Employee extends Component
     {
         $this->currentEmployee = $employee;
         $this->gift_date = date('Y-m-d');
-        $this->gifts = EmployeeGift::where('employee_id', $employee['id'])->get();
+        $this->gifts = EmployeeGift::where('employee_id', $this->currentEmployee['id'])->get();
+        $this->getSales();
+    }
+
+    public function getSales()
+    {
+        $this->sales = \App\Models\Sale::where('employee_id', $this->currentEmployee['id'])->withSum('saleDebts', 'paid')
+            ->with('saleDetails.product', 'saleDebts')->where('id', 'LIKE', '%'.$this->saleSearch.'%')->get();
+        $this->total_sum_paid = 0;
+        dd($this->sales);
+        foreach ($this->sales as $sale) {
+            $this->total_sum_paid += floatval($sale->total_amount) - floatval($sale->sale_debts_sum_paid);
+        }
     }
 
     public function payGift()

@@ -232,7 +232,8 @@
                                                               class="form-control"></div>
 
                                     <div class="col-4">
-                                        <select wire:model.live="bank_id" @disabled($payment == 'cash') class="form-select">
+                                        <select wire:model.live="bank_id"
+                                                @disabled($payment == 'cash') class="form-select">
                                             @foreach($banks as $bank)
                                                 <option value="{{$bank->id}}">{{$bank->bankName}}</option>
                                             @endforeach
@@ -241,49 +242,53 @@
                                 </div>
 
                             </div>
-                            <table class="table text-center table-responsive table-responsive table-responsive">
-                                <thead>
-                                <tr>
-                                    <th scope="col">#</th>
-                                    <th scope="col">إسم المنتج</th>
-                                    <th scope="col">سعر الوحده</th>
-                                    <th scope="col">الكميه</th>
-                                    <th scope="col">الجمله</th>
-                                    <th scope="col">التحكم</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                @foreach($cart as $item)
-                                    <tr style="cursor: pointer" class="align-items-center">
-                                        <td scope="row">{{$loop->index + 1}}</td>
-                                        <td>{{$item['productName']}}</td>
-                                        <td>{{number_format(floatval($item['sale_price']), 2)}}</td>
-                                        <td>{{number_format(floatval($item['quantity']), 2)}}</td>
-                                        <td>{{number_format($item['amount'], 2)}}</td>
-                                        <td>
-                                            <button wire:click="deleteFromCart({{$item['id']}})"
-                                                    class="btn btn-primary btn-sm btn-danger"><i
-                                                    class="bi bi-trash-fill"></i>
-                                            </button>
+                            <div class="scroll">
+                                <table class="table text-center table-responsive table-responsive table-responsive">
+                                    <thead>
+                                    <tr>
+                                        <th scope="col">#</th>
+                                        <th scope="col">إسم المنتج</th>
+                                        <th scope="col">سعر الوحده</th>
+                                        <th scope="col">الكميه</th>
+                                        <th scope="col">الجمله</th>
+                                        <th scope="col">التحكم</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    @foreach($cart as $item)
+                                        <tr style="cursor: pointer" class="align-items-center">
+                                            <td scope="row">{{$loop->index + 1}}</td>
+                                            <td>{{$item['productName']}}</td>
+                                            <td>{{number_format(floatval($item['sale_price']), 2)}}</td>
+                                            <td>{{number_format(floatval($item['quantity']), 2)}}</td>
+                                            <td>{{number_format($item['amount'], 2)}}</td>
+                                            <td>
+                                                <button wire:loading.attr="disabled" wire:click="deleteFromCart({{$item['id']}})"
+                                                        class="btn btn-primary btn-sm btn-danger"><i
+                                                        class="bi bi-trash-fill"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                    <tr>
+                                        <td>الجمله</td>
+                                        <td>{{number_format($total_amount, 2)}}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>المدفوع</td>
+                                        <td><input type="text" min="0" wire:keydown.debounce.150ms="calcRemainder()"
+                                                   wire:model.live.debounce.150ms="paid"
+                                                   class="form-control text-center">
                                         </td>
                                     </tr>
-                                @endforeach
-                                <tr>
-                                    <td>الجمله</td>
-                                    <td>{{number_format($total_amount, 2)}}</td>
-                                </tr>
-                                <tr>
-                                    <td>المدفوع</td>
-                                    <td><input type="text" min="0" wire:keydown.debounce.150ms="calcRemainder()"
-                                               wire:model.live.debounce.150ms="paid" class="form-control text-center">
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>المتبقي</td>
-                                    <td>{{number_format($remainder, 2)}}</td>
-                                </tr>
-                                </tbody>
-                            </table>
+                                    <tr>
+                                        <td>المتبقي</td>
+                                        <td>{{number_format($remainder, 2)}}</td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -369,7 +374,9 @@
                                 </div>
                                 <div class="col-8">
                                     @if(count($clients) > 0)
-                                        <input type="text" placeholder="بحث ..." class="form-control" wire:keydown.enter="chooseClient({{$clients[0]}})" wire:model.live="clientSearch">
+                                        <input type="text" placeholder="بحث ..." class="form-control"
+                                               wire:keydown.enter="chooseClient({{$clients[0]}})"
+                                               wire:model.live="clientSearch">
                                     @endif
                                 </div>
                             </div>

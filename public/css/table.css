@@ -14,8 +14,19 @@
 /*    max-height: 200px;*/
 /*}*/
 
+.active-link {
+    font-weight: bold;
+    color: yellow;
+}
+
+.accordion-button:after {
+    order: 1; //swap order
+margin-left: 0;
+    margin-right:0.5em; // just extra space between text and icon
+}
+
 .card .card-body .scroll {
-    max-height: 200px;
+    max-height: 350px;
     overflow-y: scroll;
 }
 #printInvoice  {
