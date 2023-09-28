@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Models\Bank;
 use App\Models\EmployeeGift;
+use App\Models\SaleDetail;
 use Illuminate\Database\Eloquent\Collection;
 use Livewire\Attributes\Rule;
 use Livewire\Component;
@@ -19,6 +20,8 @@ class Employee extends Component
     #[Rule('required|min:2')]
     public float $salary = 0;
     public float $total_sum_paid = 0;
+    public array $debts = [];
+    public Collection $details;
     public string $search = '';
     public string $saleSearch = '';
     public string $gift_date = '';
@@ -28,6 +31,7 @@ class Employee extends Component
     public $gift_amount = 0;
 
     public array $currentEmployee = [];
+    public array $claimsArray = [];
     public bool $editMode = false;
     public bool $editGiftMode = false;
     public Collection $employees;
@@ -79,15 +83,30 @@ class Employee extends Component
 
     public function getSales()
     {
-        $this->sales = \App\Models\Sale::where('employee_id', $this->currentEmployee['id'])->withSum('saleDebts', 'paid')
-            ->with('saleDetails.product', 'saleDebts')->where('id', 'LIKE', '%'.$this->saleSearch.'%')->get();
-        $this->total_sum_paid = 0;
-        dd($this->sales);
-        foreach ($this->sales as $sale) {
-            $this->total_sum_paid += floatval($sale->total_amount) - floatval($sale->sale_debts_sum_paid);
+        $this->sales = \App\Models\Sale::where('employee_id', $this->currentEmployee['id'])->get()->keyBy('id');
+        //        $this->total_sum_paid = 0;
+//        foreach ($this->sales as $sale) {
+//            $this->total_sum_paid += floatval($sale->total_amount) - floatval($sale->sale_debts_sum_paid);
+//        }
+    }
+
+    public function addDebts($sale)
+    {
+        if (key_exists('sale_debts_sum_paid', $sale)) {
+            $this->debts[$sale['id']] = $sale['total_amount'] - floatval($sale['sale_debts_sum_paid']);
+
         }
     }
 
+    public function deleteDebt($key)
+    {
+        unset($this->debts[$key]);
+    }
+
+    public function showSale($sale)
+    {
+        $this->details = SaleDetail::where('sale_id', $sale['id'])->get();
+    }
     public function payGift()
     {
         EmployeeGift::create([

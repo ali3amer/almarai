@@ -40,6 +40,54 @@
         </div>
     </div>
 
+    <!-- Show Sale -->
+
+    <div wire:ignore.self class="modal fade" id="saleModal" tabindex="-1" aria-labelledby="saleModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <h1 class="modal-title fs-5" id="saleModalLabel">فاتوره</h1>
+                </div>
+                <div class="modal-body">
+                    <div class="card bg-white">
+                        <div class="card-body">
+                            <table class="table text-center">
+                                <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>إسم المنتج</th>
+                                    <th>سعر الوحده</th>
+                                    <th>الكميه</th>
+                                    <th>الجمله</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                @if(!empty($details))
+                                    @foreach($details as $detail)
+                                        <tr>
+                                            <td>{{$detail['id']}}</td>
+                                            <td>{{$detail['product']['productName']}}</td>
+                                            <td>{{number_format($detail['price'], 2)}}</td>
+                                            <td>{{$detail['quantity']}}</td>
+                                            <td>{{number_format($detail['price'] * $detail['quantity'], 2)}}</td>
+                                        </tr>
+                                    @endforeach
+                                    <tr>
+                                        <td rowspan="4">الجمله</td>
+                                        <td>{{$details[0]->sale->total_amount}}</td>
+                                    </tr>
+                                @endif
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <x-title :$title></x-title>
 
     <div class="row mt-2">
@@ -166,6 +214,13 @@
                                 @endif
                             </div>
                         </div>
+
+                        @if(!empty($debts))
+                            @foreach($debts as $key => $debt)
+                                <button type="button" class="btn btn-outline-danger"
+                                        wire:click="deleteDebt({{$key}})">{{$debt}}</button>
+                            @endforeach
+                        @endif
                     </div>
                 </div>
                 <div class="card">
@@ -207,74 +262,49 @@
             <div class="col-5">
                 <div class="card">
                     <div class="card-body">
-                        <div class="card-title"><input type="text" placeholder="بحث ...."
-                                                       class="form-control text-center" wire:keydown="getSales()"
-                                                       wire:model.live="saleSearch"></div>
-                        <div class="accordion" id="accordionExample">
-                            @if(!empty($sales))
-                                <div class="card mb-1">
-                                    <div class="card-header">
-                                        <h6>
-                                            <span>مجموع المطالبات : </span><span>{{number_format($total_sum_paid, 2)}}</span>
-                                        </h6>
-                                    </div>
+                        <div class="card-title">
+                            <div class="row">
+                                <div class="col-6">
+                                    <h6>
+                                        <span>مجموع المطالبات : </span><span>{{number_format($total_sum_paid, 2)}}</span>
+                                    </h6>
                                 </div>
-                                <div class="scroll">
-                                    @foreach($sales as $sale)
-                                        <div class="card accordion-item">
-                                            <div class="card-header collapsed" style="cursor: pointer"
-                                                 data-bs-toggle="collapse"
-                                                 data-bs-target="#collapse.{{$sale->id}}" aria-expanded="false"
-                                                 aria-controls="collapse.{{$sale->id}}">
-                                                <div class="row">
-                                                    <div class="col-4"><h6>#{{$sale->id}}</h6></div>
-                                                    <div class="col-4"><h6>{{$sale->sale_date}}</h6></div>
-                                                    <div class="col-4"><h6>
-                                                            <span>المتبقي : </span>{{number_format($sale->total_amount - $sale->sale_debts_sum_paid, 2)}}
-                                                            <span></span></h6></div>
-                                                </div>
-                                            </div>
-                                            <div id="collapse.{{$sale->id}}"
-                                                 class="accordion-collapse collapse"
-                                                 data-bs-parent="#accordionExample">
-                                                <div class="accordion-body">
-                                                    <table class="table table-responsive" data-bs-dismiss="modal"
-                                                           aria-label="Close">
-                                                        <thead class="table-dark">
-                                                        <tr>
-                                                            <th>إسم المنتج</th>
-                                                            <th>السعر</th>
-                                                            <th>الكميه</th>
-                                                            <th>الجمله</th>
-                                                        </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                        @foreach($sale->saleDetails as $detail)
-                                                            <tr>
-                                                                <td>{{$detail->product->productName}}</td>
-                                                                <td>{{number_format($detail->price, 2)}}</td>
-                                                                <td>{{$detail->quantity}}</td>
-                                                                <td>{{number_format($detail->price*$detail->quantity, 2)}}</td>
-                                                            </tr>
-                                                        @endforeach
-                                                        <tr>
-                                                            <td>الجمله:</td>
-                                                            <td>{{number_format($sale->total_amount, 2)}}</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td>المدفوع:</td>
-                                                            <td>{{number_format($sale->sale_debts_sum_paid, 2)}}</td>
-                                                        </tr>
-                                                        </tbody>
-                                                    </table>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    @endforeach
+                                <div class="col-6">
+                                    <input type="text" placeholder="بحث ...."
+                                           class="form-control text-center" wire:keydown="getSales()"
+                                           wire:model="saleSearch">
                                 </div>
-                            @endif
+                            </div>
+
                         </div>
+                        <table class="table text-center">
+                            <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>التاريخ</th>
+                                <th>المتبقي</th>
+                                <th>التحكم</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            @foreach($sales as $sale)
+                                <tr>
+                                    <td>{{$sale->id}}</td>
+                                    <td>{{$sale->sale_date}}</td>
+                                    <td>{{  $sale->saleDebts[$sale->saleDebts->count() - 1]['remainder'] }}</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-primary"><i class="bi bi-plus"></i></button>
+                                        /
+                                        <button class="btn btn-sm btn-warning" data-bs-toggle="modal"
+                                                data-bs-target="#saleModal" wire:click="showSale({{$sale}})"><i
+                                                class="bi bi-eye"></i></button>
+                                    </td>
+                                </tr>
+                            @endforeach
+                            </tbody>
+                        </table>
                     </div>
+
                 </div>
             </div>
         @endif
