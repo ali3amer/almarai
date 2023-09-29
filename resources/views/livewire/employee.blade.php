@@ -51,7 +51,7 @@
                     <h1 class="modal-title fs-5" id="saleModalLabel">فاتوره</h1>
                 </div>
                 <div class="modal-body">
-                    <div class="card bg-white">
+                    <div class="card">
                         <div class="card-body">
                             <table class="table text-center">
                                 <thead>
@@ -167,7 +167,7 @@
                                 <input type="date" class="form-control text-center" wire:model.live="gift_date">
                             </div>
                             <div class="col-2">
-                                <select id="payment" class="form-select text-center" wire:model.live="payment">
+                                <select id="payment" @disabled(!empty($debts)) class="form-select text-center" wire:model.live="payment">
                                     <option value="cash">كاش</option>
                                     <option value="bank">بنك</option>
                                 </select>
@@ -196,7 +196,7 @@
                             </div>
 
                             <div class="col-3">
-                                <input type="text" class="form-control text-center" placeholder="المبلغ ...."
+                                <input type="text" class="form-control text-center" @disabled(!empty($debts)) placeholder="المبلغ ...."
                                        wire:model.live="gift_amount">
                             </div>
 
@@ -216,10 +216,12 @@
                         </div>
 
                         @if(!empty($debts))
-                            @foreach($debts as $key => $debt)
-                                <button type="button" class="btn btn-outline-danger"
-                                        wire:click="deleteDebt({{$key}})">{{$debt}}</button>
-                            @endforeach
+                            <div class="mt-1">
+                                @foreach($debts as $key => $debt)
+                                    <button type="button" class="btn btn-outline-danger"
+                                            wire:click="deleteDebt({{$key}})">{{$debt}}</button>
+                                @endforeach
+                            </div>
                         @endif
                     </div>
                 </div>
@@ -288,18 +290,21 @@
                             </thead>
                             <tbody>
                             @foreach($sales as $sale)
-                                <tr>
-                                    <td>{{$sale->id}}</td>
-                                    <td>{{$sale->sale_date}}</td>
-                                    <td>{{  $sale->saleDebts[$sale->saleDebts->count() - 1]['remainder'] }}</td>
-                                    <td>
-                                        <button class="btn btn-sm btn-primary"><i class="bi bi-plus"></i></button>
-                                        /
-                                        <button class="btn btn-sm btn-warning" data-bs-toggle="modal"
-                                                data-bs-target="#saleModal" wire:click="showSale({{$sale}})"><i
-                                                class="bi bi-eye"></i></button>
-                                    </td>
-                                </tr>
+                                @if($sale->saleDebts[$sale->saleDebts->count() - 1]['remainder'] != 0)
+                                    <tr>
+                                        <td>{{$sale->id}}</td>
+                                        <td>{{$sale->sale_date}}</td>
+                                        <td>{{  $sale->saleDebts[$sale->saleDebts->count() - 1]['remainder'] }}</td>
+                                        <td>
+                                            <button class="btn btn-sm btn-primary" wire:click="addDebt({{$sale}})"><i
+                                                    class="bi bi-plus"></i></button>
+                                            /
+                                            <button class="btn btn-sm btn-warning" data-bs-toggle="modal"
+                                                    data-bs-target="#saleModal" wire:click="showSale({{$sale}})"><i
+                                                    class="bi bi-eye"></i></button>
+                                        </td>
+                                    </tr>
+                                @endif
                             @endforeach
                             </tbody>
                         </table>
