@@ -38,33 +38,35 @@
 
                 <div class="card-body">
                     @if(count($clients) > 0 && Auth::user()->hasPermission('clients-read'))
-                        <table class="table text-center">
-                            <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>إسم العميل</th>
-                                <th>الهاتف</th>
-                                <th>الرصيد الافتتاحي</th>
-                                <th>الرصيد الحالي</th>
-                                <th>التحكم</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            @foreach($clients as $client)
+                        <div class="scroll">
+                            <table class="table text-center">
+                                <thead>
                                 <tr>
-                                    <td>{{ $loop->index + 1 }}</td>
-                                    <td>{{ $client->clientName }}</td>
-                                    <td>{{ $client->phone }}</td>
-                                    <td>{{ number_format($client->initialBalance, 2) }}</td>
-                                    <td>{{ number_format($client->currentBalance, 2) }}</td>
-                                    <td>
-                                        <button @disabled(!Auth::user()->hasPermission('clients-update')) class="btn btn-sm btn-info text-white" wire:click="edit({{$client}})"><i class="bi bi-pen"></i></button> /
-                                        <button @disabled(!Auth::user()->hasPermission('clients-delete')) class="btn btn-sm btn-danger" wire:click="delete({{$client->id}})"><i class="bi bi-trash"></i></button>
-                                    </td>
+                                    <th>#</th>
+                                    <th>إسم العميل</th>
+                                    <th>الهاتف</th>
+                                    <th>الرصيد الافتتاحي</th>
+                                    <th>الرصيد الحالي</th>
+                                    <th>التحكم</th>
                                 </tr>
-                            @endforeach
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+                                @foreach($clients as $client)
+                                    <tr>
+                                        <td>{{ $loop->index + 1 }}</td>
+                                        <td>{{ $client->clientName }}</td>
+                                        <td>{{ $client->phone }}</td>
+                                        <td>{{ number_format($client->initialBalance, 2) }}</td>
+                                        <td>{{ number_format($client->currentBalance, 2) }}</td>
+                                        <td>
+                                            <button @disabled(!Auth::user()->hasPermission('clients-update')) class="btn btn-sm btn-info text-white" wire:click="edit({{$client}})"><i class="bi bi-pen"></i></button> /
+                                            <button @disabled(!Auth::user()->hasPermission('clients-delete') || count($client->sales) > 0) class="btn btn-sm btn-danger" wire:click="delete({{$client->id}})"><i class="bi bi-trash"></i></button>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                                </tbody>
+                            </table>
+                        </div>
                     @else
                         <div class="alert alert-danger text-center">لايوجد عملاء ....</div>
                     @endif

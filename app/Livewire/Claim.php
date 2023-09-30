@@ -163,6 +163,7 @@ class Claim extends Component
         } else {
             \App\Models\Bank::where('id', $debt['bank_id'])->decrement('currentBalance', $debt['paid']);
         }
+        $debt->delete();
         $this->debts = PurchaseDebt::where('purchase_id', $this->currentPurchase['id'])->get()->toArray();
     }
 

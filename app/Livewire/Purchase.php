@@ -45,6 +45,7 @@ class Purchase extends Component
     public array $currentPurchase = [];
 
     public Collection $purchaseDebts;
+    public array $invoice;
 
     public function mount()
     {
@@ -58,6 +59,7 @@ class Purchase extends Component
                 'supplier_id' => $this->currentSupplier['id'],
                 'total_amount' => $this->total_amount,
                 'purchase_date' => $this->purchase_date,
+                'user_id' => auth()->id()
             ]);
 
             $this->currentSupplier['currentBalance'] += $this->total_amount;
@@ -69,7 +71,8 @@ class Purchase extends Component
                 'payment' => 'cash',
                 'remainder' => $this->total_amount,
                 'supplier_balance' => $this->currentSupplier['currentBalance'],
-                'due_date' => $this->purchase_date
+                'due_date' => $this->purchase_date,
+                'user_id' => auth()->id()
             ]);
 
             \App\Models\Supplier::where('id', $this->currentSupplier['id'])->increment('currentBalance', $this->total_amount);
@@ -84,7 +87,8 @@ class Purchase extends Component
                     'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
                     'remainder' => $this->remainder,
                     'supplier_balance' => $this->currentSupplier['currentBalance'],
-                    'due_date' => $this->purchase_date
+                    'due_date' => $this->purchase_date,
+                    'user_id' => auth()->id()
                 ]);
 
                 if ($this->payment == 'cash') {
@@ -116,7 +120,8 @@ class Purchase extends Component
             \App\Models\Supplier::where('id', $this->currentSupplier['id'])->decrement('currentBalance', $purchase['total_amount']);
             \App\Models\Purchase::where('id', $this->id)->update([
                 'total_amount' => $this->total_amount,
-                'purchase_date' => $this->purchase_date
+                'purchase_date' => $this->purchase_date,
+                'user_id' => auth()->id()
             ]);
             \App\Models\Supplier::where('id', $this->currentSupplier['id'])->increment('currentBalance', $this->total_amount);
             $this->currentSupplier['currentBalance'] += $this->total_amount;
@@ -135,7 +140,8 @@ class Purchase extends Component
                 'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
                 'remainder' => $this->remainder,
                 'supplier_balance' => $this->currentSupplier['currentBalance'],
-                'due_date' => $this->purchase_date
+                'due_date' => $this->purchase_date,
+                'user_id' => auth()->id()
             ]);
 
             if ($this->payment == 'cash') {
@@ -162,6 +168,14 @@ class Purchase extends Component
             session()->flash('success', 'تم التعديل بنجاح');
 
         }
+
+        $this->invoice['id'] = $purchase['id'];
+        $this->invoice['sale_date'] = $purchase['purchase_date'];
+        $this->invoice['client'] = $this->currentSupplier['supplierName'];
+        $this->invoice['cart'] = $this->cart;
+        $this->invoice['total_amount'] = $this->total_amount;
+        $this->dispatch('sale_created', $this->invoice);
+
         $this->resetData();
 
     }

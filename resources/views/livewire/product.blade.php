@@ -90,44 +90,46 @@
                 </div>
                 <div class="card-body">
                     @if(count($products) > 0 && Auth::user()->hasPermission('products-read'))
-                        <table class="table text-center">
-                            <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>إسم المنتج</th>
-                                <th>الوحده</th>
-                                <th>المخزن</th>
-                                <th>القسم</th>
-                                <th>سعر البيع</th>
-                                <th>سعر الجرد</th>
-                                <th>الكميه</th>
-                                <th>التحكم</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            @foreach($products as $product)
+                        <div class="scroll">
+                            <table class="table text-center">
+                                <thead>
                                 <tr>
-                                    <td>{{ $loop->index + 1}}</td>
-                                    <td>{{ $product->productName }}</td>
-                                    <td>{{ $product->unit }}</td>
-                                    <td>{{ $product->storeName }}</td>
-                                    <td>{{ $product->categoryName }}</td>
-                                    <td>{{ number_format($product->sale_price, 2) }}</td>
-                                    <td>{{ number_format($product->purchase_price, 2) }}</td>
-                                    <td>{{ number_format($product->stock, 2) }}</td>
-                                    <td>
-                                        <button @disabled(!Auth::user()->hasPermission('products-update')) class="btn btn-sm btn-info text-white" wire:click="edit({{$product}})">
-                                            <i class="bi bi-pen"></i>
-                                        </button>
-                                        /
-                                        <button @disabled(!Auth::user()->hasPermission('products-delete')) class="btn btn-sm btn-danger" wire:click="delete({{$product->id}})">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                    </td>
+                                    <th>#</th>
+                                    <th>إسم المنتج</th>
+                                    <th>الوحده</th>
+                                    <th>المخزن</th>
+                                    <th>القسم</th>
+                                    <th>سعر البيع</th>
+                                    <th>سعر الجرد</th>
+                                    <th>الكميه</th>
+                                    <th>التحكم</th>
                                 </tr>
-                            @endforeach
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+                                @foreach($products as $product)
+                                    <tr>
+                                        <td>{{ $loop->index + 1}}</td>
+                                        <td>{{ $product->productName }}</td>
+                                        <td>{{ $product->unit }}</td>
+                                        <td>{{ $product->storeName }}</td>
+                                        <td>{{ $product->categoryName }}</td>
+                                        <td>{{ number_format($product->sale_price, 2) }}</td>
+                                        <td>{{ number_format($product->purchase_price, 2) }}</td>
+                                        <td>{{ number_format($product->stock, 2) }}</td>
+                                        <td>
+                                            <button @disabled(!Auth::user()->hasPermission('products-update')) class="btn btn-sm btn-info text-white" wire:click="edit({{$product}})">
+                                                <i class="bi bi-pen"></i>
+                                            </button>
+                                            /
+                                            <button @disabled(!Auth::user()->hasPermission('products-delete') || count($product->saleDetails) > 0) class="btn btn-sm btn-danger" wire:click="delete({{$product->id}})">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                                </tbody>
+                            </table>
+                        </div>
                     @else
                         <div class="alert alert-danger text-center">لا يوجد منتجات .....</div>
                     @endif

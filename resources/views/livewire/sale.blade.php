@@ -1,120 +1,21 @@
 <div wire:keydown.escape="resetData('currentClient')">
     <x-title :$title/>
 
-    <!-- Show Sale Model -->
-
-    <div wire:ignore.self class="modal fade" id="showSaleModal" tabindex="-1" aria-labelledby="showSaleModalLabel"
-         aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    <h1 class="modal-title fs-5" id="showSaleModalLabel">فاتوره</h1>
-                </div>
-                <div class="modal-body">
-                    <div class="card">
-                        <div class="card-body">
-                            <div class="card-body">
-                                <div class="card-title">
-                                    <div class="row">
-                                        <div class="col-4"><h5>الفاتوره {{$id != 0 ? '#'. $id : ''}}</h5></div>
-                                    </div>
-
-                                </div>
-                                <table class="table text-center table-responsive table-responsive table-responsive">
-                                    <thead>
-                                    <tr>
-                                        <th scope="col">#</th>
-                                        <th scope="col">إسم المنتج</th>
-                                        <th scope="col">سعر الوحده</th>
-                                        <th scope="col">الكميه</th>
-                                        <th scope="col">الجمله</th>
-                                    </tr>
-                                    </thead>
-                                    <tbody>
-                                    @foreach($cart as $item)
-                                        <tr class="align-items-center">
-                                            <td scope="row">{{$loop->index + 1}}</td>
-                                            <td>{{$item['productName']}}</td>
-                                            <td>{{number_format(floatval($item['sale_price']), 2)}}</td>
-                                            <td>{{number_format(floatval($item['quantity']), 2)}}</td>
-                                            <td>{{number_format($item['amount'], 2)}}</td>
-                                        </tr>
-                                    @endforeach
-                                    <tr>
-                                        <td>الجمله</td>
-                                        <td>{{number_format($total_amount, 2)}}</td>
-                                    </tr>
-                                    <tr>
-                                        <td>المدفوع</td>
-                                        <td>{{number_format(floatval($paid), 2)}}</td>
-                                    </tr>
-                                    <tr>
-                                        <td>المتبقي</td>
-                                        <td>{{number_format($total_amount - floatval($paid), 2)}}</td>
-                                    </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-
     <!-- Print Invoice Modal -->
     <div wire:ignore.self class="modal fade" id="printModal" tabindex="-1" aria-labelledby="exampleModalLabel"
          aria-hidden="true">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-fullscreen">
             <div class="modal-content">
                 <div class="modal-header d-print-none">
-                    <button type="button" wire:click="printInvoice(false)" class="btn-close" data-bs-dismiss="modal"
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"
                             aria-label="Close"></button>
                     <h1 class="modal-title fs-5" id="exampleModalLabel">
-                        <button class="btn btn-primary" wire:click="printInvoice(true)"><i class="bi bi-printer"></i>
+                        <button class="btn btn-primary" @click="window.print()"><i class="bi bi-printer"></i>
                         </button>
                     </h1>
                 </div>
                 <div class="modal-body">
-                    <div class="card d-print-table">
-                        <div class="card-body">
-                            <div class="card-title">
-                                <h5>الفاتوره {{$id != 0 ? '#'. $id : ''}}</h5>
-                            </div>
-                            <table class="table text-center table-responsive table-responsive table-responsive">
-                                <thead>
-                                <tr>
-                                    <th scope="col">#</th>
-                                    <th scope="col">إسم المنتج</th>
-                                    <th scope="col">سعر الوحده</th>
-                                    <th scope="col">الكميه</th>
-                                    <th scope="col">الجمله</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                @foreach($cart as $item)
-                                    <tr style="cursor: pointer" class="align-items-center">
-                                        <td scope="row">{{$loop->index + 1}}</td>
-                                        <td>{{$item['productName']}}</td>
-                                        <td>{{number_format(floatval($item['sale_price']), 2)}}</td>
-                                        <td>{{number_format(floatval($item['quantity']), 2)}}</td>
-                                        <td>{{number_format($item['amount'], 2)}}</td>
-                                    </tr>
-                                @endforeach
-                                <tr>
-                                    <td>الجمله</td>
-                                    <td>{{number_format($total_amount, 2)}}</td>
-                                </tr>
-                                <tr>
-                                    <td>المدفوع</td>
-                                    <td>{{number_format(floatval($paid), 2)}}</td>
-                                </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
+                    <livewire:invoice />
                 </div>
             </div>
         </div>
@@ -127,8 +28,7 @@
             <div class="col-4">
                 <div class="card">
                     <div class="card-body">
-                        <button class="btn btn-warning" data-bs-toggle="modal"
-                                data-bs-target="#editSale" wire:click="showSales"
+                        <button class="btn btn-warning" wire:click="showSales()"
                                 style="cursor: pointer"><i class="bi bi-pen"></i></button>
                         <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#printModal"
                                 style="cursor: pointer" wire:click="save()" {{empty($cart) ? 'disabled':''}} ><i
@@ -305,55 +205,53 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="accordion" id="accordionExample">
-                                @if(!empty($sales))
-                                    @foreach($sales as $sale)
-                                        <div class="accordion-item">
-                                            <h2 class="accordion-header">
-                                                <button class="accordion-button collapsed" type="button"
-                                                        data-bs-toggle="collapse"
-                                                        data-bs-target="#collapse.{{$sale->id}}" aria-expanded="false"
-                                                        aria-controls="collapse.{{$sale->id}}">
-                                                    {{$sale->id}}: {{$sale->sale_date}}
-                                                </button>
-                                            </h2>
-                                            <div id="collapse.{{$sale->id}}" class="accordion-collapse collapse"
-                                                 data-bs-parent="#accordionExample">
-                                                <div class="accordion-body">
-                                                    <table class="table table-responsive" data-bs-dismiss="modal"
-                                                           aria-label="Close" wire:click="chooseSale({{$sale}})">
-                                                        <thead class="table-dark">
-                                                        <tr>
-                                                            <th>إسم المنتج</th>
-                                                            <th>السعر</th>
-                                                            <th>الكميه</th>
-                                                            <th>الجمله</th>
-                                                        </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                        @foreach($sale->saleDetails as $detail)
+                            <div class="scroll">
+                                <div class="accordion" id="accordionExample">
+                                    @if(!empty($sales))
+                                        @foreach($sales as $sale)
+                                            <div class="accordion-item">
+                                                <h2 class="accordion-header">
+                                                    <button class="accordion-button collapsed" type="button"
+                                                            data-bs-toggle="collapse"
+                                                            data-bs-target="#collapse.{{$sale->id}}" aria-expanded="false"
+                                                            aria-controls="collapse.{{$sale->id}}">
+                                                        {{$sale->id}}: {{$sale->sale_date}}
+                                                    </button>
+                                                </h2>
+                                                <div id="collapse.{{$sale->id}}" class="accordion-collapse collapse"
+                                                     data-bs-parent="#accordionExample">
+                                                    <div class="accordion-body">
+                                                        <table class="table table-responsive" data-bs-dismiss="modal"
+                                                               aria-label="Close" wire:click="chooseSale({{$sale}})">
+                                                            <thead class="table-dark">
                                                             <tr>
-                                                                <td>{{$detail->product->productName}}</td>
-                                                                <td>{{$detail->price}}</td>
-                                                                <td>{{$detail->quantity}}</td>
-                                                                <td>{{$detail->price*$detail->quantity}}</td>
+                                                                <th>إسم المنتج</th>
+                                                                <th>السعر</th>
+                                                                <th>الكميه</th>
+                                                                <th>الجمله</th>
                                                             </tr>
-                                                        @endforeach
-                                                        <tr>
-                                                            <td>الجمله:</td>
-                                                            <td>{{$sale->total_amount}}</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td>المدفوع:</td>
-                                                            <td></td>
-                                                        </tr>
-                                                        </tbody>
-                                                    </table>
+                                                            </thead>
+                                                            <tbody>
+                                                            @foreach($sale->saleDetails as $detail)
+                                                                <tr>
+                                                                    <td>{{$detail->product->productName}}</td>
+                                                                    <td>{{$detail->price}}</td>
+                                                                    <td>{{$detail->quantity}}</td>
+                                                                    <td>{{$detail->price*$detail->quantity}}</td>
+                                                                </tr>
+                                                            @endforeach
+                                                            <tr>
+                                                                <td>الجمله:</td>
+                                                                <td>{{$sale->total_amount}}</td>
+                                                            </tr>
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    @endforeach
-                                @endif
+                                        @endforeach
+                                    @endif
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -381,26 +279,28 @@
                                 </div>
                             </div>
                         </div>
-                        <table class="table table-responsive">
-                            <thead>
-                            <tr>
-                                <th scope="col">#</th>
-                                <th scope="col">إسم العميل</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            @if(!empty($clients))
-                                @foreach($clients as $client)
-                                    <tr style="cursor: pointer" wire:click="chooseClient({{$client}})"
-                                        data-bs-dismiss="modal"
-                                        aria-label="Close">
-                                        <td scope="row">{{$loop->index + 1}}</td>
-                                        <td>{{$client[$buyer.'Name']}}</td>
-                                    </tr>
-                                @endforeach
-                            @endif
-                            </tbody>
-                        </table>
+                        <div class="scroll">
+                            <table class="table table-responsive">
+                                <thead>
+                                <tr>
+                                    <th scope="col">#</th>
+                                    <th scope="col">إسم العميل</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                @if(!empty($clients))
+                                    @foreach($clients as $client)
+                                        <tr style="cursor: pointer" wire:click="chooseClient({{$client}})"
+                                            data-bs-dismiss="modal"
+                                            aria-label="Close">
+                                            <td scope="row">{{$loop->index + 1}}</td>
+                                            <td>{{$client[$buyer.'Name']}}</td>
+                                        </tr>
+                                    @endforeach
+                                @endif
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>

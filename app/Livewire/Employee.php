@@ -171,9 +171,11 @@ class Employee extends Component
         $this->note = $this->currentGift['note'];
 
         $saleDebts = SaleDebt::where('client_balance', $this->currentGift['id'])->get();
+        $this->debts = [];
         foreach ($saleDebts as $debt) {
             $this->debts[$debt['sale_id']] = $debt['paid'];
         }
+        $this->oldDebts = [];
         $this->oldDebts = $this->debts;
         $this->getSales();
     }

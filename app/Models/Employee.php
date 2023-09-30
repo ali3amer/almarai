@@ -13,4 +13,9 @@ class Employee extends Model
     {
         return $this->hasMany(Sale::class);
     }
+
+    public function gifts()
+    {
+        return $this->hasMany(EmployeeGift::class);
+    }
 }

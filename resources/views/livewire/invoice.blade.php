@@ -1,16 +1,8 @@
-<div id="invoice">
-    <h1>فاتورة</h1>
+<div id="invoice" class="d-print-block">
 
-    <div style="float: right">
-        <h2>التاريخ</h2>
-        <p>2023-09-20</p>
-    </div>
-
-    <div style="float: left">
-        <h2>اسم المتجر</h2>
-        <p>سوق الويب</p>
-    </div>
-
+    <h6>فاتوره رقم {{$invoice['id'] ?? ''}}</h6>
+    <h6>إسم العميل : {{$invoice['client'] ?? ''}}</h6>
+    <h6>التاريخ : {{$invoice['sale_date'] ?? ''}}</h6>
     <table id="printInvoice">
         <thead>
         <tr>
@@ -22,25 +14,23 @@
         </tr>
         </thead>
         <tbody>
-        <tr>
-            <td>1</td>
-            <td>هاتف iPhone 13</td>
-            <td>1000 دولار</td>
-            <td>1</td>
-            <td>1000 دولار</td>
-        </tr>
-        <tr>
-            <td>2</td>
-            <td>حاسوب محمول MacBook Pro</td>
-            <td>2000 دولار</td>
-            <td>1</td>
-            <td>2000 دولار</td>
-        </tr>
+        @if(isset($invoice['cart']))
+            @foreach($invoice['cart'] as $item)
+                <tr style="cursor: pointer" class="align-items-center">
+                    <td scope="row">{{$loop->index + 1}}</td>
+                    <td>{{$item['productName']}}</td>
+                    <td>{{number_format(floatval($item['sale_price']), 2)}}</td>
+                    <td>{{number_format(floatval($item['quantity']), 2)}}</td>
+                    <td>{{number_format($item['amount'], 2)}}</td>
+                </tr>
+            @endforeach
+        @endif
+
         </tbody>
         <tfoot>
         <tr>
             <td colspan="4">المجموع الكلي</td>
-            <td>3000 دولار</td>
+            <td>{{$invoice['total_amount'] ?? ''}}</td>
         </tr>
         </tfoot>
     </table>

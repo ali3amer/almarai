@@ -13,26 +13,28 @@
                             </div>
                         </div>
                     </div>
-                    <table class="table text-center table-hover">
-                        <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>إسم المنتج</th>
-                            <th>الكميه</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        @foreach($products as $product)
-                            @if($product->stock > 0)
-                                <tr style="cursor: pointer"  wire:click="chooseProduct({{$product}})">
-                                    <td>{{$loop->index + 1}}</td>
-                                    <td>{{$product->productName}}</td>
-                                    <td>{{$product->stock}}</td>
-                                </tr>
-                            @endif
-                        @endforeach
-                        </tbody>
-                    </table>
+                    <div class="scroll">
+                        <table class="table text-center table-hover">
+                            <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>إسم المنتج</th>
+                                <th>الكميه</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            @foreach($products as $product)
+                                @if($product->stock > 0)
+                                    <tr style="cursor: pointer"  wire:click="chooseProduct({{$product}})">
+                                        <td>{{$loop->index + 1}}</td>
+                                        <td>{{$product->productName}}</td>
+                                        <td>{{$product->stock}}</td>
+                                    </tr>
+                                @endif
+                            @endforeach
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
@@ -59,16 +61,17 @@
             <div class="card">
                 <div class="card-body">
                     <div class="card-title"><h6>المنتجات التالفه</h6></div>
-                    <table class="table">
-                        <thead>
-                        <tr>
-                            <th>إسم المنتج</th>
-                            <th>الكمية التالفه</th>
-                            <th>التاريخ</th>
-                            <th>التحكم</th>
-                        </tr>
-                        </thead>
-                        <tbody>
+                    <div class="scroll">
+                        <table class="table">
+                            <thead>
+                            <tr>
+                                <th>إسم المنتج</th>
+                                <th>الكمية التالفه</th>
+                                <th>التاريخ</th>
+                                <th>التحكم</th>
+                            </tr>
+                            </thead>
+                            <tbody>
                             @foreach($damageds as $damaged)
                                 <tr>
                                     <td>{{$damaged->product->productName}}</td>
@@ -80,8 +83,9 @@
                                     </td>
                                 </tr>
                             @endforeach
-                        </tbody>
-                    </table>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>

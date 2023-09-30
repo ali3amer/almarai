@@ -27,27 +27,29 @@
 
                 <div class="card-body">
                     @if(count($categories) > 0 && Auth::user()->hasPermission('categories-read'))
-                        <table class="table text-center">
-                            <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>إسم القسم</th>
-                                <th>التحكم</th>
-                            </tr>
-                            </thead>
-                            <tbody class="text-white">
-                            @foreach($categories as $category)
+                        <div class="scroll">
+                            <table class="table text-center">
+                                <thead>
                                 <tr>
-                                    <td>{{ $loop->index + 1 }}</td>
-                                    <td>{{ $category->categoryName }}</td>
-                                    <td>
-                                        <button class="btn btn-sm btn-info text-white" @disabled(!Auth::user()->hasPermission('categories-update')) wire:click="edit({{$category}})"><i class="bi bi-pen"></i></button> /
-                                        <button class="btn btn-sm btn-danger" @disabled(!Auth::user()->hasPermission('categories-delete')) wire:click="delete({{$category->id}})"><i class="bi bi-trash"></i></button>
-                                    </td>
+                                    <th>#</th>
+                                    <th>إسم القسم</th>
+                                    <th>التحكم</th>
                                 </tr>
-                            @endforeach
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody class="text-white">
+                                @foreach($categories as $category)
+                                    <tr>
+                                        <td>{{ $loop->index + 1 }}</td>
+                                        <td>{{ $category->categoryName }}</td>
+                                        <td>
+                                            <button class="btn btn-sm btn-info text-white" @disabled(!Auth::user()->hasPermission('categories-update')) wire:click="edit({{$category}})"><i class="bi bi-pen"></i></button> /
+                                            <button class="btn btn-sm btn-danger" @disabled(!Auth::user()->hasPermission('categories-delete') || count($category->products) > 0) wire:click="delete({{$category->id}})"><i class="bi bi-trash"></i></button>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                                </tbody>
+                            </table>
+                        </div>
                     @else
                         <div class="alert alert-danger text-center">لايوجد أقسام ....</div>
                     @endif

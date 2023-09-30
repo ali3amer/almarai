@@ -43,7 +43,7 @@
                                     <td>{{ $store->storeName }}</td>
                                     <td>
                                         <button class="btn btn-sm btn-info text-white" @disabled(!Auth::user()->hasPermission('stores-update')) wire:click="edit({{$store}})"><i class="bi bi-pen"></i></button> /
-                                        <button class="btn btn-sm btn-danger" @disabled(!Auth::user()->hasPermission('stores-delete'))  wire:click="delete({{$store->id}})"><i class="bi bi-trash"></i></button>
+                                        <button class="btn btn-sm btn-danger" @disabled(!Auth::user()->hasPermission('stores-delete') || count($store->products) > 0)  wire:click="delete({{$store->id}})"><i class="bi bi-trash"></i></button>
                                     </td>
                                 </tr>
                             @endforeach

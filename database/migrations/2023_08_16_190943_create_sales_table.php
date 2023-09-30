@@ -21,6 +21,8 @@ return new class extends Migration
             $table->foreign('supplier_id')->references('id')->on('suppliers');
             $table->decimal('total_amount', 8, 2);
             $table->date('sale_date');
+            $table->unsignedBigInteger('user_id')->nullable();
+            $table->foreign('user_id')->references('id')->on('users');
             $table->timestamps();
         });
     }

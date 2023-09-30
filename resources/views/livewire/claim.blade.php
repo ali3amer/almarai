@@ -18,24 +18,26 @@
                                                               wire:model.live="supplierSearch"></div>
                                 </div>
                             </div>
-                            <table class="table table-responsive text-center">
-                                <thead>
-                                <tr>
-                                    <th scope="col">#</th>
-                                    <th scope="col">إسم المورد</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                @foreach($suppliers as $supplier)
-                                    <tr style="cursor: pointer" wire:click="chooseSupplier({{$supplier}})"
-                                        data-bs-dismiss="modal"
-                                        aria-label="Close">
-                                        <td scope="row">{{$loop->index + 1}}</td>
-                                        <td>{{$supplier->supplierName}}</td>
+                            <div class="scroll">
+                                <table class="table table-responsive text-center">
+                                    <thead>
+                                    <tr>
+                                        <th scope="col">#</th>
+                                        <th scope="col">إسم المورد</th>
                                     </tr>
-                                @endforeach
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody>
+                                    @foreach($suppliers as $supplier)
+                                        <tr style="cursor: pointer" wire:click="chooseSupplier({{$supplier}})"
+                                            data-bs-dismiss="modal"
+                                            aria-label="Close">
+                                            <td scope="row">{{$loop->index + 1}}</td>
+                                            <td>{{$supplier->supplierName}}</td>
+                                        </tr>
+                                    @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -63,40 +65,42 @@
                                     </div>
 
                                 </div>
-                                <table class="table text-center table-responsive table-responsive table-responsive">
-                                    <thead>
-                                    <tr>
-                                        <th scope="col">#</th>
-                                        <th scope="col">إسم المنتج</th>
-                                        <th scope="col">سعر الوحده</th>
-                                        <th scope="col">الكميه</th>
-                                        <th scope="col">الجمله</th>
-                                    </tr>
-                                    </thead>
-                                    <tbody>
-                                    @foreach($details as $detail)
-                                        <tr class="align-items-center">
-                                            <td scope="row">{{$loop->index + 1}}</td>
-                                            <td>{{$detail['product']['productName']}}</td>
-                                            <td>{{number_format($detail['price'], 2)}}</td>
-                                            <td>{{number_format($detail['quantity'], 2)}}</td>
-                                            <td>{{number_format($detail['quantity']*$detail['price'], 2)}}</td>
+                                <div class="scroll">
+                                    <table class="table text-center table-responsive">
+                                        <thead>
+                                        <tr>
+                                            <th scope="col">#</th>
+                                            <th scope="col">إسم المنتج</th>
+                                            <th scope="col">سعر الوحده</th>
+                                            <th scope="col">الكميه</th>
+                                            <th scope="col">الجمله</th>
                                         </tr>
-                                    @endforeach
-                                    <tr>
-                                        <td>الجمله</td>
-                                        <td>{{number_format($total_amount, 2)}}</td>
-                                    </tr>
-                                    <tr>
-                                        <td>المدفوع</td>
-                                        <td>{{number_format($paid, 2)}}</td>
-                                    </tr>
-                                    <tr>
-                                        <td>المتبقي</td>
-                                        <td>{{number_format($total_amount - $paid, 2)}}</td>
-                                    </tr>
-                                    </tbody>
-                                </table>
+                                        </thead>
+                                        <tbody>
+                                        @foreach($details as $detail)
+                                            <tr class="align-items-center">
+                                                <td scope="row">{{$loop->index + 1}}</td>
+                                                <td>{{$detail['product']['productName']}}</td>
+                                                <td>{{number_format($detail['price'], 2)}}</td>
+                                                <td>{{number_format($detail['quantity'], 2)}}</td>
+                                                <td>{{number_format($detail['quantity']*$detail['price'], 2)}}</td>
+                                            </tr>
+                                        @endforeach
+                                        <tr>
+                                            <td>الجمله</td>
+                                            <td>{{number_format($total_amount, 2)}}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>المدفوع</td>
+                                            <td>{{number_format($paid, 2)}}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>المتبقي</td>
+                                            <td>{{number_format($total_amount - $paid, 2)}}</td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -119,35 +123,37 @@
                             <div class="col"><input type="text" wire:model.live="purchaseSearch" class="form-control text-center" placeholder="بحث ....."></div>
                         </div>
                     </div>
-                    <table class="table table-responsive text-center">
-                        <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>التاريخ</th>
-                            <th>المتبقي</th>
-                            <th>التحكم</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        @if(!empty($purchaseDebts))
-                            @foreach($purchaseDebts as $purchase)
-                                <tr>
-                                    <td>{{$purchase->id}}</td>
-                                    <td>{{$purchase->purchase_date}}</td>
-                                    <td>{{$purchase->total_amount - $purchase->purchase_debts_sum_paid}}</td>
-                                    <td>
-                                        <button class="btn btn-sm btn-info text-white" data-bs-toggle="modal"
-                                                data-bs-target="#showPurchaseModal"  wire:click="showPurchase({{$purchase}})"><i class="bi bi-eye"></i>
-                                        </button>
-                                        /
-                                        <button class="btn btn-sm btn-success"  wire:click="getDebts({{$purchase}})"><i
-                                                class="bi bi-currency-dollar"></i></button>
-                                    </td>
-                                </tr>
-                            @endforeach
-                        @endif
-                        </tbody>
-                    </table>
+                    <div class="scroll">
+                        <table class="table table-responsive text-center">
+                            <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>التاريخ</th>
+                                <th>المتبقي</th>
+                                <th>التحكم</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            @if(!empty($purchaseDebts))
+                                @foreach($purchaseDebts as $purchase)
+                                    <tr>
+                                        <td>{{$purchase->id}}</td>
+                                        <td>{{$purchase->purchase_date}}</td>
+                                        <td>{{$purchase->total_amount - $purchase->purchase_debts_sum_paid}}</td>
+                                        <td>
+                                            <button class="btn btn-sm btn-info text-white" data-bs-toggle="modal"
+                                                    data-bs-target="#showPurchaseModal"  wire:click="showPurchase({{$purchase}})"><i class="bi bi-eye"></i>
+                                            </button>
+                                            /
+                                            <button class="btn btn-sm btn-success"  wire:click="getDebts({{$purchase}})"><i
+                                                    class="bi bi-currency-dollar"></i></button>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            @endif
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
@@ -202,7 +208,7 @@
                             </div>
 
                             <div class="col-2 d-flex align-items-end">
-                                <button class="btn btn-{{$debtId == 0 ? 'primary' : 'success'}} w-100" wire:click="payDebt()">{{$debtId == 0 ? 'دفــــع' : 'تعــــديل'}}</button>
+                                <button class="btn btn-{{$debtId == 0 ? 'primary' : 'success'}} w-100" @disabled(empty($currentSupplier)) wire:click="payDebt()">{{$debtId == 0 ? 'دفــــع' : 'تعــــديل'}}</button>
                             </div>
                         </div>
                     </div>
@@ -214,35 +220,37 @@
                     <div class="card-title">
                         <h5>المدفوعات لفاتورة رقم {{$id}}</h5>
                     </div>
-                    <table class="table table-responsive text-center">
-                        <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>التاريخ</th>
-                            <th>المبلغ</th>
-                            <th>المتبقي</th>
-                            <th>الدفع</th>
-                            <th>الإيصال</th>
-                            <th>التحكم</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        @foreach($debts as $debt)
+                    <div class="scroll">
+                        <table class="table table-responsive text-center">
+                            <thead>
                             <tr>
-                                <td>{{$loop->index + 1}}</td>
-                                <td>{{$debt['due_date']}}</td>
-                                <td>{{number_format($debt['paid'], 2)}}</td>
-                                <td>{{number_format($debt['remainder'], 2)}}</td>
-                                <td>{{$debt['payment']}}</td>
-                                <td>{{$debt['bank']}}</td>
-                                <td>
-                                    <button class="btn btn-sm btn-info text-white"  wire:click="chooseDebt({{$debt['id']}})"><i class="bi bi-pen"></i></button> /
-                                    <button class="btn btn-sm btn-danger" wire:click="deleteDebt({{$debt['id']}})"><i class="bi bi-trash"></i></button>
-                                </td>
+                                <th>#</th>
+                                <th>التاريخ</th>
+                                <th>المبلغ</th>
+                                <th>المتبقي</th>
+                                <th>الدفع</th>
+                                <th>الإيصال</th>
+                                <th>التحكم</th>
                             </tr>
-                        @endforeach
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                            @foreach($debts as $debt)
+                                <tr>
+                                    <td>{{$loop->index + 1}}</td>
+                                    <td>{{$debt['due_date']}}</td>
+                                    <td>{{number_format($debt['paid'], 2)}}</td>
+                                    <td>{{number_format($debt['remainder'], 2)}}</td>
+                                    <td>{{$debt['payment']}}</td>
+                                    <td>{{$debt['bank']}}</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-info text-white"  wire:click="chooseDebt({{$debt['id']}})"><i class="bi bi-pen"></i></button> /
+                                        <button class="btn btn-sm btn-danger" wire:click="deleteDebt({{$debt['id']}})"><i class="bi bi-trash"></i></button>
+                                    </td>
+                                </tr>
+                            @endforeach
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>

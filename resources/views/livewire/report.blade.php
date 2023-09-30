@@ -147,7 +147,7 @@
             data-bs-toggle="offcanvas" data-bs-target="#offcanvasScrolling" aria-controls="offcanvasScrolling"><i
             class="bi bi-gear"></i></button>
 
-    <button class="d-print-none btn btn-secondary position-fixed z-3" id="print"
+    <button class="d-print-none btn btn-secondary position-fixed z-3" @click="window.print()" id="print"
             style="bottom: 10px; right: 60px; border-radius: 50%"
             type="button"><i
             class="bi bi-printer"></i></button>

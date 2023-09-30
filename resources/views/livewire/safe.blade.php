@@ -84,28 +84,30 @@
                         <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#bankModal"><i
                                 class="bi bi-bag-plus"></i></button>
                     </div>
-                    <table class="table text-center">
-                        <thead>
-                        <tr>
-                            <th>إسم البنك</th>
-                            <th>إسم الحساب</th>
-                            <th>رقم الحساب</th>
-                            <th>الرصيد الافتتاحي</th>
-                            <th>الرصيد الحالي</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        @foreach($banks as $bank)
+                    <div class="scroll">
+                        <table class="table text-center">
+                            <thead>
                             <tr>
-                                <td>{{$bank->bankName}}</td>
-                                <td>{{$bank->accountName}}</td>
-                                <td>{{$bank->number}}</td>
-                                <td>{{number_format($bank->initialBalance, 2)}}</td>
-                                <td>{{number_format($bank->currentBalance, 2)}}</td>
+                                <th>إسم البنك</th>
+                                <th>إسم الحساب</th>
+                                <th>رقم الحساب</th>
+                                <th>الرصيد الافتتاحي</th>
+                                <th>الرصيد الحالي</th>
                             </tr>
-                        @endforeach
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                            @foreach($banks as $bank)
+                                <tr>
+                                    <td>{{$bank->bankName}}</td>
+                                    <td>{{$bank->accountName}}</td>
+                                    <td>{{$bank->number}}</td>
+                                    <td>{{number_format($bank->initialBalance, 2)}}</td>
+                                    <td>{{number_format($bank->currentBalance, 2)}}</td>
+                                </tr>
+                            @endforeach
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
@@ -169,40 +171,42 @@
 
             <div class="card">
                 <div class="card-body">
-                    <table class="table table-responsive text-center">
-                        <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>التاريخ</th>
-                            <th>البنك</th>
-                            <th>نوع التحويل</th>
-                            <th>المبلغ</th>
-                            <th>رقم الإشعار</th>
-                            <th>ملاحظات</th>
-                            <th>التحكم</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        @foreach($transfers as $transfer)
+                    <div class="scroll">
+                        <table class="table table-responsive text-center">
+                            <thead>
                             <tr>
-                                <td>{{$loop->index + 1}}</td>
-                                <td>{{$transfer->transfer_date}}</td>
-                                <td>{{$transfer->bank->bankName}}</td>
-                                <td>{{$transfer->transfer_type == 'cash_to_bank' ? 'من كاش الى بنك' : 'من بنك الى كاش'}}</td>
-                                <td>{{number_format($transfer->transfer_amount, 2)}}</td>
-                                <td>{{$transfer->transfer_number}}</td>
-                                <td>{{$transfer->note}}</td>
-                                <td>
-                                    <button class="btn btn-info btn-sm text-white"
-                                            wire:click="editTransfer({{$transfer}})"><i class="bi bi-pen"></i></button>
-                                    /
-                                    <button class="btn btn-danger btn-sm" wire:click="deleteTransfer({{$transfer}})"><i
-                                            class="bi bi-trash"></i></button>
-                                </td>
+                                <th>#</th>
+                                <th>التاريخ</th>
+                                <th>البنك</th>
+                                <th>نوع التحويل</th>
+                                <th>المبلغ</th>
+                                <th>رقم الإشعار</th>
+                                <th>ملاحظات</th>
+                                <th>التحكم</th>
                             </tr>
-                        @endforeach
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                            @foreach($transfers as $transfer)
+                                <tr>
+                                    <td>{{$loop->index + 1}}</td>
+                                    <td>{{$transfer->transfer_date}}</td>
+                                    <td>{{$transfer->bank->bankName}}</td>
+                                    <td>{{$transfer->transfer_type == 'cash_to_bank' ? 'من كاش الى بنك' : 'من بنك الى كاش'}}</td>
+                                    <td>{{number_format($transfer->transfer_amount, 2)}}</td>
+                                    <td>{{$transfer->transfer_number}}</td>
+                                    <td>{{$transfer->note}}</td>
+                                    <td>
+                                        <button class="btn btn-info btn-sm text-white"
+                                                wire:click="editTransfer({{$transfer}})"><i class="bi bi-pen"></i></button>
+                                        /
+                                        <button class="btn btn-danger btn-sm" wire:click="deleteTransfer({{$transfer}})"><i
+                                                class="bi bi-trash"></i></button>
+                                    </td>
+                                </tr>
+                            @endforeach
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>

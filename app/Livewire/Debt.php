@@ -16,6 +16,7 @@ class Debt extends Component
     public Collection $clients;
     public Collection $saleDebts;
     public Collection $banks;
+    public string $buyer = 'client';
 
     public array $currentClient = [];
     public array $currentSale = [];
@@ -24,8 +25,8 @@ class Debt extends Component
     public array $cart = [];
     public array $oldQuantities = [];
     public array $details = [];
-    public float $paid = 0;
-    public float $debtPaid = 0;
+    public $paid = 0;
+    public $debtPaid = 0;
     public float $remainder = 0;
     public float $debtRemainder = 0;
     public string $bank = '';
@@ -48,6 +49,7 @@ class Debt extends Component
         $this->total_amount = $sale['total_amount'];
         $this->remainder = $sale['total_amount'] - $this->paid;
     }
+
     public function getDebts($sale)
     {
         $this->currentSale = $sale;
@@ -89,7 +91,15 @@ class Debt extends Component
     public function payDebt()
     {
         if ($this->debtId == 0) {
+
             $this->currentClient['currentBalance'] -= $this->debtPaid;
+
+            if ($this->buyer == 'client') {
+                $this->currentClient['currentBalance'] += $this->debtPaid;
+            } elseif ($this->buyer == 'supplier') {
+                $this->currentClient['currentBalance'] -= $this->debtPaid;
+            }
+
             SaleDebt::create([
                 'sale_id' => $this->id,
                 'paid' => $this->debtPaid,
@@ -97,10 +107,16 @@ class Debt extends Component
                 'payment' => $this->payment,
                 'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
                 'remainder' => $this->debtRemainder,
-                'current_balance' => $this->currentClient['currentBalance'],
-                'due_date' => $this->due_date
+                'client_balance' => $this->currentClient['currentBalance'],
+                'due_date' => $this->due_date,
+                'user_id' => auth()->id()
             ]);
-            \App\Models\Client::where($this->currentClient['id'])->decrement('currentBalance', $this->debtPaid);
+
+            if ($this->buyer == 'client') {
+                \App\Models\Client::where('id', $this->currentClient['id'])->decrement('currentBalance', $this->debtPaid);
+            } elseif ($this->buyer == 'supplier') {
+                \App\Models\Supplier::where('id', $this->currentClient['id'])->increment('currentBalance', $this->debtPaid);
+            }
 
             if ($this->payment == 'cash') {
                 \App\Models\Safe::first()->increment('currentBalance', $this->debtPaid);
@@ -111,9 +127,16 @@ class Debt extends Component
             session()->flash('success', 'تم الحفظ بنجاح');
         } else {
             $debtbalance = SaleDebt::where('id', $this->debtId)->first();
-            $this->currentClient['currentBalance'] -= $debtbalance['paid'];
-            $this->currentClient['currentBalance'] += $this->debtPaid;
-            Client::where('id', $this->currentClient['id'])->update('currentBalance', $this->currentClient['currentBalance']);
+
+            if ($this->buyer == 'client') {
+                $this->currentClient['currentBalance'] -= $debtbalance['paid'];
+                $this->currentClient['currentBalance'] += $this->debtPaid;
+                Client::where('id', $this->currentClient['id'])->update('currentBalance', $this->currentClient['currentBalance']);
+            } elseif ($this->buyer == 'supplier') {
+                $this->currentClient['currentBalance'] += $debtbalance['paid'];
+                $this->currentClient['currentBalance'] -= $this->debtPaid;
+                Supplier::where('id', $this->currentClient['id'])->update('currentBalance', $this->currentClient['currentBalance']);
+            }
 
             if ($debtbalance['payment'] == 'cash') {
                 \App\Models\Safe::first()->increment('currentBalance', $debtbalance['paid']);
@@ -133,7 +156,7 @@ class Debt extends Component
                 'payment' => $this->payment,
                 'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
                 'remainder' => $this->debtRemainder,
-                'current_balance' => $this->currentClient['currentBalance'],
+                'client_balance' => $this->currentClient['currentBalance'],
                 'due_date' => $this->due_date
             ]);
             session()->flash('success', 'تم التعديل بنجاح');
@@ -158,21 +181,30 @@ class Debt extends Component
     public function deleteDebt($id)
     {
         $debt = SaleDebt::where('id', $id)->first();
-        \App\Models\Client::where('id', $this->currentClient['id'])->increment('currentBalance', $debt['paid']);
+        if ($this->buyer == 'client') {
+            \App\Models\Client::where('id', $this->currentClient['id'])->increment('currentBalance', $debt['paid']);
+        } elseif ($this->buyer == 'supplier') {
+            \App\Models\Supplier::where('id', $this->currentClient['id'])->decrement('currentBalance', $debt['paid']);
+        }
         if ($debt['payment'] == 'cash') {
             \App\Models\Safe::first()->decrement('currentBalance', $debt['paid']);
         } else {
             \App\Models\Bank::where('id', $debt['bank_id'])->decrement('currentBalance', $debt['paid']);
         }
+        $debt->delete();
         $this->debts = SaleDebt::where('sale_id', $this->currentSale['id'])->get()->toArray();
     }
 
     public function render()
     {
         $this->banks = Bank::all();
-        $this->clients = \App\Models\Client::where('clientName', 'LIKE', '%' . $this->clientSearch . '%')->get();
+        if ($this->buyer == 'client') {
+            $this->clients = \App\Models\Client::where('clientName', 'LIKE', '%' . $this->clientSearch . '%')->get();
+        } elseif ($this->buyer == 'supplier') {
+            $this->clients = \App\Models\Supplier::where('supplierName', 'LIKE', '%' . $this->clientSearch . '%')->get();
+        }
         if (!empty($this->currentClient)) {
-            $this->saleDebts = \App\Models\Sale::with('saleDebts', 'saleDetails.product')->withSum('saleDebts', 'paid')->where('client_id', $this->currentClient['id'])->where('id', 'LIKE', '%' . $this->saleSearch . '%')->get()->keyBy('id');
+            $this->saleDebts = \App\Models\Sale::with('saleDebts', 'saleDetails.product')->withSum('saleDebts', 'paid')->where($this->buyer . '_id', $this->currentClient['id'])->where('id', 'LIKE', '%' . $this->saleSearch . '%')->get()->keyBy('id');
         } else {
             $this->due_date = date('Y-m-d');
         }

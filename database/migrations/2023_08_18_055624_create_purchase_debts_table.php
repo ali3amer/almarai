@@ -23,6 +23,8 @@ return new class extends Migration
             $table->decimal('paid', 8, 2);
             $table->decimal('supplier_balance', 8, 2);
             $table->date('due_date');
+            $table->unsignedBigInteger('user_id')->nullable();
+            $table->foreign('user_id')->references('id')->on('users');
             $table->timestamps();
         });
     }

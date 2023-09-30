@@ -69,36 +69,38 @@
 
                 <div class="card-body">
                     @if(count($expenses) > 0 && Auth::user()->hasPermission('expenses-read'))
-                        <table class="table text-center">
-                            <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>البيان</th>
-                                <th>المبلغ</th>
-                                <th>التاريخ</th>
-                                <th>التحكم</th>
-                            </tr>
-                            </thead>
-                            <tbody class="text-white">
-                            @foreach($expenses as $expense)
+                        <div class="scroll">
+                            <table class="table text-center">
+                                <thead>
                                 <tr>
-                                    <td>{{ $loop->index + 1 }}</td>
-                                    <td>{{ $expense->description }}</td>
-                                    <td>{{ number_format($expense->amount, 2) }}</td>
-                                    <td>{{ $expense->expense_date }}</td>
-                                    <td>
-                                        <button class="btn btn-sm btn-info text-white"
-                                                @disabled(!Auth::user()->hasPermission('expenses-update')) wire:click="edit({{$expense}})">
-                                            <i class="bi bi-pen"></i></button>
-                                        /
-                                        <button class="btn btn-sm btn-danger"
-                                                @disabled(!Auth::user()->hasPermission('expenses-delete')) wire:click="delete({{$expense->id}})">
-                                            <i class="bi bi-trash"></i></button>
-                                    </td>
+                                    <th>#</th>
+                                    <th>البيان</th>
+                                    <th>المبلغ</th>
+                                    <th>التاريخ</th>
+                                    <th>التحكم</th>
                                 </tr>
-                            @endforeach
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody class="text-white">
+                                @foreach($expenses as $expense)
+                                    <tr>
+                                        <td>{{ $loop->index + 1 }}</td>
+                                        <td>{{ $expense->description }}</td>
+                                        <td>{{ number_format($expense->amount, 2) }}</td>
+                                        <td>{{ $expense->expense_date }}</td>
+                                        <td>
+                                            <button class="btn btn-sm btn-info text-white"
+                                                    @disabled(!Auth::user()->hasPermission('expenses-update')) wire:click="edit({{$expense}})">
+                                                <i class="bi bi-pen"></i></button>
+                                            /
+                                            <button class="btn btn-sm btn-danger"
+                                                    @disabled(!Auth::user()->hasPermission('expenses-delete')) wire:click="delete({{$expense->id}})">
+                                                <i class="bi bi-trash"></i></button>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                                </tbody>
+                            </table>
+                        </div>
                     @else
                         <div class="alert alert-danger text-center">لاتوجد مصروفات ....</div>
                     @endif

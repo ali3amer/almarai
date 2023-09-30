@@ -64,33 +64,35 @@
                     <input type="text" class="form-control w-50" placeholder="بحث ...." wire:model.live="userSearch">
                 </div>
                 <div class="card-body">
-                    <table class="table table-responsive text-center">
-                        <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>الإسم الكامل</th>
-                            <th>إسم المستخدم</th>
-                            <th>التحكم</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        @foreach($users as $user)
+                    <div class="scroll">
+                        <table class="table table-responsive text-center">
+                            <thead>
                             <tr>
-                                <td>{{$loop->index + 1}}</td>
-                                <td>{{$user->name}}</td>
-                                <td>{{$user->username}}</td>
-                                <td>
-                                    <button class="btn btn-sm btn-info text-white" wire:click="edit({{$user}})"><i
-                                            class="bi bi-pen"></i></button>
-                                    /
-                                    <button class="btn btn-sm btn-danger" wire:click="delete({{$user->id}})"><i
-                                            class="bi bi-trash"></i></button>
-                                </td>
+                                <th>#</th>
+                                <th>الإسم الكامل</th>
+                                <th>إسم المستخدم</th>
+                                <th>التحكم</th>
                             </tr>
-                        @endforeach
-                        </tbody>
+                            </thead>
+                            <tbody>
+                            @foreach($users as $user)
+                                <tr>
+                                    <td>{{$loop->index + 1}}</td>
+                                    <td>{{$user->name}}</td>
+                                    <td>{{$user->username}}</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-info text-white" wire:click="edit({{$user}})"><i
+                                                class="bi bi-pen"></i></button>
+                                        /
+                                        <button class="btn btn-sm btn-danger" wire:click="delete({{$user->id}})"><i
+                                                class="bi bi-trash"></i></button>
+                                    </td>
+                                </tr>
+                            @endforeach
+                            </tbody>
 
-                    </table>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
