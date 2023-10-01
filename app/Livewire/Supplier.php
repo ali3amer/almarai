@@ -37,7 +37,7 @@ class Supplier extends Component
 
         if ($this->validate()) {
             if ($this->id == 0) {
-                \App\Models\Supplier::create(['supplierName' => $this->supplierName, 'phone' => $this->phone, 'address' => $this->address, 'initialBalance' => $this->initialBalance]);
+                \App\Models\Supplier::create(['supplierName' => $this->supplierName, 'phone' => $this->phone, 'address' => $this->address, 'initialBalance' => $this->initialBalance, 'currentBalance' => $this->initialBalance]);
                 session()->flash('success', 'تمت الاضافه بنجاح');
             } else {
                 $supplier = \App\Models\Supplier::find($id);
@@ -45,6 +45,7 @@ class Supplier extends Component
                 $supplier->phone = $this->phone;
                 $supplier->address = $this->address;
                 $supplier->initialBalance = $this->initialBalance;
+                $supplier->currentBalance = $this->initialBalance;
                 $supplier->save();
                 session()->flash('success', 'تم التعديل بنجاح');
             }

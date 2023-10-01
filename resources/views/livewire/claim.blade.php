@@ -116,7 +116,14 @@
         <div class="col-4">
             <div class="card">
                 <div class="card-body">
-                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#supplierModal"><i class="bi bi-person"></i></button>
+                    <div class="row">
+                        <div class="col-2">
+                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#supplierModal"><i class="bi bi-person"></i></button>
+                        </div>
+                        <div class="col">
+                            <input readonly class="form-control text-center" type="text" value="{{$currentSupplier['supplierName'] ?? ''}}" placeholder="المورد ....">
+                        </div>
+                    </div>
                     <div class="card-title mt-2">
                         <div class="row">
                             <div class="col-3 align-self-center"><h5>الفواتير</h5></div>

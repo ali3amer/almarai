@@ -97,7 +97,7 @@ class Claim extends Component
                 'payment' => $this->payment,
                 'bank_id' => $this->payment == 'bank' ? $this->bank_id : null ,
                 'remainder' => $this->debtRemainder,
-                'current_balance' => $this->currentSupplier['currentBalance'],
+                'supplier_balance' => $this->currentSupplier['currentBalance'],
                 'due_date' => $this->due_date
             ]);
             \App\Models\Supplier::where($this->currentSupplier['id'])->decrement('currentBalance', $this->debtPaid);
@@ -124,7 +124,7 @@ class Claim extends Component
                 'payment' => $this->payment,
                 'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
                 'remainder' => $this->debtRemainder,
-                'current_balance' => $this->currentSupplier['currentBalance'],
+                'supplier_balance' => $this->currentSupplier['currentBalance'],
                 'due_date' => $this->due_date
             ]);
 

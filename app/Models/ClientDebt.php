@@ -5,19 +5,18 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Client extends Model
+class ClientDebt extends Model
 {
     use HasFactory;
     protected $guarded = [];
 
-    public function sales()
+    public function client()
     {
-        return $this->hasMany(Sale::class);
+        return $this->belongsTo(Client::class);
     }
 
-    public function debts()
+    public function details()
     {
-        return $this->hasMany(ClientDebt::class);
+        return $this->hasMany(DebtDetail::class);
     }
-
 }

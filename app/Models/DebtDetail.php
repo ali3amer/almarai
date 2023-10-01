@@ -1,0 +1,16 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class DebtDetail extends Model
+{
+    use HasFactory;
+    protected $guarded = [];
+
+    public function debt(){
+        return $this->belongsTo(ClientDebt::class);
+    }
+}

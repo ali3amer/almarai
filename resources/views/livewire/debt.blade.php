@@ -127,7 +127,10 @@
                             <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#clientModal"><i
                                     class="bi bi-person"></i></button>
                         </div>
-                        <div class="col">{{$currentClient[$buyer.'Name'] ?? ''}}</div>
+                        <div class="col">
+                            <input readonly class="form-control text-center" type="text"
+                                   value="{{$currentClient[$buyer.'Name'] ?? ''}}" placeholder="المورد ....">
+                        </div>
                     </div>
                     <div class="card-title mt-2">
                         <div class="row">
@@ -209,7 +212,8 @@
 
                             <div class="col-3">
                                 <label for="payment">البنك</label>
-                                <select @disabled($payment == 'cash') class="form-select text-center" wire:model.live="bank_id">
+                                <select @disabled($payment == 'cash') class="form-select text-center"
+                                        wire:model.live="bank_id">
                                     @foreach($banks as $bank)
                                         <option value="{{$bank->id}}">{{$bank->bankName}}</option>
                                     @endforeach
@@ -218,13 +222,15 @@
 
                             <div class="col-3">
                                 <label for="bank">رقم الايصال</label>
-                                <input @disabled($payment == 'cash') type="text" wire:model="bank" id="bank" class="form-control text-center"
+                                <input @disabled($payment == 'cash') type="text" wire:model="bank" id="bank"
+                                       class="form-control text-center"
                                        placeholder="رقم الايصال ....">
                             </div>
 
                             <div class="col-2 d-flex align-items-end">
-                                <button @disabled(empty($currentClient)) class="btn btn-{{$debtId == 0 ? 'primary' : 'success'}} w-100"
-                                        wire:click="payDebt()">{{$debtId == 0 ? 'دفــــع' : 'تعــــديل'}}</button>
+                                <button
+                                    @disabled(empty($currentClient)) class="btn btn-{{$debtId == 0 ? 'primary' : 'success'}} w-100"
+                                    wire:click="payDebt()">{{$debtId == 0 ? 'دفــــع' : 'تعــــديل'}}</button>
                             </div>
                         </div>
                     </div>
@@ -260,9 +266,11 @@
                                     <td>{{$debt['bank']}}</td>
                                     <td>
                                         <button class="btn btn-sm btn-info text-white"
-                                                wire:click="chooseDebt({{$debt['id']}})"><i class="bi bi-pen"></i></button>
+                                                wire:click="chooseDebt({{$debt['id']}})"><i class="bi bi-pen"></i>
+                                        </button>
                                         /
-                                        <button class="btn btn-sm btn-danger" wire:click="deleteDebt({{$debt['id']}})"><i
+                                        <button class="btn btn-sm btn-danger" wire:click="deleteDebt({{$debt['id']}})">
+                                            <i
                                                 class="bi bi-trash"></i></button>
                                     </td>
                                 </tr>

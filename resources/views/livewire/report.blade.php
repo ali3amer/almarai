@@ -197,7 +197,7 @@
                             @endforeach
                         </select>
 
-                        @if($store_id != 0)
+                        @if($store_id != 0 && ($reportType =='sales' || $reportType =='purchases'))
                             <label for="product">المنتج</label>
                             <input id="product" data-bs-toggle="modal" wire:model="currentProduct.productName" readonly
                                    placeholder="إسم المنتج ...." class="form-control" data-bs-target="#productModal">
@@ -208,16 +208,18 @@
 
             <div class="card mt-2">
                 <div class="card-body">
-                    @if($reportDuration == 'day')
-                        <label for="day">من</label>
-                        <input type="date" class="form-control" wire:model.live="day" id="day">
-                    @elseif($reportDuration == 'duration')
-                        <label for="from">من</label>
-                        <input type="date" class="form-control" wire:model.live="from" id="from">
-                        <label for="to">الى</label>
-                        <input type="date" class="form-control" wire:model.live="to" id="to">
+                    @if($reportType != 'inventory')
+                        @if($reportDuration == 'day')
+                            <label for="day">التاريخ</label>
+                            <input type="date" class="form-control" wire:model.live="day" id="day">
+                        @elseif($reportDuration == 'duration')
+                            <label for="from">من</label>
+                            <input type="date" class="form-control" wire:model.live="from" id="from">
+                            <label for="to">الى</label>
+                            <input type="date" class="form-control" wire:model.live="to" id="to">
+                        @endif
                     @endif
-                    <button class="btn btn-primary w-100 mt-2" wire:click="chooseReport()">جلب التقرير
+                    <button @disabled($reportType == 'purchases' && $reportDuration == $reportDurations[0]) @disabled($reportType == 'sales' && $reportDurations[0]) @disabled($reportType == 'supplier' && empty($currentSupplier))  @disabled($reportType == 'client' && empty($currentClient)) @disabled($reportDuration == 'day' && $day == '') @disabled($reportDuration == 'duration' && $from == '') @disabled($reportDuration == 'duration' && $to == '') class="btn btn-primary w-100 mt-2" wire:click="chooseReport()">جلب التقرير
                     </button>
                 </div>
             </div>
@@ -226,8 +228,8 @@
 
     @if($reportType == 'general')
         <div class="card mt-2">
-            <div class="card-body">
-                <table class="table text-center">
+            <div class="card-body" id="invoice">
+                <table id="printInvoice" class="text-center">
                     <thead>
                     <tr>
                         <th>البيان</th>
@@ -255,20 +257,28 @@
                         <td>التالف</td>
                         <td>{{number_format($damagedsSum, 2)}}</td>
                     </tr>
+                    <tr>
+                        <td>الديون</td>
+                        <td>{{number_format($debtsSum, 2)}}</td>
+                    </tr>
+                    <tr>
+                        <td>الامانات</td>
+                        <td>{{number_format($paysSum, 2)}}</td>
+                    </tr>
                     </tbody>
                     <tfoot>
                     <tr>
                         <th>الجمله</th>
-                        <th>{{ number_format($salesSum - $purchasesSum - $expensesSum - $employeesSum - $damagedsSum, 2) }}</th>
+                        <th>{{ number_format($salesSum - $purchasesSum - $expensesSum - $employeesSum - $damagedsSum - $debtsSum + $paysSum, 2) }}</th>
                     </tr>
                     </tfoot>
                 </table>
             </div>
         </div>
     @elseif($reportType == 'inventory' && !empty($products))
-        <div class="card mt-2">
+        <div class="card mt-2" id="invoice">
             <div class="card-body">
-                <table class="table text-center d-print-table">
+                <table  id="printInvoice" class="text-center">
                     <thead>
                     <tr>
                         <th>#</th>
@@ -300,9 +310,9 @@
         </div>
     @elseif($reportType == 'client' && !empty($saleDebts))
         <div class="card mt-2">
-            <div class="card-body">
-                <div class="card-title"><h5>{{$currentClient['clientName']}}</h5></div>
-                <table class="table text-center">
+            <div class="card-body" id="invoice">
+                <div class="card-title"><h5>المبيعات للعميل : {{$currentClient['clientName']}}</h5></div>
+                <table id="printInvoice" class="text-center">
                     <thead>
                     <tr>
                         <th>التاريخ</th>
@@ -327,12 +337,40 @@
                     </tbody>
                 </table>
             </div>
+
+            <div class="card-body" id="invoice">
+                <div class="card-title"><h5>المعاملات المالية للعميل : {{$currentClient['clientName']}}</h5></div>
+                <table id="printInvoice" class="text-center">
+                    <thead>
+                    <tr>
+                        <th>التاريخ</th>
+                        <th>البيان</th>
+                        <th>عليه</th>
+                        <th>له</th>
+                        <th>وسيلة الدفع</th>
+                        <th>الرصيد</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    @foreach($debts as $debt)
+                        <tr>
+                            <td>{{$debt->due_date}}</td>
+                            <td>{{ $debt->type == 'debt' ? 'تم إستلاف مبلغ' : 'تم إيداع مبلغ' }}</td>
+                            <td>{{$debt->type == 'debt' ? number_format($debt->debt_amount, 2) : 0}}</td>
+                            <td>{{$debt->type == 'pay' ? number_format($debt->debt_amount, 2) : 0}}</td>
+                            <td>{{$debt->payment}}</td>
+                            <td>{{number_format($debt->client_balance, 2)}}</td>
+                        </tr>
+                    @endforeach
+                    </tbody>
+                </table>
+            </div>
         </div>
     @elseif($reportType == 'supplier'  && !empty($purchaseDebts))
-        <div class="card mt-2">
+        <div class="card mt-2" id="invoice">
             <div class="card-body">
                 <div class="card-title"><h5>{{$currentSupplier['supplierName']}}</h5></div>
-                <table class="table text-center">
+                <table  id="printInvoice" class="text-center">
                     <thead>
                     <tr>
                         <th>التاريخ</th>
@@ -361,7 +399,7 @@
     @elseif($reportType == 'safe')
 
     @elseif($reportType == 'sales' && !empty($sales))
-        <div class="card mt-2">
+        <div class="card mt-2" id="invoice">
             <div class="card-body">
                 <div class="card-title">
                    <div class="row">
@@ -373,7 +411,7 @@
                        </div>
                    </div>
                 </div>
-                <table class="table text-center demo">
+                <table  id="printInvoice" class="text-center">
                     <thead>
                     <tr>
                         <th>رقم الفاتوره</th>
@@ -412,10 +450,10 @@
             </div>
         </div>
     @elseif($reportType == 'purchases' && !empty($purchases))
-        <div class="card mt-2">
+        <div class="card mt-2" id="invoice">
             <div class="card-body">
                 <div class="card-title"><h5>المشتريات</h5></div>
-                <table class="table text-center printThis">
+                <table  id="printInvoice" class="text-center">
                     <thead>
                     <tr>
                         <th>رقم الفاتوره</th>
