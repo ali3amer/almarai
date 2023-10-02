@@ -219,7 +219,7 @@
                             <input type="date" class="form-control" wire:model.live="to" id="to">
                         @endif
                     @endif
-                    <button @disabled($reportType == 'purchases' && $reportDuration == $reportDurations[0]) @disabled($reportType == 'sales' && $reportDurations[0]) @disabled($reportType == 'supplier' && empty($currentSupplier))  @disabled($reportType == 'client' && empty($currentClient)) @disabled($reportDuration == 'day' && $day == '') @disabled($reportDuration == 'duration' && $from == '') @disabled($reportDuration == 'duration' && $to == '') class="btn btn-primary w-100 mt-2" wire:click="chooseReport()">جلب التقرير
+                    <button @disabled($reportType == 'purchases' && $reportDuration == $reportDurations[0]) @disabled($reportType == 'sales' && $reportDuration == $reportDurations[0]) @disabled($reportType == 'supplier' && empty($currentSupplier))  @disabled($reportType == 'client' && empty($currentClient)) @disabled($reportDuration == 'day' && $day == '') @disabled($reportDuration == 'duration' && $from == '') @disabled($reportDuration == 'duration' && $to == '') class="btn btn-primary w-100 mt-2" wire:click="chooseReport()">جلب التقرير
                     </button>
                 </div>
             </div>
@@ -369,7 +369,7 @@
     @elseif($reportType == 'supplier'  && !empty($purchaseDebts))
         <div class="card mt-2" id="invoice">
             <div class="card-body">
-                <div class="card-title"><h5>{{$currentSupplier['supplierName']}}</h5></div>
+                <div class="card-title"><h5>المشتريات التي تمت من المورد : {{$currentSupplier['supplierName']}}</h5></div>
                 <table  id="printInvoice" class="text-center">
                     <thead>
                     <tr>
@@ -385,7 +385,7 @@
                     @foreach($purchaseDebts as $debt)
                         <tr>
                             <td>{{$debt->due_date}}</td>
-                            <td>{{$debt->sale_id}}</td>
+                            <td>{{$debt->purchase_id}}</td>
                             <td>{{ $debt->paid == 0 ? 'تم الشراء بالآجل' : 'تم لإستلام مبلغ' }}</td>
                             <td>{{number_format($debt->remainder, 2)}}</td>
                             <td>{{number_format(floatval($debt->paid), 2)}}</td>
@@ -395,6 +395,37 @@
                     </tbody>
                 </table>
             </div>
+        </div>
+
+        <div class="card mt-2">
+            <div class="card-body" id="invoice">
+                <div class="card-title"><h5>المبيعات التي تمت للمورد : {{$currentSupplier['supplierName']}}</h5></div>
+                <table id="printInvoice" class="text-center">
+                    <thead>
+                    <tr>
+                        <th>التاريخ</th>
+                        <th>رقم الفاتوره</th>
+                        <th>البيان</th>
+                        <th>عليه</th>
+                        <th>له</th>
+                        <th>الرصيد</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    @foreach($saleDebts as $debt)
+                        <tr>
+                            <td>{{$debt->due_date}}</td>
+                            <td>{{$debt->sale_id}}</td>
+                            <td>{{ $debt->paid == 0 ? 'تم الشراء بالآجل' : 'تم لإستلام مبلغ' }}</td>
+                            <td>{{number_format($debt->remainder, 2)}}</td>
+                            <td>{{number_format($debt->paid, 2)}}</td>
+                            <td>{{number_format($debt->client_balance, 2)}}</td>
+                        </tr>
+                    @endforeach
+                    </tbody>
+                </table>
+            </div>
+
         </div>
     @elseif($reportType == 'safe')
 
@@ -427,7 +458,14 @@
                     @foreach($sales as $sale)
                         <tr>
                             <td>{{$sale->sale_id}}</td>
-                            <td>{{$sale->sale->client->clientName}}</td>
+                            @if(!empty($sale->sale->client))
+                                <td>{{$sale->sale->client->clientName}}</td>
+                            @elseif(!empty($sale->sale->employee))
+                            <td>الموظف : {{$sale->sale->employee->employeeName}}</td>
+                            @elseif(!empty($sale->sale->supplier))
+                                <td>المورد : {{$sale->sale->supplier->supplierName}}</td>
+                            @endif
+
                             <td>{{ $sale->product->productName }}</td>
                             <td>{{number_format($sale->price, 2)}}</td>
                             <td>{{$sale->quantity}}</td>

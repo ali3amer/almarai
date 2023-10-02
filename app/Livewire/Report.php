@@ -145,8 +145,11 @@ class Report extends Component
         } elseif ($this->reportType == 'supplier') {   // supplier
             if ($this->reportDuration == 'day') {
                 $this->purchaseDebts = PurchaseDebt::join('purchases', 'purchases.id', '=', 'purchase_debts.purchase_id')->where('purchases.supplier_id', $this->currentSupplier['id'])->where('purchase_debts.due_date', $this->day)->get();
+                $this->saleDebts = SaleDebt::join('sales', 'sales.id', '=', 'sale_debts.sale_id')->where('sales.supplier_id', $this->currentSupplier['id'])->where('sale_debts.due_date', $this->day)->get();
             } elseif ($this->reportDuration == 'duration') {
                 $this->purchaseDebts = PurchaseDebt::join('purchases', 'purchases.id', '=', 'purchase_debts.purchase_id')->where('purchases.supplier_id', $this->currentSupplier['id'])->whereBetween('sale_debts.due_date', [$this->from, $this->to])->get();
+                $this->saleDebts = SaleDebt::join('sales', 'sales.id', '=', 'sale_debts.sale_id')->where('sales.supplier_id', $this->currentSupplier['id'])->whereBetween('sale_debts.due_date', [$this->from, $this->to])->get();
+
             }
         } elseif ($this->reportType == 'safe') {   // safe
             if ($this->reportDuration == 'day') {
@@ -159,7 +162,7 @@ class Report extends Component
                         ->join('products', 'products.id', '=', 'sale_details.product_id')
                         ->join('stores', 'stores.id', '=', 'products.store_id')
                         ->select('sale_details.*', 'sales.sale_date')
-                        ->with('product', 'sale.client')
+                        ->with('product', 'sale.client', 'sale.employee', 'sale.supplier')
                         ->where('sales.sale_date', $this->day)->where('products.store_id', $this->store_id)
                         ->get();
                 } elseif (!empty($this->currentProduct)) {
@@ -167,7 +170,7 @@ class Report extends Component
                         ->join('products', 'products.id', '=', 'sale_details.product_id')
                         ->join('stores', 'stores.id', '=', 'products.store_id')
                         ->select('sale_details.*', 'sales.sale_date')
-                        ->with('product', 'sale.client')
+                        ->with('product', 'sale.client', 'sale.employee', 'sale.supplier')
                         ->where('sales.sale_date', $this->day)->where('products.id', $this->currentProduct['id'])
                         ->get();
                 } else {

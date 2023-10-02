@@ -67,7 +67,7 @@ class Sale extends Component
             if ($this->buyer == 'client') {
                 $this->currentClient['currentBalance'] += $this->total_amount;
             } elseif ($this->buyer == 'employee') {
-                $this->currentClient['currentBalance'] = $this->currentClient['id'];
+                $this->currentClient['currentBalance'] = 0;
             } elseif ($this->buyer == 'supplier') {
                 $this->currentClient['currentBalance'] -= $this->total_amount;
             }

@@ -231,39 +231,41 @@
                 </div>
                 <div class="card">
                     <div class="card-body">
-                       <div class="scroll">
-                           <table class="table text-center">
-                               <thead>
-                               <tr>
-                                   <th>#</th>
-                                   <th>التاريخ</th>
-                                   <th>المبلغ</th>
-                                   <th>ملاحظات</th>
-                                   <th>التحكم</th>
-                               </tr>
-                               </thead>
-                               <tbody>
-                               @if(!empty($gifts))
-                                   @foreach($gifts as $gift)
-                                       <tr>
-                                           <td>{{$loop->index + 1}}</td>
-                                           <td>{{$gift->gift_date}}</td>
-                                           <td>{{number_format($gift->gift_amount, 2)}}</td>
-                                           <td>{{$gift->note}}</td>
-                                           <td>
-                                               <button class="btn btn-sm btn-info text-white"
-                                                       wire:click="editGift({{$gift}})"><i class="bi bi-pen"></i></button>
-                                               /
-                                               <button class="btn btn-sm btn-danger"
-                                                       wire:click="deleteGift({{$gift->id}})"><i class="bi bi-trash"></i>
-                                               </button>
-                                           </td>
-                                       </tr>
-                                   @endforeach
-                               @endif
-                               </tbody>
-                           </table>
-                       </div>
+                        <div class="scroll">
+                            <table class="table text-center">
+                                <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>التاريخ</th>
+                                    <th>المبلغ</th>
+                                    <th>ملاحظات</th>
+                                    <th>التحكم</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                @if(!empty($gifts))
+                                    @foreach($gifts as $gift)
+                                        <tr>
+                                            <td>{{$loop->index + 1}}</td>
+                                            <td>{{$gift->gift_date}}</td>
+                                            <td>{{number_format($gift->gift_amount, 2)}}</td>
+                                            <td>{{$gift->note}}</td>
+                                            <td>
+                                                <button class="btn btn-sm btn-info text-white"
+                                                        wire:click="editGift({{$gift}})"><i class="bi bi-pen"></i>
+                                                </button>
+                                                /
+                                                <button class="btn btn-sm btn-danger"
+                                                        wire:click="deleteGift({{$gift->id}})"><i
+                                                        class="bi bi-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                @endif
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -298,18 +300,21 @@
                                 <tbody>
                                 @if($editGiftMode)
                                     @foreach($sales as $sale)
-                                        @if(key_exists($sale->id, $oldDebts))
+                                        @if(key_exists($sale->id, $oldDebts) && $sale->saleDebts->count() > 1)
                                             <tr class="border-success">
                                                 <td>{{$sale->id}}</td>
                                                 <td>{{$sale->sale_date}}</td>
                                                 <td>{{ $sale->saleDebts->last()->paid}}</td>
                                                 <td>
-                                                    <button class="btn btn-sm btn-success" wire:click="addDebt({{$sale}})">
+                                                    <button class="btn btn-sm btn-success"
+                                                            wire:click="addDebt({{$sale}})">
                                                         <i
                                                             class="bi bi-plus"></i></button>
                                                     /
-                                                    <button class="btn btn-sm btn-warning text-white" data-bs-toggle="modal"
-                                                            data-bs-target="#saleModal" wire:click="showSale({{$sale}})"><i
+                                                    <button class="btn btn-sm btn-warning text-white"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#saleModal"
+                                                            wire:click="showSale({{$sale}})"><i
                                                             class="bi bi-eye"></i></button>
                                                 </td>
                                             </tr>
@@ -317,21 +322,19 @@
                                     @endforeach
                                 @endif
                                 @foreach($sales as $sale)
-                                    @if($sale->saleDebts->last()->remainder != 0)
-                                        <tr>
-                                            <td>{{$sale->id}}</td>
-                                            <td>{{$sale->sale_date}}</td>
-                                            <td>{{ $sale->saleDebts->last()->remainder}}</td>
-                                            <td>
-                                                <button class="btn btn-sm btn-primary" wire:click="addDebt({{$sale}})"><i
-                                                        class="bi bi-plus"></i></button>
-                                                /
-                                                <button class="btn btn-sm btn-warning text-white" data-bs-toggle="modal"
-                                                        data-bs-target="#saleModal" wire:click="showSale({{$sale}})"><i
-                                                        class="bi bi-eye"></i></button>
-                                            </td>
-                                        </tr>
-                                    @endif
+                                    <tr>
+                                        <td>{{$sale->id}}</td>
+                                        <td>{{$sale->sale_date}}</td>
+                                        <td>{{ $sale->saleDebts->last()->remainder}}</td>
+                                        <td>
+                                            <button class="btn btn-sm btn-primary" wire:click="addDebt({{$sale}})"><i
+                                                    class="bi bi-plus"></i></button>
+                                            /
+                                            <button class="btn btn-sm btn-warning text-white" data-bs-toggle="modal"
+                                                    data-bs-target="#saleModal" wire:click="showSale({{$sale}})"><i
+                                                    class="bi bi-eye"></i></button>
+                                        </td>
+                                    </tr>
                                 @endforeach
                                 </tbody>
                             </table>

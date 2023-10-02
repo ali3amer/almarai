@@ -235,14 +235,14 @@
                                                             @foreach($sale->saleDetails as $detail)
                                                                 <tr>
                                                                     <td>{{$detail->product->productName}}</td>
-                                                                    <td>{{$detail->price}}</td>
+                                                                    <td>{{number_format($detail->price, 2)}}</td>
                                                                     <td>{{$detail->quantity}}</td>
-                                                                    <td>{{$detail->price*$detail->quantity}}</td>
+                                                                    <td>{{number_format($detail->price*$detail->quantity, 2)}}</td>
                                                                 </tr>
                                                             @endforeach
                                                             <tr>
                                                                 <td>الجمله:</td>
-                                                                <td>{{$sale->total_amount}}</td>
+                                                                <td>{{number_format($sale->total_amount, 2)}}</td>
                                                             </tr>
                                                             </tbody>
                                                         </table>

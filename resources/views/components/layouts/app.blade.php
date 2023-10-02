@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     @livewireStyles
-    <title>{{ $title ?? 'Page Title' }}</title>
+    <title>نظام إدارة كاشير</title>
 
     @vite(['resources/sass/app.scss', 'resources/js/app.js'])
     <link rel="stylesheet" href="{{ asset('css/table.css') }}"/>

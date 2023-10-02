@@ -15,6 +15,16 @@ class Sale extends Model
         return $this->belongsTo(Client::class);
     }
 
+    public function employee()
+    {
+        return $this->belongsTo(Employee::class);
+    }
+
+    public function supplier()
+    {
+        return $this->belongsTo(Supplier::class);
+    }
+
     public function saleDetails()
     {
         return $this->hasMany(SaleDetail::class);

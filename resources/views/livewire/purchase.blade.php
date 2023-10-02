@@ -301,14 +301,14 @@
                                                             @foreach($purchase->purchaseDetails as $detail)
                                                                 <tr>
                                                                     <td>{{$detail->product->productName}}</td>
-                                                                    <td>{{$detail->price}}</td>
+                                                                    <td>{{number_format($detail->price, 2)}}</td>
                                                                     <td>{{$detail->quantity}}</td>
-                                                                    <td>{{$detail->price*$detail->quantity}}</td>
+                                                                    <td>{{number_format($detail->price*$detail->quantity, 2)}}</td>
                                                                 </tr>
                                                             @endforeach
                                                             <tr>
                                                                 <td>الجمله:</td>
-                                                                <td>{{$purchase->total_amount}}</td>
+                                                                <td>{{number_format($purchase->total_amount, 2)}}</td>
                                                             </tr>
                                                             <tr>
                                                                 <td>المدفوع:</td>

@@ -42,41 +42,41 @@ class DatabaseSeeder extends Seeder
 
         $user->addRole('super_admin');
 
-//        for ($i = 1; $i <= 2; $i++) {
-//            Category::create(['categoryName' => 'category_' . $i]);
-//
-//            Store::create(['storeName' => 'store_' . $i]);
-//
-//            Employee::create([
-//                'employeeName' => 'Employee_'.$i,
-//                'salary' => '200000'
-//            ]);
-//            Client::create([
-//                'clientName' => 'client_' . $i,
-//                'phone' => '0100200300',
-//                'initialBalance' => 1000,
-//                'currentBalance' => 1000,
-//            ]);
-//
-//            Supplier::create([
-//                'supplierName' => 'supplier_' . $i,
-//                'address' => '11111',
-//                'phone' => '0100200300',
-//                'initialBalance' => 1000,
-//                'currentBalance' => 1000,
-//            ]);
-//        }
-//
-//        for ($i = 1; $i <= 10; $i++) {
-//            Product::create([
-//                'productName' => 'product_' . $i,
-//                'category_id' => 1,
-//                'store_id' => 1,
-//                'purchase_price' => 1000,
-//                'sale_price' => 2000,
-//                'stock' => 100,
-//            ]);
-//        }
+        for ($i = 1; $i <= 2; $i++) {
+            Category::create(['categoryName' => 'category_' . $i]);
+
+            Store::create(['storeName' => 'store_' . $i]);
+
+            Employee::create([
+                'employeeName' => 'Employee_'.$i,
+                'salary' => '200000'
+            ]);
+            Client::create([
+                'clientName' => 'client_' . $i,
+                'phone' => '0100200300',
+                'initialBalance' => 1000,
+                'currentBalance' => 1000,
+            ]);
+
+            Supplier::create([
+                'supplierName' => 'supplier_' . $i,
+                'address' => '11111',
+                'phone' => '0100200300',
+                'initialBalance' => 1000,
+                'currentBalance' => 1000,
+            ]);
+        }
+
+        for ($i = 1; $i <= 10; $i++) {
+            Product::create([
+                'productName' => 'product_' . $i,
+                'category_id' => 1,
+                'store_id' => 1,
+                'purchase_price' => 1000,
+                'sale_price' => 2000,
+                'stock' => 100,
+            ]);
+        }
 
         Safe::create([
             'initialBalance' => 0,

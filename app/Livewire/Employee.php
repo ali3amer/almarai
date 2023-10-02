@@ -87,8 +87,8 @@ class Employee extends Component
 
     public function getSales()
     {
-        $this->sales = \App\Models\Sale::where('employee_id', $this->currentEmployee['id'])->get()->keyBy('id');
-                $this->total_sum_paid = 0;
+        $this->sales = \App\Models\Sale::where('employee_id', $this->currentEmployee['id'])->orderBy('id', 'desc')->get()->keyBy('id');
+        $this->total_sum_paid = 0;
         foreach ($this->sales as $sale) {
             $this->total_sum_paid += floatval($sale->saleDebts->last()->remainder);
         }
@@ -96,7 +96,13 @@ class Employee extends Component
 
     public function addDebt($sale)
     {
-        $remainder = $this->editGiftMode ? 'paid' : 'remainder';
+        $remainder = 'remainder';
+        if (end($sale['sale_debts'])[$remainder] != 0 && !key_exists($sale['id'], $this->debts) && $this->gift_amount > end($sale['sale_debts'])[$remainder]) {
+            $this->debts[$sale['id']] = end($sale['sale_debts'])[$remainder];
+            $this->gift_amount -= end($sale['sale_debts'])[$remainder];
+            $this->calcDebts();
+        }
+        $remainder = 'paid';
         if (end($sale['sale_debts'])[$remainder] != 0 && !key_exists($sale['id'], $this->debts) && $this->gift_amount > end($sale['sale_debts'])[$remainder]) {
             $this->debts[$sale['id']] = end($sale['sale_debts'])[$remainder];
             $this->gift_amount -= end($sale['sale_debts'])[$remainder];
@@ -145,8 +151,10 @@ class Employee extends Component
                     'bank' => '',
                     'payment' => 'cash',
                     'remainder' => 0,
-                    'client_balance' => $gift['id'],
-                    'due_date' => $this->gift_date
+                    'client_balance' => 0,
+                    'gift_id' => $gift['id'],
+                    'due_date' => $this->gift_date,
+                    'user_id' => auth()->id()
                 ]);
             }
         }
@@ -158,6 +166,8 @@ class Employee extends Component
         }
 
         $this->getGifts($this->currentEmployee);
+        $this->reset('currentGift', 'editGiftMode', 'gift_amount', 'note', 'debts', 'oldDebts');
+
         session()->flash('success', 'تم الدفع بنجاح');
 
     }
@@ -170,10 +180,12 @@ class Employee extends Component
         $this->gift_amount = $this->currentGift['gift_amount'];
         $this->note = $this->currentGift['note'];
 
-        $saleDebts = SaleDebt::where('client_balance', $this->currentGift['id'])->get();
+        $saleDebts = SaleDebt::where('gift_id', $this->currentGift['id'])->get();
         $this->debts = [];
         foreach ($saleDebts as $debt) {
-            $this->debts[$debt['sale_id']] = $debt['paid'];
+            if ($debt->paid != 0) {
+                $this->debts[$debt['sale_id']] = $debt['paid'];
+            }
         }
         $this->oldDebts = [];
         $this->oldDebts = $this->debts;
@@ -208,8 +220,10 @@ class Employee extends Component
                     'bank' => '',
                     'payment' => 'cash',
                     'remainder' => 0,
-                    'client_balance' => $gift['id'],
-                    'due_date' => $this->gift_date
+                    'client_balance' => 0,
+                    'gift_id' => $gift['id'],
+                    'due_date' => $this->gift_date,
+                    'user_id' => auth()->id()
                 ]);
             }
         }
@@ -242,7 +256,7 @@ class Employee extends Component
 
     public function resetData()
     {
-        $this->reset('id', 'employeeName', 'id', 'salary', 'editMode', 'currentEmployee', 'debts', 'total_debts','total_sum_paid');
+        $this->reset('id', 'employeeName', 'id', 'salary', 'editMode', 'currentEmployee', 'debts', 'oldDebts', 'total_debts', 'total_sum_paid');
     }
 
     public function render()

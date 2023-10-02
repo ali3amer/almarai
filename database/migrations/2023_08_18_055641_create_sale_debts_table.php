@@ -23,6 +23,8 @@ return new class extends Migration
             $table->decimal('paid', 8, 2);
             $table->decimal('client_balance', 8, 2)->nullable();
             $table->date('due_date');
+            $table->unsignedBigInteger('gift_id')->nullable();
+            $table->foreign('gift_id')->references('id')->on('employee_gifts');
             $table->unsignedBigInteger('user_id')->nullable();
             $table->foreign('user_id')->references('id')->on('users');
             $table->timestamps();
