@@ -147,7 +147,7 @@
             data-bs-toggle="offcanvas" data-bs-target="#offcanvasScrolling" aria-controls="offcanvasScrolling"><i
             class="bi bi-gear"></i></button>
 
-    <button class="d-print-none btn btn-secondary position-fixed z-3" @click="window.print()" id="print"
+    <button class="d-print-none btn btn-secondary position-fixed z-3" id="print"
             style="bottom: 10px; right: 60px; border-radius: 50%"
             type="button"><i
             class="bi bi-printer"></i></button>
@@ -228,8 +228,8 @@
 
     @if($reportType == 'general')
         <div class="card mt-2">
-            <div class="card-body" id="invoice">
-                <table id="printInvoice" class="text-center">
+            <div class="card-body invoice">
+                <table class="text-center printInvoice" dir="rtl">
                     <thead>
                     <tr>
                         <th>البيان</th>
@@ -276,9 +276,9 @@
             </div>
         </div>
     @elseif($reportType == 'inventory' && !empty($products))
-        <div class="card mt-2" id="invoice">
-            <div class="card-body">
-                <table  id="printInvoice" class="text-center">
+        <div class="card mt-2">
+            <div class="card-body invoice">
+                <table class="text-center printInvoice">
                     <thead>
                     <tr>
                         <th>#</th>
@@ -310,9 +310,9 @@
         </div>
     @elseif($reportType == 'client' && !empty($saleDebts))
         <div class="card mt-2">
-            <div class="card-body" id="invoice">
+            <div class="card-body invoice" dir="rtl">
                 <div class="card-title"><h5>المبيعات للعميل : {{$currentClient['clientName']}}</h5></div>
-                <table id="printInvoice" class="text-center">
+                <table class="text-center printInvoice">
                     <thead>
                     <tr>
                         <th>التاريخ</th>
@@ -338,9 +338,9 @@
                 </table>
             </div>
 
-            <div class="card-body" id="invoice">
+            <div class="card-body invoice" dir="rtl">
                 <div class="card-title"><h5>المعاملات المالية للعميل : {{$currentClient['clientName']}}</h5></div>
-                <table id="printInvoice" class="text-center">
+                <table class="text-center printInvoice">
                     <thead>
                     <tr>
                         <th>التاريخ</th>
@@ -367,10 +367,10 @@
             </div>
         </div>
     @elseif($reportType == 'supplier'  && !empty($purchaseDebts))
-        <div class="card mt-2" id="invoice">
-            <div class="card-body">
+        <div class="card mt-2">
+            <div class="card-body invoice" dir="rtl">
                 <div class="card-title"><h5>المشتريات التي تمت من المورد : {{$currentSupplier['supplierName']}}</h5></div>
-                <table  id="printInvoice" class="text-center">
+                <table  class="text-center printInvoice">
                     <thead>
                     <tr>
                         <th>التاريخ</th>
@@ -398,9 +398,9 @@
         </div>
 
         <div class="card mt-2">
-            <div class="card-body" id="invoice">
+            <div class="card-body invoice" dir="rtl">
                 <div class="card-title"><h5>المبيعات التي تمت للمورد : {{$currentSupplier['supplierName']}}</h5></div>
-                <table id="printInvoice" class="text-center">
+                <table class="text-center printInvoice">
                     <thead>
                     <tr>
                         <th>التاريخ</th>
@@ -430,15 +430,15 @@
     @elseif($reportType == 'safe')
 
     @elseif($reportType == 'sales' && !empty($sales))
-        <div class="card mt-2" id="invoice">
-            <div class="card-body">
+        <div class="card mt-2">
+            <div class="card-body invoice" dir="rtl">
                 <div class="card-title">
                    <div class="row">
                        <div class="col-3">
                            <h5>المبيعات</h5>
                        </div>
                        <div class="col-3">
-                           <input type="text" wire:model.live="percent" placeholder="نسبة الربح" class="form-control text-center">
+                           <input type="text" wire:model.live="percent" placeholder="نسبة الربح" class="form-control text-center d-print-none" >
                        </div>
                    </div>
                 </div>
@@ -488,10 +488,10 @@
             </div>
         </div>
     @elseif($reportType == 'purchases' && !empty($purchases))
-        <div class="card mt-2" id="invoice">
-            <div class="card-body">
+        <div class="card mt-2">
+            <div class="card-body invoice" dir="rtl">
                 <div class="card-title"><h5>المشتريات</h5></div>
-                <table  id="printInvoice" class="text-center">
+                <table   class="text-center printInvoice">
                     <thead>
                     <tr>
                         <th>رقم الفاتوره</th>

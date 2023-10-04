@@ -30,6 +30,7 @@ class Purchase extends Component
     public string $supplierSearch = '';
 
     public float $total_amount = 0;
+    public float $currentBalance = 0;
     public $paid = 0;
     public string $payment = 'cash';
     public string $bank = '';
@@ -50,6 +51,8 @@ class Purchase extends Component
     public function mount()
     {
         $this->currentSupplier = \App\Models\Supplier::find(1)->toArray();
+        $this->banks = Bank::all();
+        $this->currentBalance = $this->currentSupplier['currentBalance'];
     }
 
     public function save()
@@ -198,6 +201,7 @@ class Purchase extends Component
     {
         $this->currentSupplier = [];
         $this->currentSupplier = $supplier;
+        $this->currentBalance = $this->currentSupplier['currentBalance'];
     }
 
     public function chooseProduct($product)
@@ -221,6 +225,7 @@ class Purchase extends Component
         $this->cart[$this->currentProduct['id']]['amount'] = floatval($this->currentProduct['purchase_price']) * floatval($this->currentProduct['quantity']);
         $this->total_amount += $this->cart[$this->currentProduct['id']]['amount'];
         $this->currentProduct = [];
+        $this->calcRemainder();
     }
 
     public function deleteFromCart($id)
@@ -230,6 +235,7 @@ class Purchase extends Component
         unset($this->cart[$id]);
         if (empty($this->cart)) {
             $this->remainder = 0;
+            $this->currentBalance -= $this->remainder;
             $this->paid = 0;
         }
     }
@@ -266,7 +272,9 @@ class Purchase extends Component
 
     public function calcRemainder()
     {
+        $this->currentBalance -= $this->remainder;
         $this->remainder = $this->total_amount - floatval($this->paid);
+        $this->currentBalance += $this->remainder;
     }
 
     public function resetData($item = null)
@@ -287,7 +295,6 @@ class Purchase extends Component
         if ($this->purchase_date == '') {
             $this->purchase_date = date('Y-m-d');
         }
-        $this->banks = Bank::all();
         $this->suppliers = \App\Models\Supplier::where('supplierName', 'LIKE', '%' . $this->supplierSearch . '%')->get();
         $this->products = \App\Models\Product::where('productName', 'LIKE', '%' . $this->productSearch . '%')->get();
         return view('livewire.purchase');

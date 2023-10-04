@@ -40,6 +40,7 @@ class Sale extends Component
     public array $cart = [];
     public string $saleSearch = '';
     public float $remainder = 0;
+    public float $currentBalance = 0;
     public bool $editMode = false;
     public array $currentSaleDebts = [];
     public array $currentSale = [];
@@ -49,6 +50,7 @@ class Sale extends Component
     public function mount()
     {
         $this->currentClient = \App\Models\Client::find(1)->toArray();
+        $this->currentBalance = $this->currentClient['currentBalance'];
         $this->banks = Bank::all();
     }
 
@@ -216,6 +218,7 @@ class Sale extends Component
     {
         $this->currentClient = [];
         $this->currentClient = $client;
+        $this->currentBalance = $this->currentClient['currentBalance'];
     }
 
     public function chooseProduct($product)
@@ -228,7 +231,6 @@ class Sale extends Component
 
     public function calcCurrentProduct()
     {
-
         $this->currentProduct['amount'] = floatval($this->currentProduct['sale_price']) * floatval($this->currentProduct['quantity']);
     }
 
@@ -240,6 +242,7 @@ class Sale extends Component
         $this->total_amount += $this->cart[$this->currentProduct['id']]['amount'];
         $this->paid = $this->total_amount;
         $this->currentProduct = [];
+        $this->calcRemainder();
     }
 
     public function deleteFromCart($id)
@@ -251,6 +254,7 @@ class Sale extends Component
         unset($this->cart[$id]);
         if (empty($this->cart)) {
             $this->remainder = 0;
+            $this->currentBalance -= $this->remainder;
             $this->paid = 0;
         }
     }
@@ -287,7 +291,9 @@ class Sale extends Component
 
     public function calcRemainder()
     {
+        $this->currentBalance -= $this->remainder;
         $this->remainder = $this->total_amount - floatval($this->paid);
+        $this->currentBalance += $this->remainder;
     }
 
     public function resetData($item = null)

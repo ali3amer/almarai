@@ -29,28 +29,62 @@ margin-left: 0;
     max-height: 400px;
     overflow-y: scroll;
 }
-#printInvoice  {
+.invoice .printInvoice  {
     width: 100%;
     border-collapse: collapse;
 }
 
-#invoice #printInvoice th, #invoice #printInvoice td {
+.invoice .printInvoice th, .invoice .printInvoice td {
     border: 1px solid black;
     padding: 5px;
 }
 
-#invoice #printInvoice th {
+.invoice .printInvoice th {
     background-color: #333 !important;
     color: white !important;
 }
 
-#invoice #printInvoice tfoot {
+.invoice .printInvoice tfoot {
     font-weight: bold;
 }
 
 @media print {
-    #invoice #printInvoice th {
+    body {
+        background-color: #fff !important;
+    }
+    .card .card-body {
+        direction: rtl !important;
+        background-color: white;
+    }
+
+    .invoice {
+        background-color: #FFF;
+        break-after: page;
+    }
+
+    .card .card-body .invoice .printInvoice thead th {
         background-color: #333 !important;
         color: white !important;
+    }
+    .card .card-body .invoice .printInvoice  {
+        border-collapse: collapse;
+        border: solid 1px #333;
+    }
+    table {
+        direction: rtl !important;
+    }
+
+    .invoice .printInvoice th, .invoice .printInvoice td {
+        border: 1px solid black;
+        padding: 5px;
+    }
+
+    .invoice .printInvoice th {
+        background-color: #333 !important;
+        color: white !important;
+    }
+
+    .invoice .printInvoice tfoot {
+        font-weight: bold;
     }
 }

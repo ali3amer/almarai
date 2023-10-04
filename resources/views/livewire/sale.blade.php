@@ -1,16 +1,16 @@
-<div wire:keydown.escape="resetData('currentClient')">
+<div wire:keydown.escape.window="resetData()">
     <x-title :$title/>
 
     <!-- Print Invoice Modal -->
     <div wire:ignore.self class="modal fade" id="printModal" tabindex="-1" aria-labelledby="exampleModalLabel"
          aria-hidden="true">
-        <div class="modal-dialog modal-fullscreen">
+        <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header d-print-none">
                     <button type="button" class="btn-close" data-bs-dismiss="modal"
                             aria-label="Close"></button>
                     <h1 class="modal-title fs-5" id="exampleModalLabel">
-                        <button class="btn btn-primary" @click="window.print()"><i class="bi bi-printer"></i>
+                        <button class="btn btn-primary" id="print"><i class="bi bi-printer"></i>
                         </button>
                     </h1>
                 </div>
@@ -173,6 +173,8 @@
                                     <tr>
                                         <td>الجمله</td>
                                         <td>{{number_format($total_amount, 2)}}</td>
+                                        <td>الرصيد الحالي</td>
+                                        <td>{{number_format($currentBalance, 2)}}</td>
                                     </tr>
                                     <tr>
                                         <td>المدفوع</td>

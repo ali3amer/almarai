@@ -1,9 +1,9 @@
-<div id="invoice" class="d-print-block">
+<div class="invoice" dir="rtl">
 
     <h6>فاتوره رقم {{$invoice['id'] ?? ''}}</h6>
     <h6>إسم العميل : {{$invoice['client'] ?? ''}}</h6>
     <h6>التاريخ : {{$invoice['sale_date'] ?? ''}}</h6>
-    <table id="printInvoice">
+    <table class="printInvoice text-center">
         <thead>
         <tr>
             <th>#</th>
@@ -30,7 +30,7 @@
         <tfoot>
         <tr>
             <td colspan="4">المجموع الكلي</td>
-            <td>{{$invoice['total_amount'] ?? ''}}</td>
+            <td>{{isset($invoice['total_amount']) ? number_format($invoice['total_amount'], 2) : ''}}</td>
         </tr>
         </tfoot>
     </table>

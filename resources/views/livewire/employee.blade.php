@@ -76,7 +76,7 @@
                                     @endforeach
                                     <tr>
                                         <td rowspan="4">الجمله</td>
-                                        <td>{{$details[0]->sale->total_amount}}</td>
+                                        <td>{{number_format($details[0]->sale->total_amount, 2)}}</td>
                                     </tr>
                                 @endif
                                 </tbody>
