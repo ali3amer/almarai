@@ -7,12 +7,13 @@ use App\Models\SaleDebt;
 use App\Models\SaleDetail;
 use App\Models\SaleReturn;
 use Illuminate\Database\Eloquent\Collection;
+use Jantinnerezo\LivewireAlert\LivewireAlert;
 use Livewire\Component;
 use mysql_xdevapi\CollectionRemove;
 
 class Returns extends Component
 {
-
+    use LivewireAlert;
     public string $title = 'المرتجعات';
 
     public string $productName = '';
@@ -34,6 +35,7 @@ class Returns extends Component
     public array $currentDetail = [];
     public string $saleSearch = '';
     public array $currentSale = [];
+    public string $buyer = 'client';
 
     public function chooseClient($client)
     {
@@ -106,7 +108,7 @@ class Returns extends Component
                 'return_date' => $this->return_date,
                 'price' => $this->currentDetail['price']
             ]);
-            session()->flash('success', 'تم الحفظ بنجاح');
+            $this->alert('success', 'تم الحفظ بنجاح', ['timerProgressBar' => true]);
         } else {
             SaleDetail::where('sale_id', $this->currentDetail['sale_id'])->where('product_id', $this->currentDetail['product_id'])->increment('quantity', $this->quantityReturn);
 
@@ -130,7 +132,7 @@ class Returns extends Component
             ]);
         }
 
-        session()->flash('success', 'تم تعديل الفاتوره بنجاح');
+        $this->alert('success', 'تم تعديل الفاتوره بنجاح', ['timerProgressBar' => true]);
         $this->resetData();
     }
 
@@ -150,7 +152,7 @@ class Returns extends Component
                 \App\Models\Bank::where('id', $debt['bank_id'])->increment('currentBalance', $debt['paid']);
             }
         }
-        session()->flash('success', 'تم الحذف بنجاح');
+        $this->alert('success', 'تم الحذف بنجاح', ['timerProgressBar' => true]);
 
     }
 
@@ -164,8 +166,11 @@ class Returns extends Component
         if ($this->return_date == '') {
             $this->return_date = date('Y-m-d');
         }
-        $this->clients = \App\Models\Client::where('clientName', 'LIKE', '%' . $this->clientSearch . '%')->get();
-        if (!empty($this->currentClient)) {
+        if ($this->buyer == 'client') {
+            $this->clients = \App\Models\Client::where('clientName', 'LIKE', '%' . $this->clientSearch . '%')->get();
+        } elseif ($this->buyer == 'supplier') {
+            $this->clients = \App\Models\Supplier::where('supplierName', 'LIKE', '%' . $this->clientSearch . '%')->get();
+        }        if (!empty($this->currentClient)) {
             $this->sales = \App\Models\Sale::where('client_id', $this->currentClient['id'])->where('id', 'LIKE', '%' . $this->saleSearch . '%')->get();
         }
         return view('livewire.returns');

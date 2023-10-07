@@ -5,10 +5,12 @@ namespace App\Livewire;
 use App\Models\Bank;
 use App\Models\PurchaseDebt;
 use Illuminate\Database\Eloquent\Collection;
+use Jantinnerezo\LivewireAlert\LivewireAlert;
 use Livewire\Component;
 
 class Claim extends Component
 {
+    use LivewireAlert;
     public string $title = 'المطالبات';
     public int $id = 0;
     public string $supplierSearch = '';
@@ -107,7 +109,7 @@ class Claim extends Component
             } else {
                 Bank::where('id', $this->bank_id)->decrement('currentBalance', $this->debtPaid);
             }
-            session()->flash('success', 'تم الحفظ بنجاح');
+            $this->alert('success', 'تم الحفظ بنجاح', ['timerProgressBar' => true]);
         } else {
             $debtbalance = PurchaseDebt::where('id', $this->debtId)->first();
             \App\Models\Supplier::where('id', $this->currentSupplier['id'])->increment('currentBalance', $debtbalance['paid']);
@@ -135,7 +137,7 @@ class Claim extends Component
                 \App\Models\Bank::where('id', $debtbalance['bank_id'])->increment('currentBalance', $this->debtPaid);
             }
 
-            session()->flash('success', 'تم التعديل بنجاح');
+            $this->alert('success', 'تم التعديل بنجاح', ['timerProgressBar' => true]);
 
         }
         $this->debts = PurchaseDebt::where('purchase_id', $this->currentPurchase['id'])->get()->toArray();
@@ -165,6 +167,8 @@ class Claim extends Component
         }
         $debt->delete();
         $this->debts = PurchaseDebt::where('purchase_id', $this->currentPurchase['id'])->get()->toArray();
+        $this->alert('success', 'تم الحذف بنجاح', ['timerProgressBar' => true]);
+
     }
 
     public function render()

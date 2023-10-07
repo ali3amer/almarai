@@ -7,19 +7,18 @@ use App\Models\EmployeeGift;
 use App\Models\SaleDebt;
 use App\Models\SaleDetail;
 use Illuminate\Database\Eloquent\Collection;
+use Jantinnerezo\LivewireAlert\LivewireAlert;
 use Livewire\Attributes\Rule;
 use Livewire\Component;
 
 class Employee extends Component
 {
-
+use LivewireAlert;
     public string $title = 'الموظفين';
     public int $id = 0;
     public int $bank_id = 0;
-    #[Rule('required|min:2')]
     public string $employeeName = '';
-    #[Rule('required|min:2')]
-    public float $salary = 0;
+    public $salary = 0;
     public float $total_debts = 0;
     public float $total_sum_paid = 0;
     public array $debts = [];
@@ -43,17 +42,32 @@ class Employee extends Component
     public Collection $sales;
     public array $currentGift = [];
 
+    protected function rules() {
+        return [
+            'employeeName' => 'required|unique:employees,employeeName,'.$this->id
+        ];
+    }
+
+    protected function messages() {
+        return [
+            'employeeName.required' => 'الرجاء إدخال إسم الموظف',
+            'employeeName.unique' => 'هذا المورد موجود مسبقاً'
+        ];
+    }
     public function save($id)
     {
 
         if ($this->validate()) {
             if ($this->id == 0) {
                 \App\Models\Employee::create(['employeeName' => $this->employeeName, 'salary' => $this->salary]);
+                $this->alert('success', 'تم الحفظ بنجاح', ['timerProgressBar' => true]);
+
             } else {
                 $employee = \App\Models\Employee::find($id);
                 $employee->employeeName = $this->employeeName;
                 $employee->salary = $this->salary;
                 $employee->save();
+                $this->alert('success', 'تم التعديل بنجاح', ['timerProgressBar' => true]);
             }
             $this->id = 0;
             $this->employeeName = '';
@@ -74,6 +88,8 @@ class Employee extends Component
     {
         $employee = \App\Models\Employee::find($id);
         $employee->delete();
+        $this->alert('success', 'تم الحذف بنجاح', ['timerProgressBar' => true]);
+
     }
 
     public function getGifts($employee)
@@ -168,7 +184,7 @@ class Employee extends Component
         $this->getGifts($this->currentEmployee);
         $this->reset('currentGift', 'editGiftMode', 'gift_amount', 'note', 'debts', 'oldDebts');
 
-        session()->flash('success', 'تم الدفع بنجاح');
+        $this->alert('success', 'تم الدفع بنجاح', ['timerProgressBar' => true]);
 
     }
 
@@ -238,7 +254,8 @@ class Employee extends Component
         $this->getGifts($this->currentEmployee);
         $this->gift_date = date('Y-m-d');
         $this->reset('currentGift', 'editGiftMode', 'gift_amount', 'note', 'debts', 'oldDebts');
-        session()->flash('success', 'تم التعديل بنجاح');
+        $this->alert('success', 'تم التعديل بنجاح', ['timerProgressBar' => true]);
+
     }
 
     public function deleteGift($id)
@@ -251,7 +268,7 @@ class Employee extends Component
         }
         $gift->delete();
         $this->getGifts($this->currentEmployee);
-        session()->flash('success', 'تم الحذف بنجاح');
+        $this->alert('success', 'تم الحذف بنجاح', ['timerProgressBar' => true]);
     }
 
     public function resetData()

@@ -5,11 +5,13 @@ namespace App\Livewire;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Jantinnerezo\LivewireAlert\LivewireAlert;
 use Livewire\Attributes\Rule;
 use Livewire\Component;
 
 class User extends Component
 {
+    use LivewireAlert;
     public string $title = 'المستخدمين';
     public int $id = 0;
     #[Rule('required', message: 'أدخل إسم المستخدم كامل')]
@@ -69,7 +71,7 @@ class User extends Component
 
                 $user->syncPermissions($this->permissions);
 
-                session()->flash('success', 'تم الحفظ بنجاح');
+                $this->alert('success', 'تم الحفظ بنجاح', ['timerProgressBar' => true]);
             } else {
                 $user = \App\Models\User::find($this->id);
                 $user->name = $this->name;
@@ -83,7 +85,7 @@ class User extends Component
 
                 $this->permissions = [];
 
-                session()->flash('success', 'تم التعديل بنجاح');
+                $this->alert('success', 'تم التعديل بنجاح', ['timerProgressBar' => true]);
             }
         }
         $this->resetData();
@@ -101,7 +103,7 @@ class User extends Component
     public function delete($id)
     {
         \App\Models\User::where('id', $id)->delete();
-        session()->flash('success', 'تم الحذف بنجاح');
+        $this->alert('success', 'تم التعديل بنجاح', ['timerProgressBar' => true]);
     }
 
     public function resetData()

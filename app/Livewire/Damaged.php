@@ -3,12 +3,14 @@
 namespace App\Livewire;
 
 use Illuminate\Database\Eloquent\Collection;
+use Jantinnerezo\LivewireAlert\LivewireAlert;
 use Livewire\Attributes\Rule;
 use Livewire\Component;
 use function Symfony\Component\Translation\t;
 
 class Damaged extends Component
 {
+    use LivewireAlert;
     public string $title = 'المنتجات التالفه';
     public string $productsSearch = '';
     public string $damaged_date = '';
@@ -35,7 +37,7 @@ class Damaged extends Component
             ]);
 
             \App\Models\Product::where('id', $this->currentProduct['id'])->decrement('stock', $this->quantity);
-            session()->flash('success', 'تم الحفظ');
+            $this->alert('success', 'تم الحفظ بنجاح', ['timerProgressBar' => true]);
         } else {
             \App\Models\Damaged::where('id', $this->id)->update([
                 'product_id' => $this->currentProduct['id'],
@@ -45,7 +47,7 @@ class Damaged extends Component
 
             \App\Models\Product::where('id', $this->currentProduct['id'])->increment('stock', $this->currentDamaged['quantity']);
             \App\Models\Product::where('id', $this->currentProduct['id'])->decrement('stock', $this->quantity);
-            session()->flash('success', 'تم التعديل بنجاح');
+            $this->alert('success', 'تم التعديل بنجاح', ['timerProgressBar' => true]);
         }
 
         $this->resetData();
@@ -64,9 +66,8 @@ class Damaged extends Component
     {
         \App\Models\Product::where('id', $damaged['product_id'])->increment('stock', $damaged['quantity']);
         \App\Models\Damaged::where('id', $damaged['id'])->delete();
-        session()->flash('success', 'تم الحذف بنجاح');
+        $this->alert('success', 'تم الحذف بنجاح', ['timerProgressBar' => true]);
         $this->resetData();
-        return redirect()->to('/damaged');
     }
 
     public function resetData()

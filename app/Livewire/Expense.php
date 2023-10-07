@@ -5,22 +5,23 @@ namespace App\Livewire;
 use App\Models\Bank;
 use App\Models\BankDetail;
 use Illuminate\Database\Eloquent\Collection;
+use Jantinnerezo\LivewireAlert\LivewireAlert;
 use Livewire\Attributes\Rule;
 use Livewire\Component;
 
 class Expense extends Component
 {
+    use LivewireAlert;
 
     public string $title = 'المصروفات';
     public int $id = 0;
-    #[Rule('required|min:2')]
+    #[Rule('required', message: 'هذا الحقل مطلوب')]
     public string $description = '';
-    #[Rule('required|min:2')]
+    #[Rule('required', message: 'هذا الحقل مطلوب')]
     public float $amount = 0;
     public string $payment = 'cash';
     public string $bank = '';
-    public int $bank_id = 1;
-//    #[Rule('required|min:2')]
+    public int|null $bank_id = 1;
     public string $expense_date = '';
     public  string $search = '';
     public Collection $expenses;
@@ -46,7 +47,7 @@ class Expense extends Component
                     Bank::where('id', $this->bank_id)->decrement('currentBalance', $this->amount);
                 }
 
-                session()->flash('success', 'تم الحفظ بنجاح');
+                $this->alert('success', 'تم الحفظ بنجاح', ['timerProgressBar' => true]);
 
             } else {
                 $expense = \App\Models\Expense::find($id);
@@ -69,7 +70,7 @@ class Expense extends Component
                     Bank::where('id', $this->bank_id)->decrement('currentBalance', $this->amount);
                 }
                 $expense->save();
-                session()->flash('success', 'تم التعديل بنجاح');
+                $this->alert('success', 'تم التعديل بنجاح', ['timerProgressBar' => true]);
 
             }
             $this->id = 0;
@@ -100,7 +101,7 @@ class Expense extends Component
             Bank::where('id', $expense['bank_id'])->decrement('currentBalance', $expense['amount']);
         }
         $expense->delete();
-        session()->flash('success', 'تم الحذف بنجاح');
+        $this->alert('success', 'تم الحذف بنجاح', ['timerProgressBar' => true]);
 
         $this->id = 0;
         $this->description = '';

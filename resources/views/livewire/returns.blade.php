@@ -12,7 +12,19 @@
                 <div class="modal-body">
                     <div class="card">
                         <div class="card-body">
-                            <input type="text" placeholder="إسم العميل ...." wire:model.live="clientSearch" class="form-control text-center">
+                            <div class="card-title">
+                                <div class="row">
+                                    <div class="col-3">
+                                        <select class="form-select" wire:model.live="buyer">
+                                            <option value="client">عملاء</option>
+                                            <option value="supplier">موردين</option>
+                                        </select>
+                                    </div>
+                                    <div class="col">
+                                        <input type="text" placeholder="إسم العميل ...." wire:model.live="clientSearch" class="form-control text-center">
+                                    </div>
+                                </div>
+                            </div>
                             <div class="scroll">
                                 <table class="table table-responsive text-center">
                                     <thead>
@@ -24,7 +36,7 @@
                                     @foreach($clients as $client)
                                         <tr style="cursor: pointer" wire:click="chooseClient({{$client}})"
                                             data-bs-dismiss="modal">
-                                            <td>{{$client->clientName}}</td>
+                                            <td>{{$client[$buyer.'Name']}}</td>
                                         </tr>
                                     @endforeach
                                     </tbody>
@@ -100,7 +112,7 @@
             <div class="card mb-2">
                 <div class="card-body">
                     <input type="text" class="form-control text-center" style="cursor: pointer"
-                           wire:model="currentClient.clientName" readonly placeholder="اسم العميل ...."
+                           wire:model.live="currentClient.{{$buyer.'Name'}}" readonly placeholder="اسم العميل ...."
                            data-bs-toggle="modal"
                            data-bs-target="#clientsModal">
                 </div>
@@ -111,7 +123,7 @@
                     <div class="card-body">
                         <div class="card-title">
                             <div class="row">
-                                <div class="col-3"><h6>فواتير {{$currentClient['clientName']}}</h6></div>
+                                <div class="col-3"><h6>فواتير {{$currentClient[$buyer.'Name']}}</h6></div>
                                 <div class="col-9"><input type="text" placeholder="رقم الفاتوره ...." class="form-control text-center" wire:model.live="saleSearch"></div>
                             </div>
                         </div>

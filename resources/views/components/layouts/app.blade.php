@@ -20,6 +20,10 @@
 </div>
 
 @livewireScripts
+<script src="{{asset('js/sweetalert2.js')}}"></script>
+<x-livewire-alert::scripts />
+{{--<script src="{{ asset('vendor/livewire-alert/livewire-alert.js') }}"></script>--}}
+<x-livewire-alert::flash />
 <script src="{{asset('js/jquery.min.js')}}"></script>
 <script src="{{asset('js/printThis.js')}}"></script>
 <script src="{{asset('js/scripts.js')}}"></script>

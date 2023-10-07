@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use Jantinnerezo\LivewireAlert\LivewireAlert;
 use App\Livewire\Forms\ProductForm;
 use Illuminate\Database\Eloquent\Collection;
 use Livewire\Attributes\Rule;
@@ -10,6 +11,7 @@ use function Livewire\store;
 
 class Product extends Component
 {
+    use LivewireAlert;
     public string $title = 'المنتجات';
     public string $search = '';
     public int $store_id = 0;
@@ -39,10 +41,10 @@ class Product extends Component
         if ($this->validate()) {
             if ($this->form->id == 0) {
                 $this->form->store();
-                session()->flash('success', 'تمت الاضافه بنجاح');
+                $this->alert('success', 'تم الحفظ بنجاح', ['timerProgressBar' => true]);
             } else {
                 $this->form->update();
-                session()->flash('success', 'تم التعديل بنجاح');
+                $this->alert('success', 'تم التعديل بنجاح', ['timerProgressBar' => true]);
             }
         }
     }
@@ -63,7 +65,7 @@ class Product extends Component
     {
         $product = \App\Models\Product::find($id);
         $product->delete();
-        session()->flash('success', 'تم الحذف بنجاح');
+        $this->alert('success', 'تم الحذف بنجاح', ['timerProgressBar' => true]);
     }
 
     public function render()

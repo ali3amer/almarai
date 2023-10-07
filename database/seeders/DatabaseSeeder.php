@@ -56,6 +56,7 @@ class DatabaseSeeder extends Seeder
                 'phone' => '0100200300',
                 'initialBalance' => 1000,
                 'currentBalance' => 1000,
+                'blocked' => false,
             ]);
 
             Supplier::create([

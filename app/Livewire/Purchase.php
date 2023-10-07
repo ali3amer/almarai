@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use Jantinnerezo\LivewireAlert\LivewireAlert;
 use App\Models\Bank;
 use App\Models\PurchaseDebt;
 use App\Models\PurchaseDetail;
@@ -12,7 +13,7 @@ use Livewire\Component;
 
 class Purchase extends Component
 {
-
+    use LivewireAlert;
     public string $title = 'المشتريات';
     public int $id = 0;
     public int $bank_id = 1;
@@ -115,7 +116,7 @@ class Purchase extends Component
 
             $this->id = $purchase['id'];
 
-            session()->flash('success', 'تم الحفظ بنجاح');
+            $this->alert('success', 'تم الحفظ بنجاح', ['timerProgressBar' => true]);
 
         } else {
             $purchase = \App\Models\Purchase::where('id', $this->id)->first();
@@ -168,14 +169,17 @@ class Purchase extends Component
                 ]);
                 \App\Models\Product::where('id', $item['id'])->increment('stock', $item['quantity']);
             }
-            session()->flash('success', 'تم التعديل بنجاح');
+            $this->alert('success', 'تم التعديل بنجاح', ['timerProgressBar' => true]);
 
         }
 
         $this->invoice['id'] = $purchase['id'];
+        $this->invoice['type'] = 'purchase';
         $this->invoice['sale_date'] = $purchase['purchase_date'];
         $this->invoice['client'] = $this->currentSupplier['supplierName'];
         $this->invoice['cart'] = $this->cart;
+        $this->invoice['remainder'] = $this->remainder;
+        $this->invoice['paid'] = $this->paid;
         $this->invoice['total_amount'] = $this->total_amount;
         $this->dispatch('sale_created', $this->invoice);
 
@@ -279,7 +283,7 @@ class Purchase extends Component
 
     public function resetData($item = null)
     {
-        $this->reset( 'currentProduct', 'cart', 'search', 'supplierSearch', 'paid', 'remainder', 'total_amount', 'id', 'oldQuantities', $item);
+        $this->reset('currentProduct', 'cart', 'search', 'supplierSearch', 'paid', 'remainder', 'total_amount', 'id', 'oldQuantities', $item);
     }
 
     public function render()

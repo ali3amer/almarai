@@ -5,10 +5,12 @@ namespace App\Livewire;
 use App\Models\Bank;
 use App\Models\SaleDebt;
 use Illuminate\Database\Eloquent\Collection;
+use Jantinnerezo\LivewireAlert\LivewireAlert;
 use Livewire\Component;
 
 class Debt extends Component
 {
+    use LivewireAlert;
     public string $title = 'الديون';
     public int $id = 0;
     public string $clientSearch = '';
@@ -124,7 +126,7 @@ class Debt extends Component
                 \App\Models\Bank::where('id', $this->bank_id)->increment('currentBalance', $this->debtPaid);
             }
 
-            session()->flash('success', 'تم الحفظ بنجاح');
+            $this->alert('success', 'تم الحفظ بنجاح', ['timerProgressBar' => true]);
         } else {
             $debtbalance = SaleDebt::where('id', $this->debtId)->first();
 
@@ -159,7 +161,7 @@ class Debt extends Component
                 'client_balance' => $this->currentClient['currentBalance'],
                 'due_date' => $this->due_date
             ]);
-            session()->flash('success', 'تم التعديل بنجاح');
+            $this->alert('success', 'تم التعديل بنجاح', ['timerProgressBar' => true]);
 
         }
         $this->debts = SaleDebt::where('sale_id', $this->currentSale['id'])->get()->toArray();
@@ -193,6 +195,8 @@ class Debt extends Component
         }
         $debt->delete();
         $this->debts = SaleDebt::where('sale_id', $this->currentSale['id'])->get()->toArray();
+        $this->alert('success', 'تم الحذف بنجاح', ['timerProgressBar' => true]);
+
     }
 
     public function render()

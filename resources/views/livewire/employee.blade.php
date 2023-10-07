@@ -13,14 +13,14 @@
                         <div class="card-body">
                             <form action="" wire:submit="save({{ $id }})">
                                 <label for="employeeName" class="form-label">إسم الموظف</label>
-                                <input type="text" wire:model="employeeName" class="form-control"
+                                <input type="text" wire:model.live="employeeName" class="form-control"
                                        placeholder="إسم الموظف ..." id="employeeName">
                                 <div>
                                     @error('employeeName') <span
                                         class="error text-danger">{{ $message }}</span> @enderror
                                 </div>
                                 <label for="employeeName" class="form-label">المرتب</label>
-                                <input type="text" wire:model="salary" class="form-control" placeholder="المرتب"
+                                <input type="text" wire:model.live="salary" class="form-control" placeholder="المرتب"
                                        id="salary">
                                 <div>
                                     @error('salary') <span class="error text-danger">{{ $message }}</span> @enderror

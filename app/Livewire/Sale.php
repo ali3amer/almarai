@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Livewire;
+use Jantinnerezo\LivewireAlert\LivewireAlert;
 
 use App\Models\Bank;
 use App\Models\SaleDebt;
@@ -12,7 +13,7 @@ use Livewire\Component;
 
 class Sale extends Component
 {
-
+    use LivewireAlert;
     public string $title = 'المبيعات';
     public int $id = 0;
     public int $bank_id = 0;
@@ -133,7 +134,7 @@ class Sale extends Component
 
             $this->id = $sale['id'];
 
-            session()->flash('success', 'تم الحفظ بنجاح');
+            $this->alert('success', 'تم الحفظ بنجاح', ['timerProgressBar' => true]);
 
         } else {
             $sale = \App\Models\Sale::where('id', $this->id)->first();
@@ -200,14 +201,17 @@ class Sale extends Component
                 ]);
                 \App\Models\Product::where('id', $item['id'])->decrement('stock', $item['quantity']);
             }
-            session()->flash('success', 'تم التعديل بنجاح');
+            $this->alert('success', 'تم التعديل بنجاح', ['timerProgressBar' => true]);
 
 
         }
         $this->invoice['id'] = $sale['id'];
+        $this->invoice['type'] = 'sale';
         $this->invoice['sale_date'] = $sale['sale_date'];
         $this->invoice['client'] = $this->currentClient[$this->buyer . 'Name'];
         $this->invoice['cart'] = $this->cart;
+        $this->invoice['remainder'] = $this->remainder;
+        $this->invoice['paid'] = $this->paid;
         $this->invoice['total_amount'] = $this->total_amount;
         $this->dispatch('sale_created', $this->invoice);
         $this->resetData();
@@ -227,6 +231,8 @@ class Sale extends Component
         $this->currentProduct['quantity'] = 1;
         $this->currentProduct['amount'] = $product['sale_price'];
         $this->productSearch = '';
+        $this->dispatch('sale_price_focus');
+
     }
 
     public function calcCurrentProduct()
@@ -243,6 +249,7 @@ class Sale extends Component
         $this->paid = $this->total_amount;
         $this->currentProduct = [];
         $this->calcRemainder();
+        $this->dispatch('productSearchFocus');
     }
 
     public function deleteFromCart($id)

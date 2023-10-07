@@ -1,13 +1,14 @@
 <?php
 
 namespace App\Livewire;
-
+use Jantinnerezo\LivewireAlert\LivewireAlert;
 use Illuminate\Database\Eloquent\Collection;
 use Livewire\Attributes\Rule;
 use Livewire\Component;
 
 class Supplier extends Component
 {
+    use LivewireAlert;
     public string $title = 'الموردين';
     public int $id = 0;
     public string $supplierName = '';
@@ -38,7 +39,7 @@ class Supplier extends Component
         if ($this->validate()) {
             if ($this->id == 0) {
                 \App\Models\Supplier::create(['supplierName' => $this->supplierName, 'phone' => $this->phone, 'address' => $this->address, 'initialBalance' => $this->initialBalance, 'currentBalance' => $this->initialBalance]);
-                session()->flash('success', 'تمت الاضافه بنجاح');
+                $this->alert('success', 'تم الحفظ بنجاح', ['timerProgressBar' => true]);
             } else {
                 $supplier = \App\Models\Supplier::find($id);
                 $supplier->supplierName = $this->supplierName;
@@ -47,7 +48,7 @@ class Supplier extends Component
                 $supplier->initialBalance = $this->initialBalance;
                 $supplier->currentBalance = $this->initialBalance;
                 $supplier->save();
-                session()->flash('success', 'تم التعديل بنجاح');
+                $this->alert('success', 'تم التعديل بنجاح', ['timerProgressBar' => true]);
             }
             $this->id = 0;
             $this->supplierName = '';
@@ -71,7 +72,7 @@ class Supplier extends Component
     {
         $supplier = \App\Models\Supplier::find($id);
         $supplier->delete();
-        session()->flash('success', 'تم الحذف بنجاح');
+        $this->alert('success', 'تم الحذف بنجاح', ['timerProgressBar' => true]);
 
     }
 

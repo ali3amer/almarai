@@ -15,7 +15,7 @@
                     </h1>
                 </div>
                 <div class="modal-body">
-                    <livewire:invoice />
+                    <livewire:invoice/>
                 </div>
             </div>
         </div>
@@ -41,10 +41,10 @@
                         <div class="card-title mt-2">
                             <div class="row">
                                 <div class="col-4 align-self-center"><h5>المنتجات</h5></div>
-                                <div class="col-8"><input type="text" placeholder="بحث ..."
+                                <div class="col-8"><input type="text" id="productSearch" placeholder="بحث ..."
                                                           wire:keydown.enter="chooseProduct({{$products[0]}})"
                                                           class="form-control"
-                                                          wire:model.live="productSearch"></div>
+                                                          wire:model.live="productSearch" autofocus></div>
                             </div>
                         </div>
                         <div class="scroll">
@@ -82,9 +82,9 @@
                 </div>
             </div>
             @if(!$editMode)
-                <div class="col-2">
-                    <div class="card">
-                        <form wire:submit="addToCart()">
+                @if($currentClient['blocked'] != true)
+                    <div class="col-2">
+                        <div class="card">
                             <div class="card-body">
                                 <label for="productName">إسم المنتج</label>
                                 <input type="text" id="productName" class="form-control" disabled
@@ -93,107 +93,116 @@
                                 <input type="text" id="sale_price" class="form-control"
                                        {{ empty($currentProduct) ? 'disabled' : '' }} wire:model.live="currentProduct.sale_price">
                                 <label for="quantity">الكميه</label>
-                                <input type="text" id="quantity" class="form-control"
+
+                                <input type="text" id="quantity" wire:keydown.enter="addToCart()" class="form-control"
                                        {{ empty($currentProduct) ? 'disabled' : '' }} wire:model.live="currentProduct.quantity">
                                 <label for="amount">الجمله</label>
                                 <input type="text" class="form-control" disabled
                                        value="{{ !empty($currentProduct) ? number_format(floatval($currentProduct['sale_price']) * floatval($currentProduct['quantity']), 2) : '' }}">
 
-                                <button type="submit"
+                                <button wire:click="addToCart()"
                                         class="btn btn-primary d-block {{ empty($currentProduct) ? 'disabled' : '' }} text-white mt-2 w-100">
                                     إضــــــــــافة
                                 </button>
 
                             </div>
-                        </form>
+                        </div>
                     </div>
-                </div>
 
-                <div class="col-6">
-                    <div class="card">
-                        <div class="card-body">
-                            <div class="card-title">
-                                <div class="row">
-                                    <div class="col-4"><h5>الفاتوره {{$id != 0 ? '#'. $id : ''}}</h5></div>
-                                    <div class="col-4"><input type="date" wire:model.live="sale_date"
-                                                              class="form-control">
+                    <div class="col-6">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="card-title">
+                                    <div class="row">
+                                        <div class="col-4"><h5>الفاتوره {{$id != 0 ? '#'. $id : ''}}</h5></div>
+                                        <div class="col-4"><input type="date" wire:model.live="sale_date"
+                                                                  class="form-control">
+                                        </div>
+                                        <div class="col-4">
+                                            <select wire:model.live="payment" class="form-select">
+                                                <option value="cash">كاش</option>
+                                                <option value="bank">بنك</option>
+                                            </select>
+                                        </div>
                                     </div>
-                                    <div class="col-4">
-                                        <select wire:model.live="payment" class="form-select">
-                                            <option value="cash">كاش</option>
-                                            <option value="bank">بنك</option>
-                                        </select>
+
+                                    <div class="row mt-1">
+                                        <div class="col-4"><input type="text" placeholder="رقم الاشعار ....."
+                                                                  @disabled($payment == 'cash') wire:model.live="bank"
+                                                                  class="form-control"></div>
+
+                                        <div class="col-4">
+                                            <select wire:model.live="bank_id"
+                                                    @disabled($payment == 'cash') class="form-select">
+                                                @foreach($banks as $bank)
+                                                    <option value="{{$bank->id}}">{{$bank->bankName}}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
                                     </div>
+
                                 </div>
-
-                                <div class="row mt-1">
-                                    <div class="col-4"><input type="text" placeholder="رقم الاشعار ....."
-                                                              @disabled($payment == 'cash') wire:model.live="bank"
-                                                              class="form-control"></div>
-
-                                    <div class="col-4">
-                                        <select wire:model.live="bank_id"
-                                                @disabled($payment == 'cash') class="form-select">
-                                            @foreach($banks as $bank)
-                                                <option value="{{$bank->id}}">{{$bank->bankName}}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                </div>
-
-                            </div>
-                            <div class="scroll">
-                                <table class="table text-center table-responsive table-responsive table-responsive">
-                                    <thead>
-                                    <tr>
-                                        <th scope="col">#</th>
-                                        <th scope="col">إسم المنتج</th>
-                                        <th scope="col">سعر الوحده</th>
-                                        <th scope="col">الكميه</th>
-                                        <th scope="col">الجمله</th>
-                                        <th scope="col">التحكم</th>
-                                    </tr>
-                                    </thead>
-                                    <tbody>
-                                    @foreach($cart as $item)
-                                        <tr style="cursor: pointer" class="align-items-center">
-                                            <td scope="row">{{$loop->index + 1}}</td>
-                                            <td>{{$item['productName']}}</td>
-                                            <td>{{number_format(floatval($item['sale_price']), 2)}}</td>
-                                            <td>{{number_format(floatval($item['quantity']), 2)}}</td>
-                                            <td>{{number_format($item['amount'], 2)}}</td>
-                                            <td>
-                                                <button wire:loading.attr="disabled" wire:click="deleteFromCart({{$item['id']}})"
-                                                        class="btn btn-primary btn-sm btn-danger"><i
-                                                        class="bi bi-trash-fill"></i>
-                                                </button>
+                                <div class="scroll">
+                                    <table class="table text-center table-responsive table-responsive table-responsive">
+                                        <thead>
+                                        <tr>
+                                            <th scope="col">#</th>
+                                            <th scope="col">إسم المنتج</th>
+                                            <th scope="col">سعر الوحده</th>
+                                            <th scope="col">الكميه</th>
+                                            <th scope="col">الجمله</th>
+                                            <th scope="col">التحكم</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        @foreach($cart as $item)
+                                            <tr style="cursor: pointer" class="align-items-center">
+                                                <td scope="row">{{$loop->index + 1}}</td>
+                                                <td>{{$item['productName']}}</td>
+                                                <td>{{number_format(floatval($item['sale_price']), 2)}}</td>
+                                                <td>{{number_format(floatval($item['quantity']), 2)}}</td>
+                                                <td>{{number_format($item['amount'], 2)}}</td>
+                                                <td>
+                                                    <button wire:loading.attr="disabled"
+                                                            wire:click="deleteFromCart({{$item['id']}})"
+                                                            class="btn btn-primary btn-sm btn-danger"><i
+                                                            class="bi bi-trash-fill"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                        <tr>
+                                            <td>الجمله</td>
+                                            <td>{{number_format($total_amount, 2)}}</td>
+                                            <td>الرصيد الحالي</td>
+                                            <td>{{number_format($currentBalance, 2)}}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>المدفوع</td>
+                                            <td><input type="text" min="0" wire:keydown.debounce.150ms="calcRemainder()"
+                                                       wire:model.live.debounce.150ms="paid"
+                                                       class="form-control text-center">
                                             </td>
                                         </tr>
-                                    @endforeach
-                                    <tr>
-                                        <td>الجمله</td>
-                                        <td>{{number_format($total_amount, 2)}}</td>
-                                        <td>الرصيد الحالي</td>
-                                        <td>{{number_format($currentBalance, 2)}}</td>
-                                    </tr>
-                                    <tr>
-                                        <td>المدفوع</td>
-                                        <td><input type="text" min="0" wire:keydown.debounce.150ms="calcRemainder()"
-                                                   wire:model.live.debounce.150ms="paid"
-                                                   class="form-control text-center">
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>المتبقي</td>
-                                        <td>{{number_format($remainder, 2)}}</td>
-                                    </tr>
-                                    </tbody>
-                                </table>
+                                        <tr>
+                                            <td>المتبقي</td>
+                                            <td>{{number_format($remainder, 2)}}</td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
 
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
+                @elseif($currentClient['blocked'] == true)
+                    <div class="col-8">
+                        <div class="alert alert-danger text-center
+                        "><h3>هذا العميل موقوف بسبب {{ $currentClient['note'] }}</h3>
+                        </div>
+
+                    </div>
+                @endif
             @else
                 <div class="col-8">
                     <div class="card">
@@ -215,7 +224,8 @@
                                                 <h2 class="accordion-header">
                                                     <button class="accordion-button collapsed" type="button"
                                                             data-bs-toggle="collapse"
-                                                            data-bs-target="#collapse.{{$sale->id}}" aria-expanded="false"
+                                                            data-bs-target="#collapse.{{$sale->id}}"
+                                                            aria-expanded="false"
                                                             aria-controls="collapse.{{$sale->id}}">
                                                         {{$sale->id}}: {{$sale->sale_date}}
                                                     </button>
@@ -309,4 +319,22 @@
         @endif
 
     </div>
+
+
+    <script>
+        document.addEventListener("keydown", function (event) {
+            if (event.key === "Enter") {
+
+                if (event.target.id === "productSearch") {
+                    document.getElementById("sale_price").removeAttribute('disabled');
+                    document.getElementById("sale_price").focus();
+                } else if (event.target.id === "sale_price") {
+                    document.getElementById("quantity").focus();
+                } else if (event.target.id === "quantity") {
+                    document.getElementById("productSearch").focus();
+                }
+            }
+        });
+
+    </script>
 </div>

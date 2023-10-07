@@ -64,7 +64,6 @@
         </div>
     </div>
 
-
     <!-- Print Invoice Modal -->
     <div wire:ignore.self class="modal fade" id="printModal" tabindex="-1" aria-labelledby="exampleModalLabel"
          aria-hidden="true">
@@ -84,7 +83,6 @@
             </div>
         </div>
     </div>
-
 
     <div class="row mt-2 d-print-none">
         @if(!empty($currentSupplier))
@@ -106,10 +104,10 @@
                         <div class="card-title mt-2">
                             <div class="row">
                                 <div class="col-4 align-self-center"><h5>المنتجات</h5></div>
-                                <div class="col-8"><input type="text" placeholder="بحث ..."
+                                <div class="col-8"><input id="productSearch" type="text" placeholder="بحث ..."
                                                           wire:keydown.enter="chooseProduct({{$products[0]}})"
                                                           class="form-control"
-                                                          wire:model.live="productSearch"></div>
+                                                          wire:model.live="productSearch" autofocus></div>
                             </div>
                         </div>
                         <div class="scroll">
@@ -149,7 +147,6 @@
             @if(!$editMode)
                 <div class="col-2">
                     <div class="card">
-                        <form wire:submit="addToCart()">
                             <div class="card-body">
                                 <label for="productName">إسم المنتج</label>
                                 <input type="text" id="productName" class="form-control" disabled
@@ -158,19 +155,18 @@
                                 <input type="text" id="purchase_price" class="form-control"
                                        {{ empty($currentProduct) ? 'disabled' : '' }} wire:model.live="currentProduct.purchase_price">
                                 <label for="quantity">الكميه</label>
-                                <input type="text" id="quantity" class="form-control"
+                                <input wire:keydown.enter="addToCart()" type="text" id="quantity" class="form-control"
                                        {{ empty($currentProduct) ? 'disabled' : '' }} wire:model.live="currentProduct.quantity">
                                 <label for="amount">الجمله</label>
                                 <input type="text" class="form-control" disabled
                                        value="{{ !empty($currentProduct) ? number_format(floatval($currentProduct['purchase_price']) * floatval($currentProduct['quantity']), 2) : '' }}">
 
-                                <button type="submit"
+                                <button wire:click="addToCart()"
                                         class="btn btn-primary d-block {{ empty($currentProduct) ? 'disabled' : '' }} text-white mt-2 w-100">
                                     إضــــــــــافة
                                 </button>
 
                             </div>
-                        </form>
                     </div>
                 </div>
 
@@ -367,4 +363,20 @@
         @endif
 
     </div>
+
+    <script>
+        document.addEventListener("keydown", function(event) {
+            if (event.key === "Enter") {
+                if (event.target.id === "productSearch") {
+                    document.getElementById("purchase_price").removeAttribute('disabled');
+                    document.getElementById("purchase_price").focus();
+                } else if (event.target.id === "purchase_price") {
+                    document.getElementById("quantity").focus();
+                } else if (event.target.id === "quantity") {
+                    document.getElementById("productSearch").focus();
+                }
+            }
+        });
+
+    </script>
 </div>

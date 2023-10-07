@@ -1,13 +1,14 @@
 <?php
 
 namespace App\Livewire;
-
+use Jantinnerezo\LivewireAlert\LivewireAlert;
 use Livewire\Attributes\Rule;
 use Livewire\Component;
 use Illuminate\Database\Eloquent\Collection;
 
 class Category extends Component
 {
+    use LivewireAlert;
     public string $title = 'الأقسام';
     public int $id = 0;
     public string $categoryName = '';
@@ -33,13 +34,13 @@ class Category extends Component
         if ($this->validate()) {
             if ($this->id == 0) {
                 \App\Models\Category::create(['categoryName' => $this->categoryName]);
-                session()->flash('success', 'تم الحفظ بنجاح');
+                $this->alert('success', 'تم الحفظ بنجاح', ['timerProgressBar' => true]);
 
             } else {
                 $category = \App\Models\Category::find($id);
                 $category->categoryName = $this->categoryName;
                 $category->save();
-                session()->flash('success', 'تم التعديل بنجاح');
+                $this->alert('success', 'تم التعديل بنجاح', ['timerProgressBar' => true]);
 
             }
             $this->id = 0;
@@ -58,7 +59,7 @@ class Category extends Component
     {
         $category = \App\Models\Category::find($id);
         $category->delete();
-        session()->flash('success', 'تم الحذف بنجاح');
+        $this->alert('success', 'تم الحذف بنجاح', ['timerProgressBar' => true]);
 
     }
 

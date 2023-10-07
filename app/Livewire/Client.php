@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Livewire;
+use Jantinnerezo\LivewireAlert\LivewireAlert;
 
 use App\Models\Bank;
 use App\Models\ClientDebt;
@@ -12,6 +13,7 @@ use Livewire\Component;
 
 class Client extends Component
 {
+    use LivewireAlert;
     public string $title = 'العملاء';
     public int $id = 0;
     public int $debtId = 0;
@@ -21,6 +23,7 @@ class Client extends Component
     #[Rule('required|min:2', message: 'قم بإدخال رقم الهاتف')]
     public string $phone = '';
     public string $search = '';
+    public string|null $note = '';
     public $initialBalance = 0;
     public $debt_amount = 0;
     public string $bank = '';
@@ -32,6 +35,7 @@ class Client extends Component
     public string $type = 'debt';
     public string $payment = 'cash';
     public string $due_date = '';
+    public bool $blocked = false;
 
     protected function rules()
     {
@@ -51,7 +55,6 @@ class Client extends Component
     public function mount()
     {
         $this->banks = Bank::all();
-
     }
 
     public function save($id)
@@ -59,41 +62,54 @@ class Client extends Component
 
         if ($this->validate()) {
             if ($this->id == 0) {
-                \App\Models\Client::create(['clientName' => $this->clientName, 'phone' => $this->phone, 'initialBalance' => floatval($this->initialBalance), 'currentBalance' => floatval($this->initialBalance)]);
-                session()->flash('success', 'تم الحفظ بنجاح');
+                \App\Models\Client::create(['clientName' => $this->clientName, 'phone' => $this->phone, 'initialBalance' => floatval($this->initialBalance), 'currentBalance' => floatval($this->initialBalance), 'blocked' => $this->blocked]);
+                $this->alert('success', 'تم الحفظ بنجاح', ['timerProgressBar' => true]);
             } else {
                 $client = \App\Models\Client::find($id);
                 $client->clientName = $this->clientName;
                 $client->phone = $this->phone;
+                $client->note = $this->note;
                 if (\App\Models\Sale::where('client_id', $id)->count() == 0) {
                     $client->initialBalance = floatval($this->initialBalance);
                     $client->currentBalance = floatval($this->initialBalance);
 
                 }
                 $client->save();
-                session()->flash('success', 'تم التعديل بنجاح');
+                $this->alert('success', 'تم التعديل بنجاح', ['timerProgressBar' => true]);
             }
             $this->id = 0;
             $this->clientName = '';
             $this->phone = '';
             $this->initialBalance = 0;
+            $this->note = '';
+            $this->blocked = false;
         }
 
     }
 
+    public function changeBlocked($client)
+    {
+        $this->blocked = !$client['blocked'];
+        \App\Models\Client::where('id', $client['id'])->update(['blocked' => $this->blocked]);
+        $this->resetData();
+    }
     public function edit($client)
     {
         $this->id = $client['id'];
         $this->clientName = $client['clientName'];
         $this->phone = $client['phone'];
         $this->initialBalance = $client['initialBalance'];
+        $this->blocked = $client['blocked'];
+        $this->note = $client['note'];
+
     }
 
     public function delete($id)
     {
         $client = \App\Models\Client::find($id);
         $client->delete();
-        session()->flash('success', 'تم الحذف بنجاح');
+        $this->alert('success', 'تم الحذف بنجاح', ['timerProgressBar' => true]);
+
 
     }
 
@@ -140,7 +156,8 @@ class Client extends Component
 
             $this->resetData();
 
-            session()->flash('success', 'تم الحفظ بنجاح');
+            $this->alert('success', 'تم السداد بنجاح', ['timerProgressBar' => true]);
+
         } else {
             $debt = ClientDebt::where('id', $this->debtId)->first();
             if ($debt['type'] == 'debt') {
@@ -209,8 +226,8 @@ class Client extends Component
             }
 
             $this->resetData();
+            $this->alert('success', 'تم تعديل الدفعيه بنجاح', ['timerProgressBar' => true]);
 
-            session()->flash('success', 'تم التعديل بنجاح');
         }
     }
 
@@ -250,12 +267,14 @@ class Client extends Component
             }
         }
         ClientDebt::where('id', $debt['id'])->delete();
+        $this->alert('success', 'تم حذف الدفعيه بنجاح', ['timerProgressBar' => true]);
+
     }
 
 
     public function resetData($data = null)
     {
-        $this->reset('type', 'debt_amount', 'debtId', 'payment', 'bank', 'due_date', $data);
+        $this->reset('type', 'debt_amount', 'debtId', 'payment', 'bank', 'due_date', 'blocked', 'note', $data);
     }
 
     public function render()

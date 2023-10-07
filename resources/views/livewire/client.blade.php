@@ -26,6 +26,15 @@
                                 @error('initialBalance') <span class="error text-danger">{{ $message }}</span> @enderror
                             </div>
 
+                            @if($blocked == true)
+                                <label for="note" class="form-label">سبب الإيقاف</label>
+                                <input type="text" wire:model="note" class="form-control"
+                                       placeholder="سبب الإيقاف ..." id="note">
+                                <div>
+                                    @error('note') <span class="error text-danger">{{ $message }}</span> @enderror
+                                </div>
+                            @endif
+
                             <div class="d-grid mt-2">
                                 <button
                                     @disabled(!Auth::user()->hasPermission('clients-create')) class="btn btn- btn-{{$id == 0 ? 'primary' : 'success'}}">{{$id == 0 ? 'حفـــــــــــــــــــظ' : 'تعـــــــــــــــــديل'}}</button>
@@ -74,6 +83,11 @@
                                                 /
                                                 <button class="btn btn-sm btn-warning text-white"
                                                         wire:click="showDebts({{$client}})"><i class="bi bi-eye"></i>
+                                                </button>
+
+                                                /
+                                                <button class="btn btn-sm btn-{{$client->blocked ? 'danger' : 'success'}} text-white"
+                                                        wire:click="changeBlocked({{$client}})"><i class="bi bi-{{$client->blocked ? 'lock' : 'unlock'}}"></i>
                                                 </button>
                                             </td>
                                         </tr>
@@ -187,7 +201,6 @@
                                             <button class="btn btn-sm btn-danger" wire:click="deleteDebt({{$debt}})">
                                                 <i
                                                     class="bi bi-trash"></i></button>
-                                        </td>
                                         </td>
                                     </tr>
                                 @endforeach

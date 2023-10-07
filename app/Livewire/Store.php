@@ -2,12 +2,14 @@
 
 namespace App\Livewire;
 
+use Jantinnerezo\LivewireAlert\LivewireAlert;
 use Illuminate\Database\Eloquent\Collection;
 use Livewire\Attributes\Rule;
 use Livewire\Component;
 
 class Store extends Component
 {
+    use LivewireAlert;
 
     public string $title = 'المخازن';
     public int $id = 0;
@@ -15,34 +17,38 @@ class Store extends Component
     public string $search = '';
     public Collection $stores;
 
-    protected function rules() {
+    protected function rules()
+    {
         return [
-            'storeName' => 'required|unique:stores,storeName,'.$this->id
+            'storeName' => 'required|unique:stores,storeName,' . $this->id
         ];
     }
 
-    protected function messages() {
+    protected function messages()
+    {
         return [
             'storeName.required' => 'الرجاء إدخال إسم المخزن',
             'storeName.unique' => 'هذا المخزن موجود مسبقاً'
         ];
     }
+
     public function save($id)
     {
 
         if ($this->validate()) {
             if ($this->id == 0) {
                 \App\Models\Store::create(['storeName' => $this->storeName]);
+                $this->alert('success', 'تم الحفظ بنجاح', ['timerProgressBar' => true]);
             } else {
                 $store = \App\Models\Store::find($id);
                 $store->storeName = $this->storeName;
                 $store->save();
+                $this->alert('success', 'تم التعديل بنجاح', ['timerProgressBar' => true]);
             }
             $this->id = 0;
             $this->storeName = '';
         }
 
-        session()->flash('success', 'تم الحفظ بنجاح');
 
     }
 
@@ -56,7 +62,7 @@ class Store extends Component
     {
         $store = \App\Models\Store::find($id);
         $store->delete();
-        session()->flash('success', 'تم الحذف بنجاح');
+        $this->alert('success', 'تم الحذف بنجاح', ['timerProgressBar' => true]);
 
     }
 

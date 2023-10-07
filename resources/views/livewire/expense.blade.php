@@ -35,11 +35,11 @@
                         <input type="text" wire:model="bank" class="form-control" placeholder="رقم الإيصال ..."
                                id="bank">
                         <div>
-                            @error('description') <span class="error text-danger">{{ $message }}</span> @enderror
+                            @error('bank') <span class="error text-danger">{{ $message }}</span> @enderror
                         </div>
 
                         <label for="amount" class="form-label">المبلغ</label>
-                        <input type="text" wire:model="amount" class="form-control" placeholder="المبلغ ....."
+                        <input type="text" wire:model.live="amount" class="form-control" placeholder="المبلغ ....."
                                name="amount" id="amount">
                         <div>
                             @error('amount') <span class="error text-danger">{{ $message }}</span> @enderror
@@ -52,8 +52,8 @@
                         </div>
                         <div class="d-grid mt-2">
                             <button
-                                @disabled(!Auth::user()->hasPermission('expenses-create')) class="btn btn- btn-primary">
-                                حفـــــــــــــــــــظ
+                                @disabled(!Auth::user()->hasPermission('expenses-create')) @disabled($amount <= 0) class="btn btn- btn-{{$id==0?'primary':'success'}}">
+                                {{$id == 0 ? 'حفـــــــــــــــــــظ' : 'تعـــــــــــــــديل'}}
                             </button>
                         </div>
 
