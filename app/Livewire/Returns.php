@@ -22,7 +22,7 @@ class Returns extends Component
     public float $price = 0;
     public float $quantity = 0;
     public float $amount = 0;
-    public float $quantityReturn = 0;
+    public float|null $quantityReturn = 0;
     public float $priceReturn = 0;
 
     public string $return_date = '';
@@ -74,45 +74,48 @@ class Returns extends Component
 
     public function calcQuantity()
     {
-        $this->quantity = $this->currentDetail['quantity'] - $this->quantityReturn;
+        $this->quantity = $this->currentDetail['quantity'] - floatval($this->quantityReturn);
         $this->amount = $this->quantity * $this->price;
-        $this->priceReturn = $this->currentDetail['price'] * $this->quantityReturn;
+        $this->priceReturn = $this->currentDetail['price'] * floatval($this->quantityReturn);
     }
 
     public function save()
     {
-        $debt = SaleDebt::where('id', $this->currentDetail['sale_id'])->where('paid', '!=', 0)->first();
+        $debt = SaleDebt::where('sale_id', $this->currentDetail['sale_id'])->where('paid', '!=', 0.0)->first();
 
         if ($this->id == 0) {
 
-            SaleDetail::where('id', $this->currentDetail['id'])->decrement('quantity', $this->quantityReturn);
+            SaleDetail::where('id', $this->currentDetail['id'])->decrement('quantity', floatval($this->quantityReturn));
 
-            \App\Models\Product::where('id', $this->currentDetail['product_id'])->increment('stock', $this->quantityReturn);
+            \App\Models\Product::where('id', $this->currentDetail['product_id'])->increment('stock', floatval($this->quantityReturn));
 
             \App\Models\Sale::where('id', $this->currentDetail['sale_id'])->decrement('total_amount', $this->priceReturn);
-
-
             if (isset($debt['paid'])) {
                 if ($debt['payment'] == 'cash') {
                     \App\Models\Safe::first()->decrement('currentBalance', $debt['paid']);
                 } else {
                     Bank::where('id', $debt['bank_id'])->decrement('currentBalance', $debt['paid']);
                 }
-                \App\Models\Client::where('id', $this->currentClient['id'])->decrement('currentBalance', $debt['paid']);
+
+                if ($this->buyer == 'client') {
+                    \App\Models\Client::where('id', $this->currentClient['id'])->decrement('currentBalance', $debt['paid']);
+                } elseif ($this->buyer == 'supplier') {
+                    \App\Models\Supplier::where('id', $this->currentClient['id'])->increment('currentBalance', $debt['paid']);
+                }
             }
 
             SaleReturn::create([
                 'sale_id' => $this->currentDetail['sale_id'],
                 'product_id' => $this->currentDetail['product_id'],
-                'quantity' => $this->quantityReturn,
+                'quantity' => floatval($this->quantityReturn),
                 'return_date' => $this->return_date,
                 'price' => $this->currentDetail['price']
             ]);
             $this->alert('success', 'تم الحفظ بنجاح', ['timerProgressBar' => true]);
         } else {
-            SaleDetail::where('sale_id', $this->currentDetail['sale_id'])->where('product_id', $this->currentDetail['product_id'])->increment('quantity', $this->quantityReturn);
+            SaleDetail::where('sale_id', $this->currentDetail['sale_id'])->where('product_id', $this->currentDetail['product_id'])->increment('quantity', floatval($this->quantityReturn));
 
-            \App\Models\Product::where('id', $this->currentDetail['product_id'])->decrement('stock', $this->quantityReturn);
+            \App\Models\Product::where('id', $this->currentDetail['product_id'])->decrement('stock', floatval($this->quantityReturn));
 
             \App\Models\Sale::where('id', $this->currentDetail['sale_id'])->increment('total_amount', $this->priceReturn);
 
@@ -123,7 +126,12 @@ class Returns extends Component
                 } else {
                     Bank::where('id', $debt['bank_id'])->decrement('currentBalance', $debt['paid']);
                 }
-                \App\Models\Client::where('id', $this->currentClient['id'])->decrement('currentBalance', $debt['paid']);
+                if ($this->buyer == 'client') {
+                    \App\Models\Client::where('id', $this->currentClient['id'])->decrement('currentBalance', $debt['paid']);
+                } elseif ($this->buyer == 'supplier') {
+                    \App\Models\Supplier::where('id', $this->currentClient['id'])->increment('currentBalance', $debt['paid']);
+
+                }
             }
 
             SaleReturn::where('id', $this->id)->update([
@@ -142,10 +150,15 @@ class Returns extends Component
         \App\Models\Sale::where('id', $return['sale_id'])->increment('total_amount', $return['quantity'] * $return['price']);
         SaleDetail::where('sale_id', $return['sale_id'])->where('product_id', $return['product_id'])->increment('quantity', $return['quantity']);
         \App\Models\Product::where('id', $return['product_id'])->decrement('stock', $return['quantity']);
-        $debt = SaleDebt::where('id', $this->currentDetail['sale_id'])->where('paid', '!=', 0)->first();
+        $debt = SaleDebt::where('id', $return['sale_id'])->where('paid', '!=', 0)->first();
 
         if (isset($debt['paid'])) {
-            \App\Models\Client::where('id', $this->currentClient['id'])->increment('currentBalance', $debt['paid']);
+
+            if ($this->buyer == 'client') {
+                \App\Models\Client::where('id', $this->currentClient['id'])->increment('currentBalance', $debt['paid']);
+            } elseif ($this->buyer == 'supplier') {
+                \App\Models\Supplier::where('id', $this->currentClient['id'])->decrement('currentBalance', $debt['paid']);
+            }
             if ($debt['payment'] == 'cash') {
                 \App\Models\Safe::first()->increment('currentBalance', $debt['paid']);
             } else {
@@ -156,9 +169,9 @@ class Returns extends Component
 
     }
 
-    public function resetData()
+    public function resetData($data = null)
     {
-        $this->reset('productName', 'editMode', 'amount', 'quantity', 'price', 'quantityReturn', 'clientSearch', 'currentClient', 'currentDetail', 'currentSale', 'saleSearch', 'return_date');
+        $this->reset('productName', 'editMode', 'amount', 'quantity', 'price', 'quantityReturn', 'clientSearch', 'currentDetail', 'currentSale', 'saleSearch', 'return_date', $data);
     }
 
     public function render()
@@ -170,8 +183,18 @@ class Returns extends Component
             $this->clients = \App\Models\Client::where('clientName', 'LIKE', '%' . $this->clientSearch . '%')->get();
         } elseif ($this->buyer == 'supplier') {
             $this->clients = \App\Models\Supplier::where('supplierName', 'LIKE', '%' . $this->clientSearch . '%')->get();
-        }        if (!empty($this->currentClient)) {
-            $this->sales = \App\Models\Sale::where('client_id', $this->currentClient['id'])->where('id', 'LIKE', '%' . $this->saleSearch . '%')->get();
+        } elseif ($this->buyer == 'employee') {
+            $this->clients = \App\Models\Employee::where('employeeName', 'LIKE', '%' . $this->clientSearch . '%')->get();
+        }
+        if (!empty($this->currentClient)) {
+            if ($this->buyer == 'client') {
+                $this->sales = \App\Models\Sale::where('client_id', $this->currentClient['id'])->where('id', 'LIKE', '%' . $this->saleSearch . '%')->get();
+            } elseif($this->buyer == 'employee') {
+                $this->sales = \App\Models\Sale::where('employee_id', $this->currentClient['id'])->where('id', 'LIKE', '%' . $this->saleSearch . '%')->get();
+            } elseif ($this->buyer == 'supplier') {
+                $this->sales = \App\Models\Sale::where('supplier_id', $this->currentClient['id'])->where('id', 'LIKE', '%' . $this->saleSearch . '%')->get();
+
+            }
         }
         return view('livewire.returns');
     }

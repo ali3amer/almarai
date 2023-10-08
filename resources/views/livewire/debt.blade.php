@@ -129,7 +129,7 @@
                         </div>
                         <div class="col">
                             <input readonly class="form-control text-center" type="text"
-                                   value="{{$currentClient[$buyer.'Name'] ?? ''}}" placeholder="المورد ....">
+                                   value="{{$currentClient[$buyer.'Name'] ?? ''}}" placeholder="العميل ....">
                         </div>
                     </div>
                     <div class="card-title mt-2">
@@ -155,7 +155,7 @@
                                     <tr>
                                         <td>{{$sale->id}}</td>
                                         <td>{{$sale->sale_date}}</td>
-                                        <td>{{$sale->total_amount - $sale->sale_debts_sum_paid}}</td>
+                                        <td>{{number_format($sale->total_amount - $sale->sale_debts_sum_paid, 2)}}</td>
                                         <td>
                                             <button class="btn btn-sm btn-info text-white" data-bs-toggle="modal"
                                                     data-bs-target="#showSaleModal" wire:click="showSale({{$sale}})"><i
@@ -225,6 +225,13 @@
                                 <input @disabled($payment == 'cash') type="text" wire:model="bank" id="bank"
                                        class="form-control text-center"
                                        placeholder="رقم الايصال ....">
+                            </div>
+
+                            <div class="col-3">
+                                <label for="bank">التخفيض</label>
+                                <input type="text" wire:model="discount" id="discount"
+                                       class="form-control text-center"
+                                       placeholder="التخفيض ....">
                             </div>
 
                             <div class="col-2 d-flex align-items-end">

@@ -17,6 +17,7 @@
                                     <div class="col-3">
                                         <select class="form-select" wire:model.live="buyer">
                                             <option value="client">عملاء</option>
+                                            <option value="employee">موظفين</option>
                                             <option value="supplier">موردين</option>
                                         </select>
                                     </div>
@@ -212,7 +213,7 @@
                         <div class="card-body">
                             <div class="card-title">
                                 <div class="row">
-                                    <div class="col-4"><h6>المنتجات المرجعه بفاترة رقم {{ $currentSale['id'] }}</h6></div>
+                                    <div class="col-4"><h6>المنتجات المرجعه بفاتورة رقم {{ $currentSale['id'] }}</h6></div>
                                     <div class="col"><h6>{{$currentSale['sale_date']}}</h6></div>
                                 </div>
                             </div>

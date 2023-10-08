@@ -21,6 +21,7 @@ return new class extends Migration
             $table->enum('payment', ['cash', 'bank']);
             $table->string('bank')->nullable();
             $table->decimal('paid', 8, 2);
+            $table->decimal('discount', 8, 2)->nullable();
             $table->decimal('client_balance', 8, 2)->nullable();
             $table->date('due_date');
             $table->unsignedBigInteger('gift_id')->nullable();
