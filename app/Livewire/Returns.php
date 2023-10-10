@@ -14,6 +14,9 @@ use mysql_xdevapi\CollectionRemove;
 class Returns extends Component
 {
     use LivewireAlert;
+    protected $listeners = [
+        'delete',
+    ];
     public string $title = 'المرتجعات';
 
     public string $productName = '';
@@ -22,7 +25,7 @@ class Returns extends Component
     public float $price = 0;
     public float $quantity = 0;
     public float $amount = 0;
-    public float|null $quantityReturn = 0;
+    public $quantityReturn = 0;
     public float $priceReturn = 0;
 
     public string $return_date = '';
@@ -84,23 +87,30 @@ class Returns extends Component
         $debt = SaleDebt::where('sale_id', $this->currentDetail['sale_id'])->where('paid', '!=', 0.0)->first();
 
         if ($this->id == 0) {
-
             SaleDetail::where('id', $this->currentDetail['id'])->decrement('quantity', floatval($this->quantityReturn));
 
             \App\Models\Product::where('id', $this->currentDetail['product_id'])->increment('stock', floatval($this->quantityReturn));
 
             \App\Models\Sale::where('id', $this->currentDetail['sale_id'])->decrement('total_amount', $this->priceReturn);
             if (isset($debt['paid'])) {
-                if ($debt['payment'] == 'cash') {
-                    \App\Models\Safe::first()->decrement('currentBalance', $debt['paid']);
+                if ($debt['paid'] >= $this->priceReturn) {
+                    if ($debt['payment'] == 'cash') {
+                        \App\Models\Safe::first()->decrement('currentBalance', $this->priceReturn);
+                    } else {
+                        Bank::where('id', $debt['bank_id'])->decrement('currentBalance', $this->priceReturn);
+                    }
                 } else {
-                    Bank::where('id', $debt['bank_id'])->decrement('currentBalance', $debt['paid']);
+                    if ($this->buyer == 'client') {
+                        \App\Models\Client::where('id', $this->currentClient['id'])->decrement('currentBalance', $this->priceReturn - $debt['paid']);
+                    } elseif ($this->buyer == 'supplier') {
+                        \App\Models\Supplier::where('id', $this->currentClient['id'])->increment('currentBalance', $this->priceReturn + $debt['paid']);
+                    }
                 }
-
+            } else {
                 if ($this->buyer == 'client') {
-                    \App\Models\Client::where('id', $this->currentClient['id'])->decrement('currentBalance', $debt['paid']);
+                    \App\Models\Client::where('id', $this->currentClient['id'])->decrement('currentBalance', $this->priceReturn);
                 } elseif ($this->buyer == 'supplier') {
-                    \App\Models\Supplier::where('id', $this->currentClient['id'])->increment('currentBalance', $debt['paid']);
+                    \App\Models\Supplier::where('id', $this->currentClient['id'])->increment('currentBalance', $this->priceReturn);
                 }
             }
 
@@ -121,16 +131,18 @@ class Returns extends Component
 
 
             if (isset($debt['paid'])) {
+                $return = SaleReturn::where('id', $this->id)->first();
                 if ($debt['payment'] == 'cash') {
-                    \App\Models\Safe::first()->decrement('currentBalance', $debt['paid']);
+                    \App\Models\Safe::first()->decrement('currentBalance', $return['quantity'] * $return['price']);
+                    \App\Models\Safe::first()->increment('currentBalance', $this->amount);
                 } else {
-                    Bank::where('id', $debt['bank_id'])->decrement('currentBalance', $debt['paid']);
+                    Bank::where('id', $debt['bank_id'])->decrement('currentBalance', $return['quantity'] * $return['price']);
+                    Bank::where('id', $debt['bank_id'])->increment('currentBalance', $this->amount);
                 }
                 if ($this->buyer == 'client') {
                     \App\Models\Client::where('id', $this->currentClient['id'])->decrement('currentBalance', $debt['paid']);
                 } elseif ($this->buyer == 'supplier') {
                     \App\Models\Supplier::where('id', $this->currentClient['id'])->increment('currentBalance', $debt['paid']);
-
                 }
             }
 
@@ -144,8 +156,24 @@ class Returns extends Component
         $this->resetData();
     }
 
-    public function delete($return)
+    public function deleteMessage($return)
     {
+        $this->confirm("  هل توافق على الحذف ؟", [
+            'inputAttributes' => ["return"=>$return],
+            'toast' => false,
+            'showConfirmButton' => true,
+            'confirmButtonText' => 'موافق',
+            'onConfirmed' => "delete",
+            'showCancelButton' => true,
+            'cancelButtonText' => 'إلغاء',
+            'confirmButtonColor' => '#dc2626',
+            'cancelButtonColor' => '#4b5563'
+        ]);
+    }
+
+    public function delete($data)
+    {
+        $return = $data['inputAttributes']['return'];
         SaleReturn::where('id', $return['id'])->delete();
         \App\Models\Sale::where('id', $return['sale_id'])->increment('total_amount', $return['quantity'] * $return['price']);
         SaleDetail::where('sale_id', $return['sale_id'])->where('product_id', $return['product_id'])->increment('quantity', $return['quantity']);

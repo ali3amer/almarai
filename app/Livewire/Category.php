@@ -9,6 +9,10 @@ use Illuminate\Database\Eloquent\Collection;
 class Category extends Component
 {
     use LivewireAlert;
+    protected $listeners = [
+        'delete'
+    ];
+
     public string $title = 'الأقسام';
     public int $id = 0;
     public string $categoryName = '';
@@ -55,9 +59,25 @@ class Category extends Component
         $this->categoryName = $category['categoryName'];
     }
 
-    public function delete($id)
+    public function deleteMessage($category)
     {
-        $category = \App\Models\Category::find($id);
+        $this->confirm("  هل توافق على حذف قسم  " . $category['categoryName'] .  "؟", [
+            'inputAttributes' => ["id"=>$category['id']],
+            'toast' => false,
+            'showConfirmButton' => true,
+            'confirmButtonText' => 'موافق',
+            'onConfirmed' => "delete",
+            "value" => $category['id'],
+            'showCancelButton' => true,
+            'cancelButtonText' => 'إلغاء',
+            'confirmButtonColor' => '#dc2626',
+            'cancelButtonColor' => '#4b5563'
+        ]);
+    }
+
+    public function delete($data)
+    {
+        $category = \App\Models\Category::find($data['inputAttributes']['id']);
         $category->delete();
         $this->alert('success', 'تم الحذف بنجاح', ['timerProgressBar' => true]);
 

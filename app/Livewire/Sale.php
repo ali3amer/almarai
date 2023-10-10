@@ -51,7 +51,7 @@ class Sale extends Component
     public function mount()
     {
         $this->currentClient = \App\Models\Client::find(1)->toArray();
-        $this->currentBalance = $this->currentClient['currentBalance'];
+        $this->currentBalance = $this->buyer != 'employee' ? $this->currentClient['currentBalance'] : 0;
         $this->banks = Bank::all();
     }
 
@@ -222,7 +222,8 @@ class Sale extends Component
     {
         $this->currentClient = [];
         $this->currentClient = $client;
-        $this->currentBalance = $this->currentClient['currentBalance'];
+        $this->currentClient['blocked'] = $this->buyer != 'employee'? $this->currentClient['blocked'] : false;
+        $this->currentBalance = $this->buyer != 'employee' ? $this->currentClient['currentBalance'] : 0;
     }
 
     public function chooseProduct($product)
@@ -275,9 +276,10 @@ class Sale extends Component
     {
         $this->editMode = !$this->editMode;
         $this->total_amount = $sale['total_amount'];
-        $this->paid = $sale['sale_debts'][0]['paid'];
-        $this->payment = $sale['sale_debts'][0]['payment'];
-        $this->bank = $sale['sale_debts'][0]['bank'];
+        $this->paid = $sale['sale_debts'][1]['paid'] ?? $sale['sale_debts'][0]['paid'];
+        $this->payment = $sale['sale_debts'][1]['payment'] ?? $sale['sale_debts'][0]['payment'];
+        $this->bank = $sale['sale_debts'][1]['bank'] ?? $sale['sale_debts'][0]['bank'];
+        $this->remainder = $sale['sale_debts'][1]['remainder'] ?? $sale['sale_debts'][0]['remainder'];
         $this->sale_date = $sale['sale_date'];
         $this->id = $sale['id'];
         foreach ($sale['sale_details'] as $detail) {

@@ -6,19 +6,19 @@
             <div class="card">
                 <div class="card-body">
                     <label for="name">الإسم</label>
-                    <input type="text" id="name" wire:model="name" class="form-control text-center my-2 @error('name') is-invalid @enderror"
+                    <input autocomplete="off"  type="text" id="name" wire:model="name" class="form-control text-center my-2 @error('name') is-invalid @enderror"
                            placeholder="إسم المستخدم ....">
                     <div>
                         @error('name') <span class="error text-danger">{{ $message }}</span> @enderror
                     </div>
                     <label for="username" class="mt-2">إسم الدخول</label>
-                    <input type="text" id="username" wire:model="username" class="form-control text-center my-2 @error('username') is-invalid @enderror"
+                    <input autocomplete="off"  type="text" id="username" wire:model="username" class="form-control text-center my-2 @error('username') is-invalid @enderror"
                            placeholder="إسم الالدخول ....">
                     <div>
                         @error('username') <span class="error text-danger">{{ $message }}</span> @enderror
                     </div>
                     <label for="password" class="mt-2">كلمة المرور</label>
-                        <input type="password" id="password" wire:model="password" class="form-control text-center my-2  @error('password') is-invalid @enderror"
+                        <input autocomplete="off"  type="password" id="password" wire:model="password" class="form-control text-center my-2  @error('password') is-invalid @enderror"
                                placeholder="كلمة المرور ....">
                     @error('password') <span class="error text-danger">{{ $message }}</span> @enderror
 
@@ -61,7 +61,7 @@
         <div class="col-8">
             <div class="card">
                 <div class="card-header">
-                    <input type="text" class="form-control w-50" placeholder="بحث ...." wire:model.live="userSearch">
+                    <input autocomplete="off"  type="text" class="form-control w-50" placeholder="بحث ...." wire:model.live="userSearch">
                 </div>
                 <div class="card-body">
                     <div class="scroll">
@@ -84,7 +84,7 @@
                                         <button class="btn btn-sm btn-info text-white" wire:click="edit({{$user}})"><i
                                                 class="bi bi-pen"></i></button>
                                         /
-                                        <button class="btn btn-sm btn-danger" wire:click="delete({{$user->id}})"><i
+                                        <button class="btn btn-sm btn-danger" wire:click="deleteMessage({{$user}})"><i
                                                 class="bi bi-trash"></i></button>
                                     </td>
                                 </tr>

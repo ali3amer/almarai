@@ -7,7 +7,7 @@
                 <div class="card-body">
                     <form action="" wire:submit="save({{ $id }})">
                         <label for="storeName" class="form-label">إسم المخزن</label>
-                        <input type="text" wire:model="storeName" autocomplete="off" autofocus class="form-control @error('storeName') is-invalid @enderror" placeholder="إسم المخزن ..." id="storeName">
+                        <input autocomplete="off"  type="text" wire:model="storeName" autocomplete="off" autofocus class="form-control @error('storeName') is-invalid @enderror" placeholder="إسم المخزن ..." id="storeName">
                         <div>
                             @error('storeName') <span class="error text-danger">{{ $message }}</span> @enderror
                         </div>
@@ -22,7 +22,7 @@
         <div class="col-8">
             <div class="card">
                 <div class="card-header">
-                    <input wire:model.live="search" class="form-control w-50" placeholder="بحث ......">
+                    <input autocomplete="off"  wire:model.live="search" class="form-control w-50" placeholder="بحث ......">
                 </div>
 
                 @permission('stores-read')
@@ -43,7 +43,7 @@
                                     <td>{{ $store->storeName }}</td>
                                     <td>
                                         <button class="btn btn-sm btn-info text-white" @disabled(!Auth::user()->hasPermission('stores-update')) wire:click="edit({{$store}})"><i class="bi bi-pen"></i></button> /
-                                        <button class="btn btn-sm btn-danger" @disabled(!Auth::user()->hasPermission('stores-delete') || count($store->products) > 0)  wire:click="delete({{$store->id}})"><i class="bi bi-trash"></i></button>
+                                        <button class="btn btn-sm btn-danger" @disabled(!Auth::user()->hasPermission('stores-delete') || count($store->products) > 0)  wire:click="deleteMessage({{$store}})"><i class="bi bi-trash"></i></button>
                                     </td>
                                 </tr>
                             @endforeach

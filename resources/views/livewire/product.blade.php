@@ -8,14 +8,14 @@
                 <div class="card-body">
                     <form action="" wire:submit="save({{ $form->id }})">
                         <label for="productName" class="form-label">إسم المنتج</label>
-                        <input type="text" wire:model="form.productName" class="form-control @error('form.productName') is-invalid @enderror"
+                        <input type="text" autocomplete="off"  wire:model="form.productName" class="form-control @error('form.productName') is-invalid @enderror"
                                placeholder="إسم المنتج ..." id="productName">
                         <div>
                             @error('form.productName') <span class="error text-danger">{{ $message }}</span> @enderror
                         </div>
 
                         <label for="unit" class="form-label">الوحده</label>
-                        <input type="text" wire:model="form.unit" class="form-control"
+                        <input type="text" autocomplete="off"  wire:model="form.unit" class="form-control"
                                placeholder="الوحده ..." id="unit">
 
 
@@ -44,13 +44,13 @@
                         </div>
 
                         <label for="sale_price" class="form-label">سعر البيع</label>
-                        <input type="text" wire:model="form.sale_price" class="form-control @error('form.sale_price') is-invalid @enderror" placeholder="السعر البيع..." id="productName">
+                        <input type="text" autocomplete="off"  wire:model="form.sale_price" class="form-control @error('form.sale_price') is-invalid @enderror" placeholder="السعر البيع..." id="productName">
                         <div>
                             @error('form.sale_price') <span class="error text-danger">{{ $message }}</span> @enderror
                         </div>
 
                         <label for="purchase_price" class="form-label">سعر الجرد</label>
-                        <input type="text" wire:model="form.purchase_price" class="form-control @error('form.purchase_price') is-invalid @enderror" placeholder="السعر الجرد ..." id="purchase_price">
+                        <input type="text" autocomplete="off"  wire:model="form.purchase_price" class="form-control @error('form.purchase_price') is-invalid @enderror" placeholder="السعر الجرد ..." id="purchase_price">
                         <div>
                             @error('form.purchase_price') <span class="error text-danger">{{ $message }}</span> @enderror
                         </div>
@@ -121,7 +121,7 @@
                                                 <i class="bi bi-pen"></i>
                                             </button>
                                             /
-                                            <button @disabled(!Auth::user()->hasPermission('products-delete') || count($product->saleDetails) > 0) class="btn btn-sm btn-danger" wire:click="delete({{$product->id}})">
+                                            <button @disabled(!Auth::user()->hasPermission('products-delete') || count($product->saleDetails) > 0) class="btn btn-sm btn-danger" wire:click="deleteMessage({{$product}})">
                                                 <i class="bi bi-trash"></i>
                                             </button>
                                         </td>

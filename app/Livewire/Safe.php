@@ -5,10 +5,16 @@ namespace App\Livewire;
 use App\Models\Bank;
 use App\Models\Transfer;
 use Illuminate\Database\Eloquent\Collection;
+use Jantinnerezo\LivewireAlert\LivewireAlert;
 use Livewire\Component;
 
 class Safe extends Component
 {
+    use LivewireAlert;
+    protected $listeners = [
+        'deleteTransfer',
+    ];
+
     public string $title = 'الخزنه';
 
     public int $id = 0;
@@ -71,10 +77,10 @@ class Safe extends Component
                 Bank::where('id', $this->bank_id)->decrement('currentBalance', $this->transfer_amount);
                 \App\Models\Safe::first()->increment('currentBalance', $this->transfer_amount);
             }
-            session()->flash('success', 'تم الحفظ بنجاح');
+            $this->alert('success', 'تم الحفظ بنجاح', ['timerProgressBar' => true]);
         } else {
             $transfer = Transfer::where('id', $this->transferId)->first();
-            if ($transfer['cash_to_bank'] == 'cash_to_bank') {
+            if ($transfer['transfer_type'] == 'cash_to_bank') {
                 Bank::where('id', $transfer['bank_id'])->decrement('currentBalance', $transfer['transfer_amount']);
                 \App\Models\Safe::first()->increment('currentBalance', $transfer['transfer_amount']);
             } else {
@@ -90,7 +96,7 @@ class Safe extends Component
                 'transfer_date' => $this->transfer_date,
                 'note' => $this->note,
             ]);
-            session()->flash('success', 'تم التعديل بنجاح');
+            $this->alert('success', 'تم التعديل بنجاح', ['timerProgressBar' => true]);
 
         }
         $this->resetData();
@@ -106,16 +112,34 @@ class Safe extends Component
         $this->note = $transfer['note'];
     }
 
-    public function deleteTransfer($transfer)
+    public function deleteMessage($transfer)
     {
+        $this->confirm("  هل توافق على الحذف ؟", [
+            'inputAttributes' => ["transfer"=>$transfer],
+            'toast' => false,
+            'showConfirmButton' => true,
+            'confirmButtonText' => 'موافق',
+            'onConfirmed' => "deleteTransfer",
+            'showCancelButton' => true,
+            'cancelButtonText' => 'إلغاء',
+            'confirmButtonColor' => '#dc2626',
+            'cancelButtonColor' => '#4b5563'
+        ]);
+    }
+
+    public function deleteTransfer($data)
+    {
+        $transfer = $data['inputAttributes']['transfer'];
         Transfer::where('id', $transfer['id'])->delete();
         if ($transfer['transfer_type'] == 'cash_to_bank') {
-            \App\Models\Safe::first()->decrement('currentBalance', $transfer['transfer_amount']);
-            Bank::where('id', $transfer['bank_id'])->first()->increment('currentBalance', $transfer['transfer_amount']);
-        } else {
             \App\Models\Safe::first()->increment('currentBalance', $transfer['transfer_amount']);
             Bank::where('id', $transfer['bank_id'])->first()->decrement('currentBalance', $transfer['transfer_amount']);
+        } else {
+            \App\Models\Safe::first()->decrement('currentBalance', $transfer['transfer_amount']);
+            Bank::where('id', $transfer['bank_id'])->first()->increment('currentBalance', $transfer['transfer_amount']);
         }
+        $this->alert('success', 'تم الحذف بنجاح', ['timerProgressBar' => true]);
+
     }
 
     public function resetData()

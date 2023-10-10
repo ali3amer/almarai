@@ -20,7 +20,7 @@
                                             <option value="supplier">موردين</option>
                                         </select>
                                     </div>
-                                    <div class="col-4"><input type="text" placeholder="بحث ..." class="form-control"
+                                    <div class="col-4"><input autocomplete="off" type="text" placeholder="بحث ..." class="form-control"
                                                               wire:model.live="clientSearch"></div>
                                 </div>
                             </div>
@@ -135,7 +135,7 @@
                     <div class="card-title mt-2">
                         <div class="row">
                             <div class="col-3 align-self-center"><h5>الفواتير</h5></div>
-                            <div class="col"><input type="text" wire:model.live="saleSearch"
+                            <div class="col"><input type="text" autocomplete="off" wire:model.live="saleSearch"
                                                     class="form-control text-center" placeholder="بحث ....."></div>
                         </div>
                     </div>
@@ -183,7 +183,7 @@
                         <div class="row">
                             <div class="col-3">
                                 <label for="debtPaid">المبلغ المدفوع</label>
-                                <input type="text" wire:model.live="debtPaid" id="debtPaid"
+                                <input type="text" wire:model.live="debtPaid" wire:keydown="calcRemainder()" autocomplete="off" id="debtPaid"
                                        class="form-control text-center"
                                        placeholder="المدفوع ....">
                             </div>
@@ -222,14 +222,14 @@
 
                             <div class="col-3">
                                 <label for="bank">رقم الايصال</label>
-                                <input @disabled($payment == 'cash') type="text" wire:model="bank" id="bank"
+                                <input @disabled($payment == 'cash') type="text" autocomplete="off" wire:model="bank" id="bank"
                                        class="form-control text-center"
                                        placeholder="رقم الايصال ....">
                             </div>
 
                             <div class="col-3">
                                 <label for="bank">التخفيض</label>
-                                <input type="text" wire:model="discount" id="discount"
+                                <input type="text" wire:model="discount" @disabled(empty($currentDebt)) wire:keydown="calcRemainder()" autocomplete="off" id="discount"
                                        class="form-control text-center"
                                        placeholder="التخفيض ....">
                             </div>

@@ -13,7 +13,11 @@ use Livewire\Component;
 
 class Employee extends Component
 {
-use LivewireAlert;
+    use LivewireAlert;
+    protected $listeners = [
+        'delete',
+        'deleteGift'
+    ];
     public string $title = 'الموظفين';
     public int $id = 0;
     public int $bank_id = 0;
@@ -42,18 +46,21 @@ use LivewireAlert;
     public Collection $sales;
     public array $currentGift = [];
 
-    protected function rules() {
+    protected function rules()
+    {
         return [
-            'employeeName' => 'required|unique:employees,employeeName,'.$this->id
+            'employeeName' => 'required|unique:employees,employeeName,' . $this->id
         ];
     }
 
-    protected function messages() {
+    protected function messages()
+    {
         return [
             'employeeName.required' => 'الرجاء إدخال إسم الموظف',
             'employeeName.unique' => 'هذا المورد موجود مسبقاً'
         ];
     }
+
     public function save($id)
     {
 
@@ -84,9 +91,40 @@ use LivewireAlert;
         $this->salary = $employee['salary'];
     }
 
-    public function delete($id)
+    public function deleteMessage($employee)
     {
-        $employee = \App\Models\Employee::find($id);
+        $this->confirm("  هل توافق على حذف الموظف  " . $employee['employeeName'] . "؟", [
+            'inputAttributes' => ["id" => $employee['id']],
+            'toast' => false,
+            'showConfirmButton' => true,
+            'confirmButtonText' => 'موافق',
+            'onConfirmed' => "delete",
+            "value" => $employee['id'],
+            'showCancelButton' => true,
+            'cancelButtonText' => 'إلغاء',
+            'confirmButtonColor' => '#dc2626',
+            'cancelButtonColor' => '#4b5563'
+        ]);
+    }
+
+    public function deleteGiftMessage($gift)
+    {
+        $this->confirm("  هل توافق على الحذف؟  " , [
+            'inputAttributes' => ["id" => $gift['id']],
+            'toast' => false,
+            'showConfirmButton' => true,
+            'confirmButtonText' => 'موافق',
+            'onConfirmed' => "deleteGift",
+            'showCancelButton' => true,
+            'cancelButtonText' => 'إلغاء',
+            'confirmButtonColor' => '#dc2626',
+            'cancelButtonColor' => '#4b5563'
+        ]);
+    }
+
+    public function delete($data)
+    {
+        $employee = \App\Models\Employee::find($data['inputAttributes']['id']);
         $employee->delete();
         $this->alert('success', 'تم الحذف بنجاح', ['timerProgressBar' => true]);
 
@@ -258,9 +296,9 @@ use LivewireAlert;
 
     }
 
-    public function deleteGift($id)
+    public function deleteGift($data)
     {
-        $gift = EmployeeGift::where('id', $id)->first();
+        $gift = EmployeeGift::where('id', $data['inputAttributes']['id'])->first();
         if ($gift['payment'] == 'cash') {
             \App\Models\Safe::first()->increment('currentBalance', $gift['gift_amount']);
         } else {

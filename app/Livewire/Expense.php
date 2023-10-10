@@ -12,7 +12,9 @@ use Livewire\Component;
 class Expense extends Component
 {
     use LivewireAlert;
-
+    protected $listeners = [
+        'delete'
+    ];
     public string $title = 'المصروفات';
     public int $id = 0;
     #[Rule('required', message: 'هذا الحقل مطلوب')]
@@ -92,9 +94,25 @@ class Expense extends Component
         $this->expense_date = $expense['expense_date'];
     }
 
-    public function delete($id)
+    public function deleteMessage($expense)
     {
-        $expense = \App\Models\Expense::find($id);
+        $this->confirm("  هل توافق على حذف   " . $expense['description'] . "؟", [
+            'inputAttributes' => ["id" => $expense['id']],
+            'toast' => false,
+            'showConfirmButton' => true,
+            'confirmButtonText' => 'موافق',
+            'onConfirmed' => "delete",
+            "value" => $expense['id'],
+            'showCancelButton' => true,
+            'cancelButtonText' => 'إلغاء',
+            'confirmButtonColor' => '#dc2626',
+            'cancelButtonColor' => '#4b5563'
+        ]);
+    }
+
+    public function delete($data)
+    {
+        $expense = \App\Models\Expense::find($data['inputAttributes']['id']);
         if ($expense['payment'] == 'cash') {
             \App\Models\Safe::first()->increment('currentBalance', $expense['amount']);
         } else {

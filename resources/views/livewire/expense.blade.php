@@ -7,7 +7,7 @@
                 <div class="card-body">
                     <form action="" wire:submit="save({{ $id }})">
                         <label for="description" class="form-label">البيان</label>
-                        <input type="text" wire:model="description" class="form-control" placeholder="البيان ..."
+                        <input type="text" autocomplete="off" wire:model="description" class="form-control" placeholder="البيان ..."
                                name="description" id="description">
                         <div>
                             @error('description') <span class="error text-danger">{{ $message }}</span> @enderror
@@ -32,20 +32,20 @@
                         </div>
 
                         <label for="bank" class="form-label">رقم الإيصال</label>
-                        <input type="text" wire:model="bank" class="form-control" placeholder="رقم الإيصال ..."
+                        <input type="text" autocomplete="off" wire:model="bank" class="form-control" placeholder="رقم الإيصال ..."
                                id="bank">
                         <div>
                             @error('bank') <span class="error text-danger">{{ $message }}</span> @enderror
                         </div>
 
                         <label for="amount" class="form-label">المبلغ</label>
-                        <input type="text" wire:model.live="amount" class="form-control" placeholder="المبلغ ....."
+                        <input type="text" autocomplete="off" wire:model.live="amount" class="form-control" placeholder="المبلغ ....."
                                name="amount" id="amount">
                         <div>
                             @error('amount') <span class="error text-danger">{{ $message }}</span> @enderror
                         </div>
                         <label for="expense_date" class="form-label">التاريخ</label>
-                        <input type="date" wire:model="expense_date" class="form-control" placeholder="التاريخ ....."
+                        <input type="date" autocomplete="off" wire:model="expense_date" class="form-control" placeholder="التاريخ ....."
                                name="expense_date" id="expense_date">
                         <div>
                             @error('expense_date') <span class="error text-danger">{{ $message }}</span> @enderror
@@ -64,7 +64,7 @@
         <div class="col-8">
             <div class="card">
                 <div class="card-header">
-                    <input wire:model.live="search" class="form-control w-50" placeholder="بحث ......">
+                    <input autocomplete="off" wire:model.live="search" class="form-control w-50" placeholder="بحث ......">
                 </div>
 
                 <div class="card-body">
@@ -93,7 +93,7 @@
                                                 <i class="bi bi-pen"></i></button>
                                             /
                                             <button class="btn btn-sm btn-danger"
-                                                    @disabled(!Auth::user()->hasPermission('expenses-delete')) wire:click="delete({{$expense->id}})">
+                                                    @disabled(!Auth::user()->hasPermission('expenses-delete')) wire:click="deleteMessage({{$expense}})">
                                                 <i class="bi bi-trash"></i></button>
                                         </td>
                                     </tr>

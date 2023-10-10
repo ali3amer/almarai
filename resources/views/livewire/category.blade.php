@@ -7,7 +7,7 @@
                 <div class="card-body">
                     <form action="" wire:submit="save({{ $id }})">
                         <label for="categoryName" class="form-label">إسم القسم</label>
-                        <input type="text" wire:model="categoryName" class="form-control @error('categoryName') is-invalid @enderror" placeholder="إسم القسم ..." id="categoryName">
+                        <input type="text" wire:model="categoryName" autocomplete="off" class="form-control @error('categoryName') is-invalid @enderror" placeholder="إسم القسم ..." id="categoryName">
                         <div>
                             @error('categoryName') <span class="error text-danger">{{ $message }}</span> @enderror
                         </div>
@@ -43,7 +43,7 @@
                                         <td>{{ $category->categoryName }}</td>
                                         <td>
                                             <button class="btn btn-sm btn-info text-white" @disabled(!Auth::user()->hasPermission('categories-update')) wire:click="edit({{$category}})"><i class="bi bi-pen"></i></button> /
-                                            <button class="btn btn-sm btn-danger" @disabled(!Auth::user()->hasPermission('categories-delete') || count($category->products) > 0) wire:click="delete({{$category->id}})"><i class="bi bi-trash"></i></button>
+                                            <button class="btn btn-sm btn-danger" @disabled(!Auth::user()->hasPermission('categories-delete') || count($category->products) > 0) wire:click="deleteMessage({{$category}})"><i class="bi bi-trash"></i></button>
                                         </td>
                                     </tr>
                                 @endforeach

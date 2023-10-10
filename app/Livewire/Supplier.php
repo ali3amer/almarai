@@ -9,6 +9,9 @@ use Livewire\Component;
 class Supplier extends Component
 {
     use LivewireAlert;
+    protected $listeners = [
+        'delete'
+    ];
     public string $title = 'الموردين';
     public int $id = 0;
     public string $supplierName = '';
@@ -68,9 +71,24 @@ class Supplier extends Component
         $this->initialBalance = $supplier['initialBalance'];
     }
 
-    public function delete($id)
+    public function deleteMessage($supplier)
     {
-        $supplier = \App\Models\Supplier::find($id);
+        $this->confirm("  هل توافق على حذف المورد  " . $supplier['supplierName'] .  "؟", [
+            'inputAttributes' => ["id"=>$supplier['id']],
+            'toast' => false,
+            'showConfirmButton' => true,
+            'confirmButtonText' => 'موافق',
+            'onConfirmed' => "delete",
+            'showCancelButton' => true,
+            'cancelButtonText' => 'إلغاء',
+            'confirmButtonColor' => '#dc2626',
+            'cancelButtonColor' => '#4b5563'
+        ]);
+    }
+
+    public function delete($data)
+    {
+        $supplier = \App\Models\Supplier::find($data['inputAttributes']['id']);
         $supplier->delete();
         $this->alert('success', 'تم الحذف بنجاح', ['timerProgressBar' => true]);
 

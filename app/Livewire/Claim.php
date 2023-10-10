@@ -31,11 +31,13 @@ class Claim extends Component
     public float $remainder = 0;
     public float $debtRemainder = 0;
     public string $bank = '';
-    public int $bank_id = 1;
+    public int|null $bank_id = 1;
     public string $due_date = '';
     public string $payment = 'cash';
     public array $debts = [];
     public int $debtId = 0;
+    public array $currentDebt = [];
+    public $discount = 0;
 
     public function chooseSupplier($supplier)
     {
@@ -141,19 +143,25 @@ class Claim extends Component
 
         }
         $this->debts = PurchaseDebt::where('purchase_id', $this->currentPurchase['id'])->get()->toArray();
-        $this->reset('debtId', 'debtPaid', 'remainder', 'bank', 'payment', 'due_date');
+        $this->reset('debtId', 'debtPaid', 'currentDebt','remainder', 'bank', 'payment', 'due_date');
     }
 
     public function chooseDebt($id)
     {
         $this->debtId = $id;
-        $debt = PurchaseDebt::where('id', $id)->first();
+        $debt = PurchaseDebt::where('id', $id)->first()->toArray();
+        $this->currentDebt = $debt;
         $this->debtPaid = $debt['paid'];
         $this->bank = $debt['bank'];
         $this->bank_id = $debt['bank_id'];
         $this->payment = $debt['payment'];
-        $this->debtRemainder = floatval($debt['reminder']);
+        $this->debtRemainder = floatval($debt['remainder']);
         $this->due_date = $debt['due_date'];
+    }
+
+    public function calcRemainder()
+    {
+        $this->debtRemainder = $this->currentDebt['remainder'] - floatval($this->debtPaid) - floatval($this->discount);
     }
 
     public function deleteDebt($id)

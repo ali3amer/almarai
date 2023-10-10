@@ -14,6 +14,10 @@ use Livewire\Component;
 class Client extends Component
 {
     use LivewireAlert;
+    protected $listeners = [
+        'delete',
+        'deleteDebt'
+    ];
     public string $title = 'العملاء';
     public int $id = 0;
     public int $debtId = 0;
@@ -104,9 +108,24 @@ class Client extends Component
 
     }
 
-    public function delete($id)
+    public function deleteMessage($client)
     {
-        $client = \App\Models\Client::find($id);
+        $this->confirm("  هل توافق على حذف العميل  " . $client['clientName'] .  "؟", [
+            'inputAttributes' => ["id"=>$client['id']],
+            'toast' => false,
+            'showConfirmButton' => true,
+            'confirmButtonText' => 'موافق',
+            'onConfirmed' => "delete",
+            'showCancelButton' => true,
+            'cancelButtonText' => 'إلغاء',
+            'confirmButtonColor' => '#dc2626',
+            'cancelButtonColor' => '#4b5563'
+        ]);
+    }
+
+    public function delete($data)
+    {
+        $client = \App\Models\Client::find($data['inputAttributes']['id']);
         $client->delete();
         $this->alert('success', 'تم الحذف بنجاح', ['timerProgressBar' => true]);
 
@@ -242,8 +261,23 @@ class Client extends Component
         $this->due_date = $debt['due_date'];
     }
 
-    public function deleteDebt($debt)
+    public function deleteDebtMessage($debt)
     {
+        $this->confirm("  هل توافق على الحذف؟", [
+            'inputAttributes' => ["debt"=>$debt],
+            'toast' => false,
+            'showConfirmButton' => true,
+            'confirmButtonText' => 'موافق',
+            'onConfirmed' => "deleteDebt",
+            'showCancelButton' => true,
+            'cancelButtonText' => 'إلغاء',
+            'confirmButtonColor' => '#dc2626',
+            'cancelButtonColor' => '#4b5563'
+        ]);
+    }
+    public function deleteDebt($data)
+    {
+        $debt = $data['inputAttributes']['debt'];
         if ($debt['type'] == 'debt') {
             $this->currentClient['currentBalance'] -= $debt['debt_amount'];
             \App\Models\Client::where('id', $this->currentClient['id'])->decrement('currentBalance', $debt['debt_amount']);

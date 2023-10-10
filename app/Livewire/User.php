@@ -12,6 +12,9 @@ use Livewire\Component;
 class User extends Component
 {
     use LivewireAlert;
+    protected $listeners = [
+        'delete',
+    ];
     public string $title = 'المستخدمين';
     public int $id = 0;
     #[Rule('required', message: 'أدخل إسم المستخدم كامل')]
@@ -100,9 +103,23 @@ class User extends Component
         $this->username = $user['username'];
     }
 
-    public function delete($id)
+    public function deleteMessage($user)
     {
-        \App\Models\User::where('id', $id)->delete();
+        $this->confirm("  هل توافق على حذف المستخدم  " . $user['name'] .  "؟", [
+            'inputAttributes' => ["id"=>$user['id']],
+            'toast' => false,
+            'showConfirmButton' => true,
+            'confirmButtonText' => 'موافق',
+            'onConfirmed' => "delete",
+            'showCancelButton' => true,
+            'cancelButtonText' => 'إلغاء',
+            'confirmButtonColor' => '#dc2626',
+            'cancelButtonColor' => '#4b5563'
+        ]);
+    }
+    public function delete($data)
+    {
+        \App\Models\User::where('id', $data['inputAttributes']['id'])->delete();
         $this->alert('success', 'تم التعديل بنجاح', ['timerProgressBar' => true]);
     }
 

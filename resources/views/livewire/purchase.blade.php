@@ -104,7 +104,7 @@
                         <div class="card-title mt-2">
                             <div class="row">
                                 <div class="col-4 align-self-center"><h5>المنتجات</h5></div>
-                                <div class="col-8"><input id="productSearch" type="text" placeholder="بحث ..."
+                                <div class="col-8"><input autocomplete="off" id="productSearch" type="text" placeholder="بحث ..."
                                                           wire:keydown.enter="chooseProduct({{$products[0]}})"
                                                           class="form-control"
                                                           wire:model.live="productSearch" autofocus></div>
@@ -149,13 +149,13 @@
                     <div class="card">
                             <div class="card-body">
                                 <label for="productName">إسم المنتج</label>
-                                <input type="text" id="productName" class="form-control" disabled
+                                <input type="text" autocomplete="off"  id="productName" class="form-control" disabled
                                        wire:model="currentProduct.productName">
                                 <label for="purchase_price">سعر الوحده</label>
-                                <input type="text" id="purchase_price" class="form-control"
+                                <input type="text" autocomplete="off"  id="purchase_price" class="form-control"
                                        {{ empty($currentProduct) ? 'disabled' : '' }} wire:model.live="currentProduct.purchase_price">
                                 <label for="quantity">الكميه</label>
-                                <input wire:keydown.enter="addToCart()" type="text" id="quantity" class="form-control"
+                                <input autocomplete="off" wire:keydown.enter="addToCart()" type="text" id="quantity" class="form-control"
                                        {{ empty($currentProduct) ? 'disabled' : '' }} wire:model.live="currentProduct.quantity">
                                 <label for="amount">الجمله</label>
                                 <input type="text" class="form-control" disabled
@@ -188,7 +188,7 @@
                                 </div>
 
                                 <div class="row mt-1">
-                                    <div class="col-4"><input type="text" placeholder="رقم الاشعار ....."
+                                    <div class="col-4"><input type="text" autocomplete="off"  placeholder="رقم الاشعار ....."
                                                               @disabled($payment == 'cash') wire:model.live="bank"
                                                               class="form-control"></div>
 
@@ -238,7 +238,7 @@
                                     </tr>
                                     <tr>
                                         <td>المدفوع</td>
-                                        <td><input type="text" min="0" wire:keydown.debounce.150ms="calcRemainder()"
+                                        <td><input type="text" autocomplete="off"  min="0" wire:keydown.debounce.150ms="calcRemainder()"
                                                    wire:model.live.debounce.150ms="paid"
                                                    class="form-control text-center">
                                         </td>
@@ -262,7 +262,7 @@
                                 <div class="row">
                                     <div class="col-3"><h5>الفواتير</h5></div>
                                     <div class="col-9">
-                                        <input type="text" placeholder="بحث ..." class="form-control mb-2 text-center"
+                                        <input type="text" autocomplete="off"  placeholder="بحث ..." class="form-control mb-2 text-center"
                                                wire:model.live="purchaseSearch">
                                     </div>
                                 </div>
@@ -310,7 +310,11 @@
                                                             </tr>
                                                             <tr>
                                                                 <td>المدفوع:</td>
-                                                                <td></td>
+                                                                <td>{{number_format($purchase->purchaseDebts->sum('paid'), 2)}}</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>المتبقي:</td>
+                                                                <td>{{number_format($purchase->purchaseDebts->last()->remainder, 2)}}</td>
                                                             </tr>
                                                             </tbody>
                                                         </table>
@@ -332,7 +336,7 @@
                         <div class="card-title">
                             <div class="row">
                                 <div class="col-4 align-self-center"><h5>العملاء</h5></div>
-                                <div class="col-8"><input type="text" placeholder="بحث ..." class="form-control"
+                                <div class="col-8"><input type="text" autocomplete="off"  placeholder="بحث ..." class="form-control"
                                                           wire:keydown.enter="chooseSupplier({{$suppliers[0]}})"
                                                           wire:model.live="supplierSearch"></div>
                             </div>

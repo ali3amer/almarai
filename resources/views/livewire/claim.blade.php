@@ -14,7 +14,7 @@
                             <div class="card-title">
                                 <div class="row">
                                     <div class="col-4 align-self-center"><h5>الموردين</h5></div>
-                                    <div class="col-8"><input type="text" placeholder="بحث ..." class="form-control"
+                                    <div class="col-8"><input type="text" autocomplete="off" placeholder="بحث ..." class="form-control"
                                                               wire:model.live="supplierSearch"></div>
                                 </div>
                             </div>
@@ -127,7 +127,7 @@
                     <div class="card-title mt-2">
                         <div class="row">
                             <div class="col-3 align-self-center"><h5>الفواتير</h5></div>
-                            <div class="col"><input type="text" wire:model.live="purchaseSearch" class="form-control text-center" placeholder="بحث ....."></div>
+                            <div class="col"><input type="text" autocomplete="off" wire:model.live="purchaseSearch" class="form-control text-center" placeholder="بحث ....."></div>
                         </div>
                     </div>
                     <div class="scroll">
@@ -173,19 +173,19 @@
                         <div class="row">
                             <div class="col-3">
                                 <label for="debtPaid">المبلغ المدفوع</label>
-                                <input type="text" wire:model.live="debtPaid" id="debtPaid" class="form-control text-center"
+                                <input type="text" wire:model.live="debtPaid" wire:keydown="calcRemainder()" autocomplete="off" id="debtPaid" class="form-control text-center"
                                        placeholder="المدفوع ....">
                             </div>
 
                             <div class="col-3">
                                 <label for="debtRemainder">المتبقي</label>
-                                <input type="text" wire:model.live="debtRemainder" disabled id="debtRemainder"
+                                <input type="text" wire:model.live="debtRemainder" autocomplete="off" disabled id="debtRemainder"
                                        class="form-control text-center" placeholder="المتبقي ....">
                             </div>
 
                             <div class="col-3">
                                 <label for="due_date">التاريخ</label>
-                                <input type="date" wire:model.live="due_date" id="due_date"
+                                <input type="date" wire:model.live="due_date" autocomplete="off" id="due_date"
                                        class="form-control text-center">
                             </div>
 
@@ -201,7 +201,7 @@
 
                             <div class="col-3">
                                 <label for="payment">البنك</label>
-                                <select class="form-select text-center" wire:model.live="bank_id">
+                                <select class="form-select text-center" @disabled($payment == 'cash') wire:model.live="bank_id">
                                     @foreach($banks as $bank)
                                         <option value="{{$bank->id}}">{{$bank->bankName}}</option>
                                     @endforeach
@@ -210,8 +210,15 @@
 
                             <div class="col-3">
                                 <label for="bank">رقم الايصال</label>
-                                <input type="text" wire:model="bank" id="bank" class="form-control text-center"
+                                <input type="text" @disabled($payment == 'cash') wire:model="bank" id="bank" autocomplete="off" class="form-control text-center"
                                        placeholder="رقم الايصال ....">
+                            </div>
+
+                            <div class="col-3">
+                                <label for="bank">التخفيض</label>
+                                <input type="text" wire:model="discount" @disabled(empty($currentDebt)) wire:keydown="calcRemainder()" autocomplete="off" id="discount"
+                                       class="form-control text-center"
+                                       placeholder="التخفيض ....">
                             </div>
 
                             <div class="col-2 d-flex align-items-end">

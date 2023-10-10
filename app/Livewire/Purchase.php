@@ -253,9 +253,10 @@ class Purchase extends Component
     {
         $this->editMode = !$this->editMode;
         $this->total_amount = $purchase['total_amount'];
-        $this->paid = $purchase['purchase_debts'][0]['paid'];
-        $this->payment = $purchase['purchase_debts'][0]['payment'];
-        $this->bank = $purchase['purchase_debts'][0]['bank'];
+        $this->paid = $purchase['purchase_debts'][1]['paid'] ?? $purchase['purchase_debts'][0]['paid'];
+        $this->payment = $purchase['purchase_debts'][1]['payment'] ?? $purchase['purchase_debts'][0]['payment'];
+        $this->bank = $purchase['purchase_debts'][1]['bank'] ?? $purchase['purchase_debts'][0]['bank'];
+        $this->remainder = $purchase['purchase_debts'][1]['remainder'] ?? $purchase['purchase_debts'][0]['remainder'];
         $this->purchase_date = $purchase['purchase_date'];
         $this->id = $purchase['id'];
         foreach ($purchase['purchase_details'] as $detail) {

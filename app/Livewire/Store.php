@@ -16,7 +16,9 @@ class Store extends Component
     public string $storeName = '';
     public string $search = '';
     public Collection $stores;
-
+    protected $listeners = [
+        'delete'
+    ];
     protected function rules()
     {
         return [
@@ -58,12 +60,28 @@ class Store extends Component
         $this->storeName = $store['storeName'];
     }
 
-    public function delete($id)
+    public function deleteMessage($store)
     {
-        $store = \App\Models\Store::find($id);
+        $this->confirm(" هل توافق على حذف المخزن" . $store['storeName'] .  "؟", [
+            'inputAttributes' => ["id"=>$store['id']],
+            'toast' => false,
+            'showConfirmButton' => true,
+            'confirmButtonText' => 'موافق',
+            'onConfirmed' => "delete",
+            "value" => $store['id'],
+            'showCancelButton' => true,
+            'cancelButtonText' => 'إلغاء',
+            'confirmButtonColor' => '#dc2626',
+            'cancelButtonColor' => '#4b5563'
+        ]);
+    }
+
+    public function delete($data)
+    {
+        $store = \App\Models\Store::find($data['inputAttributes']['id']);
         $store->delete();
         $this->alert('success', 'تم الحذف بنجاح', ['timerProgressBar' => true]);
-
+        $this->id = 0;
     }
 
 

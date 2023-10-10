@@ -7,24 +7,24 @@
                 <div class="card-body">
                     <form action="" wire:submit="save({{ $id }})">
                         <label for="supplierName" class="form-label">إسم المورد</label>
-                        <input type="text" wire:model="supplierName" class="form-control" placeholder="إسم المورد ..." id="supplierName">
+                        <input autocomplete="off"  type="text" wire:model="supplierName" class="form-control" placeholder="إسم المورد ..." id="supplierName">
                         <div>
                             @error('supplierName') <span class="error text-danger">{{ $message }}</span> @enderror
                         </div>
                         <label for="phone" class="form-label">الهاتف</label>
-                        <input type="text" wire:model="phone" class="form-control" placeholder="الهاتف ..." id="phone">
+                        <input autocomplete="off"  type="text" wire:model="phone" class="form-control" placeholder="الهاتف ..." id="phone">
                         <div>
                             @error('phone') <span class="error text-danger">{{ $message }}</span> @enderror
                         </div>
 
                         <label for="address" class="form-label">العنوان</label>
-                        <input type="text" wire:model="address" class="form-control" placeholder="العنوان ..." id="address">
+                        <input autocomplete="off"  type="text" wire:model="address" class="form-control" placeholder="العنوان ..." id="address">
                         <div>
                             @error('address') <span class="error text-danger">{{ $message }}</span> @enderror
                         </div>
 
                         <label for="initialBalance" class="form-label">الرصيد الافتتاحي</label>
-                        <input type="text" wire:model="initialBalance" class="form-control" placeholder="الرصيد الافتتاحي ..." id="initialBalance">
+                        <input autocomplete="off"  type="text" wire:model="initialBalance" class="form-control" placeholder="الرصيد الافتتاحي ..." id="initialBalance">
                         <div>
                             @error('initialBalance') <span class="error text-danger">{{ $message }}</span> @enderror
                         </div>
@@ -40,7 +40,7 @@
         <div class="col-8">
             <div class="card">
                 <div class="card-header">
-                    <input wire:model.live="search" class="form-control w-50" placeholder="بحث ......">
+                    <input autocomplete="off"  wire:model.live="search" class="form-control w-50" placeholder="بحث ......">
                 </div>
 
                 <div class="card-body">
@@ -67,7 +67,7 @@
                                         <td>{{ number_format($supplier->currentBalance, 2) }}</td>
                                         <td>
                                             <button @disabled(!Auth::user()->hasPermission('suppliers-update')) class="btn btn-sm btn-info text-white" wire:click="edit({{$supplier}})"><i class="bi bi-pen"></i></button> /
-                                            <button @disabled(!Auth::user()->hasPermission('suppliers-delete') || count($supplier->purchases) > 0) class="btn btn-sm btn-danger" wire:click="delete({{$supplier->id}})"><i class="bi bi-trash"></i></button>
+                                            <button @disabled(!Auth::user()->hasPermission('suppliers-delete') || count($supplier->purchases) > 0) class="btn btn-sm btn-danger" wire:click="deleteMessage({{$supplier}})"><i class="bi bi-trash"></i></button>
                                         </td>
                                     </tr>
                                 @endforeach

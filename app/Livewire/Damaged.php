@@ -11,6 +11,9 @@ use function Symfony\Component\Translation\t;
 class Damaged extends Component
 {
     use LivewireAlert;
+    protected $listeners = [
+        'delete',
+    ];
     public string $title = 'المنتجات التالفه';
     public string $productsSearch = '';
     public string $damaged_date = '';
@@ -62,8 +65,23 @@ class Damaged extends Component
         $this->damaged_date = $damaged['damaged_date'];
     }
 
-    public function delete($damaged)
+    public function deleteMessage($damaged)
     {
+        $this->confirm("  هل توافق على الحذف ؟", [
+            'inputAttributes' => ["damaged"=>$damaged],
+            'toast' => false,
+            'showConfirmButton' => true,
+            'confirmButtonText' => 'موافق',
+            'onConfirmed' => "delete",
+            'showCancelButton' => true,
+            'cancelButtonText' => 'إلغاء',
+            'confirmButtonColor' => '#dc2626',
+            'cancelButtonColor' => '#4b5563'
+        ]);
+    }
+    public function delete($data)
+    {
+        $damaged = $data['inputAttributes']['damaged'];
         \App\Models\Product::where('id', $damaged['product_id'])->increment('stock', $damaged['quantity']);
         \App\Models\Damaged::where('id', $damaged['id'])->delete();
         $this->alert('success', 'تم الحذف بنجاح', ['timerProgressBar' => true]);

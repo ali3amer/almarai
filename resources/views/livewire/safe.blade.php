@@ -13,31 +13,31 @@
                             <div class="card-title"><h5>{{ $id == 0 ? 'أضف بنك' : 'تعديل بنك' }}</h5></div>
                             <div>
                                 <label for="bankName">إسم البنك</label>
-                                <input type="text" wire:model.live="bankName" placeholder="إسم البنك ....."
+                                <input autocomplete="off"  type="text" wire:model.live="bankName" placeholder="إسم البنك ....."
                                        id="bankName" class="form-control">
                             </div>
 
                             <div>
                                 <label for="accountName">إسم الحساب</label>
-                                <input type="text" wire:model.live="accountName" placeholder="إسم الحساب ....."
+                                <input autocomplete="off"  type="text" wire:model.live="accountName" placeholder="إسم الحساب ....."
                                        id="accountName" class="form-control">
                             </div>
 
                             <div class="mt-1">
                                 <label for="number">رقم الحساب</label>
-                                <input type="text" wire:model.live="number" placeholder="رقم الحساب ....." id="number"
+                                <input autocomplete="off"  type="text" wire:model.live="number" placeholder="رقم الحساب ....." id="number"
                                        class="form-control">
                             </div>
 
                             <div class="mt-1">
                                 <label for="initialBalance">الرصيد الإفتتاحي</label>
-                                <input type="text" wire:model.live="initialBalance" placeholder="الرصيد الإفتتاحي ....."
+                                <input autocomplete="off"  type="text" wire:model.live="initialBalance" placeholder="الرصيد الإفتتاحي ....."
                                        id="initialBalance" class="form-control">
                             </div>
 
                             <div class="my-1">
                                 <label for="currentBalance">الرصيد الحالي</label>
-                                <input type="text" wire:model.live="currentBalance" placeholder="الرصيد الحالي ....."
+                                <input autocomplete="off"  type="text" wire:model.live="currentBalance" placeholder="الرصيد الحالي ....."
                                        id="currentBalance" class="form-control">
                             </div>
                             <button wire:click="saveBank()" class="btn btn-primary w-100 mt-1">حفــــــــــــــــــظ
@@ -127,13 +127,13 @@
 
                             <div class="col-4">
                                 <label for="transfer_amount">المبلغ</label>
-                                <input type="text" id="transfer_amount" wire:model.live="transfer_amount"
+                                <input autocomplete="off"  type="text" id="transfer_amount" wire:model.live="transfer_amount"
                                        class="form-control text-center" placeholder="المبلغ ....">
                             </div>
 
                             <div class="col-4">
                                 <label for="transfer_number">رقم الاشعار</label>
-                                <input type="text" wire:model.live="transfer_number" id="transfer_amount"
+                                <input autocomplete="off"  type="text" wire:model.live="transfer_number" id="transfer_amount"
                                        class="form-control text-center" placeholder="رقم الاشعار ....">
                             </div>
                         </div>
@@ -155,7 +155,7 @@
 
                             <div class="col-3">
                                 <label for="note">ملاحظات</label>
-                                <input type="text" wire:model.live="note" id="note"
+                                <input autocomplete="off"  type="text" wire:model.live="note" id="note"
                                        class="form-control text-center" placeholder="محلاظات ....">
                             </div>
 
@@ -199,7 +199,7 @@
                                         <button class="btn btn-info btn-sm text-white"
                                                 wire:click="editTransfer({{$transfer}})"><i class="bi bi-pen"></i></button>
                                         /
-                                        <button class="btn btn-danger btn-sm" wire:click="deleteTransfer({{$transfer}})"><i
+                                        <button class="btn btn-danger btn-sm" wire:click="deleteMessage({{$transfer}})"><i
                                                 class="bi bi-trash"></i></button>
                                     </td>
                                 </tr>

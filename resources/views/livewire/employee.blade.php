@@ -13,14 +13,14 @@
                         <div class="card-body">
                             <form action="" wire:submit="save({{ $id }})">
                                 <label for="employeeName" class="form-label">إسم الموظف</label>
-                                <input type="text" wire:model.live="employeeName" class="form-control"
+                                <input type="text" autocomplete="off"  wire:model.live="employeeName" class="form-control"
                                        placeholder="إسم الموظف ..." id="employeeName">
                                 <div>
                                     @error('employeeName') <span
                                         class="error text-danger">{{ $message }}</span> @enderror
                                 </div>
                                 <label for="employeeName" class="form-label">المرتب</label>
-                                <input type="text" wire:model.live="salary" class="form-control" placeholder="المرتب"
+                                <input type="text" autocomplete="off"  wire:model.live="salary" class="form-control" placeholder="المرتب"
                                        id="salary">
                                 <div>
                                     @error('salary') <span class="error text-danger">{{ $message }}</span> @enderror
@@ -104,7 +104,7 @@
                                             class="btn btn-primary">
                                         <i class="bi bi-plus"></i></button>
                                 </div>
-                                <div class="col"><input wire:model.live="search" class="form-control"
+                                <div class="col"><input autocomplete="off" wire:model.live="search" class="form-control"
                                                         placeholder="بحث ......"></div>
                             </div>
                         </div>
@@ -133,7 +133,7 @@
                                                     <i class="bi bi-pen"></i></button>
                                                 /
                                                 <button class="btn btn-sm btn-danger"
-                                                        @disabled(!Auth::user()->hasPermission('employees-delete') || count($employee->sales) > 0 || count($employee->gifts) > 0) wire:click="delete({{$employee->id}})">
+                                                        @disabled(!Auth::user()->hasPermission('employees-delete') || count($employee->sales) > 0 || count($employee->gifts) > 0) wire:click="deleteMessage({{$employee}})">
                                                     <i
                                                         class="bi bi-trash"></i></button>
                                                 /
@@ -193,19 +193,19 @@
                         </div>
                         <div class="row mt-2">
                             <div class="col-3">
-                                <input type="text" class="form-control text-center"
+                                <input type="text" autocomplete="off"  class="form-control text-center"
                                        @disabled($payment == 'cash') placeholder="رقم الإيصال ...."
                                        wire:model.live="bank">
                             </div>
 
                             <div class="col-3">
-                                <input type="text" class="form-control text-center"
+                                <input type="text" autocomplete="off"  class="form-control text-center"
                                        @disabled(!empty($debts)) placeholder="المبلغ ...."
                                        wire:model.live="gift_amount">
                             </div>
 
                             <div class="col-4">
-                                <input type="text" class="form-control text-center" placeholder="ملاحظات ...."
+                                <input type="text" autocomplete="off"  class="form-control text-center" placeholder="ملاحظات ...."
                                        wire:model.live="note">
                             </div>
                             <div class="col-2">
@@ -256,7 +256,7 @@
                                                 </button>
                                                 /
                                                 <button class="btn btn-sm btn-danger"
-                                                        wire:click="deleteGift({{$gift->id}})"><i
+                                                        wire:click="deleteGiftMessage({{$gift}})"><i
                                                         class="bi bi-trash"></i>
                                                 </button>
                                             </td>
@@ -280,7 +280,7 @@
                                     </h6>
                                 </div>
                                 <div class="col-6">
-                                    <input type="text" placeholder="بحث ...."
+                                    <input type="text" autocomplete="off"  placeholder="بحث ...."
                                            class="form-control text-center" wire:keydown="getSales()"
                                            wire:model="saleSearch">
                                 </div>

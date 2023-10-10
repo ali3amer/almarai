@@ -22,7 +22,7 @@
                                         </select>
                                     </div>
                                     <div class="col">
-                                        <input type="text" placeholder="إسم العميل ...." wire:model.live="clientSearch" class="form-control text-center">
+                                        <input type="text" autocomplete="off"  placeholder="إسم العميل ...." wire:model.live="clientSearch" class="form-control text-center">
                                     </div>
                                 </div>
                             </div>
@@ -112,7 +112,7 @@
         <div class="col-4">
             <div class="card mb-2">
                 <div class="card-body">
-                    <input type="text" class="form-control text-center" style="cursor: pointer"
+                    <input type="text" autocomplete="off"  class="form-control text-center" style="cursor: pointer"
                            wire:model.live="currentClient.{{$buyer.'Name'}}" readonly placeholder="اسم العميل ...."
                            data-bs-toggle="modal"
                            data-bs-target="#clientsModal">
@@ -125,7 +125,7 @@
                         <div class="card-title">
                             <div class="row">
                                 <div class="col-3"><h6>فواتير {{$currentClient[$buyer.'Name']}}</h6></div>
-                                <div class="col-9"><input type="text" placeholder="رقم الفاتوره ...." class="form-control text-center" wire:model.live="saleSearch"></div>
+                                <div class="col-9"><input type="text" autocomplete="off"  placeholder="رقم الفاتوره ...." class="form-control text-center" wire:model.live="saleSearch"></div>
                             </div>
                         </div>
                         <div class="scroll">
@@ -171,19 +171,19 @@
                             <div class="col">
                                 <label for="price">سعر الوحده</label>
 
-                                <input type="text" id="price" disabled wire:model="price" class="form-control text-center"
+                                <input type="text" autocomplete="off"  id="price" disabled wire:model="price" class="form-control text-center"
                                        placeholder="سعر الوحده">
                             </div>
                             <div class="col">
                                 <label for="quantity">الكمية</label>
 
-                                <input type="text" id="quantity" disabled wire:model="quantity" class="form-control text-center"
+                                <input type="text" autocomplete="off"  id="quantity" disabled wire:model="quantity" class="form-control text-center"
                                        placeholder="الكمية">
                             </div>
                             <div class="col">
                                 <label for="amount">الجمله</label>
 
-                                <input type="text" id="amount" disabled wire:model="amount" class="form-control text-center"
+                                <input type="text" autocomplete="off"  id="amount" disabled wire:model="amount" class="form-control text-center"
                                        placeholder="الجمله">
                             </div>
                         </div>
@@ -192,18 +192,18 @@
                             <div class="col">
                                 <label for="quantityReturn">الكمية المرجعه</label>
 
-                                <input type="text" id="quantityReturn" wire:model="quantityReturn" wire:keydown="calcQuantity()"
+                                <input type="text" autocomplete="off" @disabled(empty($currentDetail)) id="quantityReturn" wire:model="quantityReturn" wire:keydown="calcQuantity()"
                                        class="form-control text-center"
                                        placeholder="الكمية المرجعه">
                             </div>
 
                             <div class="col">
                                 <label for="return_date">تاريخ الارجاع</label>
-                                <input type="date" wire:model="return_date" class="form-control text-center">
+                                <input type="date" @disabled(empty($currentDetail)) wire:model="return_date" class="form-control text-center">
                             </div>
 
                             <div class="col d-flex align-items-end">
-                                <button @disabled(empty($currentDetail) || ($quantityReturn == 0)) class="btn {{ $editMode ? 'btn-success' : 'btn-primary' }} " wire:click="save()">{{ $editMode ? 'تعـــــــــــــــديل' : 'حــــــــــــــفظ' }}</button>
+                                <button @disabled(empty($currentDetail) || ($quantityReturn == 0) || ($quantityReturn == null)) class="btn {{ $editMode ? 'btn-success' : 'btn-primary' }} " wire:click="save()">{{ $editMode ? 'تعـــــــــــــــديل' : 'حــــــــــــــفظ' }}</button>
                             </div>
                         </div>
                     </div>
@@ -243,7 +243,7 @@
                                             <td></td>
                                             <td>
                                                 <button  wire:click="chooseDetail({{$return}}, {{$return['product']}})" class="btn btn-sm btn-primary"><i class="bi bi-pen"></i></button>
-                                                <button  wire:click="delete({{$return}})" class="btn btn-sm btn-danger"><i class="bi bi-trash"></i></button>
+                                                <button  wire:click="deleteMessage({{$return}})" class="btn btn-sm btn-danger"><i class="bi bi-trash"></i></button>
                                             </td>
                                         </tr>
                                     @endforeach

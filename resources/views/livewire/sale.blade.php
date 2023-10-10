@@ -41,7 +41,7 @@
                         <div class="card-title mt-2">
                             <div class="row">
                                 <div class="col-4 align-self-center"><h5>المنتجات</h5></div>
-                                <div class="col-8"><input type="text" id="productSearch" placeholder="بحث ..."
+                                <div class="col-8"><input autocomplete="off"  type="text" id="productSearch" placeholder="بحث ..."
                                                           wire:keydown.enter="chooseProduct({{$products[0]}})"
                                                           class="form-control"
                                                           wire:model.live="productSearch" autofocus></div>
@@ -90,11 +90,11 @@
                                 <input type="text" id="productName" class="form-control" disabled
                                        wire:model="currentProduct.productName">
                                 <label for="sale_price">سعر الوحده</label>
-                                <input type="text" id="sale_price" class="form-control"
+                                <input autocomplete="off"  type="text" id="sale_price" class="form-control"
                                        {{ empty($currentProduct) ? 'disabled' : '' }} wire:model.live="currentProduct.sale_price">
                                 <label for="quantity">الكميه</label>
 
-                                <input type="text" id="quantity" wire:keydown.enter="addToCart()" class="form-control"
+                                <input autocomplete="off"  type="text" id="quantity" wire:keydown.enter="addToCart()" class="form-control"
                                        {{ empty($currentProduct) ? 'disabled' : '' }} wire:model.live="currentProduct.quantity">
                                 <label for="amount">الجمله</label>
                                 <input type="text" class="form-control" disabled
@@ -127,7 +127,7 @@
                                     </div>
 
                                     <div class="row mt-1">
-                                        <div class="col-4"><input type="text" placeholder="رقم الاشعار ....."
+                                        <div class="col-4"><input autocomplete="off"  type="text" placeholder="رقم الاشعار ....."
                                                                   @disabled($payment == 'cash') wire:model.live="bank"
                                                                   class="form-control"></div>
 
@@ -179,7 +179,7 @@
                                         </tr>
                                         <tr>
                                             <td>المدفوع</td>
-                                            <td><input type="text" min="0" wire:keydown.debounce.150ms="calcRemainder()"
+                                            <td><input autocomplete="off"  type="text" min="0" wire:keydown.debounce.150ms="calcRemainder()"
                                                        wire:model.live.debounce.150ms="paid"
                                                        class="form-control text-center">
                                             </td>
@@ -211,7 +211,7 @@
                                 <div class="row">
                                     <div class="col-3"><h5>الفواتير</h5></div>
                                     <div class="col-9">
-                                        <input type="text" placeholder="بحث ..." class="form-control mb-2 text-center"
+                                        <input autocomplete="off"  type="text" placeholder="بحث ..." class="form-control mb-2 text-center"
                                                wire:model.live="saleSearch">
                                     </div>
                                 </div>
@@ -253,8 +253,16 @@
                                                                 </tr>
                                                             @endforeach
                                                             <tr>
-                                                                <td>الجمله:</td>
+                                                                <td>الجمله :</td>
                                                                 <td>{{number_format($sale->total_amount, 2)}}</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>المدفوع :</td>
+                                                                <td>{{number_format($sale->saleDebts->sum('paid'), 2)}}</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>المتبقي :</td>
+                                                                <td>{{number_format($sale->saleDebts->last()->remainder, 2)}}</td>
                                                             </tr>
                                                             </tbody>
                                                         </table>
@@ -284,7 +292,7 @@
                                 </div>
                                 <div class="col-8">
                                     @if(count($clients) > 0)
-                                        <input type="text" placeholder="بحث ..." class="form-control"
+                                        <input autocomplete="off"  type="text" placeholder="بحث ..." class="form-control"
                                                wire:keydown.enter="chooseClient({{$clients[0]}})"
                                                wire:model.live="clientSearch">
                                     @endif

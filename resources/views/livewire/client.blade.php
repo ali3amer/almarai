@@ -8,19 +8,19 @@
                     <div class="card-body">
                         <form action="" wire:submit="save({{ $id }})">
                             <label for="clientName" class="form-label">إسم العميل</label>
-                            <input type="text" wire:model="clientName" class="form-control" placeholder="إسم العميل ..."
+                            <input type="text" wire:model="clientName" autocomplete="off" class="form-control" placeholder="إسم العميل ..."
                                    id="clientName">
                             <div>
                                 @error('clientName') <span class="error text-danger">{{ $message }}</span> @enderror
                             </div>
                             <label for="phone" class="form-label">الهاتف</label>
-                            <input type="text" wire:model="phone" class="form-control" placeholder="الهاتف ..."
+                            <input type="text" wire:model="phone" class="form-control" autocomplete="off" placeholder="الهاتف ..."
                                    id="phone">
                             <div>
                                 @error('phone') <span class="error text-danger">{{ $message }}</span> @enderror
                             </div>
                             <label for="initialBalance" class="form-label">الرصيد الافتتاحي</label>
-                            <input type="text" wire:model="initialBalance" class="form-control"
+                            <input type="text" wire:model="initialBalance" autocomplete="off" class="form-control"
                                    placeholder="الرصيد الافتتاحي ..." id="initialBalance">
                             <div>
                                 @error('initialBalance') <span class="error text-danger">{{ $message }}</span> @enderror
@@ -28,7 +28,7 @@
 
                             @if($blocked == true)
                                 <label for="note" class="form-label">سبب الإيقاف</label>
-                                <input type="text" wire:model="note" class="form-control"
+                                <input type="text" wire:model="note" autocomplete="off" class="form-control"
                                        placeholder="سبب الإيقاف ..." id="note">
                                 <div>
                                     @error('note') <span class="error text-danger">{{ $message }}</span> @enderror
@@ -46,7 +46,7 @@
             <div class="col-8">
                 <div class="card">
                     <div class="card-header">
-                        <input wire:model.live="search" class="form-control w-50" placeholder="بحث ......">
+                        <input wire:model.live="search" autocomplete="off" class="form-control w-50" placeholder="بحث ......">
                     </div>
 
                     <div class="card-body">
@@ -78,7 +78,7 @@
                                                 /
                                                 <button
                                                     @disabled(!Auth::user()->hasPermission('clients-delete') || count($client->sales) > 0) class="btn btn-sm btn-danger"
-                                                    wire:click="delete({{$client->id}})"><i class="bi bi-trash"></i>
+                                                    wire:click="deleteMessage({{$client}})"><i class="bi bi-trash"></i>
                                                 </button>
                                                 /
                                                 <button class="btn btn-sm btn-warning text-white"
@@ -125,13 +125,13 @@
                         </select>
 
                         <label for="debt_amount">المبلغ المدفوع</label>
-                        <input type="text" wire:model.live="debt_amount" id="debt_amount"
+                        <input type="text" wire:model.live="debt_amount" autocomplete="off" id="debt_amount"
                                class="form-control text-center"
                                placeholder="المدفوع ....">
 
 
                         <label for="due_date">التاريخ</label>
-                        <input type="date" wire:model.live="due_date" id="due_date"
+                        <input type="date" wire:model.live="due_date"  id="due_date"
                                class="form-control text-center">
 
                         <label for="payment">طريقة الدفع</label>
@@ -149,7 +149,7 @@
                         </select>
 
                         <label for="bank">رقم الايصال</label>
-                        <input @disabled($payment == 'cash') type="text" wire:model="bank" id="bank"
+                        <input @disabled($payment == 'cash') autocomplete="off" type="text" autocomplete="off" wire:model="bank" id="bank"
                                class="form-control text-center mb-2"
                                placeholder="رقم الايصال ....">
 
@@ -198,7 +198,7 @@
                                                     wire:click="chooseDebt({{$debt}})"><i class="bi bi-pen"></i>
                                             </button>
                                             /
-                                            <button class="btn btn-sm btn-danger" wire:click="deleteDebt({{$debt}})">
+                                            <button class="btn btn-sm btn-danger" wire:click="deleteDebtMessage({{$debt}})">
                                                 <i
                                                     class="bi bi-trash"></i></button>
                                         </td>

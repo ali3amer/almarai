@@ -12,6 +12,9 @@ use function Livewire\store;
 class Product extends Component
 {
     use LivewireAlert;
+    protected $listeners = [
+        'delete'
+    ];
     public string $title = 'المنتجات';
     public string $search = '';
     public int $store_id = 0;
@@ -61,9 +64,25 @@ class Product extends Component
         $this->form->unit = $product['unit'];
     }
 
-    public function delete($id)
+    public function deleteMessage($product)
     {
-        $product = \App\Models\Product::find($id);
+        $this->confirm("  هل توافق على حذف المنتج  " . $product['productName'] .  "؟", [
+            'inputAttributes' => ["id"=>$product['id']],
+            'toast' => false,
+            'showConfirmButton' => true,
+            'confirmButtonText' => 'موافق',
+            'onConfirmed' => "delete",
+            "value" => $product['id'],
+            'showCancelButton' => true,
+            'cancelButtonText' => 'إلغاء',
+            'confirmButtonColor' => '#dc2626',
+            'cancelButtonColor' => '#4b5563'
+        ]);
+    }
+
+    public function delete($data)
+    {
+        $product = \App\Models\Product::find($data['inputAttributes']['id']);
         $product->delete();
         $this->alert('success', 'تم الحذف بنجاح', ['timerProgressBar' => true]);
     }

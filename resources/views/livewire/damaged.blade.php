@@ -9,7 +9,7 @@
                         <div class="row">
                             <div class="col-3"><h5>المنتجات</h5></div>
                             <div class="col"><input type="text" placeholder="إسم المنتج ..."
-                                                    class="form-control text-center" wire:model.live="productsSearch">
+                                                    class="form-control text-center" autocomplete="off" wire:model.live="productsSearch">
                             </div>
                         </div>
                     </div>
@@ -46,7 +46,7 @@
                     <input type="text" id="productName" disabled wire:model="currentProduct.productName" class="mb-2 form-control text-center"
                            placeholder="إسم المنتج">
                     <label for="quantity">الكميه التالفه</label>
-                    <input type="text" id="quantity" wire:model.live="quantity" class="form-control text-center"
+                    <input type="text" id="quantity" wire:model.live="quantity" autocomplete="off" class="form-control text-center"
                            placeholder="الكمية التالفه">
                     <label for="quantity">التاريخ</label>
                     <input type="date" id="damaged_date" wire:model.live="damaged_date" class="form-control text-center">
@@ -79,7 +79,7 @@
                                     <td>{{$damaged->damaged_date}}</td>
                                     <td>
                                         <button class="btn btn-sm btn-primary" wire:click="edit({{$damaged}})"><i class="bi bi-pen"></i></button> /
-                                        <button class="btn btn-sm btn-danger" wire:click="delete({{$damaged}})"><i class="bi bi-trash"></i></button>
+                                        <button class="btn btn-sm btn-danger" wire:click="deleteMessage({{$damaged}})"><i class="bi bi-trash"></i></button>
                                     </td>
                                 </tr>
                             @endforeach
