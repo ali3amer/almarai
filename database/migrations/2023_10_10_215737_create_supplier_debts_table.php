@@ -11,18 +11,20 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('client_debts', function (Blueprint $table) {
+        Schema::create('supplier_debts', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('client_id');
-            $table->foreign('client_id')->references('id')->on('clients');
+            $table->unsignedBigInteger('supplier_id');
+            $table->foreign('supplier_id')->references('id')->on('suppliers');
+           $table->unsignedBigInteger('purchase_id')->nullable();
+            $table->foreign('purchase_id')->references('id')->on('purchases');
             $table->enum('type', ['debt', 'pay']);
             $table->decimal('debt', 8, 2);
             $table->decimal('paid', 8, 2);
             $table->enum('payment', ['cash', 'bank']);
             $table->unsignedBigInteger('bank_id')->nullable();
             $table->foreign('bank_id')->references('id')->on('banks');
-            $table->string('bank')->nullable();
             $table->string('note')->nullable();
+            $table->string('bank')->nullable();
             $table->date('due_date');
             $table->unsignedBigInteger('user_id')->nullable();
             $table->foreign('user_id')->references('id')->on('users');
@@ -35,6 +37,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('client_debts');
+        Schema::dropIfExists('supplier_debts');
     }
 };

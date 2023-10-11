@@ -84,34 +84,56 @@ class Returns extends Component
 
     public function save()
     {
-        $debt = SaleDebt::where('sale_id', $this->currentDetail['sale_id'])->where('paid', '!=', 0.0)->first();
 
         if ($this->id == 0) {
-            SaleDetail::where('id', $this->currentDetail['id'])->decrement('quantity', floatval($this->quantityReturn));
+
+            \App\Models\SaleDetail::where('id', $this->currentDetail['id'])->decrement('quantity', floatval($this->quantityReturn));
 
             \App\Models\Product::where('id', $this->currentDetail['product_id'])->increment('stock', floatval($this->quantityReturn));
 
-            \App\Models\Sale::where('id', $this->currentDetail['sale_id'])->decrement('total_amount', $this->priceReturn);
-            if (isset($debt['paid'])) {
-                if ($debt['paid'] >= $this->priceReturn) {
-                    if ($debt['payment'] == 'cash') {
-                        \App\Models\Safe::first()->decrement('currentBalance', $this->priceReturn);
-                    } else {
-                        Bank::where('id', $debt['bank_id'])->decrement('currentBalance', $this->priceReturn);
-                    }
-                } else {
-                    if ($this->buyer == 'client') {
-                        \App\Models\Client::where('id', $this->currentClient['id'])->decrement('currentBalance', $this->priceReturn - $debt['paid']);
-                    } elseif ($this->buyer == 'supplier') {
-                        \App\Models\Supplier::where('id', $this->currentClient['id'])->increment('currentBalance', $this->priceReturn + $debt['paid']);
-                    }
-                }
-            } else {
-                if ($this->buyer == 'client') {
-                    \App\Models\Client::where('id', $this->currentClient['id'])->decrement('currentBalance', $this->priceReturn);
-                } elseif ($this->buyer == 'supplier') {
-                    \App\Models\Supplier::where('id', $this->currentClient['id'])->increment('currentBalance', $this->priceReturn);
-                }
+            $sale = \App\Models\Sale::where('id', $this->currentDetail['sale_id'])->first();
+
+            $sale->decrement('total_amount', $this->priceReturn);
+
+            if ($this->buyer == 'client') {
+                \App\Models\ClientDebt::create([
+                    'client_id' => $this->currentClient['id'],
+                    'paid' => 0,
+                    'debt' => $this->priceReturn,
+                    'type' => 'debt',
+                    'bank' => '',
+                    'payment' => 'cash',
+                    'bank_id' => null,
+                    'due_date' => $this->return_date,
+                    'note' => $sale['id'] . 'تم إرجاع منتج من فاتوره رقم #',
+                    'user_id' => auth()->id()
+                ]);
+            } elseif ($this->buyer == 'supplier') {
+                \App\Models\SupplierDebt::create([
+                    'supplier_id' => $this->currentClient['id'],
+                    'paid' => 0,
+                    'debt' => $this->priceReturn,
+                    'type' => 'debt',
+                    'bank' => '',
+                    'payment' => 'cash',
+                    'bank_id' => null,
+                    'due_date' => $this->return_date,
+                    'note' => $sale['id'] . 'تم إرجاع منتج من فاتوره رقم #',
+                    'user_id' => auth()->id()
+                ]);
+            } elseif ($this->buyer == 'employee') {
+                \App\Models\EmployeeDebt::create([
+                    'employee_id' => $this->currentClient['id'],
+                    'paid' => 0,
+                    'debt' => $this->priceReturn,
+                    'type' => 'debt',
+                    'bank' => '',
+                    'payment' => 'cash',
+                    'bank_id' => null,
+                    'due_date' => $this->return_date,
+                    'note' => $sale['id'] . 'تم إرجاع منتج من فاتوره رقم #',
+                    'user_id' => auth()->id()
+                ]);
             }
 
             SaleReturn::create([

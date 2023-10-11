@@ -18,4 +18,10 @@ class Employee extends Model
     {
         return $this->hasMany(EmployeeGift::class);
     }
+
+    public function debts()
+    {
+        return $this->hasMany(EmployeeDebt::class);
+    }
 }
+

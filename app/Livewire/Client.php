@@ -128,8 +128,6 @@ class Client extends Component
         $client = \App\Models\Client::find($data['inputAttributes']['id']);
         $client->delete();
         $this->alert('success', 'تم الحذف بنجاح', ['timerProgressBar' => true]);
-
-
     }
 
     public function showDebts($client)
@@ -143,33 +141,24 @@ class Client extends Component
     {
         if ($this->debtId == 0) {
             if ($this->type == 'debt') {
-                $this->currentClient['currentBalance'] += $this->debt_amount;
-                \App\Models\Client::where('id', $this->currentClient['id'])->increment('currentBalance', $this->debt_amount);
-
-                if ($this->payment == 'cash') {
-                    \App\Models\Safe::first()->decrement('currentBalance', $this->debt_amount);
-                } else {
-                    \App\Models\Bank::where('id', $this->bank_id)->decrement('currentBalance', $this->debt_amount);
-                }
+                $note = 'تم شراء بالآجل';
+                $debt = $this->debt_amount;
+                $paid = 0;
             } else {
-                $this->currentClient['currentBalance'] -= $this->debt_amount;
-                \App\Models\Client::where('id', $this->currentClient['id'])->decrement('currentBalance', $this->debt_amount);
-
-                if ($this->payment == 'cash') {
-                    \App\Models\Safe::first()->increment('currentBalance', $this->debt_amount);
-                } else {
-                    \App\Models\Bank::where('id', $this->bank_id)->increment('currentBalance', $this->debt_amount);
-                }
+                $note = 'تم إستلام مبلغ';
+                $paid = $this->debt_amount;
+                $debt = 0;
             }
             ClientDebt::create([
                 'client_id' => $this->currentClient['id'],
                 'type' => $this->type,
-                'debt_amount' => $this->debt_amount,
+                'debt' => $debt,
+                'paid' => $paid,
                 'payment' => $this->payment,
                 'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
                 'bank' => $this->bank,
-                'client_balance' => $this->currentClient['currentBalance'],
                 'due_date' => $this->due_date,
+                'note' => $this->note == '' ? $note : $this->note,
                 'user_id' => auth()->id(),
             ]);
 
@@ -179,70 +168,18 @@ class Client extends Component
 
         } else {
             $debt = ClientDebt::where('id', $this->debtId)->first();
-            if ($debt['type'] == 'debt') {
-                $this->currentClient['currentBalance'] -= $debt['debt_amount'];
-                \App\Models\Client::where('id', $this->currentClient['id'])->decrement('currentBalance', $debt['debt_amount']);
 
-
-                if ($debt['payment'] == 'cash') {
-                    \App\Models\Safe::first()->increment('currentBalance', $debt['debt_amount']);
-
-                } else {
-                    \App\Models\Bank::where('id', $this->bank_id)->increment('currentBalance', $debt['debt_amount']);
-
-
-                }
-            } else {
-                $this->currentClient['currentBalance'] += $debt['debt_amount'];
-                \App\Models\Client::where('id', $this->currentClient['id'])->increment('currentBalance', $debt['debt_amount']);
-
-                if ($debt['payment'] == 'cash') {
-                    \App\Models\Safe::first()->decrement('currentBalance', $debt['debt_amount']);
-
-                } else {
-                    \App\Models\Bank::where('id', $this->bank_id)->decrement('currentBalance', $debt['debt_amount']);
-
-                }
-            }
             $debt->update([
+                'client_id' => $this->currentClient['id'],
                 'type' => $this->type,
-                'debt_amount' => $this->debt_amount,
+                'debt' => $this->type == 'debt' ? $this->debt_amount : 0,
+                'paid' => $this->type == 'pay' ? $this->debt_amount : 0,
                 'payment' => $this->payment,
                 'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
                 'bank' => $this->bank,
-                'client_balance' => $this->currentClient['currentBalance'],
                 'due_date' => $this->due_date,
                 'user_id' => auth()->id(),
             ]);
-
-            if ($this->type == 'debt') {
-
-                $this->currentClient['currentBalance'] += $this->debt_amount;
-                \App\Models\Client::where('id', $this->currentClient['id'])->increment('currentBalance', $this->debt_amount);
-
-                if ($this->payment == 'cash') {
-
-                    \App\Models\Safe::first()->decrement('currentBalance', $this->debt_amount);
-                } else {
-
-                    \App\Models\Bank::where('id', $this->bank_id)->decrement('currentBalance', $this->debt_amount);
-
-                }
-            } else {
-
-                $this->currentClient['currentBalance'] -= $this->debt_amount;
-                \App\Models\Client::where('id', $this->currentClient['id'])->decrement('currentBalance', $this->debt_amount);
-
-                if ($debt['payment'] == 'cash') {
-
-                    \App\Models\Safe::first()->increment('currentBalance', $this->debt_amount);
-
-                } else {
-
-                    \App\Models\Bank::where('id', $this->bank_id)->increment('currentBalance', $this->debt_amount);
-
-                }
-            }
 
             $this->resetData();
             $this->alert('success', 'تم تعديل الدفعيه بنجاح', ['timerProgressBar' => true]);
@@ -255,7 +192,7 @@ class Client extends Component
         $this->debtId = $debt['id'];
         $this->bank_id = $debt['bank_id'];
         $this->type = $debt['type'];
-        $this->debt_amount = $debt['debt_amount'];
+        $this->debt_amount = $debt['type'] == 'debt' ? $debt['debt'] : $debt['paid'];
         $this->payment = $debt['payment'];
         $this->bank = $debt['bank'];
         $this->due_date = $debt['due_date'];
@@ -278,28 +215,7 @@ class Client extends Component
     public function deleteDebt($data)
     {
         $debt = $data['inputAttributes']['debt'];
-        if ($debt['type'] == 'debt') {
-            $this->currentClient['currentBalance'] -= $debt['debt_amount'];
-            \App\Models\Client::where('id', $this->currentClient['id'])->decrement('currentBalance', $debt['debt_amount']);
 
-            if ($debt['payment'] == 'cash') {
-                \App\Models\Safe::first()->increment('currentBalance', $debt['debt_amount']);
-
-            } else {
-                \App\Models\Bank::where('id', $this->bank_id)->increment('currentBalance', $debt['debt_amount']);
-
-            }
-        } else {
-            $this->currentClient['currentBalance'] += $debt['debt_amount'];
-            \App\Models\Client::where('id', $this->currentClient['id'])->increment('currentBalance', $debt['debt_amount']);
-
-            if ($debt['payment'] == 'cash') {
-                \App\Models\Safe::first()->decrement('currentBalance', $debt['debt_amount']);
-
-            } else {
-                \App\Models\Bank::where('id', $this->bank_id)->decrement('currentBalance', $debt['debt_amount']);
-            }
-        }
         ClientDebt::where('id', $debt['id'])->delete();
         $this->alert('success', 'تم حذف الدفعيه بنجاح', ['timerProgressBar' => true]);
 

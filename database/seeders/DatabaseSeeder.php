@@ -55,16 +55,16 @@ class DatabaseSeeder extends Seeder
                 'clientName' => 'client_' . $i,
                 'phone' => '0100200300',
                 'initialBalance' => 1000,
-                'currentBalance' => 1000,
+                'startingDate' => date('Y-m-d'),
                 'blocked' => false,
             ]);
 
             Supplier::create([
                 'supplierName' => 'supplier_' . $i,
-                'address' => '11111',
                 'phone' => '0100200300',
                 'initialBalance' => 1000,
-                'currentBalance' => 1000,
+                'startingDate' => date('Y-m-d'),
+                'blocked' => false,
             ]);
         }
 

@@ -8,13 +8,15 @@
                     <div class="card-body">
                         <form action="" wire:submit="save({{ $id }})">
                             <label for="clientName" class="form-label">إسم العميل</label>
-                            <input type="text" wire:model="clientName" autocomplete="off" class="form-control" placeholder="إسم العميل ..."
+                            <input type="text" wire:model="clientName" autocomplete="off" class="form-control"
+                                   placeholder="إسم العميل ..."
                                    id="clientName">
                             <div>
                                 @error('clientName') <span class="error text-danger">{{ $message }}</span> @enderror
                             </div>
                             <label for="phone" class="form-label">الهاتف</label>
-                            <input type="text" wire:model="phone" class="form-control" autocomplete="off" placeholder="الهاتف ..."
+                            <input type="text" wire:model="phone" class="form-control" autocomplete="off"
+                                   placeholder="الهاتف ..."
                                    id="phone">
                             <div>
                                 @error('phone') <span class="error text-danger">{{ $message }}</span> @enderror
@@ -46,7 +48,8 @@
             <div class="col-8">
                 <div class="card">
                     <div class="card-header">
-                        <input wire:model.live="search" autocomplete="off" class="form-control w-50" placeholder="بحث ......">
+                        <input wire:model.live="search" autocomplete="off" class="form-control w-50"
+                               placeholder="بحث ......">
                     </div>
 
                     <div class="card-body">
@@ -70,7 +73,7 @@
                                             <td>{{ $client->clientName }}</td>
                                             <td>{{ $client->phone }}</td>
                                             <td>{{ number_format($client->initialBalance, 2) }}</td>
-                                            <td>{{ number_format($client->currentBalance, 2) }}</td>
+                                            <td>{{ number_format(0, 2) }}</td>
                                             <td>
                                                 <button
                                                     @disabled(!Auth::user()->hasPermission('clients-update')) class="btn btn-sm btn-info text-white"
@@ -86,8 +89,10 @@
                                                 </button>
 
                                                 /
-                                                <button class="btn btn-sm btn-{{$client->blocked ? 'danger' : 'success'}} text-white"
-                                                        wire:click="changeBlocked({{$client}})"><i class="bi bi-{{$client->blocked ? 'lock' : 'unlock'}}"></i>
+                                                <button
+                                                    class="btn btn-sm btn-{{$client->blocked ? 'danger' : 'success'}} text-white"
+                                                    wire:click="changeBlocked({{$client}})"><i
+                                                        class="bi bi-{{$client->blocked ? 'lock' : 'unlock'}}"></i>
                                                 </button>
                                             </td>
                                         </tr>
@@ -112,48 +117,72 @@
                                     <h6>سداد</h6>
                                 </div>
                                 <div class="col-9">
-                                    <input type="text" style="cursor:pointer;" wire:click="resetData('currentClient')" readonly value="{{$currentClient['clientName']}}"
+                                    <input type="text" style="cursor:pointer;" wire:click="resetData('currentClient')"
+                                           readonly value="{{$currentClient['clientName']}}"
                                            class="border-danger form-control text-center" placeholder="إسم العيل">
                                 </div>
                             </div>
                         </div>
 
-                        <label for="payment">نوع العملية</label>
-                        <select class="form-select text-center" wire:model.live="type">
-                            <option value="debt">دين</option>
-                            <option value="pay">توريد</option>
-                        </select>
+                        <div class="row">
+                            <div class="col-6">
+                                <label for="payment">نوع العملية</label>
+                                <select class="form-select text-center" wire:model.live="type">
+                                    <option value="debt">دين</option>
+                                    <option value="pay">توريد</option>
+                                </select>
+                            </div>
+                            <div class="col-6">
+                                <label for="due_date">التاريخ</label>
+                                <input type="date" wire:model.live="due_date" id="due_date"
+                                       class="form-control text-center">
+                            </div>
+                        </div>
+                        <div class="row my-2">
+                            <div class="col-6">
+                                <label for="debt_amount">المبلغ المدفوع</label>
+                                <input type="text" wire:model.live="debt_amount" autocomplete="off" id="debt_amount"
+                                       class="form-control text-center"
+                                       placeholder="المدفوع ....">
+                            </div>
+                            <div class="col-6">
+                                <label for="payment">طريقة الدفع</label>
+                                <select class="form-select text-center" wire:model.live="payment">
+                                    <option value="cash">كاش</option>
+                                    <option value="bank">بنك</option>
+                                </select>
+                            </div>
+                        </div>
 
-                        <label for="debt_amount">المبلغ المدفوع</label>
-                        <input type="text" wire:model.live="debt_amount" autocomplete="off" id="debt_amount"
-                               class="form-control text-center"
-                               placeholder="المدفوع ....">
+                        <div class="row">
+                            <div class="col-6">
+                                <label for="payment">البنك</label>
+                                <select @disabled($payment == 'cash') class="form-select text-center"
+                                        wire:model.live="bank_id">
+                                    @foreach($banks as $bank)
+                                        <option value="{{$bank->id}}">{{$bank->bankName}}</option>
+                                    @endforeach
+                                </select>
 
+                            </div>
+                            <div class="col-6">
+                                <label for="bank">رقم الايصال</label>
+                                <input @disabled($payment == 'cash') autocomplete="off" type="text" autocomplete="off"
+                                       wire:model="bank" id="bank"
+                                       class="form-control text-center mb-2"
+                                       placeholder="رقم الايصال ....">
 
-                        <label for="due_date">التاريخ</label>
-                        <input type="date" wire:model.live="due_date"  id="due_date"
-                               class="form-control text-center">
+                            </div>
+                        </div>
 
-                        <label for="payment">طريقة الدفع</label>
-                        <select class="form-select text-center" wire:model.live="payment">
-                            <option value="cash">كاش</option>
-                            <option value="bank">بنك</option>
-                        </select>
-
-                        <label for="payment">البنك</label>
-                        <select @disabled($payment == 'cash') class="form-select text-center"
-                                wire:model.live="bank_id">
-                            @foreach($banks as $bank)
-                                <option value="{{$bank->id}}">{{$bank->bankName}}</option>
-                            @endforeach
-                        </select>
-
-                        <label for="bank">رقم الايصال</label>
-                        <input @disabled($payment == 'cash') autocomplete="off" type="text" autocomplete="off" wire:model="bank" id="bank"
+                        <label for="note">ملاحظات</label>
+                        <input autocomplete="off" type="text" autocomplete="off"
+                               wire:model="note" id="note"
                                class="form-control text-center mb-2"
-                               placeholder="رقم الايصال ....">
+                               placeholder="ملاحظات ....">
 
-                        <button @disabled(($type == 'debt' && ($payment == 'bank' && $debt_amount > $bankBalance))) @disabled(($type == 'debt' && ($payment == 'cash' && $debt_amount > $safeBalance))) @disabled(empty($currentClient) || $debt_amount == 0 || $due_date == '') class="btn btn-{{$debtId == 0 ? 'primary' : 'success'}} w-100"
+                        <button
+                            @disabled(($type == 'debt' && ($payment == 'bank' && $debt_amount > $bankBalance))) @disabled(($type == 'debt' && ($payment == 'cash' && $debt_amount > $safeBalance))) @disabled(empty($currentClient) || $debt_amount == 0 || $due_date == '') class="btn btn-{{$debtId == 0 ? 'primary' : 'success'}} w-100"
                             wire:click="saveDebt()">{{$debtId == 0 ? 'دفــــع' : 'تعــــديل'}}</button>
 
                     </div>
@@ -166,9 +195,10 @@
                         <div class="card-title">
                             <div class="row">
                                 <div class="col-3"><h6>المعاملات</h6></div>
-                                <div class="col-3"><h6>رصيد العميل :  {{ number_format($currentClient['currentBalance'], 2) }}</div>
-                                <div class="col-3"><h6>رصيد الخزنة :  {{ number_format($safeBalance, 2) }}</h6></div>
-                                <div class="col-3"><h6>رصيد البنك :  {{ number_format($bankBalance, 2) }}</h6></div>
+                                <div class="col-3"><h6>رصيد العميل
+                                        : {{ number_format(0, 2) }}</div>
+                                <div class="col-3"><h6>رصيد الخزنة : {{ number_format($safeBalance, 2) }}</h6></div>
+                                <div class="col-3"><h6>رصيد البنك : {{ number_format($bankBalance, 2) }}</h6></div>
                             </div>
                         </div>
                         <div class="scroll">
@@ -177,7 +207,7 @@
                                 <tr>
                                     <th>#</th>
                                     <th>التاريخ</th>
-                                    <th>نوع المعامله</th>
+                                    <th>البيان</th>
                                     <th>طريقة الدفع</th>
                                     <th>الإيصال</th>
                                     <th>المبلغ</th>
@@ -189,16 +219,17 @@
                                     <tr>
                                         <td>{{$debt->id}}</td>
                                         <td>{{$debt->due_date}}</td>
-                                        <td>{{$debt->type == 'debt' ? 'دين' : 'إيداع'}}</td>
+                                        <td>{{$debt->note}}</td>
                                         <td>{{$debt->payment == 'cash' ? 'كاش' : 'بنك'}}</td>
                                         <td>{{$debt->bank}}</td>
-                                        <td>{{$debt->debt_amount}}</td>
+                                        <td>{{$debt->type == 'pay' ? $debt->paid : $debt->debt}}</td>
                                         <td>
                                             <button class="btn btn-sm btn-info text-white"
                                                     wire:click="chooseDebt({{$debt}})"><i class="bi bi-pen"></i>
                                             </button>
                                             /
-                                            <button class="btn btn-sm btn-danger" wire:click="deleteDebtMessage({{$debt}})">
+                                            <button class="btn btn-sm btn-danger"
+                                                    wire:click="deleteDebtMessage({{$debt}})">
                                                 <i
                                                     class="bi bi-trash"></i></button>
                                         </td>

@@ -20,4 +20,9 @@ class Supplier extends Model
         return $this->hasMany(Sale::class);
     }
 
+    public function debts()
+    {
+        return $this->hasMany(SupplierDebt::class);
+    }
+
 }

@@ -42,6 +42,7 @@ Route::middleware(['auth', 'auth.session'])->group(function () {
     Route::get('/employee', Employee::class);
     Route::get('/report', Livewire\Report::class);
     Route::get('/returns', Livewire\Returns::class);
+    Route::get('/purchase-returns', Livewire\PurchaseReturns::class);
     Route::get('/safe', Livewire\Safe::class);
     Route::get('/damaged', Livewire\Damaged::class);
     Route::get('/debt', Livewire\Debt::class);

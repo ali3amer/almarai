@@ -233,8 +233,9 @@
                                                 <div id="collapse.{{$sale->id}}" class="accordion-collapse collapse"
                                                      data-bs-parent="#accordionExample">
                                                     <div class="accordion-body">
+                                                        <button class="btn btn-danger mb-1" wire:click="cancelSale({{$sale}})"><i class="bi bi-trash"></i></button>
                                                         <table class="table table-responsive" data-bs-dismiss="modal"
-                                                               aria-label="Close" wire:click="chooseSale({{$sale}})">
+                                                               aria-label="Close">
                                                             <thead class="table-dark">
                                                             <tr>
                                                                 <th>إسم المنتج</th>
@@ -255,14 +256,6 @@
                                                             <tr>
                                                                 <td>الجمله :</td>
                                                                 <td>{{number_format($sale->total_amount, 2)}}</td>
-                                                            </tr>
-                                                            <tr>
-                                                                <td>المدفوع :</td>
-                                                                <td>{{number_format($sale->saleDebts->sum('paid'), 2)}}</td>
-                                                            </tr>
-                                                            <tr>
-                                                                <td>المتبقي :</td>
-                                                                <td>{{number_format($sale->saleDebts->last()->remainder, 2)}}</td>
                                                             </tr>
                                                             </tbody>
                                                         </table>

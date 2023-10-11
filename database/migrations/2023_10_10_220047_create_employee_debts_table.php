@@ -11,20 +11,21 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('sales', function (Blueprint $table) {
+        Schema::create('employee_debts', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('client_id')->nullable();
-            $table->foreign('client_id')->references('id')->on('clients');
-            $table->unsignedBigInteger('employee_id')->nullable();
+            $table->unsignedBigInteger('employee_id');
             $table->foreign('employee_id')->references('id')->on('employees');
-            $table->unsignedBigInteger('supplier_id')->nullable();
-            $table->foreign('supplier_id')->references('id')->on('suppliers');
-            $table->decimal('discount', 8, 2)->nullable();
-            $table->decimal('total_amount', 8, 2);
-            $table->date('sale_date');
+            $table->enum('type', ['debt', 'pay']);
+            $table->decimal('debt', 8, 2);
+            $table->decimal('paid', 8, 2);
+            $table->enum('payment', ['cash', 'bank']);
+            $table->unsignedBigInteger('bank_id')->nullable();
+            $table->foreign('bank_id')->references('id')->on('banks');
+            $table->string('bank')->nullable();
+            $table->date('due_date');
             $table->unsignedBigInteger('user_id')->nullable();
+            $table->string('note')->nullable();
             $table->foreign('user_id')->references('id')->on('users');
-            $table->softDeletes();
             $table->timestamps();
         });
     }
@@ -34,6 +35,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('sales');
+        Schema::dropIfExists('employee_debts');
     }
 };
