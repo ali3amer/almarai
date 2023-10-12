@@ -15,4 +15,9 @@ class EmployeeGift extends Model
         return $this->belongsTo(Employee::class);
     }
 
+    public function  debt()
+    {
+        return $this->hasOne(EmployeeDebt::class, 'gift_id');
+    }
+
 }

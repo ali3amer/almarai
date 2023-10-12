@@ -1,45 +1,5 @@
 <div>
 
-    <div wire:ignore.self class="modal fade" id="employeeModal" tabindex="-1" aria-labelledby="employeeModalLabel"
-         aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    <h1 class="modal-title fs-5" id="employeeModalLabel">العملاء</h1>
-                </div>
-                <div class="modal-body">
-                    <div class="card bg-white">
-                        <div class="card-body">
-                            <form action="" wire:submit="save({{ $id }})">
-                                <label for="employeeName" class="form-label">إسم الموظف</label>
-                                <input type="text" autocomplete="off"  wire:model.live="employeeName" class="form-control"
-                                       placeholder="إسم الموظف ..." id="employeeName">
-                                <div>
-                                    @error('employeeName') <span
-                                        class="error text-danger">{{ $message }}</span> @enderror
-                                </div>
-                                <label for="employeeName" class="form-label">المرتب</label>
-                                <input type="text" autocomplete="off"  wire:model.live="salary" class="form-control" placeholder="المرتب"
-                                       id="salary">
-                                <div>
-                                    @error('salary') <span class="error text-danger">{{ $message }}</span> @enderror
-                                </div>
-                                <div class="d-grid mt-2">
-                                    <button type="submit"
-                                            @disabled($employeeName == '' || $salary <= 0)  data-bs-dismiss="modal"
-                                            aria-label="Close"
-                                            class="btn btn- btn-{{ $editMode ? 'success' : 'primary' }}">{{ $editMode ? 'تعـــــــــــــــديل' : 'حفـــــــــــــــــــظ' }}</button>
-                                </div>
-
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- Show Sale -->
 
     <div wire:ignore.self class="modal fade" id="saleModal" tabindex="-1" aria-labelledby="saleModalLabel"
@@ -92,22 +52,42 @@
 
     <div class="row mt-2">
         @if(empty($currentEmployee))
-            <div class="col-5">
+            <div class="col-4">
                 <div class="card">
                     <div class="card-body">
-                        <div class="card-title">
-                            <div class="row">
-                                <div class="col-2">
-                                    <button wire:click="resetData()"
-                                            @disabled(!Auth::user()->hasPermission('employees-create')) data-bs-toggle="modal"
-                                            data-bs-target="#employeeModal"
-                                            class="btn btn-primary">
-                                        <i class="bi bi-plus"></i></button>
-                                </div>
-                                <div class="col"><input autocomplete="off" wire:model.live="search" class="form-control"
-                                                        placeholder="بحث ......"></div>
+                        <form action="" wire:submit="save({{ $id }})">
+                            <label for="employeeName" class="form-label">إسم الموظف</label>
+                            <input type="text" autocomplete="off" wire:model.live="employeeName" class="form-control"
+                                   placeholder="إسم الموظف ..." id="employeeName">
+                            <div>
+                                @error('employeeName') <span
+                                    class="error text-danger">{{ $message }}</span> @enderror
                             </div>
-                        </div>
+                            <label for="employeeName" class="form-label">المرتب</label>
+                            <input type="text" autocomplete="off" wire:model.live="salary" class="form-control"
+                                   placeholder="المرتب"
+                                   id="salary">
+                            <div>
+                                @error('salary') <span class="error text-danger">{{ $message }}</span> @enderror
+                            </div>
+                            <div class="d-grid mt-2">
+                                <button type="submit"
+                                        @disabled($employeeName == '' || $salary <= 0)  data-bs-dismiss="modal"
+                                        aria-label="Close"
+                                        class="btn btn- btn-{{ $editMode ? 'success' : 'primary' }}">{{ $editMode ? 'تعـــــــــــــــديل' : 'حفـــــــــــــــــــظ' }}</button>
+                            </div>
+
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="col-8">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="col"><input autocomplete="off" wire:model.live="search" class="form-control w-50"
+                                                placeholder="بحث ......"></div>
+                    </div>
+                    <div class="card-body">
                         @if(count($employees) > 0 && Auth::user()->hasPermission('employees-read'))
                             <div class="scroll">
                                 <table class="table text-center">
@@ -126,10 +106,10 @@
                                             <td>{{ $employee->employeeName }}</td>
                                             <td>{{ number_format($employee->salary, 2) }}</td>
                                             <td>
-                                                <button data-bs-toggle="modal"
-                                                        @disabled(!Auth::user()->hasPermission('employees-update')) data-bs-target="#employeeModal"
-                                                        class="btn btn-sm btn-info text-white"
-                                                        wire:click="edit({{$employee}})">
+                                                <button
+                                                    @disabled(!Auth::user()->hasPermission('employees-update')) data-bs-target="#employeeModal"
+                                                    class="btn btn-sm btn-info text-white"
+                                                    wire:click="edit({{$employee}})">
                                                     <i class="bi bi-pen"></i></button>
                                                 /
                                                 <button class="btn btn-sm btn-danger"
@@ -156,30 +136,38 @@
         @endif
 
         @if(!empty($currentEmployee))
-            <div class="col-7">
-                <div class="card mb-2">
+            <div class="col-12 mb-2">
+                <div class="card">
                     <div class="card-body">
                         <div class="row">
-                            <div class="col-4">
-                                <input type="text" readonly wire:click="resetData()" style="cursor:pointer;"
+                            <div class="col-3">
+                                <label for="employeeName">إسم الموظف</label>
+                                <input id="employeeName" type="text" readonly wire:click="resetData()"
+                                       style="cursor:pointer;"
                                        class="form-control text-center border-danger"
                                        wire:model.live="currentEmployee.employeeName">
                             </div>
-                            <div class="col-3">
-                                <input type="date" class="form-control text-center" wire:model.live="gift_date">
+                            <div class="col-2">
+                                <label for="gift_date">التاريخ</label>
+                                <input type="date" class="form-control text-center" id="gift_date"
+                                       wire:model.live="gift_date">
                             </div>
                             <div class="col-2">
-                                <select id="payment" @disabled(!empty($debts)) class="form-select text-center"
+                                <label for="payment">طريقة الدفع</label>
+                                <select id="payment" class="form-select text-center"
                                         wire:model.live="payment">
                                     <option value="cash">كاش</option>
                                     <option value="bank">بنك</option>
                                 </select>
                                 <div>
-                                    @error('payment') <span class="error text-danger">{{ $message }}</span> @enderror
+                                    @error('payment')
+                                    <span class="error text-danger">{{ $message }}</span>
+                                    @enderror
                                 </div>
                             </div>
 
-                            <div class="col-3">
+                            <div class="col-2">
+                                <label for="bank_id">البنك</label>
                                 <select id="bank_id" @disabled($payment == 'cash') class="form-select text-center"
                                         wire:model="bank_id">
                                     @foreach($banks as $bank)
@@ -190,25 +178,46 @@
                                     @error('bank_id') <span class="error text-danger">{{ $message }}</span> @enderror
                                 </div>
                             </div>
-                        </div>
-                        <div class="row mt-2">
+
                             <div class="col-3">
-                                <input type="text" autocomplete="off"  class="form-control text-center"
+                                <label for="payment">رقم الايصال</label>
+                                <input type="text" id="payment" autocomplete="off" class="form-control text-center"
                                        @disabled($payment == 'cash') placeholder="رقم الإيصال ...."
                                        wire:model.live="bank">
                             </div>
+                        </div>
 
-                            <div class="col-3">
-                                <input type="text" autocomplete="off"  class="form-control text-center"
-                                       @disabled(!empty($debts)) placeholder="المبلغ ...."
+                        <div class="row">
+                            <div class="col-2">
+                                <label for="gift_amount">المرتب</label>
+                                <input type="text" id="gift_amount"  wire:keydown="calcDebts()" autocomplete="off" class="form-control text-center"
+                                        placeholder="المبلغ ...."
                                        wire:model.live="gift_amount">
                             </div>
 
-                            <div class="col-4">
-                                <input type="text" autocomplete="off"  class="form-control text-center" placeholder="ملاحظات ...."
+                            <div class="col-2">
+                                <label for="gift_amount">سداد</label>
+                                <input type="text" id="paid" wire:keydown="calcDebts()" autocomplete="off" class="form-control text-center"
+                                       placeholder="سداد ...."
+                                       wire:model.live="paid">
+                            </div>
+
+                            <div class="col-3">
+                                <label for="gift_amount">متبقي المرتب</label>
+                                <input type="text" id="remainder" disabled autocomplete="off" class="form-control text-center"
+                                       placeholder="سداد ...."
+                                       wire:model.live="remainder">
+                            </div>
+
+                            <div class="col-3">
+                                <label for="note">ملاحظات</label>
+
+                                <input type="text" id="note" autocomplete="off" class="form-control text-center"
+                                       placeholder="ملاحظات ...."
                                        wire:model.live="note">
                             </div>
-                            <div class="col-2">
+
+                            <div class="col-2 d-flex align-items-end">
                                 @if($editGiftMode)
                                     <button class="btn btn-success w-100"
                                             wire:click="updateGift({{$currentGift['id']}})">تعديل
@@ -217,75 +226,57 @@
                                     <button class="btn btn-primary w-100" wire:click="payGift()">دفع</button>
                                 @endif
                             </div>
+
                         </div>
 
-                        @if(!empty($debts))
-                            <div class="mt-1">
-                                @foreach($debts as $key => $debt)
-                                    <button type="button" class="btn btn-outline-danger"
-                                            wire:click="deleteDebt({{$key}})">{{$debt}}</button>
-                                @endforeach
-                            </div>
-                        @endif
-                    </div>
-                </div>
-                <div class="card">
-                    <div class="card-body">
-                        <div class="scroll">
-                            <table class="table text-center">
-                                <thead>
-                                <tr>
-                                    <th>#</th>
-                                    <th>التاريخ</th>
-                                    <th>المبلغ</th>
-                                    <th>ملاحظات</th>
-                                    <th>التحكم</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                @if(!empty($gifts))
-                                    @foreach($gifts as $gift)
-                                        <tr>
-                                            <td>{{$loop->index + 1}}</td>
-                                            <td>{{$gift->gift_date}}</td>
-                                            <td>{{number_format($gift->gift_amount, 2)}}</td>
-                                            <td>{{$gift->note}}</td>
-                                            <td>
-                                                <button class="btn btn-sm btn-info text-white"
-                                                        wire:click="editGift({{$gift}})"><i class="bi bi-pen"></i>
-                                                </button>
-                                                /
-                                                <button class="btn btn-sm btn-danger"
-                                                        wire:click="deleteGiftMessage({{$gift}})"><i
-                                                        class="bi bi-trash"></i>
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    @endforeach
-                                @endif
-                                </tbody>
-                            </table>
-                        </div>
+
                     </div>
                 </div>
             </div>
-            <div class="col-5">
+
+            <div class="col-4">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="card-title">
+                            <h5>المرتبات</h5>
+                        </div>
+                        <table class="table">
+                            <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>التاريخ</th>
+                                <th>المبلغ</th>
+                                <th>التحكم</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            @foreach($gifts as $gift)
+                                <tr>
+                                    <td>{{$gift->index + 1}}</td>
+                                    <td>{{$gift->gift_date}}</td>
+                                    <td>{{number_format($gift->gift_amount, 2)}}</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-primary" wire:click="editGift({{$gift}})"><i class="bi bi-pen"></i></button> /
+                                        <button class="btn btn-sm btn-danger" wire:click="deleteGiftMessage({{$gift}})"><i class="bi bi-trash"></i></button>
+                                    </td>
+                                </tr>
+                            @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="col-8">
                 <div class="card">
                     <div class="card-body">
                         <div class="card-title">
                             <div class="row">
-                                <div class="col-6">
-                                    <h6>
-                                        <span>مجموع المطالبات : </span><span>{{number_format($total_sum_paid, 2)}}</span>
-                                    </h6>
-                                </div>
-                                <div class="col-6">
-                                    <input type="text" autocomplete="off"  placeholder="بحث ...."
-                                           class="form-control text-center" wire:keydown="getSales()"
-                                           wire:model="saleSearch">
-                                </div>
+                                <div class="col-3"><h6>المعاملات</h6></div>
+                                <div class="col-3"><h6>رصيد الموظف
+                                        : {{ number_format(0, 2) }}</div>
+                                <div class="col-3"><h6>رصيد الخزنة : {{ number_format($safeBalance, 2) }}</h6></div>
+                                <div class="col-3"><h6>رصيد البنك : {{ number_format($bankBalance, 2) }}</h6></div>
                             </div>
-
                         </div>
                         <div class="scroll">
                             <table class="table text-center">
@@ -293,46 +284,31 @@
                                 <tr>
                                     <th>#</th>
                                     <th>التاريخ</th>
-                                    <th>المتبقي</th>
+                                    <th>البيان</th>
+                                    <th>طريقة الدفع</th>
+                                    <th>الإيصال</th>
+                                    <th>المبلغ</th>
                                     <th>التحكم</th>
                                 </tr>
                                 </thead>
                                 <tbody>
-                                @if($editGiftMode)
-                                    @foreach($sales as $sale)
-                                        @if(key_exists($sale->id, $oldDebts) && $sale->saleDebts->count() > 1)
-                                            <tr class="border-success">
-                                                <td>{{$sale->id}}</td>
-                                                <td>{{$sale->sale_date}}</td>
-                                                <td>{{ $sale->saleDebts->last()->paid}}</td>
-                                                <td>
-                                                    <button class="btn btn-sm btn-success"
-                                                            wire:click="addDebt({{$sale}})">
-                                                        <i
-                                                            class="bi bi-plus"></i></button>
-                                                    /
-                                                    <button class="btn btn-sm btn-warning text-white"
-                                                            data-bs-toggle="modal"
-                                                            data-bs-target="#saleModal"
-                                                            wire:click="showSale({{$sale}})"><i
-                                                            class="bi bi-eye"></i></button>
-                                                </td>
-                                            </tr>
-                                        @endif
-                                    @endforeach
-                                @endif
-                                @foreach($sales as $sale)
+                                @foreach($debts as $debt)
                                     <tr>
-                                        <td>{{$sale->id}}</td>
-                                        <td>{{$sale->sale_date}}</td>
-                                        <td>{{ $sale->saleDebts->last()->remainder}}</td>
+                                        <td>{{$debt->id}}</td>
+                                        <td>{{$debt->due_date}}</td>
+                                        <td>{{$debt->note}}</td>
+                                        <td>{{$debt->payment == 'cash' ? 'كاش' : 'بنك'}}</td>
+                                        <td>{{$debt->bank}}</td>
+                                        <td>{{$debt->type == 'pay' ? number_format($debt->paid, 2) : number_format($debt->debt, 2)}}</td>
                                         <td>
-                                            <button class="btn btn-sm btn-primary" wire:click="addDebt({{$sale}})"><i
-                                                    class="bi bi-plus"></i></button>
+                                            <button class="btn btn-sm btn-info text-white"
+                                                    wire:click="chooseDebt({{$debt}})"><i class="bi bi-pen"></i>
+                                            </button>
                                             /
-                                            <button class="btn btn-sm btn-warning text-white" data-bs-toggle="modal"
-                                                    data-bs-target="#saleModal" wire:click="showSale({{$sale}})"><i
-                                                    class="bi bi-eye"></i></button>
+                                            <button class="btn btn-sm btn-danger"
+                                                    wire:click="deleteDebtMessage({{$debt}})">
+                                                <i
+                                                    class="bi bi-trash"></i></button>
                                         </td>
                                     </tr>
                                 @endforeach
@@ -340,7 +316,6 @@
                             </table>
                         </div>
                     </div>
-
                 </div>
             </div>
         @endif

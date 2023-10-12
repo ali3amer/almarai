@@ -84,20 +84,20 @@ class Sale extends Component
                         'note' => 'تم شراء بالآجل',
                         'user_id' => auth()->id()
                     ]);
+                } else {
+                    \App\Models\ClientDebt::create([
+                        'client_id' => $this->currentClient['id'],
+                        'paid' => $this->paid,
+                        'debt' => 0,
+                        'type' => $type,
+                        'bank' => $this->bank,
+                        'payment' => $this->payment,
+                        'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
+                        'due_date' => $this->sale_date,
+                        'note' => 'تم إستلام مبلغ',
+                        'user_id' => auth()->id()
+                    ]);
                 }
-
-                \App\Models\ClientDebt::create([
-                    'client_id' => $this->currentClient['id'],
-                    'paid' => $this->paid,
-                    'debt' => 0,
-                    'type' => $type,
-                    'bank' => $this->bank,
-                    'payment' => $this->payment,
-                    'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
-                    'due_date' => $this->sale_date,
-                    'note' => 'تم إستلام مبلغ',
-                    'user_id' => auth()->id()
-                ]);
 
             } elseif ($this->buyer == 'employee') {
                 if ($this->paid == 0) {
@@ -113,20 +113,22 @@ class Sale extends Component
                         'note' => 'تم شراء بالآجل',
                         'user_id' => auth()->id()
                     ]);
+                } else {
+                    \App\Models\EmployeeDebt::create([
+                        'employee_id' => $this->currentClient['id'],
+                        'paid' => $this->paid,
+                        'debt' => 0,
+                        'type' => $type,
+                        'bank' => $this->bank,
+                        'payment' => $this->payment,
+                        'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
+                        'due_date' => $this->sale_date,
+                        'note' => 'تم إستلام مبلغ',
+                        'user_id' => auth()->id()
+                    ]);
                 }
 
-                \App\Models\EmployeeDebt::create([
-                    'employee_id' => $this->currentClient['id'],
-                    'paid' => $this->paid,
-                    'debt' => 0,
-                    'type' => $type,
-                    'bank' => $this->bank,
-                    'payment' => $this->payment,
-                    'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
-                    'due_date' => $this->sale_date,
-                    'note' => 'تم إستلام مبلغ',
-                    'user_id' => auth()->id()
-                ]);
+
             } elseif ($this->buyer == 'supplier') {
                 if ($this->paid == 0) {
                     \App\Models\SupplierDebt::create([
@@ -141,20 +143,21 @@ class Sale extends Component
                         'note' => 'تم شراء بالآجل',
                         'user_id' => auth()->id()
                     ]);
+                } else {
+                    \App\Models\SupplierDebt::create([
+                        'supplier_id' => $this->currentClient['id'],
+                        'paid' => $this->paid,
+                        'debt' => 0,
+                        'type' => $type,
+                        'bank' => $this->bank,
+                        'payment' => $this->payment,
+                        'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
+                        'due_date' => $this->sale_date,
+                        'note' => 'تم إستلام مبلغ',
+                        'user_id' => auth()->id()
+                    ]);
                 }
 
-                \App\Models\SupplierDebt::create([
-                    'supplier_id' => $this->currentClient['id'],
-                    'paid' => $this->paid,
-                    'debt' => 0,
-                    'type' => $type,
-                    'bank' => $this->bank,
-                    'payment' => $this->payment,
-                    'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
-                    'due_date' => $this->sale_date,
-                    'note' => 'تم إستلام مبلغ',
-                    'user_id' => auth()->id()
-                ]);
             }
 
 

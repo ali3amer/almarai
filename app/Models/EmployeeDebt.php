@@ -9,4 +9,9 @@ class EmployeeDebt extends Model
 {
     use HasFactory;
     protected $guarded = [];
+
+    public function gift()
+    {
+        return $this->belongsTo(EmployeeGift::class);
+    }
 }
