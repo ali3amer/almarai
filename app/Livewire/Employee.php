@@ -10,6 +10,7 @@ use App\Models\SaleDebt;
 use App\Models\SaleDetail;
 use Illuminate\Database\Eloquent\Collection;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
+use Livewire\Attributes\On;
 use Livewire\Attributes\Rule;
 use Livewire\Component;
 
@@ -31,7 +32,9 @@ class Employee extends Component
     public array $oldDebts = [];
     public Collection $details;
     public string $search = '';
+    public string $type = '';
     public string $gift_date = '';
+    public null|int $gift_id = 0;
     public string $bank = '';
     public string $payment = 'cash';
     public string $note = '';
@@ -45,7 +48,7 @@ class Employee extends Component
     public Collection $gifts;
     public Collection $banks;
     public Collection $sales;
-    public array $currentGift = [];
+    public array $currentDebt = [];
     public float $safeBalance = 0;
     public float $bankBalance = 0;
 
@@ -142,11 +145,12 @@ class Employee extends Component
     public function getGifts($employee)
     {
         $this->currentEmployee = $employee;
+        $debt = EmployeeDebt::where('employee_id', $employee['id'])->get();
+        $this->currentEmployee['currentBalance'] = $debt->sum('debt') - $debt->sum('paid');
         $this->gift_date = date('Y-m-d');
         $this->gift_amount = $this->currentEmployee['salary'];
         $this->gifts = EmployeeGift::where('employee_id', $this->currentEmployee['id'])->get();
         $this->debts = EmployeeDebt::where('employee_id', $this->currentEmployee['id'])->get();
-        $this->getSales();
     }
 
     public function chooseDebt($debt)
@@ -160,61 +164,37 @@ class Employee extends Component
         $this->due_date = $debt['due_date'];
     }
 
-    public function getSales()
-    {
-        $this->sales = \App\Models\Sale::where('employee_id', $this->currentEmployee['id'])->orderBy('id', 'desc')->get()->keyBy('id');
-    }
-
-    public function addDebt($sale)
-    {
-        $remainder = 'remainder';
-        if (end($sale['sale_debts'])[$remainder] != 0 && !key_exists($sale['id'], $this->debts) && $this->gift_amount > end($sale['sale_debts'])[$remainder]) {
-            $this->debts[$sale['id']] = end($sale['sale_debts'])[$remainder];
-            $this->gift_amount -= end($sale['sale_debts'])[$remainder];
-            $this->calcDebts();
-        }
-        $remainder = 'paid';
-        if (end($sale['sale_debts'])[$remainder] != 0 && !key_exists($sale['id'], $this->debts) && $this->gift_amount > end($sale['sale_debts'])[$remainder]) {
-            $this->debts[$sale['id']] = end($sale['sale_debts'])[$remainder];
-            $this->gift_amount -= end($sale['sale_debts'])[$remainder];
-            $this->calcDebts();
-        }
-    }
-
     public function deleteDebt($key)
     {
         $this->gift_amount += $this->debts[$key];
         unset($this->debts[$key]);
-        $this->calcDebts();
+        $this->calcRemainder();
     }
 
-    public function calcDebts()
+    public function calcRemainder()
     {
         $this->remainder = floatval($this->gift_amount) - floatval($this->paid);
     }
 
-    public function showSale($sale)
-    {
-        $this->details = SaleDetail::where('sale_id', $sale['id'])->get();
-    }
-
     public function payGift()
     {
-            $gift = EmployeeGift::create([
-                'employee_id' => $this->currentEmployee['id'],
-                'payment' => $this->payment,
-                'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
-                'gift_amount' => $this->gift_amount - $this->paid,
-                'gift_date' => $this->gift_date,
-                'note' => $this->note
-            ]);
+            if ($this->gift_amount != 0) {
+                $gift = EmployeeGift::create([
+                    'employee_id' => $this->currentEmployee['id'],
+                    'payment' => $this->payment,
+                    'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
+                    'gift_amount' => $this->gift_amount - $this->paid,
+                    'gift_date' => $this->gift_date,
+                    'note' => $this->note
+                ]);
+            }
             $type = 'pay';
         if ($type == 'debt') {
             $note = 'تم شراء بالآجل';
             $debt = $this->gift_amount;
             $paid = 0;
         } else {
-            $note = 'تم إستلام مبلغ من المرتب';
+            $note = $this->gift_amount == 0 ? 'تم إستلام مبلغ' : 'تم إستلام مبلغ من المرتب';
             $paid = $this->paid;
             $debt = 0;
         }
@@ -232,86 +212,64 @@ class Employee extends Component
             'user_id' => auth()->id(),
         ]);
 
-
-        if ($this->payment == 'cash') {
-            \App\Models\Safe::first()->decrement('currentBalance', $this->gift_amount);
-        } else {
-            Bank::where('id', $this->bank_id)->decrement('currentBalance', $this->gift_amount);
-        }
-
         $this->getGifts($this->currentEmployee);
 
         $this->alert('success', 'تم الدفع بنجاح', ['timerProgressBar' => true]);
 
     }
 
-    public function editGift($gift)
+    public function editGift($debt, $salary)
     {
         $this->editGiftMode = true;
-        dd(EmployeeGift::with('debt')->first()->debt);
-        $this->currentGift = $gift;
-        $this->gift_date = $this->currentGift['gift_date'];
-        $this->gift_amount = $this->currentGift['gift_amount'];
-        $this->note = $this->currentGift['note'];
+        $this->currentDebt = $debt;
+        $this->gift_id = $this->currentDebt['gift_id'];
+        $this->type = $this->currentDebt['type'];
+        $this->bank_id = $this->currentDebt['bank_id'];
+        $this->bank = $this->currentDebt['bank'];
+        $this->paid = $this->currentDebt['paid'];
+        $this->note = $this->currentDebt['note'];
+        $this->gift_date = $this->currentDebt['due_date'];
+        $this->gift_amount = $salary + $this->currentDebt['paid'];
+        $this->currentDebt['gift_amount'] = $salary;
+        $this->remainder = $salary;
 
-        $saleDebts = SaleDebt::where('gift_id', $this->currentGift['id'])->get();
-        $this->debts;
-        foreach ($saleDebts as $debt) {
-            if ($debt->paid != 0) {
-                $this->debts[$debt['sale_id']] = $debt['paid'];
-            }
-        }
-        $this->oldDebts = [];
-        $this->oldDebts = $this->debts;
-        $this->getSales();
     }
 
     public function updateGift($id)
     {
-        $gift = EmployeeGift::where('id', $id)->first();
-
-        if ($gift['payment'] == 'cash') {
-            \App\Models\Safe::first()->increment('currentBalance', $gift['gift_amount']);
-        } else {
-            Bank::where('id', $gift['bank_id'])->increment('currentBalance', $gift['gift_amount']);
-        }
-
-        $employee = \App\Models\Employee::find($this->currentEmployee['id']);
-        $keys = array_keys($employee->sales->keyBy('id')->toArray());
-        SaleDebt::where('due_date', $gift['gift_date'])->whereIn('sale_id', $keys)->where('paid', '!=', 0)->delete();
-
-        $gift->update([
-            'gift_amount' => $this->gift_amount,
+        $gift = EmployeeGift::where('id', $id)->update([
+            'payment' => $this->payment,
+            'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
+            'gift_amount' => $this->gift_amount - $this->paid,
             'gift_date' => $this->gift_date,
             'note' => $this->note
         ]);
-
-        if (!empty($this->debts)) {
-            foreach ($this->debts as $key => $debt) {
-                SaleDebt::create([
-                    'sale_id' => $key,
-                    'paid' => $debt,
-                    'bank' => '',
-                    'payment' => 'cash',
-                    'remainder' => 0,
-                    'client_balance' => 0,
-                    'gift_id' => $gift['id'],
-                    'due_date' => $this->gift_date,
-                    'user_id' => auth()->id()
-                ]);
-            }
-        }
-
-
-        if ($this->payment == 'cash') {
-            \App\Models\Safe::first()->decrement('currentBalance', $this->gift_amount);
+        $type = 'pay';
+        if ($type == 'debt') {
+            $note = 'تم شراء بالآجل';
+            $debt = $this->gift_amount;
+            $paid = 0;
         } else {
-            Bank::where('id', $this->bank_id)->decrement('currentBalance', $this->gift_amount);
+            $note = 'تم إستلام مبلغ من المرتب';
+            $paid = $this->paid;
+            $debt = 0;
         }
+        EmployeeDebt::where('gift_id', $id)->update([
+            'type' => $type,
+            'debt' => $debt,
+            'paid' => $paid,
+            'payment' => $this->payment,
+            'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
+            'bank' => $this->bank,
+            'due_date' => $this->gift_date,
+            'note' => $this->note == '' ? $note : $this->note,
+            'user_id' => auth()->id(),
+        ]);
+
+        $this->resetData();
 
         $this->getGifts($this->currentEmployee);
-        $this->gift_date = date('Y-m-d');
-        $this->reset('currentGift', 'editGiftMode', 'gift_amount', 'note', 'debts', 'oldDebts');
+
         $this->alert('success', 'تم التعديل بنجاح', ['timerProgressBar' => true]);
 
     }
@@ -319,19 +277,17 @@ class Employee extends Component
     public function deleteGift($data)
     {
         $gift = EmployeeGift::where('id', $data['inputAttributes']['id'])->first();
-        if ($gift['payment'] == 'cash') {
-            \App\Models\Safe::first()->increment('currentBalance', $gift['gift_amount']);
-        } else {
-            Bank::where('id', $gift['bank_id'])->increment('currentBalance', $gift['gift_amount']);
-        }
+        EmployeeDebt::where('gift_id', $gift['id'])->delete();
+
         $gift->delete();
         $this->getGifts($this->currentEmployee);
         $this->alert('success', 'تم الحذف بنجاح', ['timerProgressBar' => true]);
     }
 
-    public function resetData()
+    #[On('reset-employee')]
+    public function resetData($data = null)
     {
-        $this->reset('id', 'employeeName', 'id', 'salary', 'editMode', 'currentEmployee');
+        $this->reset('id', 'employeeName', 'id', 'salary', 'editMode', 'currentDebt', 'note', 'paid', 'remainder', 'editGiftMode', $data);
     }
 
     public function render()

@@ -127,6 +127,7 @@ class Purchase extends Component
         $this->invoice['cart'] = $this->cart;
         $this->invoice['remainder'] = $this->remainder;
         $this->invoice['paid'] = $this->paid;
+        $this->invoice['showMode'] = false;
         $this->invoice['total_amount'] = $this->total_amount;
         $this->dispatch('sale_created', $this->invoice);
         $this->resetData();

@@ -142,7 +142,7 @@
                         <div class="row">
                             <div class="col-3">
                                 <label for="employeeName">إسم الموظف</label>
-                                <input id="employeeName" type="text" readonly wire:click="resetData()"
+                                <input id="employeeName" @click="$dispatch('reset-employee', { data: 'currentEmployee' })" type="text" readonly
                                        style="cursor:pointer;"
                                        class="form-control text-center border-danger"
                                        wire:model.live="currentEmployee.employeeName">
@@ -190,14 +190,14 @@
                         <div class="row">
                             <div class="col-2">
                                 <label for="gift_amount">المرتب</label>
-                                <input type="text" id="gift_amount"  wire:keydown="calcDebts()" autocomplete="off" class="form-control text-center"
+                                <input type="text" id="gift_amount"  wire:keydown="calcRemainder()" autocomplete="off" class="form-control text-center"
                                         placeholder="المبلغ ...."
                                        wire:model.live="gift_amount">
                             </div>
 
                             <div class="col-2">
                                 <label for="gift_amount">سداد</label>
-                                <input type="text" id="paid" wire:keydown="calcDebts()" autocomplete="off" class="form-control text-center"
+                                <input type="text" id="paid" wire:keydown="calcRemainder()" autocomplete="off" class="form-control text-center"
                                        placeholder="سداد ...."
                                        wire:model.live="paid">
                             </div>
@@ -220,7 +220,7 @@
                             <div class="col-2 d-flex align-items-end">
                                 @if($editGiftMode)
                                     <button class="btn btn-success w-100"
-                                            wire:click="updateGift({{$currentGift['id']}})">تعديل
+                                            wire:click="updateGift({{$gift_id}})">تعديل
                                     </button>
                                 @else
                                     <button class="btn btn-primary w-100" wire:click="payGift()">دفع</button>
@@ -256,7 +256,7 @@
                                     <td>{{$gift->gift_date}}</td>
                                     <td>{{number_format($gift->gift_amount, 2)}}</td>
                                     <td>
-                                        <button class="btn btn-sm btn-primary" wire:click="editGift({{$gift}})"><i class="bi bi-pen"></i></button> /
+                                        <button class="btn btn-sm btn-primary" wire:click="editGift({{$gift->debt}}, {{$gift->gift_amount}})"><i class="bi bi-pen"></i></button> /
                                         <button class="btn btn-sm btn-danger" wire:click="deleteGiftMessage({{$gift}})"><i class="bi bi-trash"></i></button>
                                     </td>
                                 </tr>
@@ -273,7 +273,7 @@
                             <div class="row">
                                 <div class="col-3"><h6>المعاملات</h6></div>
                                 <div class="col-3"><h6>رصيد الموظف
-                                        : {{ number_format(0, 2) }}</div>
+                                        : {{ number_format($currentEmployee['currentBalance'], 2) }}</div>
                                 <div class="col-3"><h6>رصيد الخزنة : {{ number_format($safeBalance, 2) }}</h6></div>
                                 <div class="col-3"><h6>رصيد البنك : {{ number_format($bankBalance, 2) }}</h6></div>
                             </div>

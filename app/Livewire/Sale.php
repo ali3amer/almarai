@@ -68,10 +68,10 @@ class Sale extends Component
                 'user_id' => auth()->id(),
             ]);
 
-            $type = $this->paid == 0 ? 'debt' : 'pay';
+            $type = floatval($this->paid) == 0 ? 'debt' : 'pay';
 
             if ($this->buyer == 'client') {
-                if ($this->paid == 0) {
+                if (floatval($this->paid) == 0) {
                     \App\Models\ClientDebt::create([
                         'client_id' => $this->currentClient['id'],
                         'paid' => 0,
@@ -87,7 +87,7 @@ class Sale extends Component
                 } else {
                     \App\Models\ClientDebt::create([
                         'client_id' => $this->currentClient['id'],
-                        'paid' => $this->paid,
+                        'paid' => floatval($this->paid),
                         'debt' => 0,
                         'type' => $type,
                         'bank' => $this->bank,
@@ -100,7 +100,7 @@ class Sale extends Component
                 }
 
             } elseif ($this->buyer == 'employee') {
-                if ($this->paid == 0) {
+                if (floatval($this->paid) == 0) {
                     \App\Models\EmployeeDebt::create([
                         'employee_id' => $this->currentClient['id'],
                         'paid' => 0,
@@ -116,7 +116,7 @@ class Sale extends Component
                 } else {
                     \App\Models\EmployeeDebt::create([
                         'employee_id' => $this->currentClient['id'],
-                        'paid' => $this->paid,
+                        'paid' => floatval($this->paid),
                         'debt' => 0,
                         'type' => $type,
                         'bank' => $this->bank,
@@ -130,7 +130,7 @@ class Sale extends Component
 
 
             } elseif ($this->buyer == 'supplier') {
-                if ($this->paid == 0) {
+                if (floatval($this->paid) == 0) {
                     \App\Models\SupplierDebt::create([
                         'supplier_id' => $this->currentClient['id'],
                         'paid' => 0,
@@ -146,7 +146,7 @@ class Sale extends Component
                 } else {
                     \App\Models\SupplierDebt::create([
                         'supplier_id' => $this->currentClient['id'],
-                        'paid' => $this->paid,
+                        'paid' => floatval($this->paid),
                         'debt' => 0,
                         'type' => $type,
                         'bank' => $this->bank,
@@ -161,14 +161,6 @@ class Sale extends Component
             }
 
 
-        }
-        if ($this->paid != 0) {
-
-            if ($this->payment == 'cash') {
-                \App\Models\Safe::first()->increment('currentBalance', $this->paid);
-            } else {
-                Bank::where('id', $this->bank_id)->increment('currentBalance', $this->paid);
-            }
         }
 
         foreach ($this->cart as $item) {
@@ -193,6 +185,7 @@ class Sale extends Component
         $this->invoice['remainder'] = $this->remainder;
         $this->invoice['paid'] = $this->paid;
         $this->invoice['total_amount'] = $this->total_amount;
+        $this->invoice['showMode'] = false;
         $this->dispatch('sale_created', $this->invoice);
         $this->resetData();
 
@@ -248,6 +241,19 @@ class Sale extends Component
         $this->editMode = !$this->editMode;
     }
 
+    public function getSale($sale)
+    {
+        $this->invoice['id'] = $sale['id'];
+        $this->invoice['type'] = 'sale';
+        $this->invoice['sale_date'] = $sale['sale_date'];
+        $this->invoice['client'] = $this->currentClient[$this->buyer . 'Name'];
+        $this->invoice['cart'] = SaleDetail::where('sale_id', $sale['id'])->join('products', 'products.id', '=', 'sale_details.product_id')->get()->toArray();
+        $this->invoice['remainder'] = $this->remainder;
+        $this->invoice['paid'] = $this->paid;
+        $this->invoice['total_amount'] = $sale['total_amount'];
+        $this->invoice['showMode'] = true;
+        $this->dispatch('sale_created', $this->invoice);
+    }
     public function cancelSale($sale)
     {
         \App\Models\Sale::where('id', $sale['id'])->delete();
@@ -289,13 +295,13 @@ class Sale extends Component
         if (!empty($this->currentClient)) {
             if ($this->buyer == 'client') {
                 $this->sales = \App\Models\Sale::where('client_id', $this->currentClient['id'])
-                    ->where('id', 'LIKE', '%' . $this->saleSearch . '%')->where('sale_date', 'LIKE', '%' . $this->saleSearch . '%')->get();
+                    ->where('id', 'LIKE', '%' . $this->saleSearch . '%')->where('sale_date', 'LIKE', '%' . $this->saleSearch . '%')->latest()->get();
             } elseif ($this->buyer == 'employee') {
                 $this->sales = \App\Models\Sale::where('employee_id', $this->currentClient['id'])
-                    ->where('id', 'LIKE', '%' . $this->saleSearch . '%')->where('sale_date', 'LIKE', '%' . $this->saleSearch . '%')->get();
+                    ->where('id', 'LIKE', '%' . $this->saleSearch . '%')->where('sale_date', 'LIKE', '%' . $this->saleSearch . '%')->latest()->get();
             } elseif ($this->buyer == 'supplier') {
                 $this->sales = \App\Models\Sale::where('supplier_id', $this->currentClient['id'])
-                    ->where('id', 'LIKE', '%' . $this->saleSearch . '%')->where('sale_date', 'LIKE', '%' . $this->saleSearch . '%')->get();
+                    ->where('id', 'LIKE', '%' . $this->saleSearch . '%')->where('sale_date', 'LIKE', '%' . $this->saleSearch . '%')->latest()->get();
             }
         }
         if ($this->sale_date == '') {

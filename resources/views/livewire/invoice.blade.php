@@ -2,6 +2,7 @@
     <h6>فاتوره رقم {{$invoice['id'] ?? ''}}</h6>
     <h6>إسم العميل : {{$invoice['client'] ?? ''}}</h6>
     <h6>التاريخ : {{$invoice['sale_date'] ?? ''}}</h6>
+
     <table class="printInvoice text-center">
         <thead>
         <tr>
@@ -20,7 +21,7 @@
                     <td>{{$item['productName']}}</td>
                     <td>{{number_format(floatval($item[$invoice['type'].'_price']), 2)}}</td>
                     <td>{{number_format(floatval($item['quantity']), 2)}}</td>
-                    <td>{{number_format($item['amount'], 2)}}</td>
+                    <td>{{number_format(floatval($item[$invoice['type'].'_price']) * floatval($item['quantity']), 2)}}</td>
                 </tr>
             @endforeach
         @endif
@@ -31,14 +32,16 @@
             <td colspan="4">المجموع الكلي</td>
             <td>{{isset($invoice['total_amount']) ? number_format($invoice['total_amount'], 2) : ''}}</td>
         </tr>
-        <tr>
-            <td colspan="4">المدفوع</td>
-            <td>{{isset($invoice['paid']) ? number_format($invoice['paid'], 2) : ''}}</td>
-        </tr>
-        <tr>
-            <td colspan="4">المتبقي</td>
-            <td>{{isset($invoice['remainder']) ? number_format($invoice['remainder'], 2) : ''}}</td>
-        </tr>
+        @if(isset($invoice['showMode']) && !$invoice['showMode'])
+            <tr>
+                <td colspan="4">المدفوع</td>
+                <td>{{isset($invoice['paid']) ? number_format($invoice['paid'], 2) : ''}}</td>
+            </tr>
+            <tr>
+                <td colspan="4">المتبقي</td>
+                <td>{{isset($invoice['remainder']) ? number_format($invoice['remainder'], 2) : ''}}</td>
+            </tr>
+        @endif
         </tfoot>
     </table>
 </div>
