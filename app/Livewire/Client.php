@@ -31,6 +31,7 @@ class Client extends Component
     public $initialBalance = 0;
     public $debt_amount = 0;
     public string $bank = '';
+    public string $startingDate = '';
     public Collection $banks;
     public null|int $bank_id = 1;
     public Collection $clients;
@@ -40,6 +41,7 @@ class Client extends Component
     public string $payment = 'cash';
     public string $due_date = '';
     public bool $blocked = false;
+    public float $currentBalance = 0;
 
     protected function rules()
     {
@@ -66,7 +68,7 @@ class Client extends Component
 
         if ($this->validate()) {
             if ($this->id == 0) {
-                \App\Models\Client::create(['clientName' => $this->clientName, 'phone' => $this->phone, 'initialBalance' => floatval($this->initialBalance), 'currentBalance' => floatval($this->initialBalance), 'blocked' => $this->blocked]);
+                \App\Models\Client::create(['clientName' => $this->clientName, 'phone' => $this->phone, 'initialBalance' => floatval($this->initialBalance), 'startingDate' => $this->startingDate, 'blocked' => $this->blocked]);
                 $this->alert('success', 'تم الحفظ بنجاح', ['timerProgressBar' => true]);
             } else {
                 $client = \App\Models\Client::find($id);
@@ -75,8 +77,6 @@ class Client extends Component
                 $client->note = $this->note;
                 if (\App\Models\Sale::where('client_id', $id)->count() == 0) {
                     $client->initialBalance = floatval($this->initialBalance);
-                    $client->currentBalance = floatval($this->initialBalance);
-
                 }
                 $client->save();
                 $this->alert('success', 'تم التعديل بنجاح', ['timerProgressBar' => true]);
@@ -134,6 +134,7 @@ class Client extends Component
     {
         $this->currentClient = $client;
         $this->debts = ClientDebt::where('client_id', $client['id'])->get();
+        $this->currentBalance = $this->debts->sum('debt') - $this->debts->sum('paid');
 
     }
 
@@ -235,6 +236,10 @@ class Client extends Component
         }
         if ($this->due_date == '') {
             $this->due_date = date('Y-m-d');
+        }
+
+        if ($this->startingDate == '') {
+            $this->startingDate = date('Y-m-d');
         }
         if (!empty($this->currentClient)) {
             $this->debts = ClientDebt::where('client_id', $this->currentClient['id'])->get();

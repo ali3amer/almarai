@@ -62,7 +62,6 @@
                                         <th>إسم المورد</th>
                                         <th>الهاتف</th>
                                         <th>الرصيد الافتتاحي</th>
-                                        <th>الرصيد الحالي</th>
                                         <th>التحكم</th>
                                     </tr>
                                     </thead>
@@ -73,7 +72,6 @@
                                             <td>{{ $supplier->supplierName }}</td>
                                             <td>{{ $supplier->phone }}</td>
                                             <td>{{ number_format($supplier->initialBalance, 2) }}</td>
-                                            <td>{{ number_format(0, 2) }}</td>
                                             <td>
                                                 <button
                                                     @disabled(!Auth::user()->hasPermission('suppliers-update')) class="btn btn-sm btn-info text-white"
@@ -196,7 +194,7 @@
                             <div class="row">
                                 <div class="col-3"><h6>المعاملات</h6></div>
                                 <div class="col-3"><h6>رصيد المورد
-                                        : {{ number_format(0, 2) }}</div>
+                                        : {{ number_format($currentBalance, 2) }}</div>
                                 <div class="col-3"><h6>رصيد الخزنة : {{ number_format($safeBalance, 2) }}</h6></div>
                                 <div class="col-3"><h6>رصيد البنك : {{ number_format($bankBalance, 2) }}</h6></div>
                             </div>
@@ -224,14 +222,17 @@
                                         <td>{{$debt->bank}}</td>
                                         <td>{{$debt->type == 'pay' ? $debt->paid : $debt->debt}}</td>
                                         <td>
-                                            <button class="btn btn-sm btn-info text-white"
-                                                    wire:click="chooseDebt({{$debt}})"><i class="bi bi-pen"></i>
-                                            </button>
-                                            /
-                                            <button class="btn btn-sm btn-danger"
-                                                    wire:click="deleteDebtMessage({{$debt}})">
-                                                <i
-                                                    class="bi bi-trash"></i></button>
+                                            @if($debt->sale_id == null && $debt->purchase_id == null)
+                                                <button class="btn btn-sm btn-info text-white"
+                                                        wire:click="chooseDebt({{$debt}})"><i class="bi bi-pen"></i>
+                                                </button>
+                                                /
+                                                <button class="btn btn-sm btn-danger"
+                                                        wire:click="deleteDebtMessage({{$debt}})">
+                                                    <i
+                                                        class="bi bi-trash"></i></button>
+                                            @endif
+
                                         </td>
                                     </tr>
                                 @endforeach

@@ -10,6 +10,10 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"
                             aria-label="Close"></button>
                     <h1 class="modal-title fs-5" id="exampleModalLabel">
+                        @if(isset($invoice['id']))
+                            <button class="btn btn-danger" wire:click="deleteMessage({{$invoice['id']}})"><i class="bi bi-trash"></i>
+                            </button>
+                        @endif
                         <button class="btn btn-primary" id="print"><i class="bi bi-printer"></i>
                         </button>
                     </h1>
@@ -90,9 +94,9 @@
                                 <label for="productName">إسم المنتج</label>
                                 <input type="text" id="productName" class="form-control" disabled
                                        wire:model="currentProduct.productName">
-                                <label for="purchase_price">سعر الوحده</label>
-                                <input autocomplete="off" type="text" id="purchase_price" class="form-control"
-                                       {{ empty($currentProduct) ? 'disabled' : '' }} wire:model.live="currentProduct.purchase_price">
+                                <label for="price">سعر الوحده</label>
+                                <input autocomplete="off" type="text" id="price" class="form-control"
+                                       {{ empty($currentProduct) ? 'disabled' : '' }} wire:model.live="currentProduct.price">
                                 <label for="quantity">الكميه</label>
 
                                 <input autocomplete="off" type="text" id="quantity" wire:keydown.enter="addToCart()"
@@ -100,7 +104,7 @@
                                        {{ empty($currentProduct) ? 'disabled' : '' }} wire:model.live="currentProduct.quantity">
                                 <label for="amount">الجمله</label>
                                 <input type="text" class="form-control" disabled
-                                       value="{{ !empty($currentProduct) ? number_format(floatval($currentProduct['purchase_price']) * floatval($currentProduct['quantity']), 2) : '' }}">
+                                       value="{{ !empty($currentProduct) ? number_format(floatval($currentProduct['price']) * floatval($currentProduct['quantity']), 2) : '' }}">
 
                                 <button wire:click="addToCart()"
                                         class="btn btn-primary d-block {{ empty($currentProduct) ? 'disabled' : '' }} text-white mt-2 w-100">
@@ -162,7 +166,7 @@
                                             <tr style="cursor: pointer" class="align-items-center">
                                                 <td scope="row">{{$loop->index + 1}}</td>
                                                 <td>{{$item['productName']}}</td>
-                                                <td>{{number_format(floatval($item['purchase_price']), 2)}}</td>
+                                                <td>{{number_format(floatval($item['price']), 2)}}</td>
                                                 <td>{{number_format(floatval($item['quantity']), 2)}}</td>
                                                 <td>{{number_format($item['amount'], 2)}}</td>
                                                 <td>
@@ -211,67 +215,36 @@
                 <div class="col-8">
                     <div class="card">
                         <div class="card-body">
-                            <div class="card-title">
+                            <div class="card-title mt-2">
                                 <div class="row">
-                                    <div class="col-3"><h5>الفواتير</h5></div>
-                                    <div class="col-9">
-                                        <input autocomplete="off" type="text" placeholder="بحث ..."
-                                               class="form-control mb-2 text-center"
-                                               wire:model.live="purchaseSearch">
-                                    </div>
+                                    <div class="col-4 align-self-center"><h5>الفواتير</h5></div>
+                                    <div class="col-8"><input autocomplete="off" type="text" id="purchaseSearch"
+                                                              placeholder="بحث ..."
+                                                              wire:keydown.enter="chooseProduct({{$products[0]}})"
+                                                              class="form-control"
+                                                              wire:model.live="purchaseSearch" autofocus></div>
                                 </div>
                             </div>
                             <div class="scroll">
-                                <div class="accordion" id="accordionExample">
-                                    @if(!empty($purchases))
-                                        @foreach($purchases as $purchase)
-                                            <div class="accordion-item">
-                                                <h2 class="accordion-header">
-                                                    <button class="accordion-button collapsed" type="button"
-                                                            data-bs-toggle="collapse"
-                                                            data-bs-target="#collapse.{{$purchase->id}}"
-                                                            aria-expanded="false"
-                                                            aria-controls="collapse.{{$purchase->id}}">
-                                                        {{$purchase->id}}: {{$purchase->purchase_date}}
-                                                    </button>
-                                                </h2>
-                                                <div id="collapse.{{$purchase->id}}" class="accordion-collapse collapse"
-                                                     data-bs-parent="#accordionExample">
-                                                    <div class="accordion-body">
-                                                        <button class="btn btn-danger mb-1"
-                                                                wire:click="cancelPurchase({{$purchase}})"><i
-                                                                class="bi bi-trash"></i></button>
-                                                        <table class="table table-responsive" data-bs-dismiss="modal"
-                                                               aria-label="Close">
-                                                            <thead class="table-dark">
-                                                            <tr>
-                                                                <th>إسم المنتج</th>
-                                                                <th>السعر</th>
-                                                                <th>الكميه</th>
-                                                                <th>الجمله</th>
-                                                            </tr>
-                                                            </thead>
-                                                            <tbody>
-                                                            @foreach($purchase->purchaseDetails as $detail)
-                                                                <tr>
-                                                                    <td>{{$detail->product->productName}}</td>
-                                                                    <td>{{number_format($detail->price, 2)}}</td>
-                                                                    <td>{{$detail->quantity}}</td>
-                                                                    <td>{{number_format($detail->price*$detail->quantity, 2)}}</td>
-                                                                </tr>
-                                                            @endforeach
-                                                            <tr>
-                                                                <td>الجمله :</td>
-                                                                <td>{{number_format($purchase->total_amount, 2)}}</td>
-                                                            </tr>
-                                                            </tbody>
-                                                        </table>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        @endforeach
-                                    @endif
-                                </div>
+                                <table class="table text-center">
+                                    <thead>
+                                    <tr>
+                                        <th scope="col" style="width: 10px">#</th>
+                                        <th scope="col">التاريخ</th>
+                                        <th scope="col">المبلغ</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    @foreach($purchases as $purchase)
+                                        <tr style="cursor: pointer"
+                                            wire:click="getPurchase({{$purchase}})" data-bs-toggle="modal" data-bs-target="#printModal">
+                                            <td>{{$purchase->id}}</td>
+                                            <td>{{$purchase->purchase_date}}</td>
+                                            <td>{{number_format($purchase->total_amount, 2)}}</td>
+                                        </tr>
+                                    @endforeach
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                     </div>
@@ -323,9 +296,9 @@
         if (event.key === "Enter") {
 
             if (event.target.id === "productSearch") {
-                document.getElementById("purchase_price").removeAttribute('disabled');
-                document.getElementById("purchase_price").focus();
-            } else if (event.target.id === "purchase_price") {
+                document.getElementById("price").removeAttribute('disabled');
+                document.getElementById("price").focus();
+            } else if (event.target.id === "price") {
                 document.getElementById("quantity").focus();
             } else if (event.target.id === "quantity") {
                 document.getElementById("productSearch").focus();

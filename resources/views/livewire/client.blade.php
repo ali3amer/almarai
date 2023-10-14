@@ -28,6 +28,11 @@
                                 @error('initialBalance') <span class="error text-danger">{{ $message }}</span> @enderror
                             </div>
 
+                            <label for="startingDate">التاريخ</label>
+                            <input type="date" wire:model.live="startingDate" id="startingDate"
+                                   class="form-control text-center">
+
+
                             @if($blocked == true)
                                 <label for="note" class="form-label">سبب الإيقاف</label>
                                 <input type="text" wire:model="note" autocomplete="off" class="form-control"
@@ -62,7 +67,6 @@
                                         <th>إسم العميل</th>
                                         <th>الهاتف</th>
                                         <th>الرصيد الافتتاحي</th>
-                                        <th>الرصيد الحالي</th>
                                         <th>التحكم</th>
                                     </tr>
                                     </thead>
@@ -73,7 +77,6 @@
                                             <td>{{ $client->clientName }}</td>
                                             <td>{{ $client->phone }}</td>
                                             <td>{{ number_format($client->initialBalance, 2) }}</td>
-                                            <td>{{ number_format(0, 2) }}</td>
                                             <td>
                                                 <button
                                                     @disabled(!Auth::user()->hasPermission('clients-update')) class="btn btn-sm btn-info text-white"
@@ -196,7 +199,7 @@
                             <div class="row">
                                 <div class="col-3"><h6>المعاملات</h6></div>
                                 <div class="col-3"><h6>رصيد العميل
-                                        : {{ number_format(0, 2) }}</div>
+                                        : {{ number_format($currentBalance, 2) }}</div>
                                 <div class="col-3"><h6>رصيد الخزنة : {{ number_format($safeBalance, 2) }}</h6></div>
                                 <div class="col-3"><h6>رصيد البنك : {{ number_format($bankBalance, 2) }}</h6></div>
                             </div>
@@ -224,14 +227,16 @@
                                         <td>{{$debt->bank}}</td>
                                         <td>{{$debt->type == 'pay' ? $debt->paid : $debt->debt}}</td>
                                         <td>
-                                            <button class="btn btn-sm btn-info text-white"
-                                                    wire:click="chooseDebt({{$debt}})"><i class="bi bi-pen"></i>
-                                            </button>
-                                            /
-                                            <button class="btn btn-sm btn-danger"
-                                                    wire:click="deleteDebtMessage({{$debt}})">
-                                                <i
-                                                    class="bi bi-trash"></i></button>
+                                            @if($debt->sale_id == null)
+                                                <button class="btn btn-sm btn-info text-white"
+                                                        wire:click="chooseDebt({{$debt}})"><i class="bi bi-pen"></i>
+                                                </button>
+                                                /
+                                                <button class="btn btn-sm btn-danger"
+                                                        wire:click="deleteDebtMessage({{$debt}})">
+                                                    <i
+                                                        class="bi bi-trash"></i></button>
+                                            @endif
                                         </td>
                                     </tr>
                                 @endforeach

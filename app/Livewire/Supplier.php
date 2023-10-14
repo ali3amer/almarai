@@ -40,6 +40,8 @@ class Supplier extends Component
     public string $payment = 'cash';
     public string $due_date = '';
     public bool $blocked = false;
+    public string $startingDate = '';
+    public float $currentBalance = 0;
 
     protected function rules()
     {
@@ -75,8 +77,6 @@ class Supplier extends Component
                 $supplier->note = $this->note;
                 if (\App\Models\Sale::where('supplier_id', $id)->count() == 0) {
                     $supplier->initialBalance = floatval($this->initialBalance);
-                    $supplier->currentBalance = floatval($this->initialBalance);
-
                 }
                 $supplier->save();
                 $this->alert('success', 'تم التعديل بنجاح', ['timerProgressBar' => true]);
@@ -134,7 +134,7 @@ class Supplier extends Component
     {
         $this->currentSupplier = $supplier;
         $this->debts = SupplierDebt::where('supplier_id', $supplier['id'])->get();
-
+        $this->currentBalance = $this->debts->sum('debt') - $this->debts->sum('paid');
     }
 
     public function saveDebt()
@@ -236,6 +236,11 @@ class Supplier extends Component
         if ($this->due_date == '') {
             $this->due_date = date('Y-m-d');
         }
+
+        if ($this->startingDate == '') {
+            $this->startingDate = date('Y-m-d');
+        }
+
         if (!empty($this->currentSupplier)) {
             $this->debts = SupplierDebt::where('supplier_id', $this->currentSupplier['id'])->get();
         }

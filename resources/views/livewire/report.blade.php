@@ -138,8 +138,25 @@
         </div>
     </div>
 
-
-
+    <!-- Print Invoice Modal -->
+    <div wire:ignore.self class="modal fade" id="printModal" tabindex="-1" aria-labelledby="exampleModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header d-print-none">
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                            aria-label="Close"></button>
+                    <h1 class="modal-title fs-5" id="exampleModalLabel">
+                        <button class="btn btn-primary" id="printInvoice"><i class="bi bi-printer"></i>
+                        </button>
+                    </h1>
+                </div>
+                <div class="modal-body">
+                    <livewire:invoice/>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <x-title :$title/>
     <button class="d-print-none btn btn-primary position-fixed z-3" style="bottom: 10px; border-radius: 50%"
@@ -147,7 +164,7 @@
             data-bs-toggle="offcanvas" data-bs-target="#offcanvasScrolling" aria-controls="offcanvasScrolling"><i
             class="bi bi-gear"></i></button>
 
-    <button class="d-print-none btn btn-secondary position-fixed z-3" id="print"
+    <button class="d-print-none btn btn-secondary position-fixed z-3" id="printReport"
             style="bottom: 10px; right: 60px; border-radius: 50%"
             type="button"><i
             class="bi bi-printer"></i></button>
@@ -219,7 +236,9 @@
                             <input type="date" class="form-control" wire:model.live="to" id="to">
                         @endif
                     @endif
-                    <button @disabled($reportType == 'purchases' && $reportDuration == $reportDurations[0]) @disabled($reportType == 'sales' && $reportDuration == $reportDurations[0]) @disabled($reportType == 'supplier' && empty($currentSupplier))  @disabled($reportType == 'client' && empty($currentClient)) @disabled($reportDuration == 'day' && $day == '') @disabled($reportDuration == 'duration' && $from == '') @disabled($reportDuration == 'duration' && $to == '') class="btn btn-primary w-100 mt-2" wire:click="chooseReport()">جلب التقرير
+                    <button
+                        @disabled($reportType == 'purchases' && $reportDuration == $reportDurations[0]) @disabled($reportType == 'sales' && $reportDuration == $reportDurations[0]) @disabled($reportType == 'supplier' && empty($currentSupplier))  @disabled($reportType == 'client' && empty($currentClient)) @disabled($reportDuration == 'day' && $day == '') @disabled($reportDuration == 'duration' && $from == '') @disabled($reportDuration == 'duration' && $to == '') class="btn btn-primary w-100 mt-2"
+                        wire:click="chooseReport()">جلب التقرير
                     </button>
                 </div>
             </div>
@@ -262,7 +281,7 @@
                         <td>{{number_format($debtsSum, 2)}}</td>
                     </tr>
                     <tr>
-                        <td>الامانات</td>
+                        <td>المدفوعات</td>
                         <td>{{number_format($paysSum, 2)}}</td>
                     </tr>
                     </tbody>
@@ -308,38 +327,10 @@
                 </table>
             </div>
         </div>
-    @elseif($reportType == 'client' && !empty($saleDebts))
+    @elseif($reportType == 'client' && !empty($debts))
         <div class="card mt-2">
             <div class="card-body invoice" dir="rtl">
-                <div class="card-title"><h5>المبيعات للعميل : {{$currentClient['clientName']}}</h5></div>
-                <table class="text-center printInvoice">
-                    <thead>
-                    <tr>
-                        <th>التاريخ</th>
-                        <th>رقم الفاتوره</th>
-                        <th>البيان</th>
-                        <th>عليه</th>
-                        <th>له</th>
-                        <th>الرصيد</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    @foreach($saleDebts as $debt)
-                        <tr>
-                            <td>{{$debt->due_date}}</td>
-                            <td>{{$debt->sale_id}}</td>
-                            <td>{{ $debt->paid == 0 ? 'تم الشراء بالآجل' : 'تم لإستلام مبلغ' }}</td>
-                            <td>{{number_format($debt->remainder, 2)}}</td>
-                            <td>{{number_format($debt->paid, 2)}}</td>
-                            <td>{{number_format($debt->client_balance, 2)}}</td>
-                        </tr>
-                    @endforeach
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="card-body invoice" dir="rtl">
-                <div class="card-title"><h5>المعاملات المالية للعميل : {{$currentClient['clientName']}}</h5></div>
+                <div class="card-title"><h5>المعاملات للعميل : {{$currentClient['clientName']}}</h5></div>
                 <table class="text-center printInvoice">
                     <thead>
                     <tr>
@@ -355,9 +346,9 @@
                     @foreach($debts as $debt)
                         <tr>
                             <td>{{$debt->due_date}}</td>
-                            <td>{{ $debt->type == 'debt' ? 'تم إستلاف مبلغ' : 'تم إيداع مبلغ' }}</td>
-                            <td>{{$debt->type == 'debt' ? number_format($debt->debt_amount, 2) : 0}}</td>
-                            <td>{{$debt->type == 'pay' ? number_format($debt->debt_amount, 2) : 0}}</td>
+                            <td {{ $debt->sale_id != null || $debt->purchase_id != null ? "data-bs-toggle=modal data-bs-target=#printModal " : '' }} wire:click="getInvoice({{$debt}})">{{ $debt->note }}</td>
+                            <td>{{$debt->debt}}</td>
+                            <td>{{$debt->paid}}</td>
                             <td>{{$debt->payment}}</td>
                             <td>{{number_format($debt->client_balance, 2)}}</td>
                         </tr>
@@ -366,45 +357,15 @@
                 </table>
             </div>
         </div>
-    @elseif($reportType == 'supplier'  && !empty($purchaseDebts))
+    @elseif($reportType == 'supplier'  && !empty($debts))
         <div class="card mt-2">
             <div class="card-body invoice" dir="rtl">
-                <div class="card-title"><h5>المشتريات التي تمت من المورد : {{$currentSupplier['supplierName']}}</h5></div>
-                <table  class="text-center printInvoice">
-                    <thead>
-                    <tr>
-                        <th>التاريخ</th>
-                        <th>رقم الفاتوره</th>
-                        <th>البيان</th>
-                        <th>عليه</th>
-                        <th>له</th>
-                        <th>الرصيد</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    @foreach($purchaseDebts as $debt)
-                        <tr>
-                            <td>{{$debt->due_date}}</td>
-                            <td>{{$debt->purchase_id}}</td>
-                            <td>{{ $debt->paid == 0 ? 'تم الشراء بالآجل' : 'تم لإستلام مبلغ' }}</td>
-                            <td>{{number_format($debt->remainder, 2)}}</td>
-                            <td>{{number_format(floatval($debt->paid), 2)}}</td>
-                            <td>{{number_format($debt->supplier_balance, 2)}}</td>
-                        </tr>
-                    @endforeach
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <div class="card mt-2">
-            <div class="card-body invoice" dir="rtl">
-                <div class="card-title"><h5>المبيعات التي تمت للمورد : {{$currentSupplier['supplierName']}}</h5></div>
+                <div class="card-title"><h5>المشتريات التي تمت من المورد : {{$currentSupplier['supplierName']}}</h5>
+                </div>
                 <table class="text-center printInvoice">
                     <thead>
                     <tr>
                         <th>التاريخ</th>
-                        <th>رقم الفاتوره</th>
                         <th>البيان</th>
                         <th>عليه</th>
                         <th>له</th>
@@ -412,56 +373,57 @@
                     </tr>
                     </thead>
                     <tbody>
-                    @foreach($saleDebts as $debt)
+                    @foreach($debts as $debt)
                         <tr>
                             <td>{{$debt->due_date}}</td>
-                            <td>{{$debt->sale_id}}</td>
-                            <td>{{ $debt->paid == 0 ? 'تم الشراء بالآجل' : 'تم لإستلام مبلغ' }}</td>
-                            <td>{{number_format($debt->remainder, 2)}}</td>
-                            <td>{{number_format($debt->paid, 2)}}</td>
+                            <td {{ $debt->sale_id != null || $debt->purchase_id != null ? "data-bs-toggle=modal data-bs-target=#printModal " : '' }} wire:click="getInvoice({{$debt}})">{{ $debt->note }}</td>
+                            <td>{{$debt->debt}}</td>
+                            <td>{{$debt->paid}}</td>
                             <td>{{number_format($debt->client_balance, 2)}}</td>
                         </tr>
                     @endforeach
                     </tbody>
                 </table>
             </div>
-
         </div>
+
     @elseif($reportType == 'safe')
 
     @elseif($reportType == 'sales' && !empty($sales))
         <div class="card mt-2">
             <div class="card-body invoice" dir="rtl">
                 <div class="card-title">
-                   <div class="row">
-                       <div class="col-3">
-                           <h5>المبيعات</h5>
-                       </div>
-                       <div class="col-3">
-                           <input type="text" wire:model.live="percent" placeholder="نسبة الربح" class="form-control text-center d-print-none" >
-                       </div>
-                   </div>
+                    <div class="row">
+                        <div class="col-3">
+                            <h5>المبيعات</h5>
+                        </div>
+                        <div class="col-3">
+                            <input type="text" wire:model.live="percent" placeholder="نسبة الربح"
+                                   class="form-control text-center">
+                        </div>
+                    </div>
                 </div>
-                <table  id="printInvoice" class="text-center">
+                <table class="text-center printInvoice">
                     <thead>
                     <tr>
+                        <th>التاريخ</th>
                         <th>رقم الفاتوره</th>
                         <th>العميل</th>
                         <th>إسم المنتج</th>
                         <th>سعر البيع</th>
                         <th>الكميه</th>
                         <th>الجمله</th>
-                        <th>التاريخ</th>
                     </tr>
                     </thead>
                     <tbody>
                     @foreach($sales as $sale)
                         <tr>
+                            <td>{{$sale->sale_date}}</td>
                             <td>{{$sale->sale_id}}</td>
                             @if(!empty($sale->sale->client))
                                 <td>{{$sale->sale->client->clientName}}</td>
                             @elseif(!empty($sale->sale->employee))
-                            <td>الموظف : {{$sale->sale->employee->employeeName}}</td>
+                                <td>الموظف : {{$sale->sale->employee->employeeName}}</td>
                             @elseif(!empty($sale->sale->supplier))
                                 <td>المورد : {{$sale->sale->supplier->supplierName}}</td>
                             @endif
@@ -470,17 +432,16 @@
                             <td>{{number_format($sale->price, 2)}}</td>
                             <td>{{$sale->quantity}}</td>
                             <td>{{number_format($sale->quantity * $sale->price, 2)}}</td>
-                            <td>{{$sale->sale_date}}</td>
                         </tr>
                     @endforeach
                     </tbody>
                     <tfoot>
                     <tr>
-                        <td colspan="5">الجــــــــــــــــــــملة</td>
+                        <td colspan="6">الجــــــــــــــــــــملة</td>
                         <td>{{number_format($sum, 2)}}</td>
                     </tr>
                     <tr>
-                        <td colspan="5">الأرباح</td>
+                        <td colspan="6">الأرباح</td>
                         <td>{{ number_format($sum * $percent / 100, 2) }}</td>
                     </tr>
                     </tfoot>
@@ -490,35 +451,41 @@
     @elseif($reportType == 'purchases' && !empty($purchases))
         <div class="card mt-2">
             <div class="card-body invoice" dir="rtl">
-                <div class="card-title"><h5>المشتريات</h5></div>
-                <table   class="text-center printInvoice">
+                <div class="card-title">
+                    <div class="row">
+                        <div class="col-3">
+                            <h5>المشتريات</h5>
+                        </div>
+                    </div>
+                </div>
+                <table class="text-center printInvoice">
                     <thead>
                     <tr>
+                        <th>التاريخ</th>
                         <th>رقم الفاتوره</th>
-                        <th>المورد</th>
+                        <th>العميل</th>
                         <th>إسم المنتج</th>
-                        <th>سعر الشراء</th>
+                        <th>سعر البيع</th>
                         <th>الكميه</th>
                         <th>الجمله</th>
-                        <th>التاريخ</th>
                     </tr>
                     </thead>
                     <tbody>
                     @foreach($purchases as $purchase)
                         <tr>
+                            <td>{{$purchase->purchase_date}}</td>
                             <td>{{$purchase->purchase_id}}</td>
                             <td>{{$purchase->purchase->supplier->supplierName}}</td>
                             <td>{{ $purchase->product->productName }}</td>
                             <td>{{number_format($purchase->price, 2)}}</td>
                             <td>{{$purchase->quantity}}</td>
                             <td>{{number_format($purchase->quantity * $purchase->price, 2)}}</td>
-                            <td>{{$purchase->purchase_date}}</td>
                         </tr>
                     @endforeach
                     </tbody>
                     <tfoot>
                     <tr>
-                        <td colspan="5">الجــــــــــــــــــــملة</td>
+                        <td colspan="6">الجــــــــــــــــــــملة</td>
                         <td>{{number_format($sum, 2)}}</td>
                     </tr>
                     </tfoot>

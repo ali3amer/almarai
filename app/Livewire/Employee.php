@@ -17,6 +17,7 @@ use Livewire\Component;
 class Employee extends Component
 {
     use LivewireAlert;
+
     protected $listeners = [
         'delete',
         'deleteGift'
@@ -51,6 +52,10 @@ class Employee extends Component
     public array $currentDebt = [];
     public float $safeBalance = 0;
     public float $bankBalance = 0;
+    public float $currentBalance = 0;
+    public int $debtId = 0;
+    public $debt_amount = 0;
+    public string $due_date = '';
 
     protected function rules()
     {
@@ -121,7 +126,7 @@ class Employee extends Component
 
     public function deleteGiftMessage($gift)
     {
-        $this->confirm("  هل توافق على الحذف؟  " , [
+        $this->confirm("  هل توافق على الحذف؟  ", [
             'inputAttributes' => ["id" => $gift['id']],
             'toast' => false,
             'showConfirmButton' => true,
@@ -145,12 +150,12 @@ class Employee extends Component
     public function getGifts($employee)
     {
         $this->currentEmployee = $employee;
-        $debt = EmployeeDebt::where('employee_id', $employee['id'])->get();
-        $this->currentEmployee['currentBalance'] = $debt->sum('debt') - $debt->sum('paid');
         $this->gift_date = date('Y-m-d');
         $this->gift_amount = $this->currentEmployee['salary'];
         $this->gifts = EmployeeGift::where('employee_id', $this->currentEmployee['id'])->get();
         $this->debts = EmployeeDebt::where('employee_id', $this->currentEmployee['id'])->get();
+        $this->currentBalance = $this->debts->sum('debt') - $this->debts->sum('paid');
+
     }
 
     public function chooseDebt($debt)
@@ -178,39 +183,37 @@ class Employee extends Component
 
     public function payGift()
     {
-            if ($this->gift_amount != 0) {
-                $gift = EmployeeGift::create([
-                    'employee_id' => $this->currentEmployee['id'],
-                    'payment' => $this->payment,
-                    'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
-                    'gift_amount' => $this->gift_amount - $this->paid,
-                    'gift_date' => $this->gift_date,
-                    'note' => $this->note
-                ]);
-            }
+        if ($this->gift_amount != 0) {
+            $gift = EmployeeGift::create([
+                'employee_id' => $this->currentEmployee['id'],
+                'payment' => $this->payment,
+                'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
+                'gift_amount' => $this->gift_amount - $this->paid,
+                'gift_date' => $this->gift_date,
+                'note' => $this->note
+            ]);
+        }
+
+        if ($this->paid != 0) {
             $type = 'pay';
-        if ($type == 'debt') {
-            $note = 'تم شراء بالآجل';
-            $debt = $this->gift_amount;
-            $paid = 0;
-        } else {
             $note = $this->gift_amount == 0 ? 'تم إستلام مبلغ' : 'تم إستلام مبلغ من المرتب';
             $paid = $this->paid;
             $debt = 0;
+
+            EmployeeDebt::create([
+                'Employee_id' => $this->currentEmployee['id'],
+                'gift_id' => $gift['id'],
+                'type' => $type,
+                'debt' => $debt,
+                'paid' => $paid,
+                'payment' => $this->payment,
+                'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
+                'bank' => $this->bank,
+                'due_date' => $this->gift_date,
+                'note' => $this->note == '' ? $note : $this->note,
+                'user_id' => auth()->id(),
+            ]);
         }
-        EmployeeDebt::create([
-            'Employee_id' => $this->currentEmployee['id'],
-            'gift_id' => $gift['id'],
-            'type' => $type,
-            'debt' => $debt,
-            'paid' => $paid,
-            'payment' => $this->payment,
-            'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
-            'bank' => $this->bank,
-            'due_date' => $this->gift_date,
-            'note' => $this->note == '' ? $note : $this->note,
-            'user_id' => auth()->id(),
-        ]);
 
         $this->getGifts($this->currentEmployee);
 

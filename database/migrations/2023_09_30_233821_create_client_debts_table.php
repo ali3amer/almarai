@@ -24,6 +24,8 @@ return new class extends Migration
             $table->string('bank')->nullable();
             $table->string('note')->nullable();
             $table->date('due_date');
+            $table->unsignedBigInteger('sale_id')->nullable();
+            $table->foreign('sale_id')->references('id')->on('sales');
             $table->unsignedBigInteger('user_id')->nullable();
             $table->foreign('user_id')->references('id')->on('users');
             $table->timestamps();

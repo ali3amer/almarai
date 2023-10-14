@@ -1,7 +1,7 @@
 <div class="invoice" dir="rtl">
     <h6>فاتوره رقم {{$invoice['id'] ?? ''}}</h6>
-    <h6>إسم العميل : {{$invoice['client'] ?? ''}}</h6>
-    <h6>التاريخ : {{$invoice['sale_date'] ?? ''}}</h6>
+    <h6>إسم {{ $invoice['clientType'] ?? '' }} : {{$invoice['client'] ?? ''}}</h6>
+    <h6>التاريخ : {{$invoice['date'] ?? ''}}</h6>
 
     <table class="printInvoice text-center">
         <thead>
@@ -19,9 +19,9 @@
                 <tr style="cursor: pointer" class="align-items-center">
                     <td scope="row">{{$loop->index + 1}}</td>
                     <td>{{$item['productName']}}</td>
-                    <td>{{number_format(floatval($item[$invoice['type'].'_price']), 2)}}</td>
+                    <td>{{number_format(floatval($item['price']), 2)}}</td>
                     <td>{{number_format(floatval($item['quantity']), 2)}}</td>
-                    <td>{{number_format(floatval($item[$invoice['type'].'_price']) * floatval($item['quantity']), 2)}}</td>
+                    <td>{{number_format(floatval($item['price']) * floatval($item['quantity']), 2)}}</td>
                 </tr>
             @endforeach
         @endif

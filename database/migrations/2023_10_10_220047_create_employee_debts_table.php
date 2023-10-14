@@ -26,6 +26,8 @@ return new class extends Migration
             $table->string('note')->nullable();
             $table->unsignedBigInteger('gift_id')->nullable();
             $table->foreign('gift_id')->references('id')->on('employee_gifts');
+            $table->unsignedBigInteger('sale_id')->nullable();
+            $table->foreign('sale_id')->references('id')->on('sales');
             $table->unsignedBigInteger('user_id')->nullable();
             $table->foreign('user_id')->references('id')->on('users');
             $table->timestamps();

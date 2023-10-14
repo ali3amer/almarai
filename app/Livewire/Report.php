@@ -73,6 +73,7 @@ class Report extends Component
     public float $damagedsSum = 0;
     public float $percent = 0;
     public string $productSearch = '';
+    public array $invoice = [];
 
     public function chooseClient($client)
     {
@@ -95,12 +96,12 @@ class Report extends Component
         $this->resetData();
         if ($this->reportType == 'general') {
             if ($this->reportDuration == 'day') {
-                $this->salesSum = SaleDebt::where('due_date', $this->day)->sum('paid');
-                $this->purchasesSum = PurchaseDebt::where('due_date', $this->day)->sum('paid');
+                $this->salesSum = \App\Models\Sale::where('sale_date', $this->day)->sum('total_amount');
+                $this->purchasesSum = \App\Models\Purchase::where('purchase_date', $this->day)->sum('total_amount');
                 $this->expensesSum = \App\Models\Expense::where('expense_date', $this->day)->sum('amount');
                 $this->employeesSum = \App\Models\EmployeeGift::where('gift_date', $this->day)->sum('gift_amount');
-                $this->paysSum = \App\Models\ClientDebt::where('due_date', $this->day)->where('type', 'pay')->sum('debt_amount');
-                $this->debtsSum = \App\Models\ClientDebt::where('due_date', $this->day)->where('type', 'debt')->sum('debt_amount');
+                $this->paysSum = \App\Models\ClientDebt::where('due_date', $this->day)->where('type', 'pay')->sum('paid');
+                $this->debtsSum = \App\Models\ClientDebt::where('due_date', $this->day)->where('type', 'debt')->sum('debt');
                 if (\App\Models\Damaged::where('damaged_date', $this->day)->count() > 0) {
                     $this->damagedsSum = \App\Models\Damaged::where('damaged_date', $this->day)->join('products', 'damageds.product_id', '=', 'products.id')
                         ->select(DB::raw('SUM(damageds.quantity * products.purchase_price) AS total_damage_cost'))
@@ -109,13 +110,13 @@ class Report extends Component
 
 
             } elseif ($this->reportDuration == 'duration') {
-                $this->salesSum = SaleDebt::whereBetween('due_date', [$this->from, $this->to])->sum('paid');
-                $this->purchasesSum = PurchaseDebt::whereBetween('due_date', [$this->from, $this->to])->sum('paid');
+                $this->salesSum = \App\Models\Sale::whereBetween('sale_date', [$this->from, $this->to])->sum('total_amount');
+                $this->purchasesSum = \App\Models\Purchase::whereBetween('purchase_date', [$this->from, $this->to])->sum('total_amount');
                 $this->expensesSum = \App\Models\Expense::whereBetween('expense_date', [$this->from, $this->to])->sum('amount');
                 $this->employeesSum = \App\Models\EmployeeGift::whereBetween('gift_date', [$this->from, $this->to])->sum('gift_amount');
 
-                $this->paysSum = \App\Models\ClientDebt::whereBetween('due_date', [$this->from, $this->to])->where('type', 'pay')->sum('debt_amount');
-                $this->debtsSum = \App\Models\ClientDebt::whereBetween('due_date', [$this->from, $this->to])->where('type', 'debt')->sum('debt_amount');
+                $this->paysSum = \App\Models\ClientDebt::whereBetween('due_date', [$this->from, $this->to])->where('type', 'pay')->sum('paid');
+                $this->debtsSum = \App\Models\ClientDebt::whereBetween('due_date', [$this->from, $this->to])->where('type', 'debt')->sum('debt');
 
                 if (\App\Models\Damaged::whereBetween('damaged_date', [$this->from, $this->to])->count() > 0) {
                     $this->damagedsSum = \App\Models\Damaged::whereBetween('damaged_date', [$this->from, $this->to])->join('products', 'damageds.product_id', '=', 'products.id')
@@ -135,20 +136,16 @@ class Report extends Component
             }
         } elseif ($this->reportType == 'client') { // client
             if ($this->reportDuration == 'day') {
-                $this->saleDebts = SaleDebt::join('sales', 'sales.id', '=', 'sale_debts.sale_id')->where('sales.client_id', $this->currentClient['id'])->where('sale_debts.due_date', $this->day)->get();
                 $this->debts = ClientDebt::where('client_id', $this->currentClient['id'])->where('due_date', $this->day)->get();
             } elseif ($this->reportDuration == 'duration') {
-                $this->saleDebts = SaleDebt::join('sales', 'sales.id', '=', 'sale_debts.sale_id')->where('sales.client_id', $this->currentClient['id'])->whereBetween('sale_debts.due_date', [$this->from, $this->to])->get();
                 $this->debts = ClientDebt::where('client_id', $this->currentClient['id'])->whereBetween('due_date', [$this->from, $this->to])->get();
 
             }
         } elseif ($this->reportType == 'supplier') {   // supplier
             if ($this->reportDuration == 'day') {
-                $this->purchaseDebts = PurchaseDebt::join('purchases', 'purchases.id', '=', 'purchase_debts.purchase_id')->where('purchases.supplier_id', $this->currentSupplier['id'])->where('purchase_debts.due_date', $this->day)->get();
-                $this->saleDebts = SaleDebt::join('sales', 'sales.id', '=', 'sale_debts.sale_id')->where('sales.supplier_id', $this->currentSupplier['id'])->where('sale_debts.due_date', $this->day)->get();
+                $this->debts = \App\Models\SupplierDebt::where('supplier_id', $this->currentSupplier['id'])->where('due_date', $this->day)->get();
             } elseif ($this->reportDuration == 'duration') {
-                $this->purchaseDebts = PurchaseDebt::join('purchases', 'purchases.id', '=', 'purchase_debts.purchase_id')->where('purchases.supplier_id', $this->currentSupplier['id'])->whereBetween('sale_debts.due_date', [$this->from, $this->to])->get();
-                $this->saleDebts = SaleDebt::join('sales', 'sales.id', '=', 'sale_debts.sale_id')->where('sales.supplier_id', $this->currentSupplier['id'])->whereBetween('sale_debts.due_date', [$this->from, $this->to])->get();
+                $this->debts = \App\Models\SupplierDebt::where('supplier_id', $this->currentSupplier['id'])->whereBetween('due_date', [$this->from, $this->to])->get();
 
             }
         } elseif ($this->reportType == 'safe') {   // safe
@@ -157,53 +154,17 @@ class Report extends Component
             }
         } elseif ($this->reportType == 'sales') {  // sale
             if ($this->reportDuration == 'day') {
-                if ($this->store_id != 0 && empty($this->currentProduct)) {
-                    $this->sales = SaleDetail::join('sales', 'sales.id', '=', 'sale_details.sale_id')
-                        ->join('products', 'products.id', '=', 'sale_details.product_id')
-                        ->join('stores', 'stores.id', '=', 'products.store_id')
-                        ->select('sale_details.*', 'sales.sale_date')
-                        ->with('product', 'sale.client', 'sale.employee', 'sale.supplier')
-                        ->where('sales.sale_date', $this->day)->where('products.store_id', $this->store_id)
-                        ->get();
-                } elseif (!empty($this->currentProduct)) {
-                    $this->sales = SaleDetail::join('sales', 'sales.id', '=', 'sale_details.sale_id')
-                        ->join('products', 'products.id', '=', 'sale_details.product_id')
-                        ->join('stores', 'stores.id', '=', 'products.store_id')
-                        ->select('sale_details.*', 'sales.sale_date')
-                        ->with('product', 'sale.client', 'sale.employee', 'sale.supplier')
-                        ->where('sales.sale_date', $this->day)->where('products.id', $this->currentProduct['id'])
-                        ->get();
+                if (!empty($this->currentProduct)) {
+                    $this->sales = SaleDetail::join('sales', 'sales.id', '=', 'sale_details.sale_id')->where('sales.sale_date', $this->day)->where('product_id', $this->currentProduct['id'])->get();
                 } else {
-                    $this->sales = SaleDetail::join('sales', 'sales.id', '=', 'sale_details.sale_id')
-                        ->select('sale_details.*', 'sales.sale_date')
-                        ->with('product', 'sale.client')
-                        ->where('sales.sale_date', $this->day)
-                        ->get();
+                    $this->sales = SaleDetail::join('sales', 'sales.id', '=', 'sale_details.sale_id')->where('sales.sale_date', $this->day)->get();
                 }
             } elseif ($this->reportDuration == 'duration') {
 
-                if ($this->store_id != 0 && empty($this->currentProduct)) {
-                    $this->sales = SaleDetail::join('sales', 'sales.id', '=', 'sale_details.sale_id')
-                        ->join('products', 'products.id', '=', 'sale_details.product_id')
-                        ->join('stores', 'stores.id', '=', 'products.store_id')
-                        ->select('sale_details.*', 'sales.sale_date')
-                        ->with('product', 'sale.client')
-                        ->whereBetween('sales.sale_date', [$this->from, $this->to])->where('products.store_id', $this->store_id)
-                        ->get();
-                } elseif (!empty($this->currentProduct)) {
-                    $this->sales = SaleDetail::join('sales', 'sales.id', '=', 'sale_details.sale_id')
-                        ->join('products', 'products.id', '=', 'sale_details.product_id')
-                        ->join('stores', 'stores.id', '=', 'products.store_id')
-                        ->select('sale_details.*', 'sales.sale_date')
-                        ->with('product', 'sale.client')
-                        ->whereBetween('sales.sale_date', [$this->from, $this->to])->where('products.id', $this->currentProduct['id'])
-                        ->get();
+                if (!empty($this->currentProduct)) {
+                    $this->sales = SaleDetail::join('sales', 'sales.id', '=', 'sale_details.sale_id')->whereBetween('sales.sale_date', [$this->from, $this->to])->where('product_id', $this->currentProduct['id'])->get();
                 } else {
-                    $this->sales = SaleDetail::join('sales', 'sales.id', '=', 'sale_details.sale_id')
-                        ->select('sale_details.*', 'sales.sale_date')
-                        ->with('product', 'sale.client')
-                        ->whereBetween('sales.sale_date', [$this->from, $this->to])
-                        ->get();
+                    $this->sales = SaleDetail::join('sales', 'sales.id', '=', 'sale_details.sale_id')->whereBetween('sales.sale_date', [$this->from, $this->to])->get();
                 }
             }
 
@@ -214,59 +175,46 @@ class Report extends Component
 
         } elseif ($this->reportType == 'purchases') {  // purchase
             if ($this->reportDuration == 'day') {
-                if ($this->store_id != 0 && empty($this->currentProduct)) {
-                    $this->purchases = PurchaseDetail::join('purchases', 'purchases.id', '=', 'purchase_details.purchase_id')
-                        ->join('products', 'products.id', '=', 'purchase_details.product_id')
-                        ->join('stores', 'stores.id', '=', 'products.store_id')
-                        ->select('purchase_details.*', 'purchases.purchase_date')
-                        ->with('product', 'purchase.supplier')
-                        ->where('purchases.purchase_date', $this->day)->where('products.store_id', $this->store_id)
-                        ->get();
-                } elseif (!empty($this->currentProduct)) {
-                    $this->purchases = PurchaseDetail::join('purchases', 'purchases.id', '=', 'purchase_details.purchase_id')
-                        ->join('products', 'products.id', '=', 'purchase_details.product_id')
-                        ->join('stores', 'stores.id', '=', 'products.store_id')
-                        ->select('purchase_details.*', 'purchases.purchase_date')
-                        ->with('product', 'purchase.supplier')
-                        ->where('purchases.purchase_date', $this->day)->where('products.id', $this->currentProduct['id'])
-                        ->get();
+                if (!empty($this->currentProduct)) {
+                    $this->purchases = PurchaseDetail::join('purchases', 'purchases.id', '=', 'purchase_details.purchase_id')->where('purchases.purchase_date', $this->day)->where('product_id', $this->currentProduct['id'])->get();
                 } else {
-                    $this->purchases = PurchaseDetail::join('purchases', 'purchases.id', '=', 'purchase_details.purchase_id')
-                        ->select('purchase_details.*', 'purchases.purchase_date')
-                        ->with('product', 'purchase.supplier')
-                        ->where('purchases.purchase_date', $this->day)
-                        ->get();
+                    $this->purchases = PurchaseDetail::join('purchases', 'purchases.id', '=', 'purchase_details.purchase_id')->where('purchases.purchase_date', $this->day)->get();
                 }
             } elseif ($this->reportDuration == 'duration') {
 
-                if ($this->store_id != 0 && empty($this->currentProduct)) {
-                    $this->purchases = PurchaseDetail::join('purchases', 'purchases.id', '=', 'purchase_details.purchase_id')
-                        ->join('products', 'products.id', '=', 'purchase_details.product_id')
-                        ->join('stores', 'stores.id', '=', 'products.store_id')
-                        ->select('purchase_details.*', 'purchases.purchase_date')
-                        ->with('product', 'purchase.supplier')
-                        ->whereBetween('purchases.purchase_date', [$this->from, $this->to])->where('products.store_id', $this->store_id)
-                        ->get();
-                } elseif (!empty($this->currentProduct)) {
-                    $this->purchases = PurchaseDetail::join('purchases', 'purchases.id', '=', 'purchase_details.purchase_id')
-                        ->join('products', 'products.id', '=', 'purchase_details.product_id')
-                        ->join('stores', 'stores.id', '=', 'products.store_id')
-                        ->select('purchase_details.*', 'purchases.purchase_date')
-                        ->with('product', 'purchase.supplier')
-                        ->whereBetween('purchases.purchase_date', [$this->from, $this->to])->where('products.id', $this->currentProduct['id'])
-                        ->get();
+                if (!empty($this->currentProduct)) {
+                    $this->purchases = PurchaseDetail::join('purchases', 'purchases.id', '=', 'purchase_details.purchase_id')->whereBetween('purchases.purchase_date', [$this->from, $this->to])->where('product_id', $this->currentProduct['id'])->get();
                 } else {
-                    $this->purchases = PurchaseDetail::join('purchases', 'purchases.id', '=', 'purchase_details.purchase_id')
-                        ->select('purchase_details.*', 'purchases.purchase_date')
-                        ->with('product', 'purchase.supplier')
-                        ->whereBetween('purchases.purchase_date', [$this->from, $this->to])
-                        ->get();
+                    $this->purchases = PurchaseDetail::join('purchases', 'purchases.id', '=', 'purchase_details.purchase_id')->whereBetween('purchases.purchase_date', [$this->from, $this->to])->get();
                 }
             }
             $this->sum = 0;
             foreach ($this->purchases as $purchase) {
                 $this->sum += $purchase->quantity * $purchase->price;
             }
+        }
+    }
+
+    public function getInvoice($debt)
+    {
+        if ($debt['sale_id'] != null || $debt['purchase_id'] != null) {
+            $this->invoice['id'] = $debt['sale_id'] != null ? $debt['sale_id'] : $debt['purchase_id'];
+            $this->invoice['type'] = $debt['sale_id'] != null ? 'sale' : 'purchase';
+            $this->invoice['date'] = $debt['due_date'];
+            if ($this->reportType == 'client') {
+                $this->invoice['client'] = $this->currentClient['clientName'];
+            } elseif ($this->reportType == 'supplier') {
+            $this->invoice['client'] = $this->currentSupplier['supplierName'];
+            }
+            $this->invoice['clientType'] = $this->reportType == 'supplier'? 'المورد' : 'العميل';
+            if ($debt['sale_id'] != null) {
+                $this->invoice['cart'] = SaleDetail::where('sale_id', $this->invoice['id'])->join('products', 'products.id', '=', 'sale_details.product_id')->get()->toArray();
+            } elseif ($debt['purchase_id'] != null) {
+                $this->invoice['cart'] = PurchaseDetail::where('purchase_id', $this->invoice['id'])->join('products', 'products.id', '=', 'purchase_details.product_id')->get()->toArray();
+            }
+            $this->invoice['total_amount'] = $debt['debt'];
+            $this->invoice['showMode'] = true;
+            $this->dispatch('sale_created', $this->invoice);
         }
     }
 

@@ -273,7 +273,7 @@
                             <div class="row">
                                 <div class="col-3"><h6>المعاملات</h6></div>
                                 <div class="col-3"><h6>رصيد الموظف
-                                        : {{ number_format($currentEmployee['currentBalance'], 2) }}</div>
+                                        : {{ number_format($currentBalance, 2) }}</div>
                                 <div class="col-3"><h6>رصيد الخزنة : {{ number_format($safeBalance, 2) }}</h6></div>
                                 <div class="col-3"><h6>رصيد البنك : {{ number_format($bankBalance, 2) }}</h6></div>
                             </div>
