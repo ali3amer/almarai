@@ -138,8 +138,8 @@
                                         <td>{{number_format($purchase['total_amount'], 2)}}</td>
                                         <td>{{$purchase['purchase_date']}}</td>
                                         <td>
-                                            <button class="btn btn-sm btn-primary"
-                                                    wire:click="getReturns({{$purchase}})"><i class="bi bi-pen"></i>
+                                            <button class="btn btn-sm btn-warning text-white"
+                                                    wire:click="getReturns({{$purchase}})"><i class="bi bi-eye"></i>
                                             </button>
                                             /
                                             <button data-bs-toggle="modal" data-bs-target="#purchaseModal"
@@ -209,8 +209,8 @@
 
                         <div class="col d-flex align-items-end">
                             <button
-                                @disabled(empty($currentDetail) || ($quantityReturn == 0) || ($quantityReturn == null)) class="btn {{ $editMode ? 'btn-success' : 'btn-primary' }} "
-                                wire:click="save()">{{ $editMode ? 'تعـــــــــــــــديل' : 'حــــــــــــــفظ' }}</button>
+                                @disabled(empty($currentDetail) || ($quantityReturn == 0) || ($quantityReturn == null) || ($quantityReturn > $quantity)) class="btn {{ $editMode ? 'btn-success' : 'btn-primary' }} "
+                                wire:click="save()">حفـــــــــــــــظ</button>
                         </div>
                     </div>
                 </div>
@@ -231,11 +231,9 @@
                                     <th>#</th>
                                     <th>إسم المنتج</th>
                                     <th>سعر الوحده</th>
-                                    <th> الكمية</th>
+                                    <th>الكمية</th>
                                     <th>الجمله</th>
                                     <th>التاريخ</th>
-                                    <th>التاريخ</th>
-                                    <th>التحكم</th>
                                 </tr>
                                 </thead>
                                 <tbody>
@@ -247,13 +245,6 @@
                                         <td>{{number_format($return['quantity'], 2)}}</td>
                                         <td>{{number_format($return['quantity'] * $return['price'], 2)}}</td>
                                         <td>{{$return['return_date']}}</td>
-                                        <td></td>
-                                        <td>
-                                            <button wire:click="chooseDetail({{$return}}, {{$return['product']}})"
-                                                    class="btn btn-sm btn-primary"><i class="bi bi-pen"></i></button>
-                                            <button wire:click="deleteMessage({{$return}})"
-                                                    class="btn btn-sm btn-danger"><i class="bi bi-trash"></i></button>
-                                        </td>
                                     </tr>
                                 @endforeach
                                 </tbody>

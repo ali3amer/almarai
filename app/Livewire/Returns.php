@@ -39,6 +39,11 @@ class Returns extends Component
     public string $saleSearch = '';
     public array $currentSale = [];
     public string $buyer = 'client';
+    /**
+     * @var float|mixed
+     */
+    public $reminderQuantity = 0;
+    public $reminderAmount = 0;
 
     public function chooseClient($client)
     {
@@ -46,20 +51,16 @@ class Returns extends Component
         $this->currentClient = $client;
     }
 
-    public function chooseSale($sale, $editMode)
+    public function chooseSale($sale)
     {
-        $this->editMode = $editMode;
-
         $this->currentSale = [];
         $this->currentSale = $sale;
-        $this->id = $this->currentSale['id'];
         $this->saleDetails = SaleDetail::with('product')->where('sale_id', $this->currentSale['id'])->get();
 
     }
 
     public function chooseDetail($detail, $product)
     {
-        $this->id = $this->editMode ? $detail['id'] : 0;
         $this->currentDetail = $detail;
         $this->productName = $product['productName'];
         $this->quantity = $detail['quantity'];
@@ -71,14 +72,14 @@ class Returns extends Component
 
     public function getReturns($sale)
     {
-        $this->chooseSale($sale, true);
+        $this->chooseSale($sale);
         $this->returns = SaleReturn::with('product')->where('sale_id', $sale['id'])->get();
     }
 
     public function calcQuantity()
     {
-        $this->quantity = $this->currentDetail['quantity'] - floatval($this->quantityReturn);
-        $this->amount = $this->quantity * $this->price;
+        $this->reminderQuantity = $this->currentDetail['quantity'] - floatval($this->quantityReturn);
+        $this->reminderAmount = $this->quantity * $this->price;
         $this->priceReturn = $this->currentDetail['price'] * floatval($this->quantityReturn);
     }
 
@@ -94,44 +95,46 @@ class Returns extends Component
             $sale = \App\Models\Sale::where('id', $this->currentDetail['sale_id'])->first();
 
             $sale->decrement('total_amount', $this->priceReturn);
-
             if ($this->buyer == 'client') {
                 \App\Models\ClientDebt::create([
                     'client_id' => $this->currentClient['id'],
-                    'paid' => 0,
-                    'debt' => $this->priceReturn,
-                    'type' => 'debt',
+                    'paid' => $this->priceReturn,
+                    'debt' => 0,
+                    'type' => 'pay',
                     'bank' => '',
                     'payment' => 'cash',
                     'bank_id' => null,
                     'due_date' => $this->return_date,
-                    'note' => $sale['id'] . 'تم إرجاع منتج من فاتوره رقم #',
+                    'note' => 'تم إرجاع منتج من فاتوره رقم #' . $sale['id'],
+                    'sale_id' => $sale['id'],
                     'user_id' => auth()->id()
                 ]);
             } elseif ($this->buyer == 'supplier') {
                 \App\Models\SupplierDebt::create([
                     'supplier_id' => $this->currentClient['id'],
-                    'paid' => 0,
-                    'debt' => $this->priceReturn,
-                    'type' => 'debt',
+                    'paid' => $this->priceReturn,
+                    'debt' => 0,
+                    'type' => 'pay',
                     'bank' => '',
                     'payment' => 'cash',
                     'bank_id' => null,
                     'due_date' => $this->return_date,
-                    'note' => $sale['id'] . 'تم إرجاع منتج من فاتوره رقم #',
+                    'note' => 'تم إرجاع منتج من مبيعات فاتوره رقم #' . $sale['id'],
+                    'sale_id' => $sale['id'],
                     'user_id' => auth()->id()
                 ]);
             } elseif ($this->buyer == 'employee') {
                 \App\Models\EmployeeDebt::create([
                     'employee_id' => $this->currentClient['id'],
-                    'paid' => 0,
-                    'debt' => $this->priceReturn,
-                    'type' => 'debt',
+                    'paid' => $this->priceReturn,
+                    'debt' => 0,
+                    'type' => 'pay',
                     'bank' => '',
                     'payment' => 'cash',
                     'bank_id' => null,
                     'due_date' => $this->return_date,
-                    'note' => $sale['id'] . 'تم إرجاع منتج من فاتوره رقم #',
+                    'note' => 'تم إرجاع منتج من فاتوره رقم #' . $sale['id'],
+                    'sale_id' => $sale['id'],
                     'user_id' => auth()->id()
                 ]);
             }
@@ -143,38 +146,11 @@ class Returns extends Component
                 'return_date' => $this->return_date,
                 'price' => $this->currentDetail['price']
             ]);
+
+            $this->getReturns($this->currentSale);
             $this->alert('success', 'تم الحفظ بنجاح', ['timerProgressBar' => true]);
-        } else {
-            SaleDetail::where('sale_id', $this->currentDetail['sale_id'])->where('product_id', $this->currentDetail['product_id'])->increment('quantity', floatval($this->quantityReturn));
-
-            \App\Models\Product::where('id', $this->currentDetail['product_id'])->decrement('stock', floatval($this->quantityReturn));
-
-            \App\Models\Sale::where('id', $this->currentDetail['sale_id'])->increment('total_amount', $this->priceReturn);
-
-
-            if (isset($debt['paid'])) {
-                $return = SaleReturn::where('id', $this->id)->first();
-                if ($debt['payment'] == 'cash') {
-                    \App\Models\Safe::first()->decrement('currentBalance', $return['quantity'] * $return['price']);
-                    \App\Models\Safe::first()->increment('currentBalance', $this->amount);
-                } else {
-                    Bank::where('id', $debt['bank_id'])->decrement('currentBalance', $return['quantity'] * $return['price']);
-                    Bank::where('id', $debt['bank_id'])->increment('currentBalance', $this->amount);
-                }
-                if ($this->buyer == 'client') {
-                    \App\Models\Client::where('id', $this->currentClient['id'])->decrement('currentBalance', $debt['paid']);
-                } elseif ($this->buyer == 'supplier') {
-                    \App\Models\Supplier::where('id', $this->currentClient['id'])->increment('currentBalance', $debt['paid']);
-                }
-            }
-
-            SaleReturn::where('id', $this->id)->update([
-                'quantity' => $this->currentDetail['quantity'] - floatval($this->quantityReturn),
-                'return_date' => $this->return_date
-            ]);
         }
 
-        $this->alert('success', 'تم تعديل الفاتوره بنجاح', ['timerProgressBar' => true]);
         $this->resetData();
     }
 
@@ -193,35 +169,9 @@ class Returns extends Component
         ]);
     }
 
-    public function delete($data)
-    {
-        $return = $data['inputAttributes']['return'];
-        SaleReturn::where('id', $return['id'])->delete();
-        \App\Models\Sale::where('id', $return['sale_id'])->increment('total_amount', $return['quantity'] * $return['price']);
-        SaleDetail::where('sale_id', $return['sale_id'])->where('product_id', $return['product_id'])->increment('quantity', $return['quantity']);
-        \App\Models\Product::where('id', $return['product_id'])->decrement('stock', $return['quantity']);
-        $debt = SaleDebt::where('id', $return['sale_id'])->where('paid', '!=', 0)->first();
-
-        if (isset($debt['paid'])) {
-
-            if ($this->buyer == 'client') {
-                \App\Models\Client::where('id', $this->currentClient['id'])->increment('currentBalance', $debt['paid']);
-            } elseif ($this->buyer == 'supplier') {
-                \App\Models\Supplier::where('id', $this->currentClient['id'])->decrement('currentBalance', $debt['paid']);
-            }
-            if ($debt['payment'] == 'cash') {
-                \App\Models\Safe::first()->increment('currentBalance', $debt['paid']);
-            } else {
-                \App\Models\Bank::where('id', $debt['bank_id'])->increment('currentBalance', $debt['paid']);
-            }
-        }
-        $this->alert('success', 'تم الحذف بنجاح', ['timerProgressBar' => true]);
-
-    }
-
     public function resetData($data = null)
     {
-        $this->reset('productName', 'editMode', 'amount', 'quantity', 'price', 'quantityReturn', 'clientSearch', 'currentDetail', 'currentSale', 'saleSearch', 'return_date', $data);
+        $this->reset('productName', 'editMode', 'amount', 'quantity', 'price', 'quantityReturn', 'clientSearch', 'currentDetail', 'saleSearch', 'return_date', $data);
     }
 
     public function render()

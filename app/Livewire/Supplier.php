@@ -22,8 +22,6 @@ class Supplier extends Component
     public int $id = 0;
     public int $debtId = 0;
     public string $supplierName = '';
-    public float $safeBalance = 0;
-    public float $bankBalance = 0;
     #[Rule('required|min:2', message: 'قم بإدخال رقم الهاتف')]
     public string $phone = '';
     public string $search = '';
@@ -68,7 +66,7 @@ class Supplier extends Component
 
         if ($this->validate()) {
             if ($this->id == 0) {
-                \App\Models\Supplier::create(['supplierName' => $this->supplierName, 'phone' => $this->phone, 'initialBalance' => floatval($this->initialBalance), 'currentBalance' => floatval($this->initialBalance), 'blocked' => $this->blocked]);
+                \App\Models\Supplier::create(['supplierName' => $this->supplierName, 'phone' => $this->phone, 'initialBalance' => floatval($this->initialBalance), 'startingDate' => $this->startingDate, 'currentBalance' => floatval($this->initialBalance), 'blocked' => $this->blocked]);
                 $this->alert('success', 'تم الحفظ بنجاح', ['timerProgressBar' => true]);
             } else {
                 $supplier = \App\Models\Supplier::find($id);
@@ -229,10 +227,6 @@ class Supplier extends Component
 
     public function render()
     {
-        $this->safeBalance = \App\Models\Safe::first()->currentBalance;
-        if ($this->bank_id != null) {
-            $this->bankBalance = Bank::where('id', $this->bank_id)->first()->currentBalance;
-        }
         if ($this->due_date == '') {
             $this->due_date = date('Y-m-d');
         }

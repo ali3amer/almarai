@@ -77,14 +77,13 @@ class Sale extends Component
                 'user_id' => auth()->id(),
             ]);
 
-            $type = floatval($this->paid) == 0 ? 'debt' : 'pay';
 
             if ($this->buyer == 'client') {
                 \App\Models\ClientDebt::create([
                     'client_id' => $this->currentClient['id'],
                     'paid' => 0,
                     'debt' => $this->total_amount,
-                    'type' => $type,
+                    'type' => 'debt',
                     'bank' => $this->bank,
                     'payment' => $this->payment,
                     'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
@@ -101,7 +100,7 @@ class Sale extends Component
                         'client_id' => $this->currentClient['id'],
                         'paid' => floatval($this->paid),
                         'debt' => 0,
-                        'type' => $type,
+                        'type' => 'pay',
                         'bank' => $this->bank,
                         'payment' => $this->payment,
                         'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
@@ -120,7 +119,7 @@ class Sale extends Component
                     'employee_id' => $this->currentClient['id'],
                     'paid' => 0,
                     'debt' => $this->total_amount,
-                    'type' => $type,
+                    'type' => 'debt',
                     'bank' => $this->bank,
                     'payment' => $this->payment,
                     'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
@@ -136,7 +135,7 @@ class Sale extends Component
                         'employee_id' => $this->currentClient['id'],
                         'paid' => floatval($this->paid),
                         'debt' => 0,
-                        'type' => $type,
+                        'type' => 'pay',
                         'bank' => $this->bank,
                         'payment' => $this->payment,
                         'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
@@ -152,36 +151,20 @@ class Sale extends Component
 
                 \App\Models\SupplierDebt::create([
                     'supplier_id' => $this->currentClient['id'],
-                    'paid' => 0,
-                    'debt' => $this->total_amount,
-                    'type' => $type,
+                    'paid' => $this->total_amount,
+                    'debt' => 0,
+                    'type' => 'pay',
                     'bank' => $this->bank,
                     'payment' => $this->payment,
                     'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
                     'due_date' => $this->sale_date,
-                    'note' => 'تم شراء بالآجل',
+                    'note' => 'تم شراء منتجات',
                     'sale_id' => $sale['id'],
                     'user_id' => auth()->id()
                 ]);
 
-                $this->currentBalance += $this->total_amount;
+                $this->currentBalance -= $this->total_amount;
 
-                if (floatval($this->paid) != 0) {
-                    \App\Models\SupplierDebt::create([
-                        'supplier_id' => $this->currentClient['id'],
-                        'paid' => floatval($this->paid),
-                        'debt' => 0,
-                        'type' => $type,
-                        'bank' => $this->bank,
-                        'payment' => $this->payment,
-                        'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
-                        'due_date' => $this->sale_date,
-                        'note' => 'تم إستلام مبلغ',
-                        'user_id' => auth()->id()
-                    ]);
-                    $this->currentBalance -= floatval($this->paid);
-
-                }
 
             }
 
@@ -320,42 +303,43 @@ class Sale extends Component
                 'client_id' => $this->currentClient['id'],
                 'paid' => $this->invoice['total_amount'],
                 'debt' => 0,
-                'type' => 'debt',
+                'type' => 'pay',
                 'bank' => '',
                 'payment' => 'cash',
                 'bank_id' => null,
                 'due_date' => $this->sale_date,
                 'sale_id' => $this->invoice['id'],
-                'note' =>$this->invoice['id'] . '#تم إلغاء الفاتوره رقم ',
+                'note' =>'تم إلغاء الفاتوره رقم #'.$this->invoice['id'],
                 'user_id' => auth()->id()
             ]);
         } elseif ($this->buyer == 'employee') {
             \App\Models\EmployeeDebt::create([
                 'employee_id' => $this->currentClient['id'],
-                'paid' => $sale['total_amount'],
+                'paid' => $this->invoice['total_amount'],
                 'debt' => 0,
                 'type' => 'debt',
                 'bank' => '',
                 'payment' => 'cash',
                 'bank_id' => null,
                 'due_date' => $this->sale_date,
-                'note' => $sale['id'] . '#تم إلغاء الفاتوره رقم ',
+                'note' =>'تم إلغاء الفاتوره رقم #'.$this->invoice['id'],
                 'user_id' => auth()->id()
             ]);
         } elseif ($this->buyer == 'supplier') {
             \App\Models\SupplierDebt::create([
                 'supplier_id' => $this->currentClient['id'],
-                'paid' => $sale['total_amount'],
+                'paid' => $this->invoice['total_amount'],
                 'debt' => 0,
                 'type' => 'debt',
                 'bank' => '',
                 'payment' => 'cash',
                 'bank_id' => null,
                 'due_date' => $this->sale_date,
-                'note' => $sale['id'] . '#تم إلغاء الفاتوره رقم ',
+                'note' =>'تم إلغاء الفاتوره رقم #'.$this->invoice['id'],
                 'user_id' => auth()->id()
             ]);
         }
+        $this->alert('success', 'تم الحفظ بنجاح', ['timerProgressBar' => true]);
 
     }
 

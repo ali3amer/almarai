@@ -28,7 +28,7 @@
                                 @error('initialBalance') <span class="error text-danger">{{ $message }}</span> @enderror
                             </div>
 
-                            <label for="startingDate">التاريخ</label>
+                            <label for="startingDate">تاريخ بداية التعامل</label>
                             <input type="date" wire:model.live="startingDate" id="startingDate"
                                    class="form-control text-center">
 
@@ -185,7 +185,7 @@
                                placeholder="ملاحظات ....">
 
                         <button
-                            @disabled(($type == 'debt' && ($payment == 'bank' && $debt_amount > $bankBalance))) @disabled(($type == 'debt' && ($payment == 'cash' && $debt_amount > $safeBalance))) @disabled(empty($currentClient) || $debt_amount == 0 || $due_date == '') class="btn btn-{{$debtId == 0 ? 'primary' : 'success'}} w-100"
+                             @disabled(empty($currentClient) || $debt_amount == 0 || $due_date == '') class="btn btn-{{$debtId == 0 ? 'primary' : 'success'}} w-100"
                             wire:click="saveDebt()">{{$debtId == 0 ? 'دفــــع' : 'تعــــديل'}}</button>
 
                     </div>
@@ -197,11 +197,9 @@
                     <div class="card-body">
                         <div class="card-title">
                             <div class="row">
-                                <div class="col-3"><h6>المعاملات</h6></div>
-                                <div class="col-3"><h6>رصيد العميل
+                                <div class="col-6"><h6>المعاملات</h6></div>
+                                <div class="col-6"><h6>رصيد العميل
                                         : {{ number_format($currentBalance, 2) }}</div>
-                                <div class="col-3"><h6>رصيد الخزنة : {{ number_format($safeBalance, 2) }}</h6></div>
-                                <div class="col-3"><h6>رصيد البنك : {{ number_format($bankBalance, 2) }}</h6></div>
                             </div>
                         </div>
                         <div class="scroll">
@@ -214,7 +212,6 @@
                                     <th>طريقة الدفع</th>
                                     <th>الإيصال</th>
                                     <th>المبلغ</th>
-                                    <th>التحكم</th>
                                 </tr>
                                 </thead>
                                 <tbody>
@@ -226,18 +223,6 @@
                                         <td>{{$debt->payment == 'cash' ? 'كاش' : 'بنك'}}</td>
                                         <td>{{$debt->bank}}</td>
                                         <td>{{$debt->type == 'pay' ? $debt->paid : $debt->debt}}</td>
-                                        <td>
-                                            @if($debt->sale_id == null)
-                                                <button class="btn btn-sm btn-info text-white"
-                                                        wire:click="chooseDebt({{$debt}})"><i class="bi bi-pen"></i>
-                                                </button>
-                                                /
-                                                <button class="btn btn-sm btn-danger"
-                                                        wire:click="deleteDebtMessage({{$debt}})">
-                                                    <i
-                                                        class="bi bi-trash"></i></button>
-                                            @endif
-                                        </td>
                                     </tr>
                                 @endforeach
                                 </tbody>

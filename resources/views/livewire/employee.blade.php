@@ -218,7 +218,7 @@
                             </div>
 
                             <div class="col-2 d-flex align-items-end">
-                                @if($editGiftMode)
+                                @if($editGiftMode | $editMode)
                                     <button class="btn btn-success w-100"
                                             wire:click="updateGift({{$gift_id}})">تعديل
                                     </button>
@@ -246,7 +246,6 @@
                                 <th>#</th>
                                 <th>التاريخ</th>
                                 <th>المبلغ</th>
-                                <th>التحكم</th>
                             </tr>
                             </thead>
                             <tbody>
@@ -255,10 +254,6 @@
                                     <td>{{$gift->index + 1}}</td>
                                     <td>{{$gift->gift_date}}</td>
                                     <td>{{number_format($gift->gift_amount, 2)}}</td>
-                                    <td>
-                                        <button class="btn btn-sm btn-primary" wire:click="editGift({{$gift->debt}}, {{$gift->gift_amount}})"><i class="bi bi-pen"></i></button> /
-                                        <button class="btn btn-sm btn-danger" wire:click="deleteGiftMessage({{$gift}})"><i class="bi bi-trash"></i></button>
-                                    </td>
                                 </tr>
                             @endforeach
                             </tbody>
@@ -271,11 +266,9 @@
                     <div class="card-body">
                         <div class="card-title">
                             <div class="row">
-                                <div class="col-3"><h6>المعاملات</h6></div>
-                                <div class="col-3"><h6>رصيد الموظف
+                                <div class="col-6"><h6>المعاملات</h6></div>
+                                <div class="col-6"><h6>رصيد الموظف
                                         : {{ number_format($currentBalance, 2) }}</div>
-                                <div class="col-3"><h6>رصيد الخزنة : {{ number_format($safeBalance, 2) }}</h6></div>
-                                <div class="col-3"><h6>رصيد البنك : {{ number_format($bankBalance, 2) }}</h6></div>
                             </div>
                         </div>
                         <div class="scroll">
@@ -288,7 +281,6 @@
                                     <th>طريقة الدفع</th>
                                     <th>الإيصال</th>
                                     <th>المبلغ</th>
-                                    <th>التحكم</th>
                                 </tr>
                                 </thead>
                                 <tbody>
@@ -300,16 +292,6 @@
                                         <td>{{$debt->payment == 'cash' ? 'كاش' : 'بنك'}}</td>
                                         <td>{{$debt->bank}}</td>
                                         <td>{{$debt->type == 'pay' ? number_format($debt->paid, 2) : number_format($debt->debt, 2)}}</td>
-                                        <td>
-                                            <button class="btn btn-sm btn-info text-white"
-                                                    wire:click="chooseDebt({{$debt}})"><i class="bi bi-pen"></i>
-                                            </button>
-                                            /
-                                            <button class="btn btn-sm btn-danger"
-                                                    wire:click="deleteDebtMessage({{$debt}})">
-                                                <i
-                                                    class="bi bi-trash"></i></button>
-                                        </td>
                                     </tr>
                                 @endforeach
                                 </tbody>

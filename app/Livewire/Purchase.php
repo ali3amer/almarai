@@ -74,14 +74,11 @@ class Purchase extends Component
                 'user_id' => auth()->id(),
             ]);
 
-            $type = $this->paid == 0 ? 'debt' : 'pay';
-
-
             \App\Models\SupplierDebt::create([
                 'supplier_id' => $this->currentSupplier['id'],
                 'paid' => 0,
                 'debt' => $this->remainder,
-                'type' => $type,
+                'type' => 'debt',
                 'bank' => $this->bank,
                 'payment' => $this->payment,
                 'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
@@ -98,7 +95,7 @@ class Purchase extends Component
                     'supplier_id' => $this->currentSupplier['id'],
                     'paid' => $this->paid,
                     'debt' => 0,
-                    'type' => $type,
+                    'type' => 'pay',
                     'bank' => $this->bank,
                     'payment' => $this->payment,
                     'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
@@ -243,9 +240,12 @@ class Purchase extends Component
             'bank_id' => null,
             'due_date' => $this->purchase_date,
             'purchase_id' => $this->invoice['id'],
-            'note' => $this->invoice['id'] . '#تم إلغاء الفاتوره رقم ',
+            'note' => 'تم إلغاء الفاتوره رقم #' . $this->invoice['id'],
             'user_id' => auth()->id()
         ]);
+
+        $this->alert('success', 'تم الحفظ بنجاح', ['timerProgressBar' => true]);
+
 
     }
 

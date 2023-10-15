@@ -124,7 +124,7 @@
                     <div class="card-body">
                         <div class="card-title">
                             <div class="row">
-                                <div class="col-3"><h6>فواتير {{$currentClient[$buyer.'Name']}}</h6></div>
+                                <div class="col-3"><h6>فواتير {{$currentClient[$buyer.'Name'] ?? ''}}</h6></div>
                                 <div class="col-9"><input type="text" autocomplete="off"  placeholder="رقم الفاتوره ...." class="form-control text-center" wire:model.live="saleSearch"></div>
                             </div>
                         </div>
@@ -145,7 +145,7 @@
                                         <td>{{number_format($sale['total_amount'], 2)}}</td>
                                         <td>{{$sale['sale_date']}}</td>
                                         <td>
-                                            <button class="btn btn-sm btn-primary" wire:click="getReturns({{$sale}})"><i class="bi bi-pen"></i></button> /
+                                            <button class="btn btn-sm text-white btn-warning" wire:click="getReturns({{$sale}})"><i class="bi bi-eye"></i></button> /
                                             <button  data-bs-toggle="modal" data-bs-target="#saleModal" wire:click="chooseSale({{$sale}}, false)" class="btn btn-sm btn-danger"><i class="bi bi-arrow-return-left"></i></button>
                                         </td>
                                     </tr>
@@ -203,7 +203,7 @@
                             </div>
 
                             <div class="col d-flex align-items-end">
-                                <button @disabled(empty($currentDetail) || ($quantityReturn == 0) || ($quantityReturn == null)) class="btn {{ $editMode ? 'btn-success' : 'btn-primary' }} " wire:click="save()">{{ $editMode ? 'تعـــــــــــــــديل' : 'حــــــــــــــفظ' }}</button>
+                                <button @disabled(empty($currentDetail) || ($quantityReturn == 0) || ($quantityReturn == null) || ($quantityReturn > $quantity)) class="btn {{ $editMode ? 'btn-success' : 'btn-primary' }} " wire:click="save()">{{ $editMode ? 'تعـــــــــــــــديل' : 'حــــــــــــــفظ' }}</button>
                             </div>
                         </div>
                     </div>
@@ -227,8 +227,6 @@
                                         <th> الكمية</th>
                                         <th>الجمله</th>
                                         <th>التاريخ</th>
-                                        <th>التاريخ</th>
-                                        <th>التحكم</th>
                                     </tr>
                                     </thead>
                                     <tbody>
@@ -240,11 +238,6 @@
                                             <td>{{number_format($return['quantity'], 2)}}</td>
                                             <td>{{number_format($return['quantity'] * $return['price'], 2)}}</td>
                                             <td>{{$return['return_date']}}</td>
-                                            <td></td>
-                                            <td>
-                                                <button  wire:click="chooseDetail({{$return}}, {{$return['product']}})" class="btn btn-sm btn-primary"><i class="bi bi-pen"></i></button>
-                                                <button  wire:click="deleteMessage({{$return}})" class="btn btn-sm btn-danger"><i class="bi bi-trash"></i></button>
-                                            </td>
                                         </tr>
                                     @endforeach
                                     </tbody>
