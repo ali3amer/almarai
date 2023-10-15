@@ -59,20 +59,18 @@
                     <div class="row">
                         <div class="col-4">
                             <label for="safe">رصيد الخزنه</label>
-                            <input disabled id="safe" type="text" value="{{number_format($safe, 2)}}"
+                            <input disabled id="safe" type="text" wire:model.live="safe"
                                    class="form-control text-center mt-2" placeholder="رصيد الخزنة ...........">
                         </div>
 
                         <div class="col-4">
-                            <label for="bank">رصيد البنك</label>
-                            <input disabled id="bank" type="text" value="{{number_format($bank, 2)}}"
-                                   class="form-control text-center mt-2" placeholder="رصيد البنك ...........">
+                            <label for="day_date">التاريخ</label>
+                            <input id="day_date" type="date" wire:model.live="day_date"
+                                   class="form-control text-center mt-2">
                         </div>
 
-                        <div class="col-4">
-                            <label for="amount">الجمله</label>
-                            <input disabled id="amount" type="text" value="{{number_format($safe + $bank, 2)}}"
-                                   class="form-control text-center mt-2" placeholder="الجمله ...........">
+                        <div class="col-4 d-flex align-items-end">
+                            <button class="btn btn-primary w-100" wire:click="showDayReport()">مراجعة اليوميه</button>
                         </div>
                     </div>
                 </div>
@@ -161,7 +159,7 @@
 
                             <div class="col-2 d-flex align-items-end">
                                 <button
-                                    @disabled($transfer_number == 0 || $transfer_amount == 0) class="btn w-100 btn-{{$transferId == 0 ? 'primary' : 'success'}}"
+                                    @disabled($transfer_amount == 0) class="btn w-100 btn-{{$transferId == 0 ? 'primary' : 'success'}}"
                                     type="submit">{{$transferId == 0 ? 'حــــفظ' : 'تعـــديل'}}</button>
                             </div>
                         </div>
@@ -182,7 +180,6 @@
                                 <th>المبلغ</th>
                                 <th>رقم الإشعار</th>
                                 <th>ملاحظات</th>
-                                <th>التحكم</th>
                             </tr>
                             </thead>
                             <tbody>
@@ -195,13 +192,6 @@
                                     <td>{{number_format($transfer->transfer_amount, 2)}}</td>
                                     <td>{{$transfer->transfer_number}}</td>
                                     <td>{{$transfer->note}}</td>
-                                    <td>
-                                        <button class="btn btn-info btn-sm text-white"
-                                                wire:click="editTransfer({{$transfer}})"><i class="bi bi-pen"></i></button>
-                                        /
-                                        <button class="btn btn-danger btn-sm" wire:click="deleteMessage({{$transfer}})"><i
-                                                class="bi bi-trash"></i></button>
-                                    </td>
                                 </tr>
                             @endforeach
                             </tbody>

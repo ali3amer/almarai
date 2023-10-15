@@ -3,10 +3,12 @@
 namespace App\Livewire;
 
 use App\Models\ClientDebt;
+use App\Models\EmployeeDebt;
 use App\Models\PurchaseDebt;
 use App\Models\PurchaseDetail;
 use App\Models\SaleDebt;
 use App\Models\SaleDetail;
+use App\Models\SupplierDebt;
 use Illuminate\Contracts\Database\Eloquent\Builder;
 
 ;
@@ -64,6 +66,7 @@ class Report extends Component
     public collection $products;
     public string $clientSearch = '';
     public string $supplierSearch = '';
+    public float $safeBalance = 0;
     public float $salesSum = 0;
     public float $debtsSum = 0;
     public float $paysSum = 0;
@@ -71,9 +74,12 @@ class Report extends Component
     public float $expensesSum = 0;
     public float $employeesSum = 0;
     public float $damagedsSum = 0;
-    public float $percent = 0;
+    public $percent = 0;
     public string $productSearch = '';
     public array $invoice = [];
+    public Collection $clientDebts;
+    public Collection $supplierDebts;
+    public Collection $employeeDebts;
 
     public function chooseClient($client)
     {
@@ -150,6 +156,11 @@ class Report extends Component
             }
         } elseif ($this->reportType == 'safe') {   // safe
             if ($this->reportDuration == 'day') {
+                $this->safeBalance += \App\Models\Sale::where('sale_date', $this->day)->get()->sum('total_amount');
+                $this->purchases = \App\Models\Purchase::where('sale_date', $this->day)->get();
+                $this->clientDebts = ClientDebt::where('due_date', $this->day)->get();
+                $this->employeeDebts = EmployeeDebt::where('due_date', $this->day)->get();
+                $this->supplierDebts = SupplierDebt::where('due_date', $this->day)->get();
             } elseif ($this->reportDuration == 'duration') {
             }
         } elseif ($this->reportType == 'sales') {  // sale

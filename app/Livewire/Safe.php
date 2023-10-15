@@ -25,7 +25,8 @@ class Safe extends Component
     public $number = 0;
     public string $transfer_date = '';
     public string $note = '';
-    public $transfer_number = 0;
+    public $transfer_number = '';
+    public string $day_date = '';
     public $transfer_amount = 0;
     public $initialBalance = 0;
     public $currentBalance = 0;
@@ -35,7 +36,9 @@ class Safe extends Component
 
     public Collection $banks;
     public Collection $transfers;
-    public Collection $user;
+    public Collection $clientDebts;
+    public Collection $supplierDebts;
+    public Collection $employeeDebts;
     public string $bankSearch = '';
 
     public function saveBank()
@@ -70,23 +73,10 @@ class Safe extends Component
                 'transfer_date' => $this->transfer_date,
                 'note' => $this->note,
             ]);
-            if ($this->transfer_type == 'cash_to_bank') {
-                Bank::where('id', $this->bank_id)->increment('currentBalance', $this->transfer_amount);
-                \App\Models\Safe::first()->decrement('currentBalance', $this->transfer_amount);
-            } elseif ($this->transfer_type == 'bank_to_cash') {
-                Bank::where('id', $this->bank_id)->decrement('currentBalance', $this->transfer_amount);
-                \App\Models\Safe::first()->increment('currentBalance', $this->transfer_amount);
-            }
+
             $this->alert('success', 'تم الحفظ بنجاح', ['timerProgressBar' => true]);
         } else {
             $transfer = Transfer::where('id', $this->transferId)->first();
-            if ($transfer['transfer_type'] == 'cash_to_bank') {
-                Bank::where('id', $transfer['bank_id'])->decrement('currentBalance', $transfer['transfer_amount']);
-                \App\Models\Safe::first()->increment('currentBalance', $transfer['transfer_amount']);
-            } else {
-                Bank::where('id', $transfer['bank_id'])->increment('currentBalance', $transfer['transfer_amount']);
-                \App\Models\Safe::first()->decrement('currentBalance', $transfer['transfer_amount']);
-            }
 
             Transfer::where('id', $this->transferId)->update([
                 'bank_id' => $this->bank_id,
@@ -102,6 +92,10 @@ class Safe extends Component
         $this->resetData();
     }
 
+    public function showDayReport()
+    {
+
+    }
     public function editTransfer($transfer)
     {
         $this->transferId = $transfer['id'];
@@ -153,8 +147,11 @@ class Safe extends Component
         if ($this->transfer_date == '') {
             $this->transfer_date = date('Y-m-d');
         }
-        $this->safe = \App\Models\Safe::sum('currentBalance');
-        $this->bank = Bank::sum('currentBalance');
+
+        if ($this->day_date == '') {
+            $this->day_date = date('Y-m-d');
+        }
+
         $this->banks = Bank::where('bankName', 'LIKE', '%' . $this->bankSearch . '%')->get();
         $this->transfers = Transfer::with('bank')->get();
         return view('livewire.safe');

@@ -19,26 +19,28 @@
                                                               wire:model.live="clientSearch"></div>
                                 </div>
                             </div>
-                            <table class="table table-responsive">
-                                <thead>
-                                <tr>
-                                    <th scope="col">#</th>
-                                    <th scope="col">إسم العميل</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                @if(!empty($clients))
-                                    @foreach($clients as $client)
-                                        <tr style="cursor: pointer" wire:click="chooseClient({{$client}})"
-                                            data-bs-dismiss="modal"
-                                            aria-label="Close">
-                                            <td scope="row">{{$loop->index + 1}}</td>
-                                            <td>{{$client->clientName}}</td>
-                                        </tr>
-                                    @endforeach
-                                @endif
-                                </tbody>
-                            </table>
+                            <div class="scroll">
+                                <table class="table table-responsive">
+                                    <thead>
+                                    <tr>
+                                        <th scope="col">#</th>
+                                        <th scope="col">إسم العميل</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    @if(!empty($clients))
+                                        @foreach($clients as $client)
+                                            <tr style="cursor: pointer" wire:click="chooseClient({{$client}})"
+                                                data-bs-dismiss="modal"
+                                                aria-label="Close">
+                                                <td scope="row">{{$loop->index + 1}}</td>
+                                                <td>{{$client->clientName}}</td>
+                                            </tr>
+                                        @endforeach
+                                    @endif
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -65,26 +67,28 @@
                                                               wire:model.live="supplierSearch"></div>
                                 </div>
                             </div>
-                            <table class="table table-responsive">
-                                <thead>
-                                <tr>
-                                    <th scope="col">#</th>
-                                    <th scope="col">إسم المورد</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                @if(!empty($suppliers))
-                                    @foreach($suppliers as $supplier)
-                                        <tr style="cursor: pointer" wire:click="chooseSupplier({{$supplier}})"
-                                            data-bs-dismiss="modal"
-                                            aria-label="Close">
-                                            <td scope="row">{{$loop->index + 1}}</td>
-                                            <td>{{$supplier->supplierName}}</td>
-                                        </tr>
-                                    @endforeach
-                                @endif
-                                </tbody>
-                            </table>
+                            <div class="scroll">
+                                <table class="table table-responsive">
+                                    <thead>
+                                    <tr>
+                                        <th scope="col">#</th>
+                                        <th scope="col">إسم المورد</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    @if(!empty($suppliers))
+                                        @foreach($suppliers as $supplier)
+                                            <tr style="cursor: pointer" wire:click="chooseSupplier({{$supplier}})"
+                                                data-bs-dismiss="modal"
+                                                aria-label="Close">
+                                                <td scope="row">{{$loop->index + 1}}</td>
+                                                <td>{{$supplier->supplierName}}</td>
+                                            </tr>
+                                        @endforeach
+                                    @endif
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -111,26 +115,28 @@
                                                               wire:model.live="productSearch"></div>
                                 </div>
                             </div>
-                            <table class="table table-responsive">
-                                <thead>
-                                <tr>
-                                    <th scope="col">#</th>
-                                    <th scope="col">إسم المنتج</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                @if(!empty($products))
-                                    @foreach($products as $product)
-                                        <tr style="cursor: pointer" wire:click="chooseProduct({{$product}})"
-                                            data-bs-dismiss="modal"
-                                            aria-label="Close">
-                                            <td scope="row">{{$loop->index + 1}}</td>
-                                            <td>{{$product->productName}}</td>
-                                        </tr>
-                                    @endforeach
-                                @endif
-                                </tbody>
-                            </table>
+                            <div class="scroll">
+                                <table class="table table-responsive">
+                                    <thead>
+                                    <tr>
+                                        <th scope="col">#</th>
+                                        <th scope="col">إسم المنتج</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    @if(!empty($products))
+                                        @foreach($products as $product)
+                                            <tr style="cursor: pointer" wire:click="chooseProduct({{$product}})"
+                                                data-bs-dismiss="modal"
+                                                aria-label="Close">
+                                                <td scope="row">{{$loop->index + 1}}</td>
+                                                <td>{{$product->productName}}</td>
+                                            </tr>
+                                        @endforeach
+                                    @endif
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -442,7 +448,7 @@
                     </tr>
                     <tr>
                         <td colspan="6">الأرباح</td>
-                        <td>{{ number_format($sum * $percent / 100, 2) }}</td>
+                        <td>{{ number_format($sum * floatval($percent) / 100, 2) }}</td>
                     </tr>
                     </tfoot>
                 </table>
