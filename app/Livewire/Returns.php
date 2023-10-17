@@ -14,6 +14,7 @@ use mysql_xdevapi\CollectionRemove;
 class Returns extends Component
 {
     use LivewireAlert;
+
     protected $listeners = [
         'delete',
     ];
@@ -95,49 +96,18 @@ class Returns extends Component
             $sale = \App\Models\Sale::where('id', $this->currentDetail['sale_id'])->first();
 
             $sale->decrement('total_amount', $this->priceReturn);
-            if ($this->buyer == 'client') {
-                \App\Models\ClientDebt::create([
-                    'client_id' => $this->currentClient['id'],
-                    'paid' => $this->priceReturn,
-                    'debt' => 0,
-                    'type' => 'pay',
-                    'bank' => '',
-                    'payment' => 'cash',
-                    'bank_id' => null,
-                    'due_date' => $this->return_date,
-                    'note' => 'تم إرجاع منتج من فاتوره رقم #' . $sale['id'],
-                    'sale_id' => $sale['id'],
-                    'user_id' => auth()->id()
-                ]);
-            } elseif ($this->buyer == 'supplier') {
-                \App\Models\SupplierDebt::create([
-                    'supplier_id' => $this->currentClient['id'],
-                    'paid' => $this->priceReturn,
-                    'debt' => 0,
-                    'type' => 'pay',
-                    'bank' => '',
-                    'payment' => 'cash',
-                    'bank_id' => null,
-                    'due_date' => $this->return_date,
-                    'note' => 'تم إرجاع منتج من مبيعات فاتوره رقم #' . $sale['id'],
-                    'sale_id' => $sale['id'],
-                    'user_id' => auth()->id()
-                ]);
-            } elseif ($this->buyer == 'employee') {
-                \App\Models\EmployeeDebt::create([
-                    'employee_id' => $this->currentClient['id'],
-                    'paid' => $this->priceReturn,
-                    'debt' => 0,
-                    'type' => 'pay',
-                    'bank' => '',
-                    'payment' => 'cash',
-                    'bank_id' => null,
-                    'due_date' => $this->return_date,
-                    'note' => 'تم إرجاع منتج من فاتوره رقم #' . $sale['id'],
-                    'sale_id' => $sale['id'],
-                    'user_id' => auth()->id()
-                ]);
-            }
+            \App\Models\SaleDebt::create([
+                $this->buyer . '_id' => $this->currentClient['id'],
+                'paid' => $this->priceReturn,
+                'debt' => 0,
+                'type' => 'pay',
+                'bank' => '',
+                'payment' => 'cash',
+                'bank_id' => null,
+                'due_date' => $this->return_date,
+                'note' => 'تم إرجاع منتج من فاتوره رقم #' . $sale['id'],
+                'user_id' => auth()->id()
+            ]);
 
             SaleReturn::create([
                 'sale_id' => $this->currentDetail['sale_id'],
@@ -157,7 +127,7 @@ class Returns extends Component
     public function deleteMessage($return)
     {
         $this->confirm("  هل توافق على الحذف ؟", [
-            'inputAttributes' => ["return"=>$return],
+            'inputAttributes' => ["return" => $return],
             'toast' => false,
             'showConfirmButton' => true,
             'confirmButtonText' => 'موافق',
@@ -187,14 +157,7 @@ class Returns extends Component
             $this->clients = \App\Models\Employee::where('employeeName', 'LIKE', '%' . $this->clientSearch . '%')->get();
         }
         if (!empty($this->currentClient)) {
-            if ($this->buyer == 'client') {
-                $this->sales = \App\Models\Sale::where('client_id', $this->currentClient['id'])->where('id', 'LIKE', '%' . $this->saleSearch . '%')->get();
-            } elseif($this->buyer == 'employee') {
-                $this->sales = \App\Models\Sale::where('employee_id', $this->currentClient['id'])->where('id', 'LIKE', '%' . $this->saleSearch . '%')->get();
-            } elseif ($this->buyer == 'supplier') {
-                $this->sales = \App\Models\Sale::where('supplier_id', $this->currentClient['id'])->where('id', 'LIKE', '%' . $this->saleSearch . '%')->get();
-
-            }
+            $this->sales = \App\Models\Sale::where($this->buyer.'_id', $this->currentClient['id'])->where('id', 'LIKE', '%' . $this->saleSearch . '%')->get();
         }
         return view('livewire.returns');
     }

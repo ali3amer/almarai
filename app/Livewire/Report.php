@@ -112,15 +112,13 @@ class Report extends Component
             if ($this->reportDuration == 'day') {
 
                 $this->salesSum = \App\Models\Sale::where('sale_date', $this->day)->sum('total_amount');
-                $this->clientSaleSum = \App\Models\ClientDebt::where('due_date', $this->day)->where('type', 'pay')->sum('paid');
-                $this->employeeSaleSum = \App\Models\EmployeeDebt::where('due_date', $this->day)->where('type', 'pay')->sum('paid');
+                $this->clientSaleSum = \App\Models\SaleDebt::where('due_date', $this->day)->where('type', 'pay')->sum('paid');
 
                 $this->purchasesSum = \App\Models\Purchase::where('purchase_date', $this->day)->sum('total_amount');
-                $this->supplierSaleSum = \App\Models\SupplierDebt::where('due_date', $this->day)->where('type', 'pay')->where('sale_id', null)->sum('paid');
+                $this->supplierSaleSum = \App\Models\PurchaseDebt::where('due_date', $this->day)->where('type', 'pay')->sum('paid');
 
                 $this->expensesSum = \App\Models\Expense::where('expense_date', $this->day)->sum('amount');
                 $this->employeesSum = \App\Models\EmployeeGift::where('gift_date', $this->day)->sum('gift_amount');
-
 
                 if (\App\Models\Damaged::where('damaged_date', $this->day)->count() > 0) {
                     $this->damagedsSum = \App\Models\Damaged::where('damaged_date', $this->day)->join('products', 'damageds.product_id', '=', 'products.id')
@@ -131,16 +129,13 @@ class Report extends Component
             } elseif ($this->reportDuration == 'duration') {
 
                 $this->salesSum = \App\Models\Sale::whereBetween('sale_date', [$this->from, $this->to])->sum('total_amount');
-                $this->clientSaleSum = \App\Models\ClientDebt::whereBetween('due_date', [$this->from, $this->to])->where('type', 'pay')->sum('paid');
-                $this->employeeSaleSum = \App\Models\EmployeeDebt::whereBetween('due_date', [$this->from, $this->to])->where('type', 'pay')->sum('paid');
+                $this->clientSaleSum = \App\Models\SaleDebt::whereBetween('due_date', [$this->from, $this->to])->where('type', 'pay')->sum('paid');
 
                 $this->purchasesSum = \App\Models\Purchase::whereBetween('purchase_date', [$this->from, $this->to])->sum('total_amount');
-                $this->supplierSaleSum = \App\Models\SupplierDebt::whereBetween('due_date', [$this->from, $this->to])->where('type', 'pay')->where('sale_id', null)->sum('paid');
-
+                $this->supplierSaleSum = \App\Models\PurchaseDebt::whereBetween('due_date', [$this->from, $this->to])->where('type', 'pay')->where('sale_id', null)->sum('paid');
 
                 $this->expensesSum = \App\Models\Expense::whereBetween('expense_date', [$this->from, $this->to])->sum('amount');
                 $this->employeesSum = \App\Models\EmployeeGift::whereBetween('gift_date', [$this->from, $this->to])->sum('gift_amount');
-
 
                 if (\App\Models\Damaged::whereBetween('damaged_date', [$this->from, $this->to])->count() > 0) {
                     $this->damagedsSum = \App\Models\Damaged::whereBetween('damaged_date', [$this->from, $this->to])->join('products', 'damageds.product_id', '=', 'products.id')
@@ -149,7 +144,7 @@ class Report extends Component
                 }
             }
 
-            $this->totalSales = $this->clientSaleSum + $this->employeeSaleSum;
+            $this->totalSales = $this->clientSaleSum;
             $this->salesDebts = $this->salesSum - $this->totalSales;
 
             $this->totalPurchases = $this->supplierSaleSum;
@@ -173,7 +168,6 @@ class Report extends Component
                 $this->debts = ClientDebt::where('client_id', $this->currentClient['id'])->where('due_date', $this->day)->get();
             } elseif ($this->reportDuration == 'duration') {
                 $this->debts = ClientDebt::where('client_id', $this->currentClient['id'])->whereBetween('due_date', [$this->from, $this->to])->get();
-
             }
         } elseif ($this->reportType == 'supplier') {   // supplier
             if ($this->reportDuration == 'day') {

@@ -69,29 +69,28 @@ class Purchase extends Component
         if ($this->id == 0) {
             $purchase = \App\Models\Purchase::create([
                 'supplier_id' => $this->currentSupplier['id'],
+                'paid' => $this->paid,
+                'remainder' => $this->remainder,
                 'total_amount' => $this->total_amount,
                 'purchase_date' => $this->purchase_date,
                 'user_id' => auth()->id(),
             ]);
 
-            \App\Models\SupplierDebt::create([
+            \App\Models\PurchaseDebt::create([
                 'supplier_id' => $this->currentSupplier['id'],
                 'paid' => 0,
-                'debt' => $this->remainder,
+                'debt' => $this->total_amount,
                 'type' => 'debt',
                 'bank' => $this->bank,
                 'payment' => $this->payment,
                 'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
                 'due_date' => $this->purchase_date,
-                'purchase_id' => $purchase['id'],
-                'note' => 'تم الإستيراد بالآجل',
+                'note' => 'تم الإستيراد بالآجل بفاتورة #'.$purchase['id'],
                 'user_id' => auth()->id()
             ]);
 
-            $this->currentBalance += $this->total_amount;
-
             if ($this->paid != 0) {
-                \App\Models\SupplierDebt::create([
+                \App\Models\PurchaseDebt::create([
                     'supplier_id' => $this->currentSupplier['id'],
                     'paid' => $this->paid,
                     'debt' => 0,
@@ -103,10 +102,9 @@ class Purchase extends Component
                     'note' => 'تم دفع مبلغ',
                     'user_id' => auth()->id()
                 ]);
-
-                $this->currentBalance -= floatval($this->paid);
             }
 
+            $this->currentBalance += $this->total_amount;
 
             foreach ($this->cart as $item) {
                 PurchaseDetail::create([
@@ -142,7 +140,7 @@ class Purchase extends Component
     public function chooseSupplier($supplier)
     {
         $this->currentSupplier = $supplier;
-        $supplier = SupplierDebt::where('supplier_id', $this->currentSupplier['id'])->get();
+        $supplier = PurchaseDebt::where('supplier_id', $this->currentSupplier['id'])->get();
         $this->currentBalance = $supplier->sum('debt') - $supplier->sum('paid');
     }
 
@@ -198,16 +196,16 @@ class Purchase extends Component
         $this->invoice['date'] = $purchase['purchase_date'];
         $this->invoice['client'] = $this->currentSupplier[$this->buyer . 'Name'];
         $this->invoice['cart'] = PurchaseDetail::where('purchase_id', $purchase['id'])->join('products', 'products.id', '=', 'purchase_details.product_id')->get()->toArray();
-        $this->invoice['remainder'] = $this->remainder;
-        $this->invoice['paid'] = $this->paid;
+        $this->invoice['remainder'] = $purchase['remainder'];
+        $this->invoice['paid'] = $purchase['paid'];
         $this->invoice['total_amount'] = $purchase['total_amount'];
-        $this->invoice['showMode'] = true;
+        $this->invoice['showMode'] = false;
         $this->dispatch('sale_created', $this->invoice);
     }
 
     public function deleteMessage($id)
     {
-        $this->confirm("  هل توافق على الحذف ؟", [
+        $this->confirm("  هل توافق على إلغاء الفاتورة ؟", [
             'inputAttributes' => ["id"=>$id],
             'toast' => false,
             'showConfirmButton' => true,
@@ -230,16 +228,15 @@ class Purchase extends Component
             \App\Models\PurchaseDetail::where('id', $item['id'])->delete();
         }
 
-        \App\Models\SupplierDebt::create([
+        \App\Models\PurchaseDebt::create([
             'supplier_id' => $this->currentSupplier['id'],
-            'paid' => 0,
-            'debt' => $this->invoice['total_amount'],
-            'type' => 'debt',
+            'paid' => $this->invoice['total_amount'],
+            'debt' => 0,
+            'type' => 'pay',
             'bank' => '',
             'payment' => 'cash',
             'bank_id' => null,
             'due_date' => $this->purchase_date,
-            'purchase_id' => $this->invoice['id'],
             'note' => 'تم إلغاء الفاتوره رقم #' . $this->invoice['id'],
             'user_id' => auth()->id()
         ]);
@@ -268,7 +265,7 @@ class Purchase extends Component
                 ->where('id', 'LIKE', '%' . $this->purchaseSearch . '%')->where('purchase_date', 'LIKE', '%' . $this->purchaseSearch . '%')->get();
         }
         if ($this->purchase_date == '') {
-            $this->purchase_date = date('Y-m-d h:m:i');
+            $this->purchase_date = date('Y-m-d');
         }
         $this->suppliers = \App\Models\Supplier::where('supplierName', 'LIKE', '%' . $this->supplierSearch . '%')->get();
 

@@ -11,7 +11,7 @@
                             aria-label="Close"></button>
                     <h1 class="modal-title fs-5" id="exampleModalLabel">
                         @if(isset($invoice['id']))
-                            <button class="btn btn-danger" wire:click="deleteMessage({{$invoice['id']}})"><i class="bi bi-trash"></i>
+                            <button data-bs-dismiss="modal" class="btn btn-danger" wire:click="deleteMessage({{$invoice['id']}})"><i class="bi bi-trash"></i>
                             </button>
                         @endif
                         <button class="btn btn-primary" id="print"><i class="bi bi-printer"></i>

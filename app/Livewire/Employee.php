@@ -4,9 +4,8 @@ namespace App\Livewire;
 
 use App\Models\Bank;
 use App\Models\ClientDebt;
-use App\Models\EmployeeDebt;
-use App\Models\EmployeeGift;
 use App\Models\SaleDebt;
+use App\Models\EmployeeGift;
 use App\Models\SaleDetail;
 use Illuminate\Database\Eloquent\Collection;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
@@ -162,7 +161,7 @@ class Employee extends Component
         $this->gift_date = date('Y-m-d');
         $this->gift_amount = $this->currentEmployee['salary'];
         $this->gifts = EmployeeGift::where('employee_id', $this->currentEmployee['id'])->get();
-        $this->debts = EmployeeDebt::where('employee_id', $this->currentEmployee['id'])->get();
+        $this->debts = SaleDebt::where('employee_id', $this->currentEmployee['id'])->get();
         $this->currentBalance = $this->debts->sum('debt') - $this->debts->sum('paid');
 
     }
@@ -184,7 +183,7 @@ class Employee extends Component
     public function deleteDebt($data)
     {
         $id = $data['inputAttributes']['id'];
-        EmployeeDebt::where('id', $id)->delete();
+        SaleDebt::where('id', $id)->delete();
         $this->getGifts($this->currentEmployee);
 
         $this->alert('success', 'تم الحذف بنجاح', ['timerProgressBar' => true]);
@@ -214,7 +213,7 @@ class Employee extends Component
             $paid = $this->paid;
             $debt = 0;
 
-            EmployeeDebt::create([
+            SaleDebt::create([
                 'Employee_id' => $this->currentEmployee['id'],
                 'gift_id' => $this->gift_amount != 0 ? $gift['id'] : null,
                 'type' => $type,
@@ -276,7 +275,7 @@ class Employee extends Component
                 'note' => $this->note
             ]);
 
-            EmployeeDebt::where('gift_id', $id)->update([
+            SaleDebt::where('gift_id', $id)->update([
                 'type' => $type,
                 'debt' => $debt,
                 'paid' => $paid,
@@ -288,7 +287,7 @@ class Employee extends Component
                 'user_id' => auth()->id(),
             ]);
         } else {
-            EmployeeDebt::where('id', $this->debtId)->update([
+            SaleDebt::where('id', $this->debtId)->update([
                 'type' => $type,
                 'debt' => $debt,
                 'paid' => $paid,
@@ -313,7 +312,7 @@ class Employee extends Component
     public function deleteGift($data)
     {
         $gift = EmployeeGift::where('id', $data['inputAttributes']['id'])->first();
-        EmployeeDebt::where('gift_id', $gift['id'])->delete();
+        SaleDebt::where('gift_id', $gift['id'])->delete();
 
         $gift->delete();
         $this->getGifts($this->currentEmployee);

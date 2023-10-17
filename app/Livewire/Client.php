@@ -4,7 +4,7 @@ namespace App\Livewire;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
 
 use App\Models\Bank;
-use App\Models\ClientDebt;
+use App\Models\SaleDebt;
 use App\Models\DebtDetail;
 use Illuminate\Database\Eloquent\Collection;
 use Livewire\Attributes\On;
@@ -132,7 +132,7 @@ class Client extends Component
     public function showDebts($client)
     {
         $this->currentClient = $client;
-        $this->debts = ClientDebt::where('client_id', $client['id'])->get();
+        $this->debts = SaleDebt::where('client_id', $client['id'])->get();
         $this->currentBalance = $this->debts->sum('debt') - $this->debts->sum('paid');
 
     }
@@ -141,7 +141,7 @@ class Client extends Component
     {
         if ($this->debtId == 0) {
             if ($this->type == 'debt') {
-                $note = 'تم شراء بالآجل';
+                $note = 'تم إستلاف مبلغ';
                 $debt = $this->debt_amount;
                 $paid = 0;
             } else {
@@ -149,7 +149,7 @@ class Client extends Component
                 $paid = $this->debt_amount;
                 $debt = 0;
             }
-            ClientDebt::create([
+            SaleDebt::create([
                 'client_id' => $this->currentClient['id'],
                 'type' => $this->type,
                 'debt' => $debt,
@@ -167,7 +167,7 @@ class Client extends Component
             $this->alert('success', 'تم السداد بنجاح', ['timerProgressBar' => true]);
 
         } else {
-            $debt = ClientDebt::where('id', $this->debtId)->first();
+            $debt = SaleDebt::where('id', $this->debtId)->first();
 
             $debt->update([
                 'client_id' => $this->currentClient['id'],
@@ -217,7 +217,7 @@ class Client extends Component
     {
         $debt = $data['inputAttributes']['debt'];
 
-        ClientDebt::where('id', $debt['id'])->delete();
+        SaleDebt::where('id', $debt['id'])->delete();
         $this->alert('success', 'تم حذف الدفعيه بنجاح', ['timerProgressBar' => true]);
 
     }
@@ -238,7 +238,8 @@ class Client extends Component
             $this->startingDate = date('Y-m-d');
         }
         if (!empty($this->currentClient)) {
-            $this->debts = ClientDebt::where('client_id', $this->currentClient['id'])->get();
+            $this->debts = SaleDebt::where('client_id', $this->currentClient['id'])->get();
+            $this->currentBalance = $this->debts->sum('debt') - $this->debts->sum('paid');
         }
         $this->clients = \App\Models\Client::where('clientName', 'like', '%' . $this->search . '%')->orWhere('phone', 'like', '%' . $this->search . '%')->get();
         return view('livewire.client');

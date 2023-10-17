@@ -26,7 +26,8 @@ margin-left: 0;
 }
 
 .card .card-body .scroll {
-    max-height: 400px;
+    max-height: 385px;
+    min-height: 385px;
     overflow-y: scroll;
 }
 .invoice .printInvoice  {

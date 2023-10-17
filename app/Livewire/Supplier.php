@@ -1,10 +1,11 @@
 <?php
 
 namespace App\Livewire;
+use App\Models\SaleDebt;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
 
 use App\Models\Bank;
-use App\Models\SupplierDebt;
+use App\Models\PurchaseDebt;
 use App\Models\DebtDetail;
 use Illuminate\Database\Eloquent\Collection;
 use Livewire\Attributes\On;
@@ -35,6 +36,7 @@ class Supplier extends Component
     public array $currentSupplier = [];
     public Collection $debts;
     public string $type = 'debt';
+    public string $debtType = 'purchases';
     public string $payment = 'cash';
     public string $due_date = '';
     public bool $blocked = false;
@@ -132,7 +134,7 @@ class Supplier extends Component
     public function showDebts($supplier)
     {
         $this->currentSupplier = $supplier;
-        $this->debts = SupplierDebt::where('supplier_id', $supplier['id'])->get();
+        $this->debts = PurchaseDebt::where('supplier_id', $supplier['id'])->get();
         $this->currentBalance = $this->debts->sum('debt') - $this->debts->sum('paid');
     }
 
@@ -140,7 +142,7 @@ class Supplier extends Component
     {
         if ($this->debtId == 0) {
             if ($this->type == 'debt') {
-                $note = 'تم شراء بالآجل';
+                $note = 'تم إستلاف مبلغ';
                 $debt = $this->debt_amount;
                 $paid = 0;
             } else {
@@ -148,25 +150,41 @@ class Supplier extends Component
                 $paid = $this->debt_amount;
                 $debt = 0;
             }
-            SupplierDebt::create([
-                'supplier_id' => $this->currentSupplier['id'],
-                'type' => $this->type,
-                'debt' => $debt,
-                'paid' => $paid,
-                'payment' => $this->payment,
-                'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
-                'bank' => $this->bank,
-                'due_date' => $this->due_date,
-                'note' => $this->note == '' ? $note : $this->note,
-                'user_id' => auth()->id(),
-            ]);
+
+            if ($this->debtType == 'purchases') {
+                PurchaseDebt::create([
+                    'supplier_id' => $this->currentSupplier['id'],
+                    'type' => $this->type,
+                    'debt' => $debt,
+                    'paid' => $paid,
+                    'payment' => $this->payment,
+                    'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
+                    'bank' => $this->bank,
+                    'due_date' => $this->due_date,
+                    'note' => $this->note == '' ? $note : $this->note,
+                    'user_id' => auth()->id(),
+                ]);
+            } else {
+                SaleDebt::create([
+                    'supplier_id' => $this->currentSupplier['id'],
+                    'type' => $this->type,
+                    'debt' => $debt,
+                    'paid' => $paid,
+                    'payment' => $this->payment,
+                    'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
+                    'bank' => $this->bank,
+                    'due_date' => $this->due_date,
+                    'note' => $this->note == '' ? $note : $this->note,
+                    'user_id' => auth()->id(),
+                ]);
+            }
 
             $this->resetData();
 
             $this->alert('success', 'تم السداد بنجاح', ['timerProgressBar' => true]);
 
         } else {
-            $debt = SupplierDebt::where('id', $this->debtId)->first();
+            $debt = PurchaseDebt::where('id', $this->debtId)->first();
 
             $debt->update([
                 'supplier_id' => $this->currentSupplier['id'],
@@ -216,7 +234,7 @@ class Supplier extends Component
     {
         $debt = $data['inputAttributes']['debt'];
 
-        SupplierDebt::where('id', $debt['id'])->delete();
+        PurchaseDebt::where('id', $debt['id'])->delete();
         $this->alert('success', 'تم حذف الدفعيه بنجاح', ['timerProgressBar' => true]);
 
     }
@@ -238,7 +256,12 @@ class Supplier extends Component
         }
 
         if (!empty($this->currentSupplier)) {
-            $this->debts = SupplierDebt::where('supplier_id', $this->currentSupplier['id'])->get();
+            if ($this->debtType == 'purchases') {
+                $this->debts = PurchaseDebt::where('supplier_id', $this->currentSupplier['id'])->get();
+            } else {
+                $this->debts = SaleDebt::where('supplier_id', $this->currentSupplier['id'])->get();
+            }
+            $this->currentBalance = $this->debts->sum('debt') - $this->debts->sum('paid');
         }
         $this->suppliers = \App\Models\Supplier::where('supplierName', 'like', '%' . $this->search . '%')->orWhere('phone', 'like', '%' . $this->search . '%')->get();
         return view('livewire.supplier');

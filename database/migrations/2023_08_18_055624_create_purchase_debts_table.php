@@ -13,15 +13,16 @@ return new class extends Migration
     {
         Schema::create('purchase_debts', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('purchase_id');
-            $table->foreign('purchase_id')->references('id')->on('purchases');
+            $table->unsignedBigInteger('supplier_id');
+            $table->foreign('supplier_id')->references('id')->on('suppliers');
+            $table->enum('type', ['debt', 'pay']);
+            $table->decimal('debt', 8, 2);
+            $table->decimal('paid', 8, 2);
+            $table->enum('payment', ['cash', 'bank']);
             $table->unsignedBigInteger('bank_id')->nullable();
             $table->foreign('bank_id')->references('id')->on('banks');
-            $table->decimal('remainder', 8, 2);
-            $table->enum('payment', ['cash', 'bank']);
             $table->string('bank')->nullable();
-            $table->decimal('paid', 8, 2);
-            $table->decimal('supplier_balance', 8, 2);
+            $table->string('note')->nullable();
             $table->date('due_date');
             $table->unsignedBigInteger('user_id')->nullable();
             $table->foreign('user_id')->references('id')->on('users');

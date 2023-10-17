@@ -254,10 +254,22 @@
                 <div class="card">
                     <div class="card-body">
                         <div class="card-title">
-                            <div class="row">
-                                <div class="col-6"><h6>المعاملات</h6></div>
-                                <div class="col-6"><h6>رصيد المورد
-                                        : {{ number_format($currentBalance, 2) }}</div>
+                            <div class="row d-flex  align-items-center">
+                                <div class="col-4"><h6>المعاملات</h6></div>
+                                <div class="col-4"><h6>رصيد المورد : {{ number_format($currentBalance, 2) }}</h6></div>
+                                <div class="col-4">
+                                    <div class="row d-flex align-items-center">
+                                        <div class="col-6">
+                                            <label for="debType"><h6>نوع المعاملات</h6></label>
+                                        </div>
+                                        <div class="col-6">
+                                            <select class="form-select" id="debType" wire:model.live="debtType">
+                                                <option value="purchases">مشتريات</option>
+                                                <option value="sales">مبيعات</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         <div class="scroll">
@@ -271,7 +283,8 @@
                                 </thead>
                                 <tbody>
                                 @foreach($debts as $debt)
-                                    <tr style="cursor: pointer" wire:click="chooseDebt({{$debt}})" data-bs-toggle="modal" data-bs-target="#debtModal">
+                                    <tr style="cursor: pointer" wire:click="chooseDebt({{$debt}})"
+                                        data-bs-toggle="modal" data-bs-target="#debtModal">
                                         <td>{{$debt->due_date}}</td>
                                         <td>{{$debt->note}}</td>
                                         <td>{{$debt->type == 'pay' ? number_format($debt->paid, 2) : number_format($debt->debt, 2)}}</td>

@@ -13,19 +13,21 @@ return new class extends Migration
     {
         Schema::create('sale_debts', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('sale_id');
-            $table->foreign('sale_id')->references('id')->on('sales');
+            $table->unsignedBigInteger('client_id')->nullable();
+            $table->foreign('client_id')->references('id')->on('clients');
+            $table->unsignedBigInteger('employee_id')->nullable();
+            $table->foreign('employee_id')->references('id')->on('employees');
+            $table->unsignedBigInteger('supplier_id')->nullable();
+            $table->foreign('supplier_id')->references('id')->on('suppliers');
+            $table->enum('type', ['debt', 'pay']);
+            $table->decimal('debt', 8, 2);
+            $table->decimal('paid', 8, 2);
+            $table->enum('payment', ['cash', 'bank']);
             $table->unsignedBigInteger('bank_id')->nullable();
             $table->foreign('bank_id')->references('id')->on('banks');
-            $table->decimal('remainder', 8, 2);
-            $table->enum('payment', ['cash', 'bank']);
             $table->string('bank')->nullable();
-            $table->decimal('paid', 8, 2);
-            $table->decimal('discount', 8, 2)->nullable();
-            $table->decimal('client_balance', 8, 2)->nullable();
+            $table->string('note')->nullable();
             $table->date('due_date');
-            $table->unsignedBigInteger('gift_id')->nullable();
-            $table->foreign('gift_id')->references('id')->on('employee_gifts');
             $table->unsignedBigInteger('user_id')->nullable();
             $table->foreign('user_id')->references('id')->on('users');
             $table->timestamps();
