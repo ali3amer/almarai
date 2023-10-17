@@ -1,4 +1,62 @@
 <div>
+
+    <div wire:ignore.self class="modal fade" id="debtModal" tabindex="-1" aria-labelledby="debtModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button class="btn btn-primary" id="printNote"><i class="bi bi-printer"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="card">
+                        <div class="card-body bg-white">
+                            @if(!empty($currentDebt))
+                                <table class="table note ">
+                                    <tbody>
+                                    <tr>
+                                        <td>السيد</td>
+                                        <td>{{$currentSupplier['supplierName']}}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>البيان</td>
+                                        <td>{{$currentDebt['note']}}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>نوع العملية</td>
+                                        <td>{{$currentDebt['type'] == 'pay' ? 'دفع' : 'سحب'}}</td>
+                                    </tr>
+                                    @if($currentDebt['payment'] == 'cash')
+                                        <tr>
+                                            <td>وسيلة الدفع</td>
+                                            <td>كاش</td>
+                                        </tr>
+                                    @else
+                                        <tr>
+                                            <td>وسيلة الدفع</td>
+                                            <td>بنك</td>
+                                        </tr>
+                                        <tr>
+                                            <td>الايصال</td>
+                                            <td>{{ $currentDebt['bank'] }}</td>
+                                        </tr>
+                                    @endif
+                                    <tr>
+                                        <td>المبلغ</td>
+                                        <td>{{ $currentDebt['type'] == 'pay' ? $currentDebt['paid'] : $currentDebt['debt'] }}</td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
     <x-title :$title></x-title>
 
     <div class="row mt-2">
@@ -206,23 +264,17 @@
                             <table class="table text-center">
                                 <thead>
                                 <tr>
-                                    <th>#</th>
                                     <th>التاريخ</th>
                                     <th>البيان</th>
-                                    <th>طريقة الدفع</th>
-                                    <th>الإيصال</th>
                                     <th>المبلغ</th>
                                 </tr>
                                 </thead>
                                 <tbody>
                                 @foreach($debts as $debt)
-                                    <tr>
-                                        <td>{{$debt->id}}</td>
+                                    <tr style="cursor: pointer" wire:click="chooseDebt({{$debt}})" data-bs-toggle="modal" data-bs-target="#debtModal">
                                         <td>{{$debt->due_date}}</td>
                                         <td>{{$debt->note}}</td>
-                                        <td>{{$debt->payment == 'cash' ? 'كاش' : 'بنك'}}</td>
-                                        <td>{{$debt->bank}}</td>
-                                        <td>{{$debt->type == 'pay' ? $debt->paid : $debt->debt}}</td>
+                                        <td>{{$debt->type == 'pay' ? number_format($debt->paid, 2) : number_format($debt->debt, 2)}}</td>
                                     </tr>
                                 @endforeach
                                 </tbody>

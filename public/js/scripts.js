@@ -21,4 +21,11 @@ $(document).ready(function(){
             importStyle: true,
         });
     });
+
+    $("#printNote").click(function () {
+        $('.note').printThis({
+            // importStyle: true,
+            importStyle: true,
+        });
+    });
 });

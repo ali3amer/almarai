@@ -1,52 +1,61 @@
 <div>
 
-    <!-- Show Sale -->
-
-    <div wire:ignore.self class="modal fade" id="saleModal" tabindex="-1" aria-labelledby="saleModalLabel"
+    <div wire:ignore.self class="modal fade" id="debtModal" tabindex="-1" aria-labelledby="debtModalLabel"
          aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    <h1 class="modal-title fs-5" id="saleModalLabel">فاتوره</h1>
+                    <button class="btn btn-primary" id="printNote"><i class="bi bi-printer"></i>
+                    </button>
                 </div>
                 <div class="modal-body">
                     <div class="card">
-                        <div class="card-body">
-                            <table class="table text-center">
-                                <thead>
-                                <tr>
-                                    <th>#</th>
-                                    <th>إسم المنتج</th>
-                                    <th>سعر الوحده</th>
-                                    <th>الكميه</th>
-                                    <th>الجمله</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                @if(!empty($details))
-                                    @foreach($details as $detail)
-                                        <tr>
-                                            <td>{{$detail['id']}}</td>
-                                            <td>{{$detail['product']['productName']}}</td>
-                                            <td>{{number_format($detail['price'], 2)}}</td>
-                                            <td>{{$detail['quantity']}}</td>
-                                            <td>{{number_format($detail['price'] * $detail['quantity'], 2)}}</td>
-                                        </tr>
-                                    @endforeach
+                        <div class="card-body bg-white">
+                            @if(!empty($currentDebt))
+                                <table class="table note ">
+                                    <tbody>
                                     <tr>
-                                        <td rowspan="4">الجمله</td>
-                                        <td>{{number_format($details[0]->sale->total_amount, 2)}}</td>
+                                        <td>السيد</td>
+                                        <td>{{$currentEmployee['employeeName']}}</td>
                                     </tr>
-                                @endif
-                                </tbody>
-                            </table>
+                                    <tr>
+                                        <td>البيان</td>
+                                        <td>{{$currentDebt['note']}}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>نوع العملية</td>
+                                        <td>{{$currentDebt['type'] == 'pay' ? 'دفع' : 'سحب'}}</td>
+                                    </tr>
+                                    @if($currentDebt['payment'] == 'cash')
+                                        <tr>
+                                            <td>وسيلة الدفع</td>
+                                            <td>كاش</td>
+                                        </tr>
+                                    @else
+                                        <tr>
+                                            <td>وسيلة الدفع</td>
+                                            <td>بنك</td>
+                                        </tr>
+                                        <tr>
+                                            <td>الايصال</td>
+                                            <td>{{ $currentDebt['bank'] }}</td>
+                                        </tr>
+                                    @endif
+                                    <tr>
+                                        <td>المبلغ</td>
+                                        <td>{{ $currentDebt['type'] == 'pay' ? $currentDebt['paid'] : $currentDebt['debt'] }}</td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            @endif
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+
 
     <x-title :$title></x-title>
 
@@ -142,7 +151,9 @@
                         <div class="row">
                             <div class="col-3">
                                 <label for="employeeName">إسم الموظف</label>
-                                <input id="employeeName" @click="$dispatch('reset-employee', { data: 'currentEmployee' })" type="text" readonly
+                                <input id="employeeName"
+                                       @click="$dispatch('reset-employee', { data: 'currentEmployee' })" type="text"
+                                       readonly
                                        style="cursor:pointer;"
                                        class="form-control text-center border-danger"
                                        wire:model.live="currentEmployee.employeeName">
@@ -190,21 +201,24 @@
                         <div class="row">
                             <div class="col-2">
                                 <label for="gift_amount">المرتب</label>
-                                <input type="text" id="gift_amount"  wire:keydown="calcRemainder()" autocomplete="off" class="form-control text-center"
-                                        placeholder="المبلغ ...."
+                                <input type="text" id="gift_amount" wire:keydown="calcRemainder()" autocomplete="off"
+                                       class="form-control text-center"
+                                       placeholder="المبلغ ...."
                                        wire:model.live="gift_amount">
                             </div>
 
                             <div class="col-2">
                                 <label for="gift_amount">سداد</label>
-                                <input type="text" id="paid" wire:keydown="calcRemainder()" autocomplete="off" class="form-control text-center"
+                                <input type="text" id="paid" wire:keydown="calcRemainder()" autocomplete="off"
+                                       class="form-control text-center"
                                        placeholder="سداد ...."
                                        wire:model.live="paid">
                             </div>
 
                             <div class="col-3">
                                 <label for="gift_amount">متبقي المرتب</label>
-                                <input type="text" id="remainder" disabled autocomplete="off" class="form-control text-center"
+                                <input type="text" id="remainder" disabled autocomplete="off"
+                                       class="form-control text-center"
                                        placeholder="سداد ...."
                                        wire:model.live="remainder">
                             </div>
@@ -275,22 +289,17 @@
                             <table class="table text-center">
                                 <thead>
                                 <tr>
-                                    <th>#</th>
                                     <th>التاريخ</th>
                                     <th>البيان</th>
-                                    <th>طريقة الدفع</th>
-                                    <th>الإيصال</th>
                                     <th>المبلغ</th>
                                 </tr>
                                 </thead>
                                 <tbody>
                                 @foreach($debts as $debt)
-                                    <tr>
-                                        <td>{{$debt->id}}</td>
+                                    <tr style="cursor: pointer" wire:click="chooseDebt({{$debt}})"
+                                        data-bs-toggle="modal" data-bs-target="#debtModal">
                                         <td>{{$debt->due_date}}</td>
                                         <td>{{$debt->note}}</td>
-                                        <td>{{$debt->payment == 'cash' ? 'كاش' : 'بنك'}}</td>
-                                        <td>{{$debt->bank}}</td>
                                         <td>{{$debt->type == 'pay' ? number_format($debt->paid, 2) : number_format($debt->debt, 2)}}</td>
                                     </tr>
                                 @endforeach

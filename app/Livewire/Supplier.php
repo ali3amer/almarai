@@ -40,6 +40,7 @@ class Supplier extends Component
     public bool $blocked = false;
     public string $startingDate = '';
     public float $currentBalance = 0;
+    public array $currentDebt = [];
 
     protected function rules()
     {
@@ -187,13 +188,14 @@ class Supplier extends Component
 
     public function chooseDebt($debt)
     {
-        $this->debtId = $debt['id'];
-        $this->bank_id = $debt['bank_id'];
-        $this->type = $debt['type'];
-        $this->debt_amount = $debt['type'] == 'debt' ? $debt['debt'] : $debt['paid'];
-        $this->payment = $debt['payment'];
-        $this->bank = $debt['bank'];
-        $this->due_date = $debt['due_date'];
+        $this->currentDebt = $debt;
+//        $this->debtId = $debt['id'];
+//        $this->bank_id = $debt['bank_id'];
+//        $this->type = $debt['type'];
+//        $this->debt_amount = $debt['type'] == 'debt' ? $debt['debt'] : $debt['paid'];
+//        $this->payment = $debt['payment'];
+//        $this->bank = $debt['bank'];
+//        $this->due_date = $debt['due_date'];
     }
 
     public function deleteDebtMessage($debt)

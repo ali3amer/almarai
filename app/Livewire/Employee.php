@@ -169,15 +169,16 @@ class Employee extends Component
 
     public function chooseDebt($debt)
     {
-        $this->editMode = true;
-        $this->debtId = $debt['id'];
-        $this->bank_id = $debt['bank_id'];
-        $this->type = $debt['type'];
-        $this->gift_amount = 0;
-        $this->paid = $debt['type'] == 'debt' ? $debt['debt'] : $debt['paid'];
-        $this->payment = $debt['payment'];
-        $this->bank = $debt['bank'];
-        $this->due_date = $debt['due_date'];
+        $this->currentDebt = $debt;
+//        $this->editMode = true;
+//        $this->debtId = $debt['id'];
+//        $this->bank_id = $debt['bank_id'];
+//        $this->type = $debt['type'];
+//        $this->gift_amount = 0;
+//        $this->paid = $debt['type'] == 'debt' ? $debt['debt'] : $debt['paid'];
+//        $this->payment = $debt['payment'];
+//        $this->bank = $debt['bank'];
+//        $this->due_date = $debt['due_date'];
     }
 
     public function deleteDebt($data)

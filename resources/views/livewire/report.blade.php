@@ -267,8 +267,16 @@
                         <td>{{number_format($salesSum, 2)}}</td>
                     </tr>
                     <tr>
+                        <td>مدفوعات المبيعات</td>
+                        <td>{{number_format($totalSales, 2)}}</td>
+                    </tr>
+                    <tr>
                         <td>المشتريات</td>
                         <td>{{number_format($purchasesSum, 2)}}</td>
+                    </tr>
+                    <tr>
+                        <td>مدفوعات المشتريات</td>
+                        <td>{{number_format($totalPurchases, 2)}}</td>
                     </tr>
                     <tr>
                         <td>المصروفات</td>
@@ -283,18 +291,22 @@
                         <td>{{number_format($damagedsSum, 2)}}</td>
                     </tr>
                     <tr>
-                        <td>الديون</td>
-                        <td>{{number_format($debtsSum, 2)}}</td>
+                        <th>الخزنة</th>
+                        <th>{{number_format($safeBalance, 2)}}</th>
                     </tr>
                     <tr>
-                        <td>المدفوعات</td>
-                        <td>{{number_format($paysSum, 2)}}</td>
+                        <td>ديون مبيعات</td>
+                        <td>{{number_format($salesDebts, 2)}}</td>
+                    </tr>
+                    <tr>
+                        <td>ديون مشتريات</td>
+                        <td>{{number_format($purchasesDebts, 2)}}</td>
                     </tr>
                     </tbody>
                     <tfoot>
                     <tr>
                         <th>الجمله</th>
-                        <th>{{ number_format($salesSum - $purchasesSum - $expensesSum - $employeesSum - $damagedsSum - $debtsSum + $paysSum, 2) }}</th>
+                        <th>{{ number_format($total, 2) }}</th>
                     </tr>
                     </tfoot>
                 </table>
@@ -394,7 +406,64 @@
         </div>
 
     @elseif($reportType == 'safe')
+        <div class="card mt-2">
+            <div class="card-body invoice" dir="rtl">
+                <div class="card-title">
+                    <div class="row">
+                        <div class="col-3">
+                            <h5>الخزنة</h5>
+                        </div>
+                        <div class="col-3">
+                            <input type="text" wire:model.live="percent" placeholder="نسبة الربح"
+                                   class="form-control text-center">
+                        </div>
+                    </div>
+                </div>
+                <table class="text-center printInvoice">
+                    <thead>
+                    <tr>
+                        <th>التاريخ</th>
+                        <th>رقم الفاتوره</th>
+                        <th>العميل</th>
+                        <th>إسم المنتج</th>
+                        <th>سعر البيع</th>
+                        <th>الكميه</th>
+                        <th>الجمله</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    @foreach($sales as $sale)
+                        <tr>
+                            <td>{{$sale->sale_date}}</td>
+                            <td>{{$sale->sale_id}}</td>
+                            @if(!empty($sale->sale->client))
+                                <td>{{$sale->sale->client->clientName}}</td>
+                            @elseif(!empty($sale->sale->employee))
+                                <td>الموظف : {{$sale->sale->employee->employeeName}}</td>
+                            @elseif(!empty($sale->sale->supplier))
+                                <td>المورد : {{$sale->sale->supplier->supplierName}}</td>
+                            @endif
 
+                            <td>{{ $sale->product->productName }}</td>
+                            <td>{{number_format($sale->price, 2)}}</td>
+                            <td>{{$sale->quantity}}</td>
+                            <td>{{number_format($sale->quantity * $sale->price, 2)}}</td>
+                        </tr>
+                    @endforeach
+                    </tbody>
+                    <tfoot>
+                    <tr>
+                        <td colspan="6">الجــــــــــــــــــــملة</td>
+                        <td>{{number_format($sum, 2)}}</td>
+                    </tr>
+                    <tr>
+                        <td colspan="6">الأرباح</td>
+                        <td>{{ number_format($sum * floatval($percent) / 100, 2) }}</td>
+                    </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
     @elseif($reportType == 'sales' && !empty($sales))
         <div class="card mt-2">
             <div class="card-body invoice" dir="rtl">
