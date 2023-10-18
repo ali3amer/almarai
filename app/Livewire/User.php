@@ -37,6 +37,7 @@ class User extends Component
         ['expenses', 'المصروفات'],
         ['reports', 'التقارير'],
         ['returns', 'المرتجعات'],
+        ['purchase-returns', 'مرتجعات المشتريات'],
         ['safes', 'الخزنه'],
         ['damageds', 'التالف'],
         ['users', 'المستخدمين'],

@@ -59,9 +59,11 @@ class Sale extends Component
 
     public function mount()
     {
-        $this->currentClient = \App\Models\Client::find(1)->toArray();
-        $client = SaleDebt::where('client_id', $this->currentClient['id'])->get();
-        $this->currentBalance = $client->sum('debt') - $client->sum('paid') + $this->currentClient['initialBalance'];
+        if (\App\Models\Client::first() != null) {
+            $this->currentClient = \App\Models\Client::find(1)->toArray();
+            $client = SaleDebt::where('client_id', $this->currentClient['id'])->get();
+            $this->currentBalance = $client->sum('debt') - $client->sum('paid') + $this->currentClient['initialBalance'];
+        }
         $this->banks = Bank::all();
     }
 

@@ -12,6 +12,8 @@ return [
             'clients' => 'c,r,u,d',
             'suppliers' => 'c,r,u,d',
             'expenses' => 'c,r,u,d',
+            'returns' => 'c,r,u,d',
+            'purchase-returns' => 'c,r,u,d',
             'safes' => 'c,r,u,d',
             'damageds' => 'c,r,u,d',
             'banks' => 'c,r,u,d',

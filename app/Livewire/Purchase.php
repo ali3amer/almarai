@@ -58,10 +58,13 @@ class Purchase extends Component
 
     public function mount()
     {
+        if (\App\Models\Supplier::first()) {
         $this->currentSupplier = \App\Models\Supplier::find(1)->toArray();
+            $supplier = SupplierDebt::where('supplier_id', $this->currentSupplier['id'])->get();
+            $this->currentBalance = $supplier->sum('debt') - $supplier->sum('paid') + $this->currentSupplier['initialBalance'];
+        }
         $this->banks = Bank::all();
-        $supplier = SupplierDebt::where('supplier_id', $this->currentSupplier['id'])->get();
-        $this->currentBalance = $supplier->sum('debt') - $supplier->sum('paid') + $this->currentSupplier['initialBalance'];
+
     }
 
     public function save()

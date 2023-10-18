@@ -72,7 +72,7 @@ class Supplier extends Component
 
         if ($this->validate()) {
             if ($this->id == 0) {
-                \App\Models\Supplier::create(['supplierName' => $this->supplierName, 'phone' => $this->phone, 'initialBalance' => floatval($this->initialBalance), 'startingDate' => $this->startingDate, 'currentBalance' => floatval($this->initialBalance), 'initialSalesBalance' => floatval($this->initialSalesBalance), 'blocked' => $this->blocked]);
+                \App\Models\Supplier::create(['supplierName' => $this->supplierName, 'phone' => $this->phone, 'initialBalance' => floatval($this->initialBalance), 'startingDate' => $this->startingDate, 'initialSalesBalance' => floatval($this->initialSalesBalance), 'blocked' => $this->blocked]);
                 $this->alert('success', 'تم الحفظ بنجاح', ['timerProgressBar' => true]);
             } else {
                 $supplier = \App\Models\Supplier::find($id);
