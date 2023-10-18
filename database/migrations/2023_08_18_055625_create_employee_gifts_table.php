@@ -19,7 +19,7 @@ return new class extends Migration
             $table->foreign('employee_id')->references('id')->on('employees');
             $table->string('bank')->nullable();
             $table->enum('payment', ['cash', 'bank']);
-            $table->decimal('gift_amount', 8, 2);
+            $table->decimal('gift_amount', 10, 2);
             $table->date('gift_date');
             $table->string('note')->nullable();
             $table->timestamps();

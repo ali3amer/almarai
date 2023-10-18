@@ -16,7 +16,8 @@ return new class extends Migration
             $table->string('supplierName');
             $table->string('phone')->nullable();
             $table->string('address')->nullable();
-            $table->decimal('initialBalance', 8, 2)->default(0);
+            $table->decimal('initialBalance', 10, 2)->default(0);
+            $table->decimal('initialSalesBalance', 10, 2)->default(0);
             $table->date('startingDate');
             $table->boolean('blocked')->default(false);
             $table->string('note')->nullable();

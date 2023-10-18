@@ -61,7 +61,7 @@ class Sale extends Component
     {
         $this->currentClient = \App\Models\Client::find(1)->toArray();
         $client = SaleDebt::where('client_id', $this->currentClient['id'])->get();
-        $this->currentBalance = $client->sum('debt') - $client->sum('paid');
+        $this->currentBalance = $client->sum('debt') - $client->sum('paid') + $this->currentClient['initialBalance'];
         $this->banks = Bank::all();
     }
 
@@ -87,6 +87,7 @@ class Sale extends Component
                 'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
                 'due_date' => $this->sale_date,
                 'note' => 'تم شراء بالآجل بفاتورة #' . $sale['id'],
+                'sale_id' => $sale['id'],
                 'user_id' => auth()->id()
             ]);
 
@@ -148,7 +149,7 @@ class Sale extends Component
             $client = SaleDebt::where('employee_id', $this->currentClient['id'])->get();
         }
 
-        $this->currentBalance = $client->sum('debt') - $client->sum('paid');
+        $this->currentBalance = $client->sum('debt') - $client->sum('paid') + $this->currentClient['initialBalance'];
 
     }
 
@@ -170,12 +171,15 @@ class Sale extends Component
 
     public function addToCart()
     {
-        $this->cart[$this->currentProduct['id']] = $this->currentProduct;
-        $this->cart[$this->currentProduct['id']]['amount'] = floatval($this->currentProduct['price']) * floatval($this->currentProduct['quantity']);
-        $this->total_amount += $this->cart[$this->currentProduct['id']]['amount'];
-        $this->paid = $this->total_amount;
-        $this->currentProduct = [];
-        $this->calcRemainder();
+        if (!isset($this->cart[$this->currentProduct['id']])) {
+            $this->cart[$this->currentProduct['id']] = $this->currentProduct;
+            $this->cart[$this->currentProduct['id']]['amount'] = floatval($this->currentProduct['price']) * floatval($this->currentProduct['quantity']);
+            $this->total_amount += $this->cart[$this->currentProduct['id']]['amount'];
+            $this->paid = $this->total_amount;
+            $this->currentProduct = [];
+            $this->calcRemainder();
+        }
+
     }
 
     public function deleteFromCart($id)
@@ -246,6 +250,7 @@ class Sale extends Component
             'bank_id' => null,
             'due_date' => $this->sale_date,
             'note' => 'تم إلغاء الفاتوره رقم #' . $this->invoice['id'],
+            'sale_id' => $this->invoice['id'],
             'user_id' => auth()->id()
         ]);
 
@@ -268,8 +273,8 @@ class Sale extends Component
 
 
         if (!empty($this->currentClient)) {
-                $this->sales = \App\Models\Sale::where($this->buyer.'_id', $this->currentClient['id'])
-                    ->where('id', 'LIKE', '%' . $this->saleSearch . '%')->where('sale_date', 'LIKE', '%' . $this->saleSearch . '%')->latest()->get();
+            $this->sales = \App\Models\Sale::where($this->buyer . '_id', $this->currentClient['id'])
+                ->where('id', 'LIKE', '%' . $this->saleSearch . '%')->where('sale_date', 'LIKE', '%' . $this->saleSearch . '%')->latest()->get();
         }
         if ($this->sale_date == '') {
             $this->sale_date = date('Y-m-d');

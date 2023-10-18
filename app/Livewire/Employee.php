@@ -40,6 +40,7 @@ class Employee extends Component
     public string $payment = 'cash';
     public string $note = '';
     public $gift_amount = 0;
+    public $initialBalance = 0;
 
     public array $currentEmployee = [];
     public array $claimsArray = [];
@@ -162,7 +163,7 @@ class Employee extends Component
         $this->gift_amount = $this->currentEmployee['salary'];
         $this->gifts = EmployeeGift::where('employee_id', $this->currentEmployee['id'])->get();
         $this->debts = SaleDebt::where('employee_id', $this->currentEmployee['id'])->get();
-        $this->currentBalance = $this->debts->sum('debt') - $this->debts->sum('paid');
+        $this->currentBalance = $this->debts->sum('debt') - $this->debts->sum('paid') + $this->currentEmployee['initialBalance'];
 
     }
 
@@ -215,7 +216,6 @@ class Employee extends Component
 
             SaleDebt::create([
                 'Employee_id' => $this->currentEmployee['id'],
-                'gift_id' => $this->gift_amount != 0 ? $gift['id'] : null,
                 'type' => $type,
                 'debt' => $debt,
                 'paid' => $paid,

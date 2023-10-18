@@ -27,13 +27,16 @@ $links = [
         <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse" id="navbarNav">
-        <ul class="navbar-nav ml-auto">
+        <ul class="navbar-nav ml-auto ">
             @foreach($links as $link)
+                @php $permission = $link[0] == 'category' ? 'categories' : $link[0].'s'; @endphp
+            @if(Auth::user()->hasPermission($permission.'-read'))
                 <li class="nav-item">
                     <a wire:navigate class="nav-link {{request()->path() == $link[0] ? 'active-link' : ''}}" href="{{ $link[0] }}">
                         {{ $link[1] }}
                     </a>
                 </li>
+                @endif
             @endforeach
             <li class="nav-item">
                 <form method="POST" action="{{ route('logout') }}">

@@ -38,8 +38,6 @@ class User extends Component
         ['reports', 'التقارير'],
         ['returns', 'المرتجعات'],
         ['safes', 'الخزنه'],
-        ['debts', 'الديون'],
-        ['claims', 'المطالبات'],
         ['damageds', 'التالف'],
         ['users', 'المستخدمين'],
     ];

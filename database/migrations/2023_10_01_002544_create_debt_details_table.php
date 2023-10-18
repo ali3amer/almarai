@@ -15,10 +15,10 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('client_debt_id');
             $table->foreign('client_debt_id')->references('id')->on('client_debts');
-            $table->decimal('remainder', 8, 2);
+            $table->decimal('remainder', 10, 2);
             $table->enum('payment', ['cash', 'bank']);
             $table->string('bank')->nullable();
-            $table->decimal('paid', 8, 2);
+            $table->decimal('paid', 10, 2);
             $table->date('due_date');
             $table->unsignedBigInteger('user_id')->nullable();
             $table->foreign('user_id')->references('id')->on('users');

@@ -16,8 +16,8 @@ return new class extends Migration
             $table->unsignedBigInteger('client_id');
             $table->foreign('client_id')->references('id')->on('clients');
             $table->enum('type', ['debt', 'pay']);
-            $table->decimal('debt', 8, 2);
-            $table->decimal('paid', 8, 2);
+            $table->decimal('debt', 10, 2);
+            $table->decimal('paid', 10, 2);
             $table->enum('payment', ['cash', 'bank']);
             $table->unsignedBigInteger('bank_id')->nullable();
             $table->foreign('bank_id')->references('id')->on('banks');

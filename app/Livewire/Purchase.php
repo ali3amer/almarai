@@ -61,7 +61,7 @@ class Purchase extends Component
         $this->currentSupplier = \App\Models\Supplier::find(1)->toArray();
         $this->banks = Bank::all();
         $supplier = SupplierDebt::where('supplier_id', $this->currentSupplier['id'])->get();
-        $this->currentBalance = $supplier->sum('debt') - $supplier->sum('paid');
+        $this->currentBalance = $supplier->sum('debt') - $supplier->sum('paid') + $this->currentSupplier['initialBalance'];
     }
 
     public function save()
@@ -86,6 +86,7 @@ class Purchase extends Component
                 'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
                 'due_date' => $this->purchase_date,
                 'note' => 'تم الإستيراد بالآجل بفاتورة #'.$purchase['id'],
+                'purchase_id' => $purchase['id'],
                 'user_id' => auth()->id()
             ]);
 
@@ -141,7 +142,7 @@ class Purchase extends Component
     {
         $this->currentSupplier = $supplier;
         $supplier = PurchaseDebt::where('supplier_id', $this->currentSupplier['id'])->get();
-        $this->currentBalance = $supplier->sum('debt') - $supplier->sum('paid');
+        $this->currentBalance = $supplier->sum('debt') - $supplier->sum('paid') + $this->currentSupplier['initialBalance'];
     }
 
     public function chooseProduct($product)
@@ -162,12 +163,13 @@ class Purchase extends Component
 
     public function addToCart()
     {
-        $this->cart[$this->currentProduct['id']] = $this->currentProduct;
-        $this->cart[$this->currentProduct['id']]['amount'] = floatval($this->currentProduct['price']) * floatval($this->currentProduct['quantity']);
-        $this->total_amount += $this->cart[$this->currentProduct['id']]['amount'];
-        $this->currentProduct = [];
-        $this->calcRemainder();
-        $this->dispatch('productSearchFocus');
+        if (!isset($this->cart[$this->currentProduct['id']])) {
+            $this->cart[$this->currentProduct['id']] = $this->currentProduct;
+            $this->cart[$this->currentProduct['id']]['amount'] = floatval($this->currentProduct['price']) * floatval($this->currentProduct['quantity']);
+            $this->total_amount += $this->cart[$this->currentProduct['id']]['amount'];
+            $this->currentProduct = [];
+            $this->calcRemainder();
+        }
     }
 
     public function deleteFromCart($id)
@@ -238,6 +240,7 @@ class Purchase extends Component
             'bank_id' => null,
             'due_date' => $this->purchase_date,
             'note' => 'تم إلغاء الفاتوره رقم #' . $this->invoice['id'],
+            'purchase_id' => $this->invoice['id'],
             'user_id' => auth()->id()
         ]);
 

@@ -79,6 +79,14 @@
                             <div>
                                 @error('salary') <span class="error text-danger">{{ $message }}</span> @enderror
                             </div>
+
+                            <label for="initialBalance" class="form-label">الرصيد الإفتتاحي</label>
+                            <input type="text" autocomplete="off" wire:model.live="initialBalance" class="form-control"
+                                   placeholder="الرصيد الإفتتاحي"
+                                   id="initialBalance">
+                            <div>
+                                @error('initialBalance') <span class="error text-danger">{{ $message }}</span> @enderror
+                            </div>
                             <div class="d-grid mt-2">
                                 <button type="submit"
                                         @disabled($employeeName == '' || $salary <= 0)  data-bs-dismiss="modal"
@@ -105,6 +113,7 @@
                                         <th>#</th>
                                         <th>إسم الموظف</th>
                                         <th>المرتب</th>
+                                        <th>الرصيد الإفتتاحي</th>
                                         <th>التحكم</th>
                                     </tr>
                                     </thead>
@@ -114,6 +123,7 @@
                                             <td>{{ $loop->index + 1 }}</td>
                                             <td>{{ $employee->employeeName }}</td>
                                             <td>{{ number_format($employee->salary, 2) }}</td>
+                                            <td>{{ number_format($employee->initialBalance, 2) }}</td>
                                             <td>
                                                 <button
                                                     @disabled(!Auth::user()->hasPermission('employees-update')) data-bs-target="#employeeModal"

@@ -46,7 +46,7 @@
                     <div class="row">
                         <div class="col-10">
                             <button class="btn btn-{{ $id == 0 ? 'primary' : 'success' }} w-100"
-                                    wire:click="save()">{{ $id == 0 ? 'إضـــــــــــافة' : 'تعـــــــــــــديل' }}</button>
+                                   @disabled(!Auth::user()->hasPermission('users-read')) wire:click="save()">{{ $id == 0 ? 'إضـــــــــــافة' : 'تعـــــــــــــديل' }}</button>
                         </div>
                         <div class="col-2">
                             <button class="btn btn-danger w-100" wire:click="resetData()"><i class="bi bi-x"></i>
@@ -81,10 +81,10 @@
                                     <td>{{$user->name}}</td>
                                     <td>{{$user->username}}</td>
                                     <td>
-                                        <button class="btn btn-sm btn-info text-white" wire:click="edit({{$user}})"><i
+                                        <button @disabled(!Auth::user()->hasPermission('users-update')) class="btn btn-sm btn-info text-white" wire:click="edit({{$user}})"><i
                                                 class="bi bi-pen"></i></button>
                                         /
-                                        <button class="btn btn-sm btn-danger" wire:click="deleteMessage({{$user}})"><i
+                                        <button @disabled(!Auth::user()->hasPermission('users-delete')) class="btn btn-sm btn-danger" wire:click="deleteMessage({{$user}})"><i
                                                 class="bi bi-trash"></i></button>
                                     </td>
                                 </tr>

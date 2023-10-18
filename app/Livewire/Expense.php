@@ -20,7 +20,7 @@ class Expense extends Component
     #[Rule('required', message: 'هذا الحقل مطلوب')]
     public string $description = '';
     #[Rule('required', message: 'هذا الحقل مطلوب')]
-    public float $amount = 0;
+    public $amount = 0;
     public string $payment = 'cash';
     public string $bank = '';
     public int|null $bank_id = 1;
@@ -29,6 +29,10 @@ class Expense extends Component
     public Collection $expenses;
     public Collection $banks;
 
+    public function mount()
+    {
+        $this->banks = Bank::all();
+    }
     public function save($id)
     {
 
@@ -36,49 +40,32 @@ class Expense extends Component
             if ($this->id == 0) {
                 \App\Models\Expense::create([
                     'description' => $this->description,
-                    'amount' => $this->amount,
+                    'amount' => floatval($this->amount),
                     'payment' => $this->payment,
                     'bank_id' => $this->payment == 'bank' ?$this->bank_id : null,
                     'bank' => $this->bank,
                     'expense_date' => $this->expense_date
                 ]);
 
-                if ($this->payment == 'cash') {
-                    \App\Models\Safe::first()->decrement('currentBalance', $this->amount);
-                } else {
-                    Bank::where('id', $this->bank_id)->decrement('currentBalance', $this->amount);
-                }
 
                 $this->alert('success', 'تم الحفظ بنجاح', ['timerProgressBar' => true]);
 
             } else {
                 $expense = \App\Models\Expense::find($id);
 
-                if ($expense['payment'] == 'cash') {
-                    \App\Models\Safe::first()->increment('currentBalance', $expense['amount']);
-                } else {
-                    Bank::where('id', $expense['bank_id'])->decrement('currentBalance', $expense['amount']);
-                }
-
                 $expense->description = $this->description;
-                $expense->amount = $this->amount;
+                $expense->amount = floatval($this->amount);
                 $expense->payment = $this->payment;
                 $expense->bank_id = $this->payment == 'bank' ? $this->bank_id : null;
                 $expense->bank = $this->bank;
                 $expense->expense_date = $this->expense_date;
-                if ($this->payment == 'cash') {
-                    \App\Models\Safe::first()->decrement('currentBalance', $this->amount);
-                } else {
-                    Bank::where('id', $this->bank_id)->decrement('currentBalance', $this->amount);
-                }
+
                 $expense->save();
                 $this->alert('success', 'تم التعديل بنجاح', ['timerProgressBar' => true]);
 
             }
-            $this->id = 0;
-            $this->description = '';
-            $this->amount = 0;
-            $this->expense_date = '';
+
+            $this->resetData();
         }
 
     }
@@ -113,26 +100,21 @@ class Expense extends Component
     public function delete($data)
     {
         $expense = \App\Models\Expense::find($data['inputAttributes']['id']);
-        if ($expense['payment'] == 'cash') {
-            \App\Models\Safe::first()->increment('currentBalance', $expense['amount']);
-        } else {
-            Bank::where('id', $expense['bank_id'])->decrement('currentBalance', $expense['amount']);
-        }
+
         $expense->delete();
         $this->alert('success', 'تم الحذف بنجاح', ['timerProgressBar' => true]);
 
-        $this->id = 0;
-        $this->description = '';
-        $this->amount = 0;
-        $this->expense_date = '';
+    }
+
+    public function resetData() {
+        $this->reset('id', 'description', 'amount', 'expense_date');
     }
 
     public function render()
     {
         if ($this->description == ''){
-            $this->expense_date = now();
+            $this->expense_date = date('Y-m-d');
         }
-        $this->banks = Bank::all();
         $this->expenses = \App\Models\Expense::where('description', 'like', '%' . $this->search . '%')->get();
 
         return view('livewire.expense');

@@ -16,7 +16,7 @@ return new class extends Migration
             $table->unsignedBigInteger('bank_id')->nullable();
             $table->foreign('bank_id')->references('id')->on('banks');
             $table->string('description');
-            $table->decimal('amount', 8, 2);
+            $table->decimal('amount', 10, 2);
             $table->string('bank')->nullable();
             $table->enum('payment', ['cash', 'bank']);
             $table->date('expense_date');

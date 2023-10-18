@@ -14,7 +14,8 @@ return new class extends Migration
         Schema::create('employees', function (Blueprint $table) {
             $table->id();
             $table->string('employeeName');
-            $table->decimal('salary', 8, 2);
+            $table->decimal('initialBalance', 10, 2)->default(0);
+            $table->decimal('salary', 10, 2);
             $table->timestamps();
         });
     }

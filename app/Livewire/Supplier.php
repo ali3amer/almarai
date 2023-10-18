@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Livewire;
+
 use App\Models\SaleDebt;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
 
@@ -15,6 +16,7 @@ use Livewire\Component;
 class Supplier extends Component
 {
     use LivewireAlert;
+
     protected $listeners = [
         'delete',
         'deleteDebt'
@@ -43,6 +45,7 @@ class Supplier extends Component
     public string $startingDate = '';
     public float $currentBalance = 0;
     public array $currentDebt = [];
+    public $initialSalesBalance = 0;
 
     protected function rules()
     {
@@ -69,16 +72,15 @@ class Supplier extends Component
 
         if ($this->validate()) {
             if ($this->id == 0) {
-                \App\Models\Supplier::create(['supplierName' => $this->supplierName, 'phone' => $this->phone, 'initialBalance' => floatval($this->initialBalance), 'startingDate' => $this->startingDate, 'currentBalance' => floatval($this->initialBalance), 'blocked' => $this->blocked]);
+                \App\Models\Supplier::create(['supplierName' => $this->supplierName, 'phone' => $this->phone, 'initialBalance' => floatval($this->initialBalance), 'startingDate' => $this->startingDate, 'currentBalance' => floatval($this->initialBalance), 'initialSalesBalance' => floatval($this->initialSalesBalance), 'blocked' => $this->blocked]);
                 $this->alert('success', 'تم الحفظ بنجاح', ['timerProgressBar' => true]);
             } else {
                 $supplier = \App\Models\Supplier::find($id);
                 $supplier->supplierName = $this->supplierName;
                 $supplier->phone = $this->phone;
                 $supplier->note = $this->note;
-                if (\App\Models\Sale::where('supplier_id', $id)->count() == 0) {
-                    $supplier->initialBalance = floatval($this->initialBalance);
-                }
+                $supplier->initialBalance = floatval($this->initialBalance);
+                $supplier->initialSalesBalance = floatval($this->initialSalesBalance);
                 $supplier->save();
                 $this->alert('success', 'تم التعديل بنجاح', ['timerProgressBar' => true]);
             }
@@ -86,6 +88,7 @@ class Supplier extends Component
             $this->supplierName = '';
             $this->phone = '';
             $this->initialBalance = 0;
+            $this->initialSalesBalance = 0;
             $this->note = '';
             $this->blocked = false;
         }
@@ -98,12 +101,14 @@ class Supplier extends Component
         \App\Models\Supplier::where('id', $supplier['id'])->update(['blocked' => $this->blocked]);
         $this->resetData();
     }
+
     public function edit($supplier)
     {
         $this->id = $supplier['id'];
         $this->supplierName = $supplier['supplierName'];
         $this->phone = $supplier['phone'];
         $this->initialBalance = $supplier['initialBalance'];
+        $this->initialSalesBalance = $supplier['initialSalesBalance'];
         $this->blocked = $supplier['blocked'];
         $this->note = $supplier['note'];
 
@@ -111,8 +116,8 @@ class Supplier extends Component
 
     public function deleteMessage($supplier)
     {
-        $this->confirm("  هل توافق على حذف المورد  " . $supplier['supplierName'] .  "؟", [
-            'inputAttributes' => ["id"=>$supplier['id']],
+        $this->confirm("  هل توافق على حذف المورد  " . $supplier['supplierName'] . "؟", [
+            'inputAttributes' => ["id" => $supplier['id']],
             'toast' => false,
             'showConfirmButton' => true,
             'confirmButtonText' => 'موافق',
@@ -219,7 +224,7 @@ class Supplier extends Component
     public function deleteDebtMessage($debt)
     {
         $this->confirm("  هل توافق على الحذف؟", [
-            'inputAttributes' => ["debt"=>$debt],
+            'inputAttributes' => ["debt" => $debt],
             'toast' => false,
             'showConfirmButton' => true,
             'confirmButtonText' => 'موافق',
@@ -230,6 +235,7 @@ class Supplier extends Component
             'cancelButtonColor' => '#4b5563'
         ]);
     }
+
     public function deleteDebt($data)
     {
         $debt = $data['inputAttributes']['debt'];
@@ -261,7 +267,7 @@ class Supplier extends Component
             } else {
                 $this->debts = SaleDebt::where('supplier_id', $this->currentSupplier['id'])->get();
             }
-            $this->currentBalance = $this->debts->sum('debt') - $this->debts->sum('paid');
+            $this->currentBalance = $this->debts->sum('debt') - $this->debts->sum('paid') + $this->currentSupplier[$this->debtType == 'purchases' ? 'initialBalance' : 'initialSalesBalance'];
         }
         $this->suppliers = \App\Models\Supplier::where('supplierName', 'like', '%' . $this->search . '%')->orWhere('phone', 'like', '%' . $this->search . '%')->get();
         return view('livewire.supplier');

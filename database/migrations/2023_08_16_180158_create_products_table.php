@@ -20,8 +20,8 @@ return new class extends Migration
             $table->string('productName');
             $table->string('unit')->nullable();
             $table->string('purchase_price')->default(0);
-            $table->decimal('sale_price', 8, 2)->default(0);
-            $table->decimal('stock', 8, 2)->default(0);
+            $table->decimal('sale_price', 10, 2)->default(0);
+            $table->decimal('stock', 10, 2)->default(0);
             $table->timestamps();
         });
     }

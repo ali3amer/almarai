@@ -86,6 +86,13 @@
                                 @error('initialBalance') <span class="error text-danger">{{ $message }}</span> @enderror
                             </div>
 
+                            <label for="initialSalesBalance" class="form-label">الرصيد الافتتاحي للمبيعات</label>
+                            <input type="text" wire:model="initialSalesBalance" autocomplete="off" class="form-control"
+                                   placeholder="الرصيد الافتتاحي للمبيعات ..." id="initialSalesBalance">
+                            <div>
+                                @error('initialSalesBalance') <span class="error text-danger">{{ $message }}</span> @enderror
+                            </div>
+
                             <label for="startingDate">تاريخ بداية التعامل</label>
                             <input type="date" wire:model.live="startingDate" id="startingDate"
                                    class="form-control text-center">
@@ -124,6 +131,7 @@
                                         <th>إسم المورد</th>
                                         <th>الهاتف</th>
                                         <th>الرصيد الافتتاحي</th>
+                                        <th>الرصيد الافتتاحي للمبيعات</th>
                                         <th>التحكم</th>
                                     </tr>
                                     </thead>
@@ -134,6 +142,7 @@
                                             <td>{{ $supplier->supplierName }}</td>
                                             <td>{{ $supplier->phone }}</td>
                                             <td>{{ number_format($supplier->initialBalance, 2) }}</td>
+                                            <td>{{ number_format($supplier->initialSalesBalance, 2) }}</td>
                                             <td>
                                                 <button
                                                     @disabled(!Auth::user()->hasPermission('suppliers-update')) class="btn btn-sm btn-info text-white"

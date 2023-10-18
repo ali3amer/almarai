@@ -133,7 +133,7 @@ class Client extends Component
     {
         $this->currentClient = $client;
         $this->debts = SaleDebt::where('client_id', $client['id'])->get();
-        $this->currentBalance = $this->debts->sum('debt') - $this->debts->sum('paid');
+        $this->currentBalance = $this->debts->sum('debt') - $this->debts->sum('paid') + $this->currentClient['initialBalance'];
 
     }
 
@@ -239,7 +239,7 @@ class Client extends Component
         }
         if (!empty($this->currentClient)) {
             $this->debts = SaleDebt::where('client_id', $this->currentClient['id'])->get();
-            $this->currentBalance = $this->debts->sum('debt') - $this->debts->sum('paid');
+            $this->currentBalance = $this->debts->sum('debt') - $this->debts->sum('paid') + $this->currentClient['initialBalance'];
         }
         $this->clients = \App\Models\Client::where('clientName', 'like', '%' . $this->search . '%')->orWhere('phone', 'like', '%' . $this->search . '%')->get();
         return view('livewire.client');

@@ -16,14 +16,16 @@ return new class extends Migration
             $table->unsignedBigInteger('supplier_id');
             $table->foreign('supplier_id')->references('id')->on('suppliers');
             $table->enum('type', ['debt', 'pay']);
-            $table->decimal('debt', 8, 2);
-            $table->decimal('paid', 8, 2);
+            $table->decimal('debt', 10, 2);
+            $table->decimal('paid', 10, 2);
             $table->enum('payment', ['cash', 'bank']);
             $table->unsignedBigInteger('bank_id')->nullable();
             $table->foreign('bank_id')->references('id')->on('banks');
             $table->string('bank')->nullable();
             $table->string('note')->nullable();
             $table->date('due_date');
+            $table->unsignedBigInteger('purchase_id')->nullable();
+            $table->foreign('purchase_id')->references('id')->on('purchases');
             $table->unsignedBigInteger('user_id')->nullable();
             $table->foreign('user_id')->references('id')->on('users');
             $table->timestamps();

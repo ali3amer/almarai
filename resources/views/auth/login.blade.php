@@ -176,13 +176,13 @@
             <br/>
             <div class="email-login">
                 <label for="username">إسم المستخدم</label>
-                <input id="username" type="text" placeholder="إسم المستخدم" class="form-control @error('username') is-invalid @enderror"
+                <input id="username" type="text" placeholder="إسم المستخدم" class="form-control @error('username') is-invalid @enderror" autocomplete="off"
                        value="{{ old('username') }}" name="username">
                 @error('username')
                    <strong style="color: red">{{ $message }}</strong>
                 @enderror
                 <label for="password">كلمة المرور</label>
-                <input id="password" type="password" placeholder="كلمة المرور" class="@error('password') is-invalid @enderror"
+                <input id="password" type="password" placeholder="كلمة المرور" class="@error('password') is-invalid @enderror"  autocomplete="off"
                        value="{{ old('password') }}" name="password">
                 @error('password')
                 <strong style="color: red">{{ $message }}</strong>

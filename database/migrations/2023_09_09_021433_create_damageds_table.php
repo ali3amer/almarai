@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('product_id');
             $table->foreign('product_id')->references('id')->on('products');
-            $table->decimal('quantity', 8, 2);
+            $table->decimal('quantity', 10, 2);
             $table->date('damaged_date');
             $table->timestamps();
         });
