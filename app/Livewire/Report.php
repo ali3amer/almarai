@@ -171,7 +171,7 @@ class Report extends Component
 
             $this->purchasesDebts = $this->purchasesSum - $this->purchasesPaidSum;
 
-            $safe = \App\Models\Safe::first()->initialBalance;
+            $safe = \App\Models\Safe::count() != 0 ? \App\Models\Safe::first()->initialBalance : 0;
 
             $this->safeBalance = $safe + $this->salesPaidSum - $this->purchasesPaidSum - $this->expensesSum - $this->employeesSum - $this->damagedsSum;
 
