@@ -62,6 +62,7 @@ class Product extends Component
         $this->form->sale_price = $product['sale_price'];
         $this->form->purchase_price = $product['purchase_price'];
         $this->form->unit = $product['unit'];
+        $this->form->stock = $product['stock'];
     }
 
     public function deleteMessage($product)
