@@ -18,6 +18,7 @@ return [
             'damageds' => 'c,r,u,d',
             'banks' => 'c,r,u,d',
             'employees' => 'c,r,u,d',
+            'reports' => 'c,r,u,d',
         ],
         'user' => []
     ],

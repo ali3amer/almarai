@@ -148,21 +148,20 @@ class Safe extends Component
     {
         $this->transfers = Transfer::with('bank')->get();
         $this->banks = Bank::where('bankName', 'LIKE', '%' . $this->bankSearch . '%')->get()->keyBy('id');
-
         $safe = \App\Models\Safe::count() > 0 ? \App\Models\Safe::first()->initialBalance : 0;
 
         $salesBalance = SaleDebt::where('type', 'pay')->get();
         $purchasesBalance = PurchaseDebt::where('type', 'pay')->get();
         $employeeGiftsBalance = EmployeeGift::all();
-        $expensessBalance = \App\Models\Expense::all();
+        $expensesBalance = \App\Models\Expense::all();
 
-        $this->safeBalance = $this->safe + $salesBalance->where('payment', 'cash')->sum('paid') - $purchasesBalance->where('payment', 'cash')->sum('paid') - $expensessBalance->where('payment', 'cash')->sum('amount') - $employeeGiftsBalance->where('payment', 'cash')->sum('gift_amount') - $this->transfers->where('transfer_type', 'cash_to_bank')->sum('transfer_amount') + $this->transfers->where('transfer_type', 'bank_to_cash')->sum('transfer_amount');
+        $this->safeBalance = floatval($safe) + $salesBalance->where('payment', 'cash')->sum('paid') - $purchasesBalance->where('payment', 'cash')->sum('paid') - $expensesBalance->where('payment', 'cash')->sum('amount') - $employeeGiftsBalance->where('payment', 'cash')->sum('gift_amount') - $this->transfers->where('transfer_type', 'cash_to_bank')->sum('transfer_amount') + $this->transfers->where('transfer_type', 'bank_to_cash')->sum('transfer_amount');
 
 //        $this->banksBalance = $salesBalance->where('payment', 'bank')->sum('paid') - $purchasesBalance->where('payment', 'bank')->sum('paid') - $this->transfers->where('transfer_type', 'bank_to_cash')->sum('transfer_amount') - $expensessBalance->where('payment', 'bank')->sum('amount') - $employeeGiftsBalance->where('payment', 'bank')->sum('gift_amount') + $this->transfers->where('transfer_type', 'cash_to_bank')->sum('transfer_amount');
 
         foreach ($this->banks as $index => $bank) {
-            $this->banks[$index]['currentBalance'] = $bank['initialBalance'] + $salesBalance->where('payment', 'bank')->where('bank_id', $bank->id)->sum('paid') - $purchasesBalance->where('payment', 'bank')->where('bank_id', $bank->id)->sum('paid') - $this->transfers->where('transfer_type', 'bank_to_cash')->where('bank_id', $bank->id)->sum('transfer_amount') - $expensessBalance->where('payment', 'bank')->where('bank_id', $bank->id)->sum('amount') - $employeeGiftsBalance->where('payment', 'bank')->where('bank_id', $bank->id)->sum('gift_amount') + $this->transfers->where('transfer_type', 'cash_to_bank')->where('bank_id', $bank->id)->sum('transfer_amount');
-        $this->currentBalance += $this->banks[$index]['currentBalance'];
+            $this->banks[$index]['currentBalance'] = $bank['initialBalance'] + $salesBalance->where('payment', 'bank')->where('bank_id', $bank->id)->sum('paid') - $purchasesBalance->where('payment', 'bank')->where('bank_id', $bank->id)->sum('paid') - $this->transfers->where('transfer_type', 'bank_to_cash')->where('bank_id', $bank->id)->sum('transfer_amount') - $expensesBalance->where('payment', 'bank')->where('bank_id', $bank->id)->sum('amount') - $employeeGiftsBalance->where('payment', 'bank')->where('bank_id', $bank->id)->sum('gift_amount') + $this->transfers->where('transfer_type', 'cash_to_bank')->where('bank_id', $bank->id)->sum('transfer_amount');
+        $this->banksBalance += $this->banks[$index]['currentBalance'];
         }
 
         if ($this->transfer_date == '') {

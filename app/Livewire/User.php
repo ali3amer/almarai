@@ -81,7 +81,9 @@ class User extends Component
                 if ($this->password != '') {
                     $user->password = Hash::make($this->password);
                 }
-                $user->syncPermissions($this->permissions);
+                if ($user->id != 1) {
+                    $user->syncPermissions($this->permissions);
+                }
                 $user->save();
 
 
