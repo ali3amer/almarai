@@ -150,7 +150,7 @@
 
                                 <div class="col-2 d-flex align-items-end">
                                     <button
-                                        @disabled($transfer_amount == 0) class="btn w-100 btn-{{$transferId == 0 ? 'primary' : 'success'}}"
+                                        @disabled($transfer_amount == 0) @disabled(\App\Models\Bank::count() == 0) class="btn w-100 btn-{{$transferId == 0 ? 'primary' : 'success'}}"
                                         type="submit">{{$transferId == 0 ? 'حــــفظ' : 'تعـــديل'}}</button>
                                 </div>
                             </div>
