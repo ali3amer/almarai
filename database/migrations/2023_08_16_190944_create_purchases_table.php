@@ -17,6 +17,7 @@ return new class extends Migration
             $table->foreign('supplier_id')->references('id')->on('suppliers');
             $table->decimal('paid', 10, 2);
             $table->decimal('remainder', 10, 2)->nullable();
+            $table->decimal('discount', 10, 2)->nullable();
             $table->decimal('total_amount', 10, 2);
             $table->date('purchase_date');
             $table->unsignedBigInteger('user_id')->nullable();

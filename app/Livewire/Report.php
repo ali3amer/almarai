@@ -288,11 +288,17 @@ class Report extends Component
             $this->invoice['clientType'] = $this->reportType == 'supplier' ? 'المورد' : 'العميل';
             if ($type == 'sale') {
                 $this->invoice['cart'] = SaleDetail::where('sale_id', $this->invoice['id'])->join('products', 'products.id', '=', 'sale_details.product_id')->get()->toArray();
+                $row = \App\Models\Sale::where('id', $this->invoice['id'])->first();
             } else {
                 $this->invoice['cart'] = PurchaseDetail::where('purchase_id', $this->invoice['id'])->join('products', 'products.id', '=', 'purchase_details.product_id')->get()->toArray();
+                $row = \App\Models\Purchase::where('id', $this->invoice['id'])->first();
             }
-            $this->invoice['total_amount'] = $debt['debt'];
-            $this->invoice['showMode'] = true;
+            $this->invoice['paid'] = $row['paid'];
+            $this->invoice['remainder'] = $row['remainder'];
+            $this->invoice['total_amount'] = $row['total_amount'];
+            $this->invoice['discount'] = floatval($row['discount']);
+            $this->invoice['amount'] = $row['total_amount'] + floatval($row['discount']);
+            $this->invoice['showMode'] = false;
             $this->dispatch('sale_created', $this->invoice);
         }
     }

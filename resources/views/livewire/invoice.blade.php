@@ -28,8 +28,18 @@
 
         </tbody>
         <tfoot>
+        @if(isset($invoice['showMode']) && !$invoice['showMode'])
         <tr>
             <td colspan="4">المجموع الكلي</td>
+            <td>{{isset($invoice['amount']) ? number_format($invoice['amount'], 2) : ''}}</td>
+        </tr>
+        <tr>
+            <td colspan="4">التخفيض</td>
+            <td>{{isset($invoice['discount']) ? number_format($invoice['discount'], 2) : ''}}</td>
+        </tr>
+        @endif
+        <tr>
+            <td colspan="4">الصافي</td>
             <td>{{isset($invoice['total_amount']) ? number_format($invoice['total_amount'], 2) : ''}}</td>
         </tr>
         @if(isset($invoice['showMode']) && !$invoice['showMode'])

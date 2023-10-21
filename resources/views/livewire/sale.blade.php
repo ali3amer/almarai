@@ -11,7 +11,8 @@
                             aria-label="Close"></button>
                     <h1 class="modal-title fs-5" id="exampleModalLabel">
                         @if(isset($invoice['id']))
-                            <button data-bs-dismiss="modal" class="btn btn-danger" wire:click="deleteMessage({{$invoice['id']}})"><i class="bi bi-trash"></i>
+                            <button data-bs-dismiss="modal" class="btn btn-danger"
+                                    wire:click="deleteMessage({{$invoice['id']}})"><i class="bi bi-trash"></i>
                             </button>
                         @endif
                         <button class="btn btn-primary" id="print"><i class="bi bi-printer"></i>
@@ -48,7 +49,8 @@
                                     <div class="col-4 align-self-center"><h5>المنتجات</h5></div>
                                     <div class="col-8"><input autocomplete="off" type="text" id="productSearch"
                                                               placeholder="بحث ..."
-                                                              wire:keydown.enter="chooseProduct({{$products[0]}})"
+                                                              @if(isset($products[0])) wire:keydown.enter="chooseProduct({{$products[0]}})"
+                                                              @endif
                                                               class="form-control"
                                                               wire:model.live="productSearch" autofocus></div>
                                 </div>
@@ -151,7 +153,8 @@
 
                                     </div>
                                     <div class="scroll">
-                                        <table class="table text-center table-responsive table-responsive table-responsive">
+                                        <table
+                                            class="table text-center table-responsive table-responsive table-responsive">
                                             <thead>
                                             <tr>
                                                 <th scope="col">#</th>
@@ -181,15 +184,27 @@
                                             @endforeach
                                             <tr>
                                                 <td>الجمله</td>
-                                                <td>{{number_format($total_amount, 2)}}</td>
+                                                <td>{{number_format($amount, 2)}}</td>
                                                 <td>الرصيد الحالي</td>
                                                 <td>{{number_format($currentBalance, 2)}}</td>
                                             </tr>
                                             <tr>
+                                                <td>التخفيض</td>
+                                                <td><input autocomplete="off" type="text" min="0"
+                                                           wire:keydown="calcRemainder()"
+                                                           wire:model.live="discount"
+                                                           class="form-control text-center">
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>الصافي</td>
+                                                <td>{{number_format($total_amount, 2)}}</td>
+                                            </tr>
+                                            <tr>
                                                 <td>المدفوع</td>
                                                 <td><input autocomplete="off" type="text" min="0"
-                                                           wire:keydown.debounce.150ms="calcRemainder()"
-                                                           wire:model.live.debounce.150ms="paid"
+                                                           wire:keydown="calcRemainder()"
+                                                           wire:model.live="paid"
                                                            class="form-control text-center">
                                                 </td>
                                             </tr>
@@ -238,7 +253,8 @@
                                         <tbody>
                                         @foreach($sales as $sale)
                                             <tr style="cursor: pointer"
-                                                wire:click="getSale({{$sale}})" data-bs-toggle="modal" data-bs-target="#printModal">
+                                                wire:click="getSale({{$sale}})" data-bs-toggle="modal"
+                                                data-bs-target="#printModal">
                                                 <td>{{$sale->id}}</td>
                                                 <td>{{$sale->sale_date}}</td>
                                                 <td>{{number_format($sale->total_amount, 2)}}</td>
@@ -266,7 +282,8 @@
                                     </div>
                                     <div class="col-8">
                                         @if(count($clients) > 0)
-                                            <input autocomplete="off" type="text" placeholder="بحث ..." class="form-control"
+                                            <input autocomplete="off" type="text" placeholder="بحث ..."
+                                                   class="form-control"
                                                    wire:keydown.enter="chooseClient({{$clients[0]}})"
                                                    wire:model.live="clientSearch">
                                         @endif

@@ -49,7 +49,7 @@
                                     <div class="col-4 align-self-center"><h5>المنتجات</h5></div>
                                     <div class="col-8"><input autocomplete="off" type="text" id="productSearch"
                                                               placeholder="بحث ..."
-                                                              wire:keydown.enter="chooseProduct({{$products[0]}})"
+                                                              @if(isset($products[0])) wire:keydown.enter="chooseProduct({{$products[0]}})" @endif
                                                               class="form-control"
                                                               wire:model.live="productSearch" autofocus></div>
                                 </div>
@@ -182,15 +182,27 @@
                                             @endforeach
                                             <tr>
                                                 <td>الجمله</td>
-                                                <td>{{number_format($total_amount, 2)}}</td>
+                                                <td>{{number_format($amount, 2)}}</td>
                                                 <td>الرصيد الحالي</td>
                                                 <td>{{number_format($currentBalance, 2)}}</td>
                                             </tr>
                                             <tr>
+                                                <td>التخفيض</td>
+                                                <td><input autocomplete="off" type="text" min="0"
+                                                           wire:keydown="calcRemainder()"
+                                                           wire:model.live="discount"
+                                                           class="form-control text-center">
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>الصافي</td>
+                                                <td>{{number_format($total_amount, 2)}}</td>
+                                            </tr>
+                                            <tr>
                                                 <td>المدفوع</td>
                                                 <td><input autocomplete="off" type="text" min="0"
-                                                           wire:keydown.debounce.150ms="calcRemainder()"
-                                                           wire:model.live.debounce.150ms="paid"
+                                                           wire:keydown="calcRemainder()"
+                                                           wire:model.live="paid"
                                                            class="form-control text-center">
                                                 </td>
                                             </tr>
