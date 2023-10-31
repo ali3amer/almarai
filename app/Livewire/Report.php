@@ -10,16 +10,20 @@ use App\Models\SaleDebt;
 use App\Models\SaleDetail;
 use App\Models\SupplierDebt;
 use Illuminate\Contracts\Database\Eloquent\Builder;
+use Jantinnerezo\LivewireAlert\LivewireAlert;
+
 
 ;
 
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 use function Livewire\store;
 
 class Report extends Component
 {
+    use LivewireAlert;
 
     public string $title = 'التقارير';
 
@@ -306,6 +310,13 @@ class Report extends Component
     public function resetData()
     {
         $this->reset('sum', 'salesSum', 'currentClient', 'currentSupplier', 'debtsSum', 'paysSum', 'purchasesSum', 'expensesSum', 'employeesSum', 'damagedsSum', 'percent');
+    }
+
+    public function dbBackup()
+    {
+        Artisan::call("backup:run  --only-db");
+        $this->alert('success', 'تم النسخ الإحتياطي بنجاح', ['timerProgressBar' => true]);
+
     }
 
     public function render()

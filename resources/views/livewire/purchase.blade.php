@@ -75,7 +75,7 @@
                                                 <td>{{number_format($product->stock, 2)}}</td>
                                                 <td>
                                                     <button
-                                                        {{ $product->stock < 1 ? "disabled" : "" }} wire:click="chooseProduct({{$product}})"
+                                                        wire:click="chooseProduct({{$product}})"
                                                         class="btn btn-primary btn-sm">+
                                                     </button>
                                                 </td>

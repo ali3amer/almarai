@@ -175,6 +175,11 @@
             type="button"><i
             class="bi bi-printer"></i></button>
 
+    <button class="d-print-none btn btn-danger position-fixed z-3"
+            style="bottom: 10px; right: 110px; border-radius: 50%"
+            type="button"  wire:click="dbBackup()"><i
+            class="bi bi-recycle"></i></button>
+
     <div wire:ignore.self class="offcanvas offcanvas-end" data-bs-scroll="true" data-bs-backdrop="false"
          tabindex="-1" id="offcanvasScrolling" aria-labelledby="offcanvasScrollingLabel">
         <div class="offcanvas-header">
