@@ -55,6 +55,7 @@ class Employee extends Component
     public int $debtId = 0;
     public $debt_amount = 0;
     public string $due_date = '';
+    public $discount = 0;
 
     protected function rules()
     {
@@ -70,7 +71,6 @@ class Employee extends Component
             'employeeName.unique' => 'هذا المورد موجود مسبقاً'
         ];
     }
-
 
 
     public function save($id)
@@ -133,6 +133,7 @@ class Employee extends Component
             'cancelButtonColor' => '#4b5563'
         ]);
     }
+
     public function deleteDebtMessage($id)
     {
         $this->confirm("  هل توافق على الحذف؟  ", [
@@ -163,7 +164,7 @@ class Employee extends Component
         $this->gift_amount = $this->currentEmployee['salary'];
         $this->gifts = EmployeeGift::where('employee_id', $this->currentEmployee['id'])->get();
         $this->debts = SaleDebt::where('employee_id', $this->currentEmployee['id'])->get();
-        $this->currentBalance = $this->debts->sum('debt') - $this->debts->sum('paid') + $this->currentEmployee['initialBalance'];
+        $this->currentBalance = $this->debts->sum('debt') - $this->debts->sum('paid') - $this->debts->sum('discount') + $this->currentEmployee['initialBalance'];
 
     }
 
@@ -224,6 +225,22 @@ class Employee extends Component
                 'bank' => $this->bank,
                 'due_date' => $this->gift_date,
                 'note' => $this->note == '' ? $note : $this->note,
+                'user_id' => auth()->id(),
+            ]);
+        }
+
+        if (floatval($this->discount) != 0) {
+            SaleDebt::create([
+                'Employee_id' => $this->currentEmployee['id'],
+                'type' => 'pay',
+                'debt' => 0,
+                'paid' => 0,
+                'discount' => $this->discount,
+                'payment' => 'cash',
+                'bank_id' => null,
+                'bank' => '',
+                'due_date' => $this->gift_date,
+                'note' =>  "تم تخفيض مبلغ " . $this->discount,
                 'user_id' => auth()->id(),
             ]);
         }

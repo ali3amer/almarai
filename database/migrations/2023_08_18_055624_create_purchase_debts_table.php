@@ -18,6 +18,7 @@ return new class extends Migration
             $table->enum('type', ['debt', 'pay']);
             $table->decimal('debt', 10, 2);
             $table->decimal('paid', 10, 2);
+            $table->decimal('discount', 10, 2)->default(0);
             $table->enum('payment', ['cash', 'bank']);
             $table->unsignedBigInteger('bank_id')->nullable();
             $table->foreign('bank_id')->references('id')->on('banks');

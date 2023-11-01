@@ -12,7 +12,7 @@
                 <div class="modal-body">
                     <div class="card">
                         <div class="card-body bg-white">
-                            @if(!empty($currentDebt))
+                            @if(!empty($currentDebt) && !empty($currentClient))
                                 <table class="table note ">
                                     <tbody>
                                     <tr>
@@ -234,16 +234,29 @@
                                        placeholder="رقم الايصال ....">
 
                             </div>
+
+                            @if($type == "pay")
+                                <div class="col-6">
+                                    <label for="discount">التخفيض</label>
+                                    <input autocomplete="off" type="text" autocomplete="off"
+                                           wire:model.live="discount" id="discount"
+                                           class="form-control text-center mb-2"
+                                           placeholder="التخفيض ....">
+                                </div>
+                            @endif
+
+                            <div class="col-{{ $type == "pay" ? '6' : '12' }}">
+                                <label for="note">ملاحظات</label>
+                                <input autocomplete="off" type="text" autocomplete="off"
+                                       wire:model="note" id="note"
+                                       class="form-control text-center mb-2"
+                                       placeholder="ملاحظات ....">
+                            </div>
                         </div>
 
-                        <label for="note">ملاحظات</label>
-                        <input autocomplete="off" type="text" autocomplete="off"
-                               wire:model="note" id="note"
-                               class="form-control text-center mb-2"
-                               placeholder="ملاحظات ....">
 
                         <button
-                             @disabled(empty($currentClient) || $debt_amount == 0 || $due_date == '') class="btn btn-{{$debtId == 0 ? 'primary' : 'success'}} w-100"
+                             @disabled(empty($currentClient) || $due_date == '') @disabled($debt_amount == 0 && $discount == 0) class="btn btn-{{$debtId == 0 ? 'primary' : 'success'}} w-100"
                             wire:click="saveDebt()">{{$debtId == 0 ? 'دفــــع' : 'تعــــديل'}}</button>
 
                     </div>

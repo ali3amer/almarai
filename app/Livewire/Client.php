@@ -41,6 +41,7 @@ class Client extends Component
     public bool $blocked = false;
     public float $currentBalance = 0;
     public array $currentDebt = [];
+    public $discount = 0;
 
     protected function rules()
     {
@@ -133,7 +134,7 @@ class Client extends Component
     {
         $this->currentClient = $client;
         $this->debts = SaleDebt::where('client_id', $client['id'])->get();
-        $this->currentBalance = $this->debts->sum('debt') - $this->debts->sum('paid') + $this->currentClient['initialBalance'];
+        $this->currentBalance = $this->debts->sum('debt') - $this->debts->sum('paid')  - $this->debts->sum('discount') + $this->currentClient['initialBalance'];
 
     }
 
@@ -149,18 +150,37 @@ class Client extends Component
                 $paid = $this->debt_amount;
                 $debt = 0;
             }
-            SaleDebt::create([
-                'client_id' => $this->currentClient['id'],
-                'type' => $this->type,
-                'debt' => $debt,
-                'paid' => $paid,
-                'payment' => $this->payment,
-                'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
-                'bank' => $this->bank,
-                'due_date' => $this->due_date,
-                'note' => $this->note == '' ? $note : $this->note,
-                'user_id' => auth()->id(),
-            ]);
+            if (floatval($this->debt_amount) != 0) {
+                SaleDebt::create([
+                    'client_id' => $this->currentClient['id'],
+                    'type' => $this->type,
+                    'debt' => $debt,
+                    'paid' => $paid,
+                    'discount' => 0,
+                    'payment' => $this->payment,
+                    'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
+                    'bank' => $this->bank,
+                    'due_date' => $this->due_date,
+                    'note' => $this->note == '' ? $note : $this->note,
+                    'user_id' => auth()->id(),
+                ]);
+            }
+
+            if (floatval($this->discount) != 0) {
+                SaleDebt::create([
+                    'client_id' => $this->currentClient['id'],
+                    'type' => $this->type,
+                    'debt' => 0,
+                    'paid' => 0,
+                    'discount' => $this->discount,
+                    'payment' => 'cash',
+                    'bank_id' => null,
+                    'bank' => '',
+                    'due_date' => $this->due_date,
+                    'note' => "تم تخفيض مبلغ " . $this->discount,
+                    'user_id' => auth()->id(),
+                ]);
+            }
 
             $this->resetData();
 
@@ -239,7 +259,7 @@ class Client extends Component
         }
         if (!empty($this->currentClient)) {
             $this->debts = SaleDebt::where('client_id', $this->currentClient['id'])->get();
-            $this->currentBalance = $this->debts->sum('debt') - $this->debts->sum('paid') + $this->currentClient['initialBalance'];
+            $this->currentBalance = $this->debts->sum('debt') - $this->debts->sum('paid') - $this->debts->sum('discount') + $this->currentClient['initialBalance'];
         }
         $this->clients = \App\Models\Client::where('clientName', 'like', '%' . $this->search . '%')->orWhere('phone', 'like', '%' . $this->search . '%')->get();
         return view('livewire.client');

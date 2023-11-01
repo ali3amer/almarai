@@ -30,6 +30,7 @@ class Supplier extends Component
     public string $search = '';
     public string|null $note = '';
     public $initialBalance = 0;
+    public $discount = 0;
     public $debt_amount = 0;
     public string $bank = '';
     public Collection $banks;
@@ -140,7 +141,7 @@ class Supplier extends Component
     {
         $this->currentSupplier = $supplier;
         $this->debts = PurchaseDebt::where('supplier_id', $supplier['id'])->get();
-        $this->currentBalance = $this->debts->sum('debt') - $this->debts->sum('paid');
+        $this->currentBalance = $this->debts->sum('debt') - $this->debts->sum('paid') - $this->debts->sum('discount') + $this->currentSupplier[$this->debtType == 'purchases' ? 'initialBalance' : 'initialSalesBalance'];
     }
 
     public function saveDebt()
@@ -157,18 +158,38 @@ class Supplier extends Component
             }
 
             if ($this->debtType == 'purchases') {
-                PurchaseDebt::create([
-                    'supplier_id' => $this->currentSupplier['id'],
-                    'type' => $this->type,
-                    'debt' => $debt,
-                    'paid' => $paid,
-                    'payment' => $this->payment,
-                    'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
-                    'bank' => $this->bank,
-                    'due_date' => $this->due_date,
-                    'note' => $this->note == '' ? $note : $this->note,
-                    'user_id' => auth()->id(),
-                ]);
+                if (floatval($this->debt_amount) != 0) {
+                    PurchaseDebt::create([
+                        'supplier_id' => $this->currentSupplier['id'],
+                        'type' => $this->type,
+                        'debt' => $debt,
+                        'paid' => $paid,
+                        'payment' => $this->payment,
+                        'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
+                        'bank' => $this->bank,
+                        'due_date' => $this->due_date,
+                        'note' => $this->note == '' ? $note : $this->note,
+                        'user_id' => auth()->id(),
+                    ]);
+                }
+
+                if (floatval($this->discount) != 0) {
+                    if (floatval($this->debt_amount) != 0) {
+                        PurchaseDebt::create([
+                            'supplier_id' => $this->currentSupplier['id'],
+                            'type' => $this->type,
+                            'debt' => 0,
+                            'paid' => 0,
+                            'discount' => $this->discount,
+                            'payment' => 'cash',
+                            'bank_id' => null,
+                            'bank' => '',
+                            'due_date' => $this->due_date,
+                            'note' => "تم تخفيض مبلغ " . $this->discount,
+                            'user_id' => auth()->id(),
+                        ]);
+                    }
+                }
             } else {
                 SaleDebt::create([
                     'supplier_id' => $this->currentSupplier['id'],
@@ -182,6 +203,23 @@ class Supplier extends Component
                     'note' => $this->note == '' ? $note : $this->note,
                     'user_id' => auth()->id(),
                 ]);
+
+                if (floatval($this->discount) != 0) {
+                    SaleDebt::create([
+                        'supplier_id' => $this->currentSupplier['id'],
+                        'type' => $this->type,
+                        'debt' => 0,
+                        'paid' => 0,
+                        'discount' => $this->discount,
+                        'payment' => 'cash',
+                        'bank_id' => null,
+                        'bank' => '',
+                        'due_date' => $this->due_date,
+                        'note' => "تم تخفيض مبلغ " . $this->discount,
+                        'user_id' => auth()->id(),
+                    ]);
+                }
+
             }
 
             $this->resetData();
@@ -267,7 +305,7 @@ class Supplier extends Component
             } else {
                 $this->debts = SaleDebt::where('supplier_id', $this->currentSupplier['id'])->get();
             }
-            $this->currentBalance = $this->debts->sum('debt') - $this->debts->sum('paid') + $this->currentSupplier[$this->debtType == 'purchases' ? 'initialBalance' : 'initialSalesBalance'];
+            $this->currentBalance = $this->debts->sum('debt') - $this->debts->sum('paid') - $this->debts->sum('discount') + $this->currentSupplier[$this->debtType == 'purchases' ? 'initialBalance' : 'initialSalesBalance'];
         }
         $this->suppliers = \App\Models\Supplier::where('supplierName', 'like', '%' . $this->search . '%')->orWhere('phone', 'like', '%' . $this->search . '%')->get();
         return view('livewire.supplier');

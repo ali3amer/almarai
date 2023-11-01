@@ -12,7 +12,7 @@
                 <div class="modal-body">
                     <div class="card">
                         <div class="card-body bg-white">
-                            @if(!empty($currentDebt))
+                            @if(!empty($currentDebt) && !empty($currentEmployee))
                                 <table class="table note ">
                                     <tbody>
                                     <tr>
@@ -225,12 +225,20 @@
                                        wire:model.live="paid">
                             </div>
 
-                            <div class="col-3">
+                            <div class="col-2">
                                 <label for="gift_amount">متبقي المرتب</label>
                                 <input type="text" id="remainder" disabled autocomplete="off"
                                        class="form-control text-center"
                                        placeholder="سداد ...."
                                        wire:model.live="remainder">
+                            </div>
+
+                            <div class="col-2">
+                                <label for="discount">التخفيض</label>
+
+                                <input type="text" id="discount" autocomplete="off" class="form-control text-center"
+                                       placeholder="التخفيض ...."
+                                       wire:model.live="discount">
                             </div>
 
                             <div class="col-3">
@@ -241,7 +249,7 @@
                                        wire:model.live="note">
                             </div>
 
-                            <div class="col-2 d-flex align-items-end">
+                            <div class="col-1 d-flex align-items-end">
                                 @if($editGiftMode | $editMode)
                                     <button class="btn btn-success w-100"
                                             wire:click="updateGift({{$gift_id}})">تعديل
