@@ -199,7 +199,7 @@ class Report extends Component
             } else {
                 $this->saleDebts = SaleDebt::where('client_id', $this->currentClient['id'])->get();
             }
-            $this->salesBalance = $this->currentClient['initialBalance'] + $this->saleDebts->sum('debt') - $this->saleDebts->sum('paid');
+            $this->salesBalance = $this->currentClient['initialBalance'] + $this->saleDebts->sum('debt') - $this->saleDebts->sum('paid') - $this->saleDebts->sum('discount');
             $this->currentSalesBalance = $this->salesBalance;
         } elseif ($this->reportType == 'supplier') {   // supplier
             if ($this->reportDuration == 'day') {
@@ -213,9 +213,9 @@ class Report extends Component
                 $this->purchaseDebts = \App\Models\PurchaseDebt::where('supplier_id', $this->currentSupplier['id'])->get();
             }
 
-            $this->salesBalance = $this->currentSupplier['initialSalesBalance'] + $this->saleDebts->sum('debt') - $this->saleDebts->sum('paid');
+            $this->salesBalance = $this->currentSupplier['initialSalesBalance'] + $this->saleDebts->sum('debt') - $this->saleDebts->sum('paid') - $this->saleDebts->sum('discount');
 
-            $this->purchasesBalance = $this->currentSupplier['initialBalance'] + $this->purchaseDebts->sum('debt') - $this->purchaseDebts->sum('paid');
+            $this->purchasesBalance = $this->currentSupplier['initialBalance'] + $this->purchaseDebts->sum('debt') - $this->purchaseDebts->sum('paid') - $this->purchaseDebts->sum('discount');
 
             $this->currentSalesBalance = $this->salesBalance;
 
