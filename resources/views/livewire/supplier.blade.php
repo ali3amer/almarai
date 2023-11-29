@@ -265,7 +265,7 @@
                         </div>
 
                         <button
-                            @disabled(empty($currentSupplier) || $due_date == '') @disabled($debt_amount == 0 && $discount == 0) class="btn btn-{{$debtId == 0 ? 'primary' : 'success'}} w-100"
+                            @disabled($payment == "bank" && $banks->count() == 0) @disabled(empty($currentSupplier) || $due_date == '') @disabled($debt_amount == 0 && $discount == 0) class="btn btn-{{$debtId == 0 ? 'primary' : 'success'}} w-100"
                             wire:click="saveDebt()">{{$debtId == 0 ? 'دفــــع' : 'تعــــديل'}}</button>
 
                     </div>
@@ -285,7 +285,7 @@
                                             <label for="debType"><h6>نوع المعاملات</h6></label>
                                         </div>
                                         <div class="col-6">
-                                            <select class="form-select" id="debType" wire:model.live="debtType">
+                                            <select class="form-select" id="debType" wire:model.live="debtType" wire:change="showDebts()">
                                                 <option value="purchases">مشتريات</option>
                                                 <option value="sales">مبيعات</option>
                                             </select>
@@ -309,7 +309,13 @@
                                         data-bs-toggle="modal" data-bs-target="#debtModal">
                                         <td>{{$debt->due_date}}</td>
                                         <td>{{$debt->note}}</td>
-                                        <td>{{$debt->type == 'pay' ? number_format($debt->paid, 2) : number_format($debt->debt, 2)}}</td>
+                                        <td>
+                                            @if($debt->paid == 0 && $debt->debt == 0)
+                                                {{ $debt->discount }}
+                                            @else
+                                                {{$debt->type == 'pay' ? number_format($debt->paid, 2) : number_format($debt->debt, 2)}}
+                                            @endif
+                                        </td>
                                     </tr>
                                 @endforeach
                                 </tbody>

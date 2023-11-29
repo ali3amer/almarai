@@ -19,9 +19,8 @@
                         <input type="text" autocomplete="off" wire:model="form.unit" class="form-control"
                                placeholder="الوحده ..." id="unit">
 
-
                         <label for="store_id" class="form-label">المخزن</label>
-                        <select wire:model="form.store_id"
+                        <select wire:model="form.store_id" id="store_id"
                                 class="form-select @error('form.store_id') is-invalid @enderror">
                             <option value=0>------------------</option>
                             @foreach($stores as $store)
@@ -34,7 +33,7 @@
                         </div>
 
                         <label for="category_id" class="form-label">القسم</label>
-                        <select wire:model="form.category_id"
+                        <select wire:model="form.category_id" id="category_id"
                                 class="form-select @error('form.category_id') is-invalid @enderror">
                             <option value=0>------------------</option>
                             @foreach($categories as $category)
@@ -49,7 +48,7 @@
                         <label for="sale_price" class="form-label">سعر البيع</label>
                         <input type="text" autocomplete="off" wire:model="form.sale_price"
                                class="form-control @error('form.sale_price') is-invalid @enderror"
-                               placeholder="السعر البيع..." id="productName">
+                               placeholder="السعر البيع..." id="sale_price">
                         <div>
                             @error('form.sale_price') <span class="error text-danger">{{ $message }}</span> @enderror
                         </div>
@@ -88,10 +87,10 @@
                 <div class="card-header">
                     <div class="row">
                         <div class="col-4">
-                            <input wire:model.live="search" class="form-control" placeholder="بحث ......">
+                            <input wire:keydown="searchProduct()" wire:model.live="search" class="form-control" placeholder="بحث ......">
                         </div>
                         <div class="col-4">
-                            <select class="form-select" wire:model.live="store_id">
+                            <select wire:change="searchProduct()" class="form-select" wire:model.live="store_id">
                                 <option value="0">----------------</option>
                                 @foreach($stores as $store)
                                     <option value="{{ $store->id }}">{{ $store->storeName }}</option>
@@ -99,7 +98,7 @@
                             </select>
                         </div>
                         <div class="col-4">
-                            <select class="form-select" wire:model.live="category_id">
+                            <select wire:change="searchProduct()" class="form-select" wire:model.live="category_id">
                                 <option value="0">----------------</option>
                                 @foreach($categories as $category)
                                     <option value="{{ $category->id }}">{{ $category->categoryName }}</option>
@@ -109,7 +108,7 @@
                     </div>
                 </div>
                 <div class="card-body">
-                    @if(count($products) > 0 && Auth::user()->hasPermission('products-read'))
+                    @if(!empty($products) && Auth::user()->hasPermission('products-read'))
                         <div class="scroll">
                             <table class="table text-center">
                                 <thead>

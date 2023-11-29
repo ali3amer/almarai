@@ -256,7 +256,7 @@
 
 
                         <button
-                             @disabled(empty($currentClient) || $due_date == '') @disabled($debt_amount == 0 && $discount == 0) class="btn btn-{{$debtId == 0 ? 'primary' : 'success'}} w-100"
+                            @disabled($payment == "bank" && $banks->count() == 0) @disabled(empty($currentClient) || $due_date == '') @disabled($debt_amount == 0 && $discount == 0) class="btn btn-{{$debtId == 0 ? 'primary' : 'success'}} w-100"
                             wire:click="saveDebt()">{{$debtId == 0 ? 'دفــــع' : 'تعــــديل'}}</button>
 
                     </div>
@@ -284,10 +284,17 @@
                                 </thead>
                                 <tbody>
                                 @foreach($debts as $debt)
-                                    <tr style="cursor: pointer" wire:click="chooseDebt({{$debt}})" data-bs-toggle="modal" data-bs-target="#debtModal">
+                                    <tr style="cursor: pointer" wire:click="chooseDebt({{$debt}})"
+                                        data-bs-toggle="modal" data-bs-target="#debtModal">
                                         <td>{{$debt->due_date}}</td>
                                         <td>{{$debt->note}}</td>
-                                        <td>{{$debt->type == 'pay' ? number_format($debt->paid, 2) : number_format($debt->debt, 2)}}</td>
+                                        <td>
+                                            @if($debt->paid == 0 && $debt->debt == 0)
+                                                {{ $debt->discount }}
+                                            @else
+                                                {{$debt->type == 'pay' ? number_format($debt->paid, 2) : number_format($debt->debt, 2)}}
+                                            @endif
+                                        </td>
                                     </tr>
                                 @endforeach
                                 </tbody>

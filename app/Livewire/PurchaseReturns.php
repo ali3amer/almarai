@@ -9,7 +9,6 @@ use App\Models\PurchaseReturn;
 use Illuminate\Database\Eloquent\Collection;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
 use Livewire\Component;
-use mysql_xdevapi\CollectionRemove;
 
 class PurchaseReturns extends Component
 {
@@ -87,39 +86,124 @@ class PurchaseReturns extends Component
     {
         if ($this->id == 0) {
 
-            \App\Models\PurchaseDetail::where('id', $this->currentDetail['id'])->decrement('quantity', floatval($this->quantityReturn));
+            $supplier = PurchaseDebt::where("supplier_id", $this->currentSupplier['id'])->get();
+            $balance = $supplier->sum("debt") - $supplier->sum("paid") - $supplier->sum("discount");
 
-            \App\Models\Product::where('id', $this->currentDetail['product_id'])->decrement('stock', floatval($this->quantityReturn));
+            \App\Models\Product::where('id', $this->currentDetail['product_id'])->increment('stock', floatval($this->quantityReturn));
 
             $purchase = \App\Models\Purchase::where('id', $this->currentDetail['purchase_id'])->first();
 
-            $purchase->decrement('total_amount', $this->priceReturn);
+            $paid = PurchaseDebt::where("purchase_id", $purchase->id)->where("type", "pay")->first();
+            $oldPurchase = PurchaseDebt::where("purchase_id", $purchase->id)->where("type", "debt")->first();
 
-            if ($this->buyer == 'supplier') {
-                \App\Models\SupplierDebt::create([
-                    'supplier_id' => $this->currentSupplier['id'],
-                    'paid' => $this->priceReturn,
-                    'debt' => 0,
-                    'type' => 'pay',
-                    'bank' => '',
-                    'payment' => 'cash',
-                    'bank_id' => null,
-                    'due_date' => $this->return_date,
-                    'note' =>  'تم إرجاع منتج من فاتوره رقم #' . $purchase['id'],
-                    'purchase_id' => $purchase['id'],
-                    'user_id' => auth()->id()
+            if (floatval($purchase["paid"]) == 0 || floatval($purchase["paid"]) < $this->priceReturn) {
+                $purchasePaid = 0;
+            } else {
+                $purchasePaid = floatval($purchase["paid"]) - $this->priceReturn;
+            }
+
+            $total_amount = $purchase['total_amount'] - $this->priceReturn;
+            $remainder = $total_amount - $purchasePaid - $purchase['discount'];
+            $newPurchase = \App\Models\Purchase::create([
+                'supplier_id' => $this->currentSupplier['id'],
+                'paid' => $purchasePaid,
+                'remainder' => $remainder,
+                'discount' => $purchase['discount'],
+                'total_amount' => $total_amount,
+                'purchase_date' => $this->return_date,
+                'user_id' => auth()->id(),
+            ]);
+
+            foreach ($purchase->purchaseDetails as $item) {
+                PurchaseDetail::create([
+                    'purchase_id' => $newPurchase['id'],
+                    'product_id' => $item['product_id'],
+                    'quantity' => $this->currentDetail['product_id'] == $item['product_id'] ? floatval($item['quantity']) - floatval($this->quantityReturn) : floatval($item['quantity']),
+                    'price' => floatval($item['price']),
                 ]);
             }
 
-            PurchaseReturn::create([
+            \App\Models\PurchaseDebt::create([
+                'supplier_id' => $this->currentSupplier['id'],
+                'paid' => $purchase["total_amount"],
                 'purchase_id' => $this->currentDetail['purchase_id'],
+                'debt' => 0,
+                'type' => 'pay',
+                'bank' => '',
+                'payment' => 'cash',
+                'bank_id' => null,
+                'due_date' => $this->return_date,
+                'note' => 'تم إلغاء الفاتورة لإرجاع منتج بفاتورة رقم #' . $purchase['id'],
+                'user_id' => auth()->id()
+            ])->delete();
+
+            if ($paid) {
+                if ($paid->paid == $purchase['total_amount']) {
+                    \App\Models\PurchaseDebt::create([
+                        'supplier_id' => $this->currentSupplier['id'],
+                        'purchase_id' => $this->currentDetail['purchase_id'],
+                        'paid' => 0,
+                        'debt' => $paid->paid,
+                        'type' => 'debt',
+                        'bank' => '',
+                        'payment' => 'cash',
+                        'bank_id' => null,
+                        'due_date' => $this->return_date,
+                        'note' => 'تم إلغاء مدفوعات فاتورة رقم #' . $purchase['id'],
+                        'user_id' => auth()->id()
+                    ])->delete();
+                }
+            }
+            $purchase->decrement('total_amount', $this->priceReturn);
+
+            \App\Models\PurchaseDebt::create([
+                'supplier_id' => $this->currentSupplier['id'],
+                'purchase_id' => $newPurchase['id'],
+                'paid' => 0,
+                'debt' => $total_amount,
+                'type' => 'debt',
+                'bank' => '',
+                'payment' => 'cash',
+                'bank_id' => null,
+                'due_date' => $this->return_date,
+                'note' => 'تم إصدار فاتورة جديده رقم #' . $newPurchase['id'],
+                'user_id' => auth()->id()
+            ]);
+
+            if ($paid) {
+                if ($paid->paid == $purchase['total_amount'] + $this->priceReturn) {
+                    \App\Models\PurchaseDebt::create([
+                        'supplier_id' => $this->currentSupplier['id'],
+                        'purchase_id' => $newPurchase['id'],
+                        'paid' => $purchasePaid,
+                        'debt' => 0,
+                        'type' => 'pay',
+                        'bank' => '',
+                        'payment' => 'cash',
+                        'bank_id' => null,
+                        'due_date' => $this->return_date,
+                        'note' => 'تم تعديل مدفوعات فاتورة رقم #' . $newPurchase['id'],
+                        'user_id' => auth()->id()
+                    ]);
+                    $paid->delete();
+                }
+            }
+
+            if ($oldPurchase) {
+                $oldPurchase->delete();
+            }
+
+            PurchaseReturn::create([
+                'purchase_id' => $newPurchase['id'],
                 'product_id' => $this->currentDetail['product_id'],
                 'quantity' => floatval($this->quantityReturn),
                 'return_date' => $this->return_date,
                 'price' => $this->currentDetail['price']
             ]);
 
-            $this->getReturns($this->currentPurchase);
+            $purchase->delete();
+            $this->getReturns($newPurchase->toArray());
+
             $this->alert('success', 'تم الحفظ بنجاح', ['timerProgressBar' => true]);
         }
 

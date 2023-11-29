@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Livewire;
+
 use Jantinnerezo\LivewireAlert\LivewireAlert;
 
 use App\Models\Bank;
@@ -14,6 +15,7 @@ use Livewire\Component;
 class Client extends Component
 {
     use LivewireAlert;
+
     protected $listeners = [
         'delete',
         'deleteDebt'
@@ -22,7 +24,6 @@ class Client extends Component
     public int $id = 0;
     public int $debtId = 0;
     public string $clientName = '';
-    #[Rule('required|min:2', message: 'قم بإدخال رقم الهاتف')]
     public string $phone = '';
     public string $search = '';
     public string|null $note = '';
@@ -97,6 +98,7 @@ class Client extends Component
         \App\Models\Client::where('id', $client['id'])->update(['blocked' => $this->blocked]);
         $this->resetData();
     }
+
     public function edit($client)
     {
         $this->id = $client['id'];
@@ -110,8 +112,8 @@ class Client extends Component
 
     public function deleteMessage($client)
     {
-        $this->confirm("  هل توافق على حذف العميل  " . $client['clientName'] .  "؟", [
-            'inputAttributes' => ["id"=>$client['id']],
+        $this->confirm("  هل توافق على حذف العميل  " . $client['clientName'] . "؟", [
+            'inputAttributes' => ["id" => $client['id']],
             'toast' => false,
             'showConfirmButton' => true,
             'confirmButtonText' => 'موافق',
@@ -133,8 +135,8 @@ class Client extends Component
     public function showDebts($client)
     {
         $this->currentClient = $client;
-        $this->debts = SaleDebt::where('client_id', $client['id'])->get();
-        $this->currentBalance = $this->debts->sum('debt') - $this->debts->sum('paid')  - $this->debts->sum('discount') + $this->currentClient['initialBalance'];
+        $this->debts = SaleDebt::where('client_id', $client['id'])->withTrashed()->get();
+        $this->currentBalance = $this->debts->sum('debt') - $this->debts->sum('paid') - $this->debts->sum('discount') + $this->currentClient['initialBalance'];
 
     }
 
@@ -177,7 +179,7 @@ class Client extends Component
                     'bank_id' => null,
                     'bank' => '',
                     'due_date' => $this->due_date,
-                    'note' => "تم تخفيض مبلغ " . $this->discount,
+                    'note' => "تم تخفيض مبلغ ",
                     'user_id' => auth()->id(),
                 ]);
             }
@@ -205,6 +207,7 @@ class Client extends Component
             $this->alert('success', 'تم تعديل الدفعيه بنجاح', ['timerProgressBar' => true]);
 
         }
+        $this->showDebts($this->currentClient);
     }
 
     public function chooseDebt($debt)
@@ -222,7 +225,7 @@ class Client extends Component
     public function deleteDebtMessage($debt)
     {
         $this->confirm("  هل توافق على الحذف؟", [
-            'inputAttributes' => ["debt"=>$debt],
+            'inputAttributes' => ["debt" => $debt],
             'toast' => false,
             'showConfirmButton' => true,
             'confirmButtonText' => 'موافق',
@@ -233,6 +236,7 @@ class Client extends Component
             'cancelButtonColor' => '#4b5563'
         ]);
     }
+
     public function deleteDebt($data)
     {
         $debt = $data['inputAttributes']['debt'];
@@ -245,7 +249,7 @@ class Client extends Component
 
     public function resetData($data = null)
     {
-        $this->reset('type', 'debt_amount', 'debtId', 'payment', 'bank', 'due_date', 'blocked', 'note', $data);
+        $this->reset('type', 'debt_amount', 'debtId', 'payment', 'bank', 'due_date', 'blocked', 'discount', 'note', $data);
     }
 
     public function render()
@@ -256,10 +260,6 @@ class Client extends Component
 
         if ($this->startingDate == '') {
             $this->startingDate = date('Y-m-d');
-        }
-        if (!empty($this->currentClient)) {
-            $this->debts = SaleDebt::where('client_id', $this->currentClient['id'])->get();
-            $this->currentBalance = $this->debts->sum('debt') - $this->debts->sum('paid') - $this->debts->sum('discount') + $this->currentClient['initialBalance'];
         }
         $this->clients = \App\Models\Client::where('clientName', 'like', '%' . $this->search . '%')->orWhere('phone', 'like', '%' . $this->search . '%')->get();
         return view('livewire.client');

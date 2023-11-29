@@ -14,14 +14,14 @@ return new class extends Migration
         Schema::create('debt_details', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('client_debt_id');
-            $table->foreign('client_debt_id')->references('id')->on('client_debts');
+            $table->foreign('client_debt_id')->references('id')->on('client_debts')->onDelete('cascade')->onUpdate('cascade');
             $table->decimal('remainder', 10, 2);
             $table->enum('payment', ['cash', 'bank']);
             $table->string('bank')->nullable();
             $table->decimal('paid', 10, 2);
             $table->date('due_date');
             $table->unsignedBigInteger('user_id')->nullable();
-            $table->foreign('user_id')->references('id')->on('users');
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade')->onUpdate('cascade');
             $table->timestamps();
         });
     }

@@ -16,9 +16,9 @@ class Product extends Component
         'delete'
     ];
     public string $title = 'المنتجات';
-    public string $search = '';
-    public int $store_id = 0;
-    public int $category_id = 0;
+    public $search = '';
+    public $store_id = 0;
+    public $category_id = 0;
     public Collection $categories;
     public Collection $stores;
 
@@ -39,6 +39,25 @@ class Product extends Component
         ];
     }
 
+    public function mount()
+    {
+        $this->stores = \App\Models\Store::all();
+        $this->categories = \App\Models\Category::all();
+        $this->products = \App\Models\Product::all();
+    }
+
+    public function searchProduct()
+    {
+        if ($this->store_id != 0 && $this->category_id != 0) {
+            $this->products = \App\Models\Product::join('categories', 'products.category_id', '=', 'categories.id')->join('stores', 'products.store_id', '=', 'stores.id')->select('products.*', 'categories.categoryName', 'stores.storeName')->where('productName', 'LIKE', '%' . $this->search . '%')->where('store_id', $this->store_id)->where('category_id', $this->category_id)->get();
+        } elseif ($this->store_id != 0) {
+            $this->products = \App\Models\Product::join('categories', 'products.category_id', '=', 'categories.id')->join('stores', 'products.store_id', '=', 'stores.id')->select('products.*', 'categories.categoryName', 'stores.storeName')->where('productName', 'LIKE', '%' . $this->search . '%')->where('store_id', $this->store_id)->get();
+        } elseif ($this->category_id != 0) {
+            $this->products = \App\Models\Product::join('categories', 'products.category_id', '=', 'categories.id')->join('stores', 'products.store_id', '=', 'stores.id')->select('products.*', 'categories.categoryName', 'stores.storeName')->where('productName', 'LIKE', '%' . $this->search . '%')->where('category_id', $this->category_id)->get();
+        } else {
+            $this->products = \App\Models\Product::join('categories', 'products.category_id', '=', 'categories.id')->join('stores', 'products.store_id', '=', 'stores.id')->select('products.*', 'categories.categoryName', 'stores.storeName')->where('productName', 'LIKE', '%' . $this->search . '%')->get();
+        }
+    }
     public function save($id)
     {
         if ($this->validate()) {
@@ -90,17 +109,8 @@ class Product extends Component
 
     public function render()
     {
-        if ($this->store_id != 0 && $this->category_id != 0) {
-            $this->products = \App\Models\Product::join('categories', 'products.category_id', '=', 'categories.id')->join('stores', 'products.store_id', '=', 'stores.id')->select('products.*', 'categories.categoryName', 'stores.storeName')->where('productName', 'LIKE', '%' . $this->search . '%')->where('store_id', $this->store_id)->where('category_id', $this->category_id)->get();
-        } elseif ($this->store_id != 0) {
-            $this->products = \App\Models\Product::join('categories', 'products.category_id', '=', 'categories.id')->join('stores', 'products.store_id', '=', 'stores.id')->select('products.*', 'categories.categoryName', 'stores.storeName')->where('productName', 'LIKE', '%' . $this->search . '%')->where('store_id', $this->store_id)->get();
-        } elseif ($this->category_id != 0) {
-            $this->products = \App\Models\Product::join('categories', 'products.category_id', '=', 'categories.id')->join('stores', 'products.store_id', '=', 'stores.id')->select('products.*', 'categories.categoryName', 'stores.storeName')->where('productName', 'LIKE', '%' . $this->search . '%')->where('category_id', $this->category_id)->get();
-        } else {
-            $this->products = \App\Models\Product::join('categories', 'products.category_id', '=', 'categories.id')->join('stores', 'products.store_id', '=', 'stores.id')->select('products.*', 'categories.categoryName', 'stores.storeName')->where('productName', 'LIKE', '%' . $this->search . '%')->get();
-        }
-        $this->stores = \App\Models\Store::all();
-        $this->categories = \App\Models\Category::all();
+
+
         return view('livewire.product');
     }
 }

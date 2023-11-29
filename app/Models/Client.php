@@ -17,7 +17,7 @@ class Client extends Model
 
     public function debts()
     {
-        return $this->hasMany(ClientDebt::class);
+        return $this->hasMany(SaleDebt::class);
     }
 
 }

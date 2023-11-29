@@ -152,10 +152,11 @@ class Safe extends Component
 
         $salesBalance = SaleDebt::where('type', 'pay')->get();
         $purchasesBalance = PurchaseDebt::where('type', 'pay')->get();
+        $saleDebts = SaleDebt::where("type", "debt")->whereNull("sale_id")->get();
         $employeeGiftsBalance = EmployeeGift::all();
         $expensesBalance = \App\Models\Expense::all();
 
-        $this->safeBalance = floatval($safe) + $salesBalance->where('payment', 'cash')->sum('paid') - $purchasesBalance->where('payment', 'cash')->sum('paid') - $expensesBalance->where('payment', 'cash')->sum('amount') - $employeeGiftsBalance->where('payment', 'cash')->sum('gift_amount') - $this->transfers->where('transfer_type', 'cash_to_bank')->sum('transfer_amount') + $this->transfers->where('transfer_type', 'bank_to_cash')->sum('transfer_amount');
+        $this->safeBalance = floatval($safe) + $salesBalance->where('payment', 'cash')->sum('paid') - $saleDebts->where('payment', 'cash')->sum("debt")  -  $purchasesBalance->where('payment', 'cash')->sum('paid') - $expensesBalance->where('payment', 'cash')->sum('amount') - $employeeGiftsBalance->where('payment', 'cash')->sum('gift_amount') - $this->transfers->where('transfer_type', 'cash_to_bank')->sum('transfer_amount') + $this->transfers->where('transfer_type', 'bank_to_cash')->sum('transfer_amount');
 
 //        $this->banksBalance = $salesBalance->where('payment', 'bank')->sum('paid') - $purchasesBalance->where('payment', 'bank')->sum('paid') - $this->transfers->where('transfer_type', 'bank_to_cash')->sum('transfer_amount') - $expensessBalance->where('payment', 'bank')->sum('amount') - $employeeGiftsBalance->where('payment', 'bank')->sum('gift_amount') + $this->transfers->where('transfer_type', 'cash_to_bank')->sum('transfer_amount');
 

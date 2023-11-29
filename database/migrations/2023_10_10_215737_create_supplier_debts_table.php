@@ -14,9 +14,9 @@ return new class extends Migration
         Schema::create('supplier_debts', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('supplier_id');
-            $table->foreign('supplier_id')->references('id')->on('suppliers');
+            $table->foreign('supplier_id')->references('id')->on('suppliers')->onDelete('cascade')->onUpdate('cascade');
            $table->unsignedBigInteger('purchase_id')->nullable();
-            $table->foreign('purchase_id')->references('id')->on('purchases');
+            $table->foreign('purchase_id')->references('id')->on('purchases')->onDelete('cascade')->onUpdate('cascade');
             $table->enum('type', ['debt', 'pay']);
             $table->decimal('debt', 10, 2);
             $table->decimal('paid', 10, 2);

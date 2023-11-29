@@ -2,14 +2,12 @@
 
 namespace App\Livewire;
 
-use App\Models\SaleDetail;
-use App\Models\SupplierDebt;
+use App\Models\SaleDebt;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
 
 use App\Models\Bank;
 use App\Models\PurchaseDebt;
 use App\Models\PurchaseDetail;
-use Cassandra\Date;
 use Illuminate\Database\Eloquent\Collection;
 use Livewire\Attributes\Rule;
 use Livewire\Component;
@@ -61,7 +59,7 @@ class Purchase extends Component
     public function mount()
     {
         if (\App\Models\Supplier::first()) {
-            $this->currentSupplier = \App\Models\Supplier::find(1)->toArray();
+            $this->currentSupplier = \App\Models\Supplier::first()->toArray();
             $supplier = PurchaseDebt::where('supplier_id', $this->currentSupplier['id'])->get();
             $this->currentBalance = $supplier->sum('debt') - $supplier->sum('paid') + $this->currentSupplier['initialBalance'];
         }
@@ -107,6 +105,7 @@ class Purchase extends Component
                     'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
                     'due_date' => $this->purchase_date,
                     'note' => 'تم دفع مبلغ',
+                    'purchase_id' => $purchase['id'],
                     'user_id' => auth()->id()
                 ]);
             }
@@ -181,16 +180,20 @@ class Purchase extends Component
 
     public function deleteFromCart($id)
     {
-        $this->total_amount -= $this->cart[$id]['amount'];
-        $this->paid = $this->total_amount;
+        $this->amount -= $this->cart[$id]['amount'];
 
-        $this->calcRemainder();
+        if ($this->paid) {
+            $this->paid = $this->amount;
+        }
+
         unset($this->cart[$id]);
         if (empty($this->cart)) {
             $this->remainder = 0;
             $this->paid = 0;
             $this->discount = 0;
         }
+        $this->calcRemainder();
+
     }
 
     public function showPurchases()
@@ -233,12 +236,18 @@ class Purchase extends Component
     public function cancelPurchase($data)
     {
         $id = $data['inputAttributes']['id'];
-        \App\Models\Purchase::where('id', $id)->delete();
         $items = PurchaseDetail::where('purchase_id', $id)->get();
         foreach ($items as $item) {
             \App\Models\Product::where('id', $item['product_id'])->decrement('stock', floatval(floatval($item['quantity'])));
             \App\Models\PurchaseDetail::where('id', $item['id'])->delete();
         }
+
+        \App\Models\Purchase::where('id', $id)->delete();
+
+        PurchaseDebt::where("purchase_id", $id)->where("type", "debt")->delete();
+
+        $paid = PurchaseDebt::where("purchase_id", $id)->where("type", "pay")->first();
+
 
         \App\Models\PurchaseDebt::create([
             'supplier_id' => $this->currentSupplier['id'],
@@ -252,7 +261,24 @@ class Purchase extends Component
             'note' => 'تم إلغاء الفاتوره رقم #' . $this->invoice['id'],
             'purchase_id' => $this->invoice['id'],
             'user_id' => auth()->id()
-        ]);
+        ])->delete();
+
+        if ($paid) {
+            \App\Models\SaleDebt::create([
+                'supplier_id' => $this->currentSupplier['id'],
+                'paid' => 0,
+                'debt' => $paid->paid,
+                'type' => 'debt',
+                'bank' => '',
+                'payment' => 'cash',
+                'bank_id' => null,
+                'due_date' => $this->purchase_date,
+                'note' => 'تم إلغاء الفاتوره رقم #' . $this->invoice['id'],
+                'sale_id' => $this->invoice['id'],
+                'user_id' => auth()->id()
+            ])->delete();
+            $paid->delete();
+        }
 
         $this->alert('success', 'تم الحفظ بنجاح', ['timerProgressBar' => true]);
 

@@ -234,7 +234,7 @@
                                         <div class="col-4 align-self-center"><h5>الفواتير</h5></div>
                                         <div class="col-8"><input autocomplete="off" type="text" id="purchaseSearch"
                                                                   placeholder="بحث ..."
-                                                                  wire:keydown.enter="chooseProduct({{$products[0]}})"
+                                                                  @if(isset($products[0])) wire:keydown.enter="chooseProduct({{$products[0]}})" @endif
                                                                   class="form-control"
                                                                   wire:model.live="purchaseSearch" autofocus></div>
                                     </div>

@@ -89,35 +89,124 @@ class Returns extends Component
 
         if ($this->id == 0) {
 
-            \App\Models\SaleDetail::where('id', $this->currentDetail['id'])->decrement('quantity', floatval($this->quantityReturn));
+            $client = SaleDebt::where("client_id", $this->currentClient['id'])->get();
+            $balance = $client->sum("debt") - $client->sum("paid") - $client->sum("discount");
 
             \App\Models\Product::where('id', $this->currentDetail['product_id'])->increment('stock', floatval($this->quantityReturn));
 
             $sale = \App\Models\Sale::where('id', $this->currentDetail['sale_id'])->first();
 
-            $sale->decrement('total_amount', $this->priceReturn);
+            $paid = SaleDebt::where("sale_id", $sale->id)->where("type", "pay")->first();
+            $oldSale = SaleDebt::where("sale_id", $sale->id)->where("type", "debt")->first();
+
+            if (floatval($sale["paid"]) == 0 || floatval($sale["paid"]) < $this->priceReturn) {
+                $salePaid = 0;
+            } else {
+                $salePaid = floatval($sale["paid"]) - $this->priceReturn;
+            }
+
+            $total_amount = $sale['total_amount'] - $this->priceReturn;
+            $remainder = $total_amount - $salePaid - $sale['discount'];
+            $newSale = \App\Models\Sale::create([
+                $this->buyer . '_id' => $this->currentClient['id'],
+                'paid' => $salePaid,
+                'remainder' => $remainder,
+                'discount' => $sale['discount'],
+                'total_amount' => $total_amount,
+                'sale_date' => $this->return_date,
+                'user_id' => auth()->id(),
+            ]);
+
+            foreach ($sale->saleDetails as $item) {
+                SaleDetail::create([
+                    'sale_id' => $newSale['id'],
+                    'product_id' => $item['product_id'],
+                    'quantity' => $this->currentDetail['product_id'] == $item['product_id'] ? floatval($item['quantity']) - floatval($this->quantityReturn) : floatval($item['quantity']),
+                    'price' => floatval($item['price']),
+                ]);
+            }
+
             \App\Models\SaleDebt::create([
                 $this->buyer . '_id' => $this->currentClient['id'],
-                'paid' => $this->priceReturn,
+                'paid' => $sale["total_amount"],
+                'sale_id' => $this->currentDetail['sale_id'],
                 'debt' => 0,
                 'type' => 'pay',
                 'bank' => '',
                 'payment' => 'cash',
                 'bank_id' => null,
                 'due_date' => $this->return_date,
-                'note' => 'تم إرجاع منتج من فاتوره رقم #' . $sale['id'],
+                'note' => 'تم إلغاء الفاتورة لإرجاع منتج بفاتورة رقم #' . $sale['id'],
+                'user_id' => auth()->id()
+            ])->delete();
+
+            if ($paid) {
+                if ($paid->paid == $sale['total_amount']) {
+                    \App\Models\SaleDebt::create([
+                        $this->buyer . '_id' => $this->currentClient['id'],
+                        'sale_id' => $this->currentDetail['sale_id'],
+                        'paid' => 0,
+                        'debt' => $paid->paid,
+                        'type' => 'debt',
+                        'bank' => '',
+                        'payment' => 'cash',
+                        'bank_id' => null,
+                        'due_date' => $this->return_date,
+                        'note' => 'تم إلغاء مدفوعات فاتورة رقم #' . $sale['id'],
+                        'user_id' => auth()->id()
+                    ])->delete();
+                }
+            }
+            $sale->decrement('total_amount', $this->priceReturn);
+
+            \App\Models\SaleDebt::create([
+                $this->buyer . '_id' => $this->currentClient['id'],
+                'sale_id' => $newSale['id'],
+                'paid' => 0,
+                'debt' => $total_amount,
+                'type' => 'debt',
+                'bank' => '',
+                'payment' => 'cash',
+                'bank_id' => null,
+                'due_date' => $this->return_date,
+                'note' => 'تم إصدار فاتورة جديده رقم #' . $newSale['id'],
                 'user_id' => auth()->id()
             ]);
 
+            if ($paid) {
+                if ($paid->paid == $sale['total_amount'] + $this->priceReturn) {
+                    \App\Models\SaleDebt::create([
+                        $this->buyer . '_id' => $this->currentClient['id'],
+                        'sale_id' => $newSale['id'],
+                        'paid' => $salePaid,
+                        'debt' => 0,
+                        'type' => 'pay',
+                        'bank' => '',
+                        'payment' => 'cash',
+                        'bank_id' => null,
+                        'due_date' => $this->return_date,
+                        'note' => 'تم تعديل مدفوعات فاتورة رقم #' . $newSale['id'],
+                        'user_id' => auth()->id()
+                    ]);
+                    $paid->delete();
+                }
+            }
+
+            if ($oldSale) {
+                $oldSale->delete();
+            }
+
             SaleReturn::create([
-                'sale_id' => $this->currentDetail['sale_id'],
+                'sale_id' => $newSale['id'],
                 'product_id' => $this->currentDetail['product_id'],
                 'quantity' => floatval($this->quantityReturn),
                 'return_date' => $this->return_date,
                 'price' => $this->currentDetail['price']
             ]);
 
-            $this->getReturns($this->currentSale);
+            $sale->delete();
+            $this->getReturns($newSale->toArray());
+
             $this->alert('success', 'تم الحفظ بنجاح', ['timerProgressBar' => true]);
         }
 
@@ -157,7 +246,7 @@ class Returns extends Component
             $this->clients = \App\Models\Employee::where('employeeName', 'LIKE', '%' . $this->clientSearch . '%')->get();
         }
         if (!empty($this->currentClient)) {
-            $this->sales = \App\Models\Sale::where($this->buyer.'_id', $this->currentClient['id'])->where('id', 'LIKE', '%' . $this->saleSearch . '%')->get();
+            $this->sales = \App\Models\Sale::where($this->buyer . '_id', $this->currentClient['id'])->where('id', 'LIKE', '%' . $this->saleSearch . '%')->get();
         }
         return view('livewire.returns');
     }

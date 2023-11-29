@@ -99,6 +99,7 @@ class Report extends Component
      */
     public float $currentSalesBalance = 0;
     public float $currentPurchasesBalance = 0;
+    public Collection $merged;
 
     public function chooseClient($client)
     {
@@ -171,6 +172,10 @@ class Report extends Component
                 }
             }
 
+            $this->sales = \App\Models\Client::get();
+
+            $this->purchases = \App\Models\Supplier::get();
+
             $this->salesDebts = $this->salesSum - $this->salesPaidSum;
 
             $this->purchasesDebts = $this->purchasesSum - $this->purchasesPaidSum;
@@ -221,7 +226,8 @@ class Report extends Component
 
             $this->currentPurchasesBalance = $this->purchasesBalance;
 
-
+            $this->merged = $this->saleDebts->merge($this->purchaseDebts);
+            $this->merged->sortBy('created_at');
         } elseif ($this->reportType == 'sales') {  // sale
             if ($this->reportDuration == 'day') {
                 if (!empty($this->currentProduct)) {
@@ -316,7 +322,6 @@ class Report extends Component
     {
         Artisan::call("backup:run  --only-db");
         $this->alert('success', 'تم النسخ الإحتياطي بنجاح', ['timerProgressBar' => true]);
-
     }
 
     public function render()

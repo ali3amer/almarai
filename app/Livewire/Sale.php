@@ -62,7 +62,7 @@ class Sale extends Component
     public function mount()
     {
         if (\App\Models\Client::first() != null) {
-            $this->currentClient = \App\Models\Client::find(1)->toArray();
+            $this->currentClient = \App\Models\Client::first()->toArray();
             $client = SaleDebt::where('client_id', $this->currentClient['id'])->get();
             $this->currentBalance = $client->sum('debt') - $client->sum('paid') + $this->currentClient['initialBalance'];
         }
@@ -107,6 +107,7 @@ class Sale extends Component
                     'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
                     'due_date' => $this->sale_date,
                     'note' => 'تم إستلام مبلغ',
+                    'sale_id' => $sale['id'],
                     'user_id' => auth()->id()
                 ]);
             }
@@ -162,11 +163,13 @@ class Sale extends Component
 
     public function chooseProduct($product)
     {
-        $this->currentProduct = $product;
-        $this->currentProduct['quantity'] = 1;
-        $this->currentProduct['price'] = $product['sale_price'];
-        $this->currentProduct['amount'] = $product['sale_price'];
-        $this->productSearch = '';
+        if ($product["stock"] > 0) {
+            $this->currentProduct = $product;
+            $this->currentProduct['quantity'] = 1;
+            $this->currentProduct['price'] = $product['sale_price'];
+            $this->currentProduct['amount'] = $product['sale_price'];
+            $this->productSearch = '';
+        }
 
     }
 
@@ -179,30 +182,53 @@ class Sale extends Component
     public function addToCart()
     {
         if (!isset($this->cart[$this->currentProduct['id']])) {
-            $this->cart[$this->currentProduct['id']] = $this->currentProduct;
-            $this->cart[$this->currentProduct['id']]['amount'] = floatval($this->currentProduct['price']) * floatval($this->currentProduct['quantity']);
-            $this->amount += $this->cart[$this->currentProduct['id']]['amount'];
-            if ($this->currentClient['id'] == 1) {
-                $this->paid = $this->amount - $this->discount;
-            }
-            $this->currentProduct = [];
-            $this->calcRemainder();
-        }
 
+            if ($this->currentProduct["quantity"] > $this->products[$this->currentProduct['id']]["stock"])
+            {
+                $this->confirm("العدد المطلوب من " . $this->currentProduct['productName'] . " غير متوفر لايوجد سوى " . $this->currentProduct['stock'], [
+                    'toast' => false,
+                    'showConfirmButton' => false,
+                    'confirmButtonText' => 'موافق',
+                    'onConfirmed' => "cancelSale",
+                    'showCancelButton' => true,
+                    'cancelButtonText' => 'إلغاء',
+                    'confirmButtonColor' => '#dc2626',
+                    'cancelButtonColor' => '#4b5563'
+                ]);
+            } else {
+                $this->cart[$this->currentProduct['id']] = $this->currentProduct;
+
+                $this->cart[$this->currentProduct['id']]['amount'] = floatval($this->currentProduct['price']) * floatval($this->currentProduct['quantity']);
+
+                $this->amount += $this->cart[$this->currentProduct['id']]['amount'];
+                if ($this->currentClient['id'] == 1 && $this->buyer == "client") {
+                    $this->paid = $this->amount - $this->discount;
+                }
+
+                $this->currentProduct = [];
+                $this->calcRemainder();
+            }
+
+        }
     }
 
     public function deleteFromCart($id)
     {
-        $this->total_amount -= $this->cart[$id]['amount'];
-        $this->paid = $this->total_amount;
+        $this->amount -= $this->cart[$id]['amount'];
 
-        $this->calcRemainder();
+
+//        if ($this->paid) {
+//            $this->paid = $this->amount;
+//        }
+
         unset($this->cart[$id]);
         if (empty($this->cart)) {
             $this->remainder = 0;
             $this->paid = 0;
             $this->discount = 0;
         }
+        $this->calcRemainder();
+
     }
 
     public function showSales()
@@ -245,13 +271,17 @@ class Sale extends Component
     public function cancelSale($data)
     {
         $id = $data['inputAttributes']['id'];
-        \App\Models\Sale::where('id', $id)->delete();
+
         $items = SaleDetail::where('sale_id', $id)->get();
         foreach ($items as $item) {
             \App\Models\Product::where('id', $item['product_id'])->increment('stock', floatval($item['quantity']));
             \App\Models\SaleDetail::where('id', $item['id'])->delete();
         }
 
+        \App\Models\Sale::where('id', $id)->delete();
+
+        SaleDebt::where("sale_id", $id)->where("type", "debt")->delete();
+        $paid = SaleDebt::where("sale_id", $id)->where("type", "pay")->first();
         \App\Models\SaleDebt::create([
             $this->buyer . '_id' => $this->currentClient['id'],
             'paid' => $this->invoice['total_amount'],
@@ -264,7 +294,25 @@ class Sale extends Component
             'note' => 'تم إلغاء الفاتوره رقم #' . $this->invoice['id'],
             'sale_id' => $this->invoice['id'],
             'user_id' => auth()->id()
-        ]);
+        ])->delete();
+
+
+        if ($paid) {
+            \App\Models\SaleDebt::create([
+                $this->buyer . '_id' => $this->currentClient['id'],
+                'paid' => 0,
+                'debt' => $paid->paid,
+                'type' => 'debt',
+                'bank' => '',
+                'payment' => 'cash',
+                'bank_id' => null,
+                'due_date' => $this->sale_date,
+                'note' => 'تم إلغاء الفاتوره رقم #' . $this->invoice['id'],
+                'sale_id' => $this->invoice['id'],
+                'user_id' => auth()->id()
+            ])->delete();
+            $paid->delete();
+        }
 
         $this->alert('success', 'تم الإلغاء بنجاح', ['timerProgressBar' => true]);
 
@@ -273,7 +321,7 @@ class Sale extends Component
     public function calcRemainder()
     {
         $this->total_amount = $this->amount - floatval($this->discount);
-        if ($this->currentClient['id'] == 1) {
+        if ($this->currentClient['id'] == 1 && $this->buyer == "client") {
             $this->paid = $this->total_amount;
         } else {
             $this->remainder = floatval($this->total_amount) - floatval($this->paid);
@@ -303,7 +351,7 @@ class Sale extends Component
         } elseif ($this->buyer == 'supplier') {
             $this->clients = \App\Models\Supplier::where('supplierName', 'LIKE', '%' . $this->clientSearch . '%')->get();
         }
-        $this->products = \App\Models\Product::where('productName', 'LIKE', '%' . $this->productSearch . '%')->get();
+        $this->products = \App\Models\Product::where('productName', 'LIKE', '%' . $this->productSearch . '%')->get()->keyBy("id");
         return view('livewire.sale');
     }
 }

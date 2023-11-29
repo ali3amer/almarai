@@ -137,10 +137,17 @@ class Supplier extends Component
         $this->alert('success', 'تم الحذف بنجاح', ['timerProgressBar' => true]);
     }
 
-    public function showDebts($supplier)
+    public function showDebts($supplier = null)
     {
+        if ($supplier == null) {
+            $supplier = $this->currentSupplier;
+        }
         $this->currentSupplier = $supplier;
-        $this->debts = PurchaseDebt::where('supplier_id', $supplier['id'])->get();
+        if ($this->debtType == 'purchases') {
+            $this->debts = PurchaseDebt::where('supplier_id', $supplier['id'])->withTrashed()->get();
+        } else {
+            $this->debts = SaleDebt::where('supplier_id', $supplier['id'])->withTrashed()->get();
+        }
         $this->currentBalance = $this->debts->sum('debt') - $this->debts->sum('paid') - $this->debts->sum('discount') + $this->currentSupplier[$this->debtType == 'purchases' ? 'initialBalance' : 'initialSalesBalance'];
     }
 
@@ -174,21 +181,19 @@ class Supplier extends Component
                 }
 
                 if (floatval($this->discount) != 0) {
-                    if (floatval($this->debt_amount) != 0) {
-                        PurchaseDebt::create([
-                            'supplier_id' => $this->currentSupplier['id'],
-                            'type' => $this->type,
-                            'debt' => 0,
-                            'paid' => 0,
-                            'discount' => $this->discount,
-                            'payment' => 'cash',
-                            'bank_id' => null,
-                            'bank' => '',
-                            'due_date' => $this->due_date,
-                            'note' => "تم تخفيض مبلغ " . $this->discount,
-                            'user_id' => auth()->id(),
-                        ]);
-                    }
+                    PurchaseDebt::create([
+                        'supplier_id' => $this->currentSupplier['id'],
+                        'type' => $this->type,
+                        'debt' => 0,
+                        'paid' => 0,
+                        'discount' => $this->discount,
+                        'payment' => 'cash',
+                        'bank_id' => null,
+                        'bank' => '',
+                        'due_date' => $this->due_date,
+                        'note' => "تم تخفيض مبلغ ",
+                        'user_id' => auth()->id(),
+                    ]);
                 }
             } else {
                 SaleDebt::create([
@@ -245,6 +250,8 @@ class Supplier extends Component
             $this->alert('success', 'تم تعديل الدفعيه بنجاح', ['timerProgressBar' => true]);
 
         }
+        $this->showDebts($this->currentSupplier);
+
     }
 
     public function chooseDebt($debt)
@@ -286,7 +293,7 @@ class Supplier extends Component
 
     public function resetData($data = null)
     {
-        $this->reset('type', 'debt_amount', 'debtId', 'payment', 'bank', 'due_date', 'blocked', 'note', $data);
+        $this->reset('type', 'debt_amount', 'debtId', 'payment', 'bank', 'due_date', 'blocked', 'discount', 'note', $data);
     }
 
     public function render()
@@ -299,14 +306,6 @@ class Supplier extends Component
             $this->startingDate = date('Y-m-d');
         }
 
-        if (!empty($this->currentSupplier)) {
-            if ($this->debtType == 'purchases') {
-                $this->debts = PurchaseDebt::where('supplier_id', $this->currentSupplier['id'])->get();
-            } else {
-                $this->debts = SaleDebt::where('supplier_id', $this->currentSupplier['id'])->get();
-            }
-            $this->currentBalance = $this->debts->sum('debt') - $this->debts->sum('paid') - $this->debts->sum('discount') + $this->currentSupplier[$this->debtType == 'purchases' ? 'initialBalance' : 'initialSalesBalance'];
-        }
         $this->suppliers = \App\Models\Supplier::where('supplierName', 'like', '%' . $this->search . '%')->orWhere('phone', 'like', '%' . $this->search . '%')->get();
         return view('livewire.supplier');
     }
