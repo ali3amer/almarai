@@ -24,11 +24,12 @@ class Employee extends Component
     ];
     public string $title = 'الموظفين';
     public int $id = 0;
-    public int|null $bank_id = 0;
+    public $bank_id = null;
     public string $employeeName = '';
     public $salary = 0;
     public $paid = 0;
     public $remainder = 0;
+    public $startingDate;
     public Collection $debts;
     public array $oldDebts = [];
     public Collection $details;
@@ -56,7 +57,10 @@ class Employee extends Component
     public $debt_amount = 0;
     public string $due_date = '';
     public $discount = 0;
-
+    public bool $create = false;
+    public bool $read = false;
+    public bool $update = false;
+    public bool $delete = false;
     protected function rules()
     {
         return [
@@ -72,19 +76,37 @@ class Employee extends Component
         ];
     }
 
+    public function mount()
+    {
 
+        $user = auth()->user();
+        $this->create = $user->hasPermission('employees-create');
+        $this->read = $user->hasPermission('employees-read');
+        $this->update = $user->hasPermission('employees-update');
+        $this->delete = $user->hasPermission('employees-delete');
+
+        $this->banks = Bank::all();
+        if ($this->banks->count() != 0) {
+            $this->bank_id = $this->banks->first()->id;
+        }
+
+        $this->startingDate = session("date");
+
+
+    }
     public function save($id)
     {
 
         if ($this->validate()) {
             if ($this->id == 0) {
-                \App\Models\Employee::create(['employeeName' => $this->employeeName, 'salary' => $this->salary]);
+                \App\Models\Employee::create(['employeeName' => $this->employeeName, 'salary' => $this->salary, "startingDate" => $this->startingDate]);
                 $this->alert('success', 'تم الحفظ بنجاح', ['timerProgressBar' => true]);
 
             } else {
                 $employee = \App\Models\Employee::find($id);
                 $employee->employeeName = $this->employeeName;
                 $employee->salary = $this->salary;
+                $employee->startingDate = $this->startingDate;
                 $employee->save();
                 $this->alert('success', 'تم التعديل بنجاح', ['timerProgressBar' => true]);
             }
@@ -101,6 +123,7 @@ class Employee extends Component
         $this->id = $employee['id'];
         $this->employeeName = $employee['employeeName'];
         $this->salary = $employee['salary'];
+        $this->startingDate = $employee['startingDate'];
     }
 
     public function deleteMessage($employee)
@@ -160,7 +183,7 @@ class Employee extends Component
     public function getGifts($employee)
     {
         $this->currentEmployee = $employee;
-        $this->gift_date = date('Y-m-d');
+        $this->gift_date = session("date");
         $this->gift_amount = $this->currentEmployee['salary'];
         $this->gifts = EmployeeGift::where('employee_id', $this->currentEmployee['id'])->get();
         $this->debts = SaleDebt::where('employee_id', $this->currentEmployee['id'])->get();
@@ -198,58 +221,72 @@ class Employee extends Component
 
     public function payGift()
     {
-        if ($this->gift_amount != 0) {
-            $gift = EmployeeGift::create([
-                'employee_id' => $this->currentEmployee['id'],
-                'payment' => $this->payment,
-                'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
-                'gift_amount' => $this->paid != 0 ? $this->remainder : $this->gift_amount,
-                'gift_date' => $this->gift_date,
-                'note' => $this->note
+        if (floatval($this->remainder) > floatval(session($this->payment == "cash" ? "safeBalance" : "bankBalance"))) {
+            $this->confirm("المبلغ المدفوع أكبر من المبلغ المتوفر", [
+                'toast' => false,
+                'showConfirmButton' => false,
+                'confirmButtonText' => 'موافق',
+                'onConfirmed' => "cancelSale",
+                'showCancelButton' => true,
+                'cancelButtonText' => 'إلغاء',
+                'confirmButtonColor' => '#dc2626',
+                'cancelButtonColor' => '#4b5563'
             ]);
+        } else {
+            if ($this->gift_amount != 0) {
+                $gift = EmployeeGift::create([
+                    'employee_id' => $this->currentEmployee['id'],
+                    'payment' => $this->payment,
+                    'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
+                    'gift_amount' => $this->paid != 0 ? $this->remainder : $this->gift_amount,
+                    'gift_date' => $this->gift_date,
+                    'note' => $this->note
+                ]);
+            }
+
+            if ($this->paid != 0) {
+                $type = 'pay';
+                $note = $this->gift_amount == 0 ? 'تم إستلام مبلغ' : 'تم إستلام مبلغ من المرتب';
+                $paid = $this->paid;
+                $debt = 0;
+
+                SaleDebt::create([
+                    'Employee_id' => $this->currentEmployee['id'],
+                    'type' => $type,
+                    'debt' => $debt,
+                    'paid' => $paid,
+                    'payment' => $this->payment,
+                    'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
+                    'bank' => $this->bank,
+                    'due_date' => $this->gift_date,
+                    'note' => $this->note == '' ? $note : $this->note,
+                    'user_id' => auth()->id(),
+                ]);
+            }
+
+            if (floatval($this->discount) != 0) {
+                SaleDebt::create([
+                    'Employee_id' => $this->currentEmployee['id'],
+                    'type' => 'pay',
+                    'debt' => 0,
+                    'paid' => 0,
+                    'discount' => $this->discount,
+                    'payment' => 'cash',
+                    'bank_id' => null,
+                    'bank' => '',
+                    'due_date' => $this->gift_date,
+                    'note' =>  "تم تخفيض مبلغ " . $this->discount,
+                    'user_id' => auth()->id(),
+                ]);
+            }
+
+            $this->getGifts($this->currentEmployee);
+
+            $this->alert('success', 'تم الدفع بنجاح', ['timerProgressBar' => true]);
+
+            $this->resetData();
+
         }
-
-        if ($this->paid != 0) {
-            $type = 'pay';
-            $note = $this->gift_amount == 0 ? 'تم إستلام مبلغ' : 'تم إستلام مبلغ من المرتب';
-            $paid = $this->paid;
-            $debt = 0;
-
-            SaleDebt::create([
-                'Employee_id' => $this->currentEmployee['id'],
-                'type' => $type,
-                'debt' => $debt,
-                'paid' => $paid,
-                'payment' => $this->payment,
-                'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
-                'bank' => $this->bank,
-                'due_date' => $this->gift_date,
-                'note' => $this->note == '' ? $note : $this->note,
-                'user_id' => auth()->id(),
-            ]);
-        }
-
-        if (floatval($this->discount) != 0) {
-            SaleDebt::create([
-                'Employee_id' => $this->currentEmployee['id'],
-                'type' => 'pay',
-                'debt' => 0,
-                'paid' => 0,
-                'discount' => $this->discount,
-                'payment' => 'cash',
-                'bank_id' => null,
-                'bank' => '',
-                'due_date' => $this->gift_date,
-                'note' =>  "تم تخفيض مبلغ " . $this->discount,
-                'user_id' => auth()->id(),
-            ]);
-        }
-
-        $this->getGifts($this->currentEmployee);
-
-        $this->alert('success', 'تم الدفع بنجاح', ['timerProgressBar' => true]);
-
-        $this->resetData();
 
     }
 

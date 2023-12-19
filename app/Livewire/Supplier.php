@@ -34,7 +34,7 @@ class Supplier extends Component
     public $debt_amount = 0;
     public string $bank = '';
     public Collection $banks;
-    public null|int $bank_id = 1;
+    public null|int $bank_id = null;
     public Collection $suppliers;
     public array $currentSupplier = [];
     public Collection $debts;
@@ -47,6 +47,10 @@ class Supplier extends Component
     public float $currentBalance = 0;
     public array $currentDebt = [];
     public $initialSalesBalance = 0;
+    public bool $create = false;
+    public bool $read = false;
+    public bool $update = false;
+    public bool $delete = false;
 
     protected function rules()
     {
@@ -66,6 +70,15 @@ class Supplier extends Component
     public function mount()
     {
         $this->banks = Bank::all();
+        if ($this->banks->count() != 0) {
+            $this->bank_id = $this->banks->first()->id;
+        }
+        $user = auth()->user();
+        $this->create = $user->hasPermission('suppliers-create');
+        $this->read = $user->hasPermission('suppliers-read');
+        $this->update = $user->hasPermission('suppliers-update');
+        $this->delete = $user->hasPermission('suppliers-delete');
+
     }
 
     public function save($id)
@@ -159,14 +172,74 @@ class Supplier extends Component
                 $debt = $this->debt_amount;
                 $paid = 0;
             } else {
-                $note = 'تم إستلام مبلغ';
+                $note = 'تم دفع مبلغ';
                 $paid = $this->debt_amount;
                 $debt = 0;
             }
 
             if ($this->debtType == 'purchases') {
-                if (floatval($this->debt_amount) != 0) {
-                    PurchaseDebt::create([
+                if ($this->type == "pay" && floatval($this->debt_amount) > floatval(session($this->payment == "cash" ? "safeBalance" : "bankBalance"))) {
+                    $this->confirm("المبلغ المدفوع أكبر من المبلغ المتوفر", [
+                        'toast' => false,
+                        'showConfirmButton' => false,
+                        'confirmButtonText' => 'موافق',
+                        'onConfirmed' => "cancelSale",
+                        'showCancelButton' => true,
+                        'cancelButtonText' => 'إلغاء',
+                        'confirmButtonColor' => '#dc2626',
+                        'cancelButtonColor' => '#4b5563'
+                    ]);
+
+                } else {
+                    if (floatval($this->debt_amount) != 0) {
+                        PurchaseDebt::create([
+                            'supplier_id' => $this->currentSupplier['id'],
+                            'type' => $this->type,
+                            'debt' => $debt,
+                            'paid' => $paid,
+                            'payment' => $this->payment,
+                            'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
+                            'bank' => $this->bank,
+                            'due_date' => $this->due_date,
+                            'note' => $this->note == '' ? $note : $this->note,
+                            'user_id' => auth()->id(),
+                        ]);
+                    }
+
+                    if (floatval($this->discount) != 0) {
+                        PurchaseDebt::create([
+                            'supplier_id' => $this->currentSupplier['id'],
+                            'type' => $this->type,
+                            'debt' => 0,
+                            'paid' => 0,
+                            'discount' => $this->discount,
+                            'payment' => 'cash',
+                            'bank_id' => null,
+                            'bank' => '',
+                            'due_date' => $this->due_date,
+                            'note' => "تم تخفيض مبلغ ",
+                            'user_id' => auth()->id(),
+                        ]);
+                    }
+
+                    $this->resetData();
+
+                    $this->alert('success', 'تم السداد بنجاح', ['timerProgressBar' => true]);
+                }
+            } else {
+                if ($this->type == "debt" && floatval($this->debt_amount) > floatval(session($this->payment == "cash" ? "safeBalance" : "bankBalance"))) {
+                    $this->confirm("المبلغ المدفوع أكبر من المبلغ المتوفر", [
+                        'toast' => false,
+                        'showConfirmButton' => false,
+                        'confirmButtonText' => 'موافق',
+                        'onConfirmed' => "cancelSale",
+                        'showCancelButton' => true,
+                        'cancelButtonText' => 'إلغاء',
+                        'confirmButtonColor' => '#dc2626',
+                        'cancelButtonColor' => '#4b5563'
+                    ]);
+                } else {
+                    SaleDebt::create([
                         'supplier_id' => $this->currentSupplier['id'],
                         'type' => $this->type,
                         'debt' => $debt,
@@ -178,58 +251,28 @@ class Supplier extends Component
                         'note' => $this->note == '' ? $note : $this->note,
                         'user_id' => auth()->id(),
                     ]);
-                }
 
-                if (floatval($this->discount) != 0) {
-                    PurchaseDebt::create([
-                        'supplier_id' => $this->currentSupplier['id'],
-                        'type' => $this->type,
-                        'debt' => 0,
-                        'paid' => 0,
-                        'discount' => $this->discount,
-                        'payment' => 'cash',
-                        'bank_id' => null,
-                        'bank' => '',
-                        'due_date' => $this->due_date,
-                        'note' => "تم تخفيض مبلغ ",
-                        'user_id' => auth()->id(),
-                    ]);
-                }
-            } else {
-                SaleDebt::create([
-                    'supplier_id' => $this->currentSupplier['id'],
-                    'type' => $this->type,
-                    'debt' => $debt,
-                    'paid' => $paid,
-                    'payment' => $this->payment,
-                    'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
-                    'bank' => $this->bank,
-                    'due_date' => $this->due_date,
-                    'note' => $this->note == '' ? $note : $this->note,
-                    'user_id' => auth()->id(),
-                ]);
+                    if (floatval($this->discount) != 0) {
+                        SaleDebt::create([
+                            'supplier_id' => $this->currentSupplier['id'],
+                            'type' => $this->type,
+                            'debt' => 0,
+                            'paid' => 0,
+                            'discount' => $this->discount,
+                            'payment' => 'cash',
+                            'bank_id' => null,
+                            'bank' => '',
+                            'due_date' => $this->due_date,
+                            'note' => "تم تخفيض مبلغ " . $this->discount,
+                            'user_id' => auth()->id(),
+                        ]);
+                    }
 
-                if (floatval($this->discount) != 0) {
-                    SaleDebt::create([
-                        'supplier_id' => $this->currentSupplier['id'],
-                        'type' => $this->type,
-                        'debt' => 0,
-                        'paid' => 0,
-                        'discount' => $this->discount,
-                        'payment' => 'cash',
-                        'bank_id' => null,
-                        'bank' => '',
-                        'due_date' => $this->due_date,
-                        'note' => "تم تخفيض مبلغ " . $this->discount,
-                        'user_id' => auth()->id(),
-                    ]);
-                }
+                    $this->resetData();
 
+                    $this->alert('success', 'تم السداد بنجاح', ['timerProgressBar' => true]);
+                }
             }
-
-            $this->resetData();
-
-            $this->alert('success', 'تم السداد بنجاح', ['timerProgressBar' => true]);
 
         } else {
             $debt = PurchaseDebt::where('id', $this->debtId)->first();
@@ -299,11 +342,11 @@ class Supplier extends Component
     public function render()
     {
         if ($this->due_date == '') {
-            $this->due_date = date('Y-m-d');
+            $this->due_date = session("date");
         }
 
         if ($this->startingDate == '') {
-            $this->startingDate = date('Y-m-d');
+            $this->startingDate = session("date");
         }
 
         $this->suppliers = \App\Models\Supplier::where('supplierName', 'like', '%' . $this->search . '%')->orWhere('phone', 'like', '%' . $this->search . '%')->get();

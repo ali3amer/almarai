@@ -106,7 +106,8 @@
         </div>
     </div>
 
-    <x-title :$title/>
+        <x-title :$title/>
+{{--    <livewire:Title :$title />--}}
 
     <div class="row my-2">
         <div class="col-4">

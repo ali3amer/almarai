@@ -57,7 +57,8 @@
     </div>
 
 
-    <x-title :$title></x-title>
+        <x-title :$title/>
+{{--    <livewire:Title :$title />--}}
 
     <div class="row mt-2">
         @if(empty($currentClient))
@@ -102,7 +103,7 @@
 
                             <div class="d-grid mt-2">
                                 <button
-                                    @disabled(!Auth::user()->hasPermission('clients-create')) class="btn btn- btn-{{$id == 0 ? 'primary' : 'success'}}">{{$id == 0 ? 'حفـــــــــــــــــــظ' : 'تعـــــــــــــــــديل'}}</button>
+                                    @disabled(!$create) class="btn btn- btn-{{$id == 0 ? 'primary' : 'success'}}">{{$id == 0 ? 'حفـــــــــــــــــــظ' : 'تعـــــــــــــــــديل'}}</button>
                             </div>
                         </form>
                     </div>
@@ -116,7 +117,7 @@
                     </div>
 
                     <div class="card-body">
-                        @if(count($clients) > 0 && Auth::user()->hasPermission('clients-read'))
+                        @if(count($clients) > 0 && $read)
                             <div class="scroll">
                                 <table class="table text-center">
                                     <thead>
@@ -125,6 +126,7 @@
                                         <th>إسم العميل</th>
                                         <th>الهاتف</th>
                                         <th>الرصيد الافتتاحي</th>
+                                        <th>نقدي</th>
                                         <th>التحكم</th>
                                     </tr>
                                     </thead>
@@ -135,25 +137,32 @@
                                             <td>{{ $client->clientName }}</td>
                                             <td>{{ $client->phone }}</td>
                                             <td>{{ number_format($client->initialBalance, 2) }}</td>
+                                            <td>{{ $client->cash ? "نعم" : "لا" }}</td>
                                             <td>
                                                 <button
-                                                    @disabled(!Auth::user()->hasPermission('clients-update')) class="btn btn-sm btn-info text-white"
+                                                    @disabled(!$update) class="btn btn-sm btn-info text-white"
                                                     wire:click="edit({{$client}})"><i class="bi bi-pen"></i></button>
                                                 /
                                                 <button
-                                                    @disabled(!Auth::user()->hasPermission('clients-delete') || count($client->sales) > 0) class="btn btn-sm btn-danger"
+                                                    @disabled(!$delete || count($client->sales) > 0) class="btn btn-sm btn-danger"
                                                     wire:click="deleteMessage({{$client}})"><i class="bi bi-trash"></i>
                                                 </button>
                                                 /
-                                                <button class="btn btn-sm btn-warning text-white"
+                                                <button @disabled(!$update) class="btn btn-sm btn-warning text-white"
                                                         wire:click="showDebts({{$client}})"><i class="bi bi-eye"></i>
                                                 </button>
 
                                                 /
-                                                <button
+                                                <button  @disabled(!$update)
                                                     class="btn btn-sm btn-{{$client->blocked ? 'danger' : 'success'}} text-white"
                                                     wire:click="changeBlocked({{$client}})"><i
                                                         class="bi bi-{{$client->blocked ? 'lock' : 'unlock'}}"></i>
+                                                </button>
+
+                                                <button  @disabled(!$update)
+                                                         class="btn btn-sm btn-{{$client->cash ? 'danger' : 'primary'}} text-white"
+                                                         wire:click="changeCash({{$client}})"><i
+                                                        class="bi bi-{{$client->cash ? 'cash' : 'cash'}}"></i>
                                                 </button>
                                             </td>
                                         </tr>
@@ -208,7 +217,7 @@
                             </div>
                             <div class="col-6">
                                 <label for="payment">طريقة الدفع</label>
-                                <select class="form-select text-center" wire:model.live="payment">
+                                <select @disabled($banks->count() == 0) class="form-select text-center" wire:model.live="payment">
                                     <option value="cash">كاش</option>
                                     <option value="bank">بنك</option>
                                 </select>
@@ -255,7 +264,7 @@
                         </div>
 
 
-                        <button
+                        <button data-bs-toggle="modal" data-bs-target="#debtModal"
                             @disabled($payment == "bank" && $banks->count() == 0) @disabled(empty($currentClient) || $due_date == '') @disabled($debt_amount == 0 && $discount == 0) class="btn btn-{{$debtId == 0 ? 'primary' : 'success'}} w-100"
                             wire:click="saveDebt()">{{$debtId == 0 ? 'دفــــع' : 'تعــــديل'}}</button>
 

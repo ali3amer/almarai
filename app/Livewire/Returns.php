@@ -236,7 +236,7 @@ class Returns extends Component
     public function render()
     {
         if ($this->return_date == '') {
-            $this->return_date = date('Y-m-d');
+            $this->return_date = session("date");
         }
         if ($this->buyer == 'client') {
             $this->clients = \App\Models\Client::where('clientName', 'LIKE', '%' . $this->clientSearch . '%')->get();

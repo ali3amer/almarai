@@ -23,6 +23,17 @@ class ProductForm extends Form
     public float $purchase_price = 0;
     public float $stock = 0;
 
+    public function setProduct(Product $product)
+    {
+        $this->id = $product->id;
+        $this->productName = $product->productName;
+        $this->unit = $product->unit;
+        $this->store_id = $product->store_id;
+        $this->category_id = $product->category_id;
+        $this->sale_price = $product->sale_price;
+        $this->purchase_price = $product->purchase_price;
+        $this->stock = $product->stock;
+    }
     public function store()
     {
         Product::create($this->all());

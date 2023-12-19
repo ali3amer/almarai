@@ -1,5 +1,7 @@
 <div>
-    <x-title :$title></x-title>
+
+        <x-title :$title/>
+{{--    <livewire:Title :$title />--}}
 
     <div class="row mt-2">
 
@@ -45,12 +47,12 @@
                             @error('form.category_id') <span class="error text-danger">{{ $message }}</span> @enderror
                         </div>
 
-                        <label for="sale_price" class="form-label">سعر البيع</label>
-                        <input type="text" autocomplete="off" wire:model="form.sale_price"
-                               class="form-control @error('form.sale_price') is-invalid @enderror"
-                               placeholder="السعر البيع..." id="sale_price">
+                        <label for="stock" class="form-label">الكمية</label>
+                        <input type="text" autocomplete="off" wire:model="form.stock"
+                               class="form-control @error('form.stock') is-invalid @enderror"
+                               placeholder="الكمية ..." id="stock">
                         <div>
-                            @error('form.sale_price') <span class="error text-danger">{{ $message }}</span> @enderror
+                            @error('form.stock') <span class="error text-danger">{{ $message }}</span> @enderror
                         </div>
 
                         <label for="purchase_price" class="form-label">سعر الجرد</label>
@@ -62,19 +64,17 @@
                                 class="error text-danger">{{ $message }}</span> @enderror
                         </div>
 
-                        @if($form->id == 0)
-                            <label for="stock" class="form-label">الكمية</label>
-                            <input type="text" autocomplete="off" wire:model="form.stock"
-                                   class="form-control @error('form.stock') is-invalid @enderror"
-                                   placeholder="الكمية ..." id="stock">
-                            <div>
-                                @error('form.stock') <span class="error text-danger">{{ $message }}</span> @enderror
-                            </div>
-                        @endif
+                        <label for="sale_price" class="form-label">سعر البيع</label>
+                        <input type="text" autocomplete="off" wire:model="form.sale_price"
+                               class="form-control @error('form.sale_price') is-invalid @enderror"
+                               placeholder="السعر البيع..." id="sale_price">
+                        <div>
+                            @error('form.sale_price') <span class="error text-danger">{{ $message }}</span> @enderror
+                        </div>
 
                         <div class="d-grid mt-2">
                             <button
-                                @disabled(!Auth::user()->hasPermission('products-create')) class="btn btn- btn-{{$form->id == 0 ? 'primary' : 'success'}}">{{$form->id == 0 ? 'حفــــــــــــــــظ' : 'تعـــــــــــــديل'}}</button>
+                                @disabled(!$create) class="btn btn- btn-{{$form->id == 0 ? 'primary' : 'success'}}">{{$form->id == 0 ? 'حفــــــــــــــــظ' : 'تعـــــــــــــديل'}}</button>
                         </div>
 
                     </form>
@@ -87,7 +87,8 @@
                 <div class="card-header">
                     <div class="row">
                         <div class="col-4">
-                            <input wire:keydown="searchProduct()" wire:model.live="search" class="form-control" placeholder="بحث ......">
+                            <input wire:keydown="searchProduct()" wire:model.live="search" class="form-control"
+                                   placeholder="بحث ......">
                         </div>
                         <div class="col-4">
                             <select wire:change="searchProduct()" class="form-select" wire:model.live="store_id">
@@ -108,7 +109,7 @@
                     </div>
                 </div>
                 <div class="card-body">
-                    @if(!empty($products) && Auth::user()->hasPermission('products-read'))
+                    @if(!empty($products) && $read)
                         <div class="scroll">
                             <table class="table text-center">
                                 <thead>
@@ -118,8 +119,8 @@
                                     <th>الوحده</th>
                                     <th>المخزن</th>
                                     <th>القسم</th>
-                                    <th>سعر البيع</th>
                                     <th>سعر الجرد</th>
+                                    <th>سعر البيع</th>
                                     <th>الكميه</th>
                                     <th>التحكم</th>
                                 </tr>
@@ -130,20 +131,20 @@
                                         <td>{{ $loop->index + 1}}</td>
                                         <td>{{ $product->productName }}</td>
                                         <td>{{ $product->unit }}</td>
-                                        <td>{{ $product->storeName }}</td>
-                                        <td>{{ $product->categoryName }}</td>
-                                        <td>{{ number_format($product->sale_price, 2) }}</td>
+                                        <td>{{ $stores[$product->store_id]['storeName'] }}</td>
+                                        <td>{{ $categories[$product->category_id]['categoryName'] }}</td>
                                         <td>{{ number_format($product->purchase_price, 2) }}</td>
+                                        <td>{{ number_format($product->sale_price, 2) }}</td>
                                         <td>{{ number_format($product->stock, 2) }}</td>
                                         <td>
                                             <button
-                                                @disabled(!Auth::user()->hasPermission('products-update'))  class="btn btn-sm btn-info text-white"
-                                                wire:click="edit({{$product}})">
+                                                @disabled(!$update)  class="btn btn-sm btn-info text-white"
+                                                wire:click="edit({{$product->id}})">
                                                 <i class="bi bi-pen"></i>
                                             </button>
                                             /
                                             <button
-                                                @disabled(!Auth::user()->hasPermission('products-delete') || count($product->saleDetails) > 0 || count($product->purchaseDetails) > 0) class="btn btn-sm btn-danger"
+                                                @disabled((!$delete)) class="btn btn-sm btn-danger"
                                                 wire:click="deleteMessage({{$product}})">
                                                 <i class="bi bi-trash"></i>
                                             </button>
@@ -157,6 +158,9 @@
                         <div class="alert alert-danger text-center">لا يوجد منتجات .....</div>
                     @endif
 
+                </div>
+                <div class="card-footer">
+                    {{ $products->links() }}
                 </div>
             </div>
         </div>

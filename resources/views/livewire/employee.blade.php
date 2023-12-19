@@ -57,7 +57,8 @@
     </div>
 
 
-    <x-title :$title></x-title>
+        <x-title :$title/>
+{{--    <livewire:Title :$title />--}}
 
     <div class="row mt-2">
         @if(empty($currentEmployee))
@@ -66,7 +67,7 @@
                     <div class="card-body">
                         <form action="" wire:submit="save({{ $id }})">
                             <label for="employeeName" class="form-label">إسم الموظف</label>
-                            <input type="text" autocomplete="off" wire:model.live="employeeName" class="form-control"
+                            <input type="text" autocomplete="off" wire:model="employeeName" class="form-control"
                                    placeholder="إسم الموظف ..." id="employeeName">
                             <div>
                                 @error('employeeName') <span
@@ -81,15 +82,21 @@
                             </div>
 
                             <label for="initialBalance" class="form-label">الرصيد الإفتتاحي</label>
-                            <input type="text" autocomplete="off" wire:model.live="initialBalance" class="form-control"
+                            <input type="text" autocomplete="off" wire:model="initialBalance" class="form-control"
                                    placeholder="الرصيد الإفتتاحي"
                                    id="initialBalance">
                             <div>
                                 @error('initialBalance') <span class="error text-danger">{{ $message }}</span> @enderror
                             </div>
+
+                            <label for="startingDate">تاريخ الإضافه</label>
+                            <input type="date" wire:model.live="startingDate" id="startingDate"
+                                   class="form-control text-center">
+
+
                             <div class="d-grid mt-2">
                                 <button type="submit"
-                                        @disabled($employeeName == '' || $salary <= 0)  data-bs-dismiss="modal"
+                                        @disabled($employeeName == '' || $salary <= 0) @disabled(!$create)  data-bs-dismiss="modal"
                                         aria-label="Close"
                                         class="btn btn- btn-{{ $editMode ? 'success' : 'primary' }}">{{ $editMode ? 'تعـــــــــــــــديل' : 'حفـــــــــــــــــــظ' }}</button>
                             </div>
@@ -105,7 +112,7 @@
                                                 placeholder="بحث ......"></div>
                     </div>
                     <div class="card-body">
-                        @if(count($employees) > 0 && Auth::user()->hasPermission('employees-read'))
+                        @if(count($employees) > 0 && $read)
                             <div class="scroll">
                                 <table class="table text-center">
                                     <thead>
@@ -126,17 +133,17 @@
                                             <td>{{ number_format($employee->initialBalance, 2) }}</td>
                                             <td>
                                                 <button
-                                                    @disabled(!Auth::user()->hasPermission('employees-update')) data-bs-target="#employeeModal"
+                                                    @disabled(!$update) data-bs-target="#employeeModal"
                                                     class="btn btn-sm btn-info text-white"
                                                     wire:click="edit({{$employee}})">
                                                     <i class="bi bi-pen"></i></button>
                                                 /
                                                 <button class="btn btn-sm btn-danger"
-                                                        @disabled(!Auth::user()->hasPermission('employees-delete') || count($employee->sales) > 0 || count($employee->gifts) > 0) wire:click="deleteMessage({{$employee}})">
+                                                        @disabled(!$delete || count($employee->sales) > 0 || count($employee->gifts) > 0) wire:click="deleteMessage({{$employee}})">
                                                     <i
                                                         class="bi bi-trash"></i></button>
                                                 /
-                                                <button class="btn btn-sm btn-warning text-white"
+                                                <button @disabled(!$update) class="btn btn-sm btn-warning text-white"
                                                         wire:click="getGifts({{$employee}})"><i class="bi bi-eye"></i>
                                                 </button>
                                             </td>
@@ -175,7 +182,7 @@
                             </div>
                             <div class="col-2">
                                 <label for="payment">طريقة الدفع</label>
-                                <select id="payment" class="form-select text-center"
+                                <select id="payment" @disabled($banks->count() == 0) class="form-select text-center"
                                         wire:model.live="payment">
                                     <option value="cash">كاش</option>
                                     <option value="bank">بنك</option>
@@ -189,7 +196,7 @@
 
                             <div class="col-2">
                                 <label for="bank_id">البنك</label>
-                                <select id="bank_id" @disabled($payment == 'cash') class="form-select text-center"
+                                <select id="bank_id"  @disabled($banks->count() == 0) @disabled($payment == 'cash') class="form-select text-center"
                                         wire:model="bank_id">
                                     @foreach($banks as $bank)
                                         <option value="{{$bank->id}}">{{$bank->bankName}}</option>

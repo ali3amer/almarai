@@ -16,9 +16,15 @@ class Store extends Component
     public string $storeName = '';
     public string $search = '';
     public Collection $stores;
+    public bool $create = false;
+    public bool $read = false;
+    public bool $update = false;
+    public bool $delete = false;
+
     protected $listeners = [
         'delete'
     ];
+
     protected function rules()
     {
         return [
@@ -32,6 +38,15 @@ class Store extends Component
             'storeName.required' => 'الرجاء إدخال إسم المخزن',
             'storeName.unique' => 'هذا المخزن موجود مسبقاً'
         ];
+    }
+
+    public function mount()
+    {
+        $user = auth()->user();
+        $this->create = $user->hasPermission('stores-create');
+        $this->read = $user->hasPermission('stores-read');
+        $this->update = $user->hasPermission('stores-update');
+        $this->delete = $user->hasPermission('stores-delete');
     }
 
     public function save($id)
@@ -62,8 +77,8 @@ class Store extends Component
 
     public function deleteMessage($store)
     {
-        $this->confirm(" هل توافق على حذف المخزن" . $store['storeName'] .  "؟", [
-            'inputAttributes' => ["id"=>$store['id']],
+        $this->confirm(" هل توافق على حذف المخزن" . $store['storeName'] . "؟", [
+            'inputAttributes' => ["id" => $store['id']],
             'toast' => false,
             'showConfirmButton' => true,
             'confirmButtonText' => 'موافق',

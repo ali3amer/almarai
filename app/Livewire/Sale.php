@@ -14,10 +14,11 @@ use Cassandra\Date;
 use Illuminate\Database\Eloquent\Collection;
 use Livewire\Attributes\Rule;
 use Livewire\Component;
-
+use Livewire\WithPagination;
 class Sale extends Component
 {
     use LivewireAlert;
+    use WithPagination;
 
     protected $listeners = [
         'cancelSale',
@@ -34,7 +35,6 @@ class Sale extends Component
     public string $search = '';
     public Collection $sales;
     public Collection $clients;
-    public Collection $products;
     public Collection $banks;
     public string $productSearch = '';
     public string $clientSearch = '';
@@ -61,12 +61,16 @@ class Sale extends Component
 
     public function mount()
     {
-        if (\App\Models\Client::first() != null) {
-            $this->currentClient = \App\Models\Client::first()->toArray();
+        if (\App\Models\Client::where("cash", true)->first() != null) {
+            $this->currentClient = \App\Models\Client::where("cash", true)->first()->toArray();
             $client = SaleDebt::where('client_id', $this->currentClient['id'])->get();
             $this->currentBalance = $client->sum('debt') - $client->sum('paid') + $this->currentClient['initialBalance'];
         }
         $this->banks = Bank::all();
+
+        if ($this->banks->count() != 0) {
+            $this->bank_id = $this->banks->first()->id;
+        }
     }
 
     public function save()
@@ -127,11 +131,19 @@ class Sale extends Component
             }
         }
 
+        $this->showInvoice($sale['id']);
+
         $this->alert('success', 'تم الحفظ بنجاح', ['timerProgressBar' => true]);
 
-        $this->invoice['id'] = $sale['id'];
+        $this->resetData();
+
+    }
+
+    public function showInvoice($id = null)
+    {
+        $this->invoice['id'] = $id;
         $this->invoice['type'] = 'sale';
-        $this->invoice['date'] = $sale['sale_date'];
+        $this->invoice['date'] = $this->sale_date;
         $this->invoice['client'] = $this->currentClient[$this->buyer . 'Name'];
         $this->invoice['cart'] = $this->cart;
         $this->invoice['remainder'] = $this->remainder;
@@ -141,14 +153,13 @@ class Sale extends Component
         $this->invoice['total_amount'] = floatval($this->total_amount);
         $this->invoice['showMode'] = false;
         $this->dispatch('sale_created', $this->invoice);
-        $this->resetData();
-
     }
 
     public function chooseClient($client)
     {
         $this->currentClient = $client;
         $this->currentClient['blocked'] = $this->buyer != 'employee' ? $this->currentClient['blocked'] : false;
+        $this->currentClient['cash'] = $this->buyer == "client" ? $this->currentClient['cash'] : false;
         if ($this->buyer == 'client') {
             $client = SaleDebt::where('client_id', $this->currentClient['id'])->get();
         } elseif ($this->buyer == 'supplier') {
@@ -183,8 +194,7 @@ class Sale extends Component
     {
         if (!isset($this->cart[$this->currentProduct['id']])) {
 
-            if ($this->currentProduct["quantity"] > $this->products[$this->currentProduct['id']]["stock"])
-            {
+            if ($this->currentProduct["quantity"] > $this->currentProduct["stock"]) {
                 $this->confirm("العدد المطلوب من " . $this->currentProduct['productName'] . " غير متوفر لايوجد سوى " . $this->currentProduct['stock'], [
                     'toast' => false,
                     'showConfirmButton' => false,
@@ -205,11 +215,18 @@ class Sale extends Component
                     $this->paid = $this->amount - $this->discount;
                 }
 
-                $this->currentProduct = [];
-                $this->calcRemainder();
             }
 
+        } else {
+            $this->amount -= $this->cart[$this->currentProduct['id']]['amount'];
+            $this->cart[$this->currentProduct['id']]['quantity'] += floatval($this->currentProduct['quantity']);
+            $this->cart[$this->currentProduct['id']]['amount'] = floatval($this->cart[$this->currentProduct['id']]['price']) * floatval($this->cart[$this->currentProduct['id']]['quantity']);
+            $this->amount += $this->cart[$this->currentProduct['id']]['amount'];
+
         }
+        $this->currentProduct = [];
+        $this->calcRemainder();
+
     }
 
     public function deleteFromCart($id)
@@ -321,7 +338,7 @@ class Sale extends Component
     public function calcRemainder()
     {
         $this->total_amount = $this->amount - floatval($this->discount);
-        if ($this->currentClient['id'] == 1 && $this->buyer == "client") {
+        if ($this->currentClient['cash'] && $this->buyer == "client") {
             $this->paid = $this->total_amount;
         } else {
             $this->remainder = floatval($this->total_amount) - floatval($this->paid);
@@ -342,7 +359,7 @@ class Sale extends Component
                 ->where('id', 'LIKE', '%' . $this->saleSearch . '%')->where('sale_date', 'LIKE', '%' . $this->saleSearch . '%')->latest()->get();
         }
         if ($this->sale_date == '') {
-            $this->sale_date = date('Y-m-d');
+            $this->sale_date = session("date");
         }
         if ($this->buyer == 'client') {
             $this->clients = \App\Models\Client::where('clientName', 'LIKE', '%' . $this->clientSearch . '%')->get();
@@ -351,7 +368,8 @@ class Sale extends Component
         } elseif ($this->buyer == 'supplier') {
             $this->clients = \App\Models\Supplier::where('supplierName', 'LIKE', '%' . $this->clientSearch . '%')->get();
         }
-        $this->products = \App\Models\Product::where('productName', 'LIKE', '%' . $this->productSearch . '%')->get()->keyBy("id");
-        return view('livewire.sale');
+        return view('livewire.sale',[
+            'products' => \App\Models\Product::where('productName', 'LIKE', '%' . $this->productSearch . '%')->simplePaginate(10)
+        ]);
     }
 }

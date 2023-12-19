@@ -96,7 +96,7 @@ class Damaged extends Component
     public function render()
     {
         if ($this->damaged_date == '') {
-            $this->damaged_date = date('Y-m-d');
+            $this->damaged_date = session("date");
         }
         $this->damageds = \App\Models\Damaged::with('product')->get();
         $this->products = \App\Models\Product::where('productName', 'LIKE', '%' . $this->productsSearch . '%')->get();

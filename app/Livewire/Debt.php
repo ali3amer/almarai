@@ -234,7 +234,7 @@ class Debt extends Component
         if (!empty($this->currentClient)) {
             $this->saleDebts = \App\Models\Sale::with('saleDebts', 'saleDetails.product')->withSum('saleDebts', 'paid')->where($this->buyer . '_id', $this->currentClient['id'])->where('id', 'LIKE', '%' . $this->saleSearch . '%')->get()->keyBy('id');
         } else {
-            $this->due_date = date('Y-m-d');
+            $this->due_date = session("date");
         }
         return view('livewire.debt');
     }

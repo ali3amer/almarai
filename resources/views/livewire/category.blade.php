@@ -1,5 +1,6 @@
 <div>
-    <x-title :$title ></x-title>
+        <x-title :$title/>
+{{--    <livewire:Title :$title />--}}
 
     <div class="row mt-2">
         <div class="col-4">
@@ -12,7 +13,7 @@
                             @error('categoryName') <span class="error text-danger">{{ $message }}</span> @enderror
                         </div>
                         <div class="d-grid mt-2">
-                            <button @disabled(!Auth::user()->hasPermission('categories-create')) class="btn btn btn-{{$id == 0 ? 'primary' : 'success' }}">{{$id == 0 ? 'حفـــــــــــــــــــظ' : 'تعـــــــــديل' }}</button>
+                            <button @disabled(!$create) class="btn btn btn-{{$id == 0 ? 'primary' : 'success' }}">{{$id == 0 ? 'حفـــــــــــــــــــظ' : 'تعـــــــــديل' }}</button>
                         </div>
 
                     </form>
@@ -26,7 +27,7 @@
                 </div>
 
                 <div class="card-body">
-                    @if(count($categories) > 0 && Auth::user()->hasPermission('categories-read'))
+                    @if(count($categories) > 0 && $read)
                         <div class="scroll">
                             <table class="table text-center">
                                 <thead>
@@ -42,8 +43,8 @@
                                         <td>{{ $loop->index + 1 }}</td>
                                         <td>{{ $category->categoryName }}</td>
                                         <td>
-                                            <button class="btn btn-sm btn-info text-white" @disabled(!Auth::user()->hasPermission('categories-update')) wire:click="edit({{$category}})"><i class="bi bi-pen"></i></button> /
-                                            <button class="btn btn-sm btn-danger" @disabled(!Auth::user()->hasPermission('categories-delete') || count($category->products) > 0) wire:click="deleteMessage({{$category}})"><i class="bi bi-trash"></i></button>
+                                            <button class="btn btn-sm btn-info text-white" @disabled(!$update) wire:click="edit({{$category}})"><i class="bi bi-pen"></i></button> /
+                                            <button class="btn btn-sm btn-danger" @disabled(!$delete || count($category->products) > 0) wire:click="deleteMessage({{$category}})"><i class="bi bi-trash"></i></button>
                                         </td>
                                     </tr>
                                 @endforeach

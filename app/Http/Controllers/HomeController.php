@@ -25,4 +25,10 @@ class HomeController extends Controller
     {
         return view('home');
     }
+
+    public function changeDate(Request $request)
+    {
+        session(["date" => $request->date]);
+        return back();
+    }
 }

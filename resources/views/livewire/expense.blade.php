@@ -1,6 +1,6 @@
 <div>
     <x-title :$title></x-title>
-
+{{--<livewire:Title :$title />--}}
     <div class="row mt-2">
         <div class="col-4">
             <div class="card bg-white">
@@ -13,7 +13,7 @@
                             @error('description') <span class="error text-danger">{{ $message }}</span> @enderror
                         </div>
                         <label for="payment" class="form-label">طريقة الدفع</label>
-                        <select id="payment" class="form-select" wire:model="payment">
+                        <select id="payment" @disabled($banks->count() == 0) class="form-select" wire:model.live="payment">
                             <option value="cash">كاش</option>
                             <option value="bank">بنك</option>
                         </select>
@@ -22,7 +22,7 @@
                         </div>
 
                         <label for="bank_id" class="form-label">البنك</label>
-                        <select id="bank_id" class="form-select" wire:model="bank_id">
+                        <select @disabled($payment == "cash") @disabled($banks->count() == 0) id="bank_id" class="form-select" wire:model="bank_id">
                             @foreach($banks as $bank)
                                 <option value="{{$bank->id}}">{{$bank->bankName}}</option>
                             @endforeach
@@ -52,7 +52,7 @@
                         </div>
                         <div class="d-grid mt-2">
                             <button
-                                @disabled(!Auth::user()->hasPermission('expenses-create')) @disabled($amount <= 0) class="btn btn- btn-{{$id==0?'primary':'success'}}">
+                                @disabled(!$create) @disabled($amount <= 0) class="btn btn- btn-{{$id==0?'primary':'success'}}">
                                 {{$id == 0 ? 'حفـــــــــــــــــــظ' : 'تعـــــــــــــــديل'}}
                             </button>
                         </div>
@@ -68,7 +68,7 @@
                 </div>
 
                 <div class="card-body">
-                    @if(count($expenses) > 0 && Auth::user()->hasPermission('expenses-read'))
+                    @if(count($expenses) > 0 && $read)
                         <div class="scroll">
                             <table class="table text-center">
                                 <thead>
@@ -89,11 +89,11 @@
                                         <td>{{ $expense->expense_date }}</td>
                                         <td>
                                             <button class="btn btn-sm btn-info text-white"
-                                                    @disabled(!Auth::user()->hasPermission('expenses-update')) wire:click="edit({{$expense}})">
+                                                    @disabled(!$update) wire:click="edit({{$expense}})">
                                                 <i class="bi bi-pen"></i></button>
                                             /
                                             <button class="btn btn-sm btn-danger"
-                                                    @disabled(!Auth::user()->hasPermission('expenses-delete')) wire:click="deleteMessage({{$expense}})">
+                                                    @disabled(!$delete) wire:click="deleteMessage({{$expense}})">
                                                 <i class="bi bi-trash"></i></button>
                                         </td>
                                     </tr>

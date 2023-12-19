@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('address')->nullable();
             $table->decimal('initialBalance', 10, 2)->default(0);
             $table->date('startingDate');
+            $table->boolean('cash')->default(false);
             $table->boolean('blocked')->default(false);
             $table->string('note')->nullable();
             $table->timestamps();

@@ -11,10 +11,11 @@ use App\Models\PurchaseDetail;
 use Illuminate\Database\Eloquent\Collection;
 use Livewire\Attributes\Rule;
 use Livewire\Component;
-
+use Livewire\WithPagination;
 class Purchase extends Component
 {
     use LivewireAlert;
+    use WithPagination;
 
     protected $listeners = [
         'cancelPurchase',
@@ -31,7 +32,6 @@ class Purchase extends Component
     public string $search = '';
     public Collection $purchases;
     public Collection $suppliers;
-    public Collection $products;
     public Collection $banks;
     public string $productSearch = '';
     public string $supplierSearch = '';
@@ -64,72 +64,94 @@ class Purchase extends Component
             $this->currentBalance = $supplier->sum('debt') - $supplier->sum('paid') + $this->currentSupplier['initialBalance'];
         }
         $this->banks = Bank::all();
+        if ($this->banks->count() != 0) {
+            $this->bank_id = $this->banks->first()->id;
+        }
 
     }
 
     public function save()
     {
-        if ($this->id == 0) {
-            $purchase = \App\Models\Purchase::create([
-                'supplier_id' => $this->currentSupplier['id'],
-                'paid' => floatval($this->paid),
-                'discount' => floatval($this->discount),
-                'remainder' => $this->remainder,
-                'total_amount' => $this->total_amount,
-                'purchase_date' => $this->purchase_date,
-                'user_id' => auth()->id(),
-            ]);
-
-            \App\Models\PurchaseDebt::create([
-                'supplier_id' => $this->currentSupplier['id'],
-                'paid' => 0,
-                'debt' => $this->total_amount,
-                'type' => 'debt',
-                'bank' => $this->bank,
-                'payment' => $this->payment,
-                'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
-                'due_date' => $this->purchase_date,
-                'note' => 'تم الإستيراد بالآجل بفاتورة #' . $purchase['id'],
-                'purchase_id' => $purchase['id'],
-                'user_id' => auth()->id()
-            ]);
-
-            if ($this->paid != 0) {
-                \App\Models\PurchaseDebt::create([
+        if (floatval($this->paid) >= 0 && floatval($this->paid) <= floatval(session($this->payment == "cash" ? "safeBalance" : "bankBalance"))) {
+            if ($this->id == 0) {
+                $purchase = \App\Models\Purchase::create([
                     'supplier_id' => $this->currentSupplier['id'],
                     'paid' => floatval($this->paid),
-                    'debt' => 0,
-                    'type' => 'pay',
+                    'discount' => floatval($this->discount),
+                    'remainder' => $this->remainder,
+                    'total_amount' => $this->total_amount,
+                    'purchase_date' => $this->purchase_date,
+                    'user_id' => auth()->id(),
+                ]);
+
+                \App\Models\PurchaseDebt::create([
+                    'supplier_id' => $this->currentSupplier['id'],
+                    'paid' => 0,
+                    'debt' => $this->total_amount,
+                    'type' => 'debt',
                     'bank' => $this->bank,
                     'payment' => $this->payment,
                     'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
                     'due_date' => $this->purchase_date,
-                    'note' => 'تم دفع مبلغ',
+                    'note' => 'تم الإستيراد بالآجل بفاتورة #' . $purchase['id'],
                     'purchase_id' => $purchase['id'],
                     'user_id' => auth()->id()
                 ]);
+
+                if ($this->paid != 0) {
+                    \App\Models\PurchaseDebt::create([
+                        'supplier_id' => $this->currentSupplier['id'],
+                        'paid' => floatval($this->paid),
+                        'debt' => 0,
+                        'type' => 'pay',
+                        'bank' => $this->bank,
+                        'payment' => $this->payment,
+                        'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
+                        'due_date' => $this->purchase_date,
+                        'note' => 'تم دفع مبلغ',
+                        'purchase_id' => $purchase['id'],
+                        'user_id' => auth()->id()
+                    ]);
+                }
+
+                $this->currentBalance += $this->remainder;
+
+                foreach ($this->cart as $item) {
+                    PurchaseDetail::create([
+                        'purchase_id' => $purchase['id'],
+                        'product_id' => $item['id'],
+                        'quantity' => floatval($item['quantity']),
+                        'price' => floatval($item['price']),
+                    ]);
+
+                    \App\Models\Product::where('id', $item['id'])->increment('stock', floatval($item['quantity']));
+                }
             }
 
-            $this->currentBalance += $this->remainder;
 
-            foreach ($this->cart as $item) {
-                PurchaseDetail::create([
-                    'purchase_id' => $purchase['id'],
-                    'product_id' => $item['id'],
-                    'quantity' => floatval($item['quantity']),
-                    'price' => floatval($item['price']),
-                ]);
+            $this->alert('success', 'تم الحفظ بنجاح', ['timerProgressBar' => true]);
 
-                \App\Models\Product::where('id', $item['id'])->increment('stock', floatval($item['quantity']));
-            }
+            $this->resetData();
+        } else {
+            $this->confirm("المبلغ المدفوع أكبر من المبلغ المتوفر", [
+                'toast' => false,
+                'showConfirmButton' => false,
+                'confirmButtonText' => 'موافق',
+                'onConfirmed' => "cancelSale",
+                'showCancelButton' => true,
+                'cancelButtonText' => 'إلغاء',
+                'confirmButtonColor' => '#dc2626',
+                'cancelButtonColor' => '#4b5563'
+            ]);
         }
 
+    }
 
-        $this->alert('success', 'تم الحفظ بنجاح', ['timerProgressBar' => true]);
-
-        $this->invoice['id'] = $purchase['id'];
+    public function showInvoice($id = null)
+    {
+        $this->invoice['id'] = $id;
         $this->invoice['type'] = 'purchase';
-        $this->invoice['date'] = $purchase['purchase_date'];
+        $this->invoice['date'] = $this->purchase_date;
         $this->invoice['client'] = $this->currentSupplier[$this->buyer . 'Name'];
         $this->invoice['cart'] = $this->cart;
         $this->invoice['remainder'] = $this->remainder;
@@ -139,11 +161,9 @@ class Purchase extends Component
         $this->invoice['showMode'] = false;
         $this->invoice['total_amount'] = floatval($this->total_amount);
         $this->dispatch('sale_created', $this->invoice);
-        $this->resetData();
-
     }
 
-    public function chooseSupplier($supplier)
+        public function chooseSupplier($supplier)
     {
         $this->currentSupplier = $supplier;
         $supplier = PurchaseDebt::where('supplier_id', $this->currentSupplier['id'])->get();
@@ -173,9 +193,15 @@ class Purchase extends Component
             $this->cart[$this->currentProduct['id']]['amount'] = floatval($this->currentProduct['price']) * floatval($this->currentProduct['quantity']);
             $this->amount += $this->cart[$this->currentProduct['id']]['amount'];
 
-            $this->currentProduct = [];
-            $this->calcRemainder();
+        } else {
+            $this->amount -= $this->cart[$this->currentProduct['id']]['amount'];
+            $this->cart[$this->currentProduct['id']]['quantity'] += floatval($this->currentProduct['quantity']);
+            $this->cart[$this->currentProduct['id']]['amount'] = floatval($this->cart[$this->currentProduct['id']]['price']) * floatval($this->cart[$this->currentProduct['id']]['quantity']);
+            $this->amount += $this->cart[$this->currentProduct['id']]['amount'];
+
         }
+        $this->currentProduct = [];
+        $this->calcRemainder();
     }
 
     public function deleteFromCart($id)
@@ -305,11 +331,12 @@ class Purchase extends Component
                 ->where('id', 'LIKE', '%' . $this->purchaseSearch . '%')->where('purchase_date', 'LIKE', '%' . $this->purchaseSearch . '%')->get();
         }
         if ($this->purchase_date == '') {
-            $this->purchase_date = date('Y-m-d');
+            $this->purchase_date = session("date");
         }
         $this->suppliers = \App\Models\Supplier::where('supplierName', 'LIKE', '%' . $this->supplierSearch . '%')->get();
 
-        $this->products = \App\Models\Product::where('productName', 'LIKE', '%' . $this->productSearch . '%')->get();
-        return view('livewire.purchase');
+        return view('livewire.purchase', [
+            'products' => \App\Models\Product::where('productName', 'LIKE', '%' . $this->productSearch . '%')->simplePaginate(10)
+        ]);
     }
 }

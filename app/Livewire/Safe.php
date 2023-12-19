@@ -4,9 +4,11 @@ namespace App\Livewire;
 
 use App\Models\Bank;
 use App\Models\EmployeeGift;
+use App\Models\Expense;
 use App\Models\PurchaseDebt;
 use App\Models\SaleDebt;
 use App\Models\Transfer;
+use App\Models\Withdraw;
 use Illuminate\Database\Eloquent\Collection;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
 use Livewire\Component;
@@ -21,12 +23,15 @@ class Safe extends Component
 
     public string $title = 'الخزنه';
 
+    public $startingDate;
     public int $id = 0;
-    public int $bank_id = 1;
+    public $bank_id = null;
+    public int $withdrawId = 0;
     public int $transferId = 0;
     public string $bankName = '';
     public string $accountName = '';
     public $number = 0;
+    public $amount = 0;
     public string $transfer_date = '';
     public string $note = '';
     public $transfer_number = '';
@@ -39,12 +44,64 @@ class Safe extends Component
     public string $transfer_type = 'cash_to_bank';
 
     public Collection $banks;
-    public Collection $transfers;
+    public Collection $withdraws;
     public Collection $clientDebts;
     public Collection $supplierDebts;
     public Collection $employeeDebts;
     public string $bankSearch = '';
     public $safe = 0;
+    public $safeId = 0;
+    public $payment = "cash";
+
+    public function mount()
+    {
+        $this->startingDate = session("date");
+        $this->banks = Bank::all();
+        $this->withdraws = Withdraw::all();
+        if ($this->banks->count() > 0) {
+            $this->bank_id = $this->banks->first()->id;
+
+            foreach ($this->banks as $bank) {
+                $bank->currentBalance = $bank->initialBalance
+                    + SaleDebt::where("type", "pay")->where("bank_id", $bank->id)->where("payment", "bank")->sum("paid")
+                    + Transfer::where("transfer_type", "cash_to_bank")->where("bank_id", $bank->id)->sum("transfer_amount")
+                    - Transfer::where("transfer_type", "bank_to_cash")->where("bank_id", $bank->id)->sum("transfer_amount")
+                    - Expense::where("payment", "bank")->where("bank_id", $bank->id)->sum("amount")
+                    - EmployeeGift::where("payment", "bank")->where("bank_id", $bank->id)->sum("gift_amount")
+                    - PurchaseDebt::where("type", "pay")->where("payment", "bank")->where("bank_id", $bank->id)->sum("paid")
+                    + PurchaseDebt::where("type", "debt")->where("payment", "bank")->where("bank_id", $bank->id)->whereNull("purchase_id")->sum("debt");
+            }
+        }
+    }
+
+    public function getWithdraws()
+    {
+        $this->reset("payment", "amount");
+        $this->withdraws = Withdraw::all();
+    }
+    public function withdraw()
+    {
+        if ($this->withdrawId == 0) {
+            Withdraw::create([
+                "due_date" => session("date"),
+                "user_id" => auth()->user()->id,
+                "payment" => $this->payment,
+                "bank_id" => $this->payment == "cash" ? null : $this->bank_id,
+                "amount" => $this->amount,
+            ]);
+        } else {
+            Withdraw::where("id", $this->withdrawId)->update([
+                "user_id" => auth()->user()->id,
+                "payment" => $this->payment,
+                "bank_id" => $this->payment == "cash" ? null : $this->bank_id,
+                "amount" => $this->amount,
+            ]);
+        }
+
+        $this->alert('success', "تم إضافة مبلغ " . number_format($this->amount, 2) . " الى اليومية", ['timerProgressBar' => true]);
+        $this->getWithdraws();
+
+    }
 
     public function saveBank()
     {
@@ -52,6 +109,7 @@ class Safe extends Component
             Bank::create([
                 'bankName' => $this->bankName,
                 'accountName' => $this->accountName,
+                'startingDate' => $this->startingDate,
                 'number' => intval($this->number),
                 'initialBalance' => floatval($this->initialBalance),
             ]);
@@ -59,50 +117,75 @@ class Safe extends Component
             Bank::where('id', $this->id)->update([
                 'bankName' => $this->bankName,
                 'accountName' => $this->accountName,
+                'startingDate' => $this->startingDate,
                 'number' => intval($this->number),
                 'initialBalance' => floatval($this->initialBalance),
             ]);
         }
-
+        $this->banks = Bank::all();
+        $this->resetBankData();
         $this->alert('success', 'تم حفظ بنجاح', ['timerProgressBar' => true]);
 
     }
 
     public function safeInitial()
     {
-        \App\Models\Safe::create(['initialBalance' => floatval($this->safe)]);
-        $this->alert('success', 'تم حفظ بنجاح', ['timerProgressBar' => true]);
+        if ($this->safeId == 0) {
+            \App\Models\Safe::create(['initialBalance' => floatval($this->safe), "startingDate" => $this->startingDate]);
+            $this->alert('success', 'تم حفظ الرصيد بنجاح', ['timerProgressBar' => true]);
 
+        } else {
+            \App\Models\Safe::where('id', $this->safeId)->update(['initialBalance' => floatval($this->safe), "startingDate" => $this->startingDate]);
+            $this->alert('success', 'تم تعديل الرصيد بنجاح', ['timerProgressBar' => true]);
+        }
+        $this->safeId = 0;
     }
 
     public function saveTransfer()
     {
-        if ($this->transferId == 0) {
-            Transfer::create([
-                'bank_id' => $this->bank_id,
-                'transfer_type' => $this->transfer_type,
-                'transfer_amount' => $this->transfer_amount,
-                'transfer_number' => $this->transfer_number,
-                'transfer_date' => $this->transfer_date,
-                'note' => $this->note,
-            ]);
+        if (floatval($this->transfer_amount) < floatval(session($this->transfer_type == "cash_to_bank" ? "safeBalance" : "bankBalance"))) {
+            if ($this->transferId == 0) {
+                Transfer::create([
+                    'bank_id' => $this->bank_id,
+                    'transfer_type' => $this->transfer_type,
+                    'transfer_amount' => $this->transfer_amount,
+                    'transfer_number' => $this->transfer_number,
+                    'transfer_date' => $this->transfer_date,
+                    'note' => $this->note,
+                ]);
 
-            $this->alert('success', 'تم الحفظ بنجاح', ['timerProgressBar' => true]);
+                $this->alert('success', 'تم الحفظ بنجاح', ['timerProgressBar' => true]);
+            } else {
+                $transfer = Transfer::where('id', $this->transferId)->first();
+
+                Transfer::where('id', $this->transferId)->update([
+                    'bank_id' => $this->bank_id,
+                    'transfer_type' => $this->transfer_type,
+                    'transfer_amount' => $this->transfer_amount,
+                    'transfer_number' => $this->transfer_number,
+                    'transfer_date' => $this->transfer_date,
+                    'note' => $this->note,
+                ]);
+                $this->alert('success', 'تم التعديل بنجاح', ['timerProgressBar' => true]);
+
+            }
+            $this->resetData();
+
         } else {
-            $transfer = Transfer::where('id', $this->transferId)->first();
 
-            Transfer::where('id', $this->transferId)->update([
-                'bank_id' => $this->bank_id,
-                'transfer_type' => $this->transfer_type,
-                'transfer_amount' => $this->transfer_amount,
-                'transfer_number' => $this->transfer_number,
-                'transfer_date' => $this->transfer_date,
-                'note' => $this->note,
+            $this->confirm("المبلغ المحول أكبر من المبلغ المتوفر", [
+                'toast' => false,
+                'showConfirmButton' => false,
+                'confirmButtonText' => 'موافق',
+                'onConfirmed' => "cancelSale",
+                'showCancelButton' => true,
+                'cancelButtonText' => 'إلغاء',
+                'confirmButtonColor' => '#dc2626',
+                'cancelButtonColor' => '#4b5563'
             ]);
-            $this->alert('success', 'تم التعديل بنجاح', ['timerProgressBar' => true]);
-
         }
-        $this->resetData();
+
+
     }
 
     public function editTransfer($transfer)
@@ -141,38 +224,27 @@ class Safe extends Component
 
     public function resetData()
     {
-        $this->reset('transfer_type', 'transfer_number', 'bank_id', 'note', 'transfer_amount', 'transferId', 'transfer_date');
+        $this->reset('transfer_type', 'transfer_number', 'note', 'transfer_amount', 'transferId', 'transfer_date');
+    }
+
+    public function resetBankData()
+    {
+        $this->reset('bankName', 'accountName', 'initialBalance', 'number');
     }
 
     public function render()
     {
-        $this->transfers = Transfer::with('bank')->get();
-        $this->banks = Bank::where('bankName', 'LIKE', '%' . $this->bankSearch . '%')->get()->keyBy('id');
-        $safe = \App\Models\Safe::count() > 0 ? \App\Models\Safe::first()->initialBalance : 0;
-
-        $salesBalance = SaleDebt::where('type', 'pay')->get();
-        $purchasesBalance = PurchaseDebt::where('type', 'pay')->get();
-        $saleDebts = SaleDebt::where("type", "debt")->whereNull("sale_id")->get();
-        $employeeGiftsBalance = EmployeeGift::all();
-        $expensesBalance = \App\Models\Expense::all();
-
-        $this->safeBalance = floatval($safe) + $salesBalance->where('payment', 'cash')->sum('paid') - $saleDebts->where('payment', 'cash')->sum("debt")  -  $purchasesBalance->where('payment', 'cash')->sum('paid') - $expensesBalance->where('payment', 'cash')->sum('amount') - $employeeGiftsBalance->where('payment', 'cash')->sum('gift_amount') - $this->transfers->where('transfer_type', 'cash_to_bank')->sum('transfer_amount') + $this->transfers->where('transfer_type', 'bank_to_cash')->sum('transfer_amount');
-
-//        $this->banksBalance = $salesBalance->where('payment', 'bank')->sum('paid') - $purchasesBalance->where('payment', 'bank')->sum('paid') - $this->transfers->where('transfer_type', 'bank_to_cash')->sum('transfer_amount') - $expensessBalance->where('payment', 'bank')->sum('amount') - $employeeGiftsBalance->where('payment', 'bank')->sum('gift_amount') + $this->transfers->where('transfer_type', 'cash_to_bank')->sum('transfer_amount');
-
-        foreach ($this->banks as $index => $bank) {
-            $this->banks[$index]['currentBalance'] = $bank['initialBalance'] + $salesBalance->where('payment', 'bank')->where('bank_id', $bank->id)->sum('paid') - $purchasesBalance->where('payment', 'bank')->where('bank_id', $bank->id)->sum('paid') - $this->transfers->where('transfer_type', 'bank_to_cash')->where('bank_id', $bank->id)->sum('transfer_amount') - $expensesBalance->where('payment', 'bank')->where('bank_id', $bank->id)->sum('amount') - $employeeGiftsBalance->where('payment', 'bank')->where('bank_id', $bank->id)->sum('gift_amount') + $this->transfers->where('transfer_type', 'cash_to_bank')->where('bank_id', $bank->id)->sum('transfer_amount');
-        $this->banksBalance += $this->banks[$index]['currentBalance'];
-        }
 
         if ($this->transfer_date == '') {
-            $this->transfer_date = date('Y-m-d');
+            $this->transfer_date = session("date");
         }
 
         if ($this->day_date == '') {
-            $this->day_date = date('Y-m-d');
+            $this->day_date = session("date");
         }
 
-        return view('livewire.safe');
+        return view('livewire.safe', [
+            "transfers" => Transfer::all()
+        ]);
     }
 }

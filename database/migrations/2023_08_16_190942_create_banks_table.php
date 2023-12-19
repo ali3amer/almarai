@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('accountName');
             $table->string('number');
             $table->decimal('initialBalance', 10,2);
+            $table->date('startingDate');
             $table->timestamps();
         });
     }

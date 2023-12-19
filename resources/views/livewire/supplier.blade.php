@@ -57,7 +57,8 @@
     </div>
 
 
-    <x-title :$title></x-title>
+        <x-title :$title/>
+{{--    <livewire:Title :$title />--}}
 
     <div class="row mt-2">
         @if(empty($currentSupplier))
@@ -109,7 +110,7 @@
 
                             <div class="d-grid mt-2">
                                 <button
-                                    @disabled(!Auth::user()->hasPermission('suppliers-create')) class="btn btn- btn-{{$id == 0 ? 'primary' : 'success'}}">{{$id == 0 ? 'حفـــــــــــــــــــظ' : 'تعـــــــــــــــــديل'}}</button>
+                                    @disabled(!$create) class="btn btn- btn-{{$id == 0 ? 'primary' : 'success'}}">{{$id == 0 ? 'حفـــــــــــــــــــظ' : 'تعـــــــــــــــــديل'}}</button>
                             </div>
                         </form>
                     </div>
@@ -123,7 +124,7 @@
                     </div>
 
                     <div class="card-body">
-                        @if(count($suppliers) > 0 && Auth::user()->hasPermission('suppliers-read'))
+                        @if(count($suppliers) > 0 && $read)
                             <div class="scroll">
                                 <table class="table text-center">
                                     <thead>
@@ -146,21 +147,21 @@
                                             <td>{{ number_format($supplier->initialSalesBalance, 2) }}</td>
                                             <td>
                                                 <button
-                                                    @disabled(!Auth::user()->hasPermission('suppliers-update')) class="btn btn-sm btn-info text-white"
+                                                    @disabled(!$update) class="btn btn-sm btn-info text-white"
                                                     wire:click="edit({{$supplier}})"><i class="bi bi-pen"></i></button>
                                                 /
                                                 <button
-                                                    @disabled(!Auth::user()->hasPermission('suppliers-delete') || count($supplier->sales) > 0) class="btn btn-sm btn-danger"
+                                                    @disabled(!$delete || count($supplier->sales) > 0) class="btn btn-sm btn-danger"
                                                     wire:click="deleteMessage({{$supplier}})"><i
                                                         class="bi bi-trash"></i>
                                                 </button>
                                                 /
-                                                <button class="btn btn-sm btn-warning text-white"
+                                                <button @disabled(!$update) class="btn btn-sm btn-warning text-white"
                                                         wire:click="showDebts({{$supplier}})"><i class="bi bi-eye"></i>
                                                 </button>
 
                                                 /
-                                                <button
+                                                <button @disabled(!$update)
                                                     class="btn btn-sm btn-{{$supplier->blocked ? 'danger' : 'success'}} text-white"
                                                     wire:click="changeBlocked({{$supplier}})"><i
                                                         class="bi bi-{{$supplier->blocked ? 'lock' : 'unlock'}}"></i>
@@ -218,7 +219,7 @@
                             </div>
                             <div class="col-6">
                                 <label for="payment">طريقة الدفع</label>
-                                <select class="form-select text-center" wire:model.live="payment">
+                                <select @disabled($banks->count() == 0) class="form-select text-center" wire:model.live="payment">
                                     <option value="cash">كاش</option>
                                     <option value="bank">بنك</option>
                                 </select>

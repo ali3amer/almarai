@@ -1,5 +1,6 @@
 <div>
-    <x-title :$title ></x-title>
+        <x-title :$title :date="session('date')"  />
+{{--    <livewire:Title :$title />--}}
 
     <div class="row mt-2">
         <div class="col-4">
@@ -12,7 +13,7 @@
                             @error('storeName') <span class="error text-danger">{{ $message }}</span> @enderror
                         </div>
                         <div class="d-grid mt-2">
-                            <button @disabled(!Auth::user()->hasPermission('stores-create')) class="btn btn btn-{{$id == 0 ? 'primary' : 'success'}}">{{$id == 0 ? 'حفـــــــــــــــــــظ' : 'تعـــــــــــديل'}}</button>
+                            <button @disabled(!$create) class="btn btn btn-{{$id == 0 ? 'primary' : 'success'}}">{{$id == 0 ? 'حفـــــــــــــــــــظ' : 'تعـــــــــــديل'}}</button>
                         </div>
 
                     </form>
@@ -25,7 +26,7 @@
                     <input autocomplete="off"  wire:model.live="search" class="form-control w-50" placeholder="بحث ......">
                 </div>
 
-                @permission('stores-read')
+                @if($read)
                 <div class="card-body">
                     @if(count($stores) > 0)
                         <table class="table text-center">
@@ -42,8 +43,8 @@
                                     <td>{{ $loop->index + 1 }}</td>
                                     <td>{{ $store->storeName }}</td>
                                     <td>
-                                        <button class="btn btn-sm btn-info text-white" @disabled(!Auth::user()->hasPermission('stores-update')) wire:click="edit({{$store}})"><i class="bi bi-pen"></i></button> /
-                                        <button class="btn btn-sm btn-danger" @disabled(!Auth::user()->hasPermission('stores-delete') || count($store->products) > 0)  wire:click="deleteMessage({{$store}})"><i class="bi bi-trash"></i></button>
+                                        <button class="btn btn-sm btn-info text-white"  @disabled(!$update) wire:click="edit({{$store}})"><i class="bi bi-pen"></i></button> /
+                                        <button class="btn btn-sm btn-danger"  @disabled(!$delete)  wire:click="deleteMessage({{$store}})"><i class="bi bi-trash"></i></button>
                                     </td>
                                 </tr>
                             @endforeach
@@ -54,7 +55,7 @@
                     @endif
 
                 </div>
-                @endpermission
+                @endif
             </div>
         </div>
     </div>

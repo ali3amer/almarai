@@ -40,7 +40,7 @@ $links = [
                     $permission = $link[0].'s';
                 }
                 @endphp
-                @if(Auth::user()->hasPermission($permission.'-read'))
+                @if(key_exists($permission .'-read', $permissions))
                     <li class="nav-item">
                         <a wire:navigate class="nav-link {{request()->path() == $link[0] ? 'active-link' : ''}}"
                            href="{{ $link[0] }}">
@@ -53,7 +53,7 @@ $links = [
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
                     <button class="btn btn-danger">
-                        <i class="bi bi-door-closed"></i> {{auth()->user()->name}}
+                        <i class="bi bi-door-closed"></i> {{$username}}
                     </button>
                 </form>
             </li>

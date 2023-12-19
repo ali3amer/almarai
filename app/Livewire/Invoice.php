@@ -12,6 +12,7 @@ class Invoice extends Component
     #[On('sale_created')]
     public function printInvoice($invoice)
     {
+        $this->invoice = [];
         $this->invoice = $invoice;
     }
     public function render()

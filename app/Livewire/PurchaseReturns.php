@@ -233,7 +233,7 @@ class PurchaseReturns extends Component
     public function render()
     {
         if ($this->return_date == '') {
-            $this->return_date = date('Y-m-d');
+            $this->return_date = session("date");
         }
         $this->suppliers = \App\Models\Supplier::where('supplierName', 'LIKE', '%' . $this->supplierSearch . '%')->get();
 

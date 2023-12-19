@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Livewire;
+
 use Jantinnerezo\LivewireAlert\LivewireAlert;
 use Livewire\Attributes\Rule;
 use Livewire\Component;
@@ -8,7 +9,7 @@ use Illuminate\Database\Eloquent\Collection;
 
 class Category extends Component
 {
-    use LivewireAlert;
+
     protected $listeners = [
         'delete'
     ];
@@ -16,20 +17,36 @@ class Category extends Component
     public string $title = 'الأقسام';
     public int $id = 0;
     public string $categoryName = '';
-    public  string $search = '';
+    public string $search = '';
     public Collection $categories;
+    public bool $create = false;
+    public bool $read = false;
+    public bool $update = false;
+    public bool $delete = false;
 
-    protected function rules() {
+
+    protected function rules()
+    {
         return [
-            'categoryName' => 'required|unique:categories,categoryName,'.$this->id
+            'categoryName' => 'required|unique:categories,categoryName,' . $this->id
         ];
     }
 
-    protected function messages() {
+    protected function messages()
+    {
         return [
             'categoryName.required' => 'الرجاء إدخال إسم القسم',
             'categoryName.unique' => 'هذا القسم موجود مسبقاً'
         ];
+    }
+
+    public function mount()
+    {
+        $user = auth()->user();
+        $this->create = $user->hasPermission('categories-create');
+        $this->read = $user->hasPermission('categories-read');
+        $this->update = $user->hasPermission('categories-update');
+        $this->delete = $user->hasPermission('categories-delete');
     }
 
     public function save($id)
@@ -61,8 +78,8 @@ class Category extends Component
 
     public function deleteMessage($category)
     {
-        $this->confirm("  هل توافق على حذف قسم  " . $category['categoryName'] .  "؟", [
-            'inputAttributes' => ["id"=>$category['id']],
+        $this->confirm("  هل توافق على حذف قسم  " . $category['categoryName'] . "؟", [
+            'inputAttributes' => ["id" => $category['id']],
             'toast' => false,
             'showConfirmButton' => true,
             'confirmButtonText' => 'موافق',
@@ -82,8 +99,6 @@ class Category extends Component
         $this->alert('success', 'تم الحذف بنجاح', ['timerProgressBar' => true]);
 
     }
-
-
 
 
     public function render()

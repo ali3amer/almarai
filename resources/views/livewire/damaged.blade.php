@@ -1,5 +1,6 @@
 <div>
-    <x-title :$title/>
+        <x-title :$title/>
+{{--    <livewire:Title :$title />--}}
 
     <div class="row mt-2">
         <div class="col-4">

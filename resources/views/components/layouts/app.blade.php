@@ -12,7 +12,6 @@
 
 </head>
 <body dir="rtl" lang="ar">
-
 <livewire:navbar/>
 
 <div class="container-fluid">
