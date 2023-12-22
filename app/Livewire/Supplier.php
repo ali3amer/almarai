@@ -31,6 +31,7 @@ class Supplier extends Component
     public string|null $note = '';
     public $initialBalance = 0;
     public $discount = 0;
+    public bool $cash = false;
     public $debt_amount = 0;
     public string $bank = '';
     public Collection $banks;
@@ -86,7 +87,7 @@ class Supplier extends Component
 
         if ($this->validate()) {
             if ($this->id == 0) {
-                \App\Models\Supplier::create(['supplierName' => $this->supplierName, 'phone' => $this->phone, 'initialBalance' => floatval($this->initialBalance), 'startingDate' => $this->startingDate, 'initialSalesBalance' => floatval($this->initialSalesBalance), 'blocked' => $this->blocked]);
+                \App\Models\Supplier::create(['supplierName' => $this->supplierName, 'phone' => $this->phone, 'initialBalance' => floatval($this->initialBalance), 'startingDate' => $this->startingDate, 'initialSalesBalance' => floatval($this->initialSalesBalance), 'blocked' => $this->blocked, 'cash' => $this->cash]);
                 $this->alert('success', 'تم الحفظ بنجاح', ['timerProgressBar' => true]);
             } else {
                 $supplier = \App\Models\Supplier::find($id);
@@ -105,6 +106,7 @@ class Supplier extends Component
             $this->initialSalesBalance = 0;
             $this->note = '';
             $this->blocked = false;
+            $this->cash = false;
         }
 
     }
@@ -114,6 +116,20 @@ class Supplier extends Component
         $this->blocked = !$supplier['blocked'];
         \App\Models\Supplier::where('id', $supplier['id'])->update(['blocked' => $this->blocked]);
         $this->resetData();
+        $this->alert('success', "تم تغيير حالة المورد النقدي" , ['timerProgressBar' => true]);
+
+    }
+
+    public function changeCash($supplier)
+    {
+        $this->cash = !$supplier['cash'];
+        if ($this->cash) {
+            \App\Models\Supplier::where('cash', $this->cash)->update(['cash' => false]);
+        }
+        \App\Models\Supplier::where('id', $supplier['id'])->update(['cash' => $this->cash]);
+        $this->resetData();
+        $this->alert('success', "تم تغيير المورد النقدي" , ['timerProgressBar' => true]);
+
     }
 
     public function edit($supplier)
@@ -125,6 +141,7 @@ class Supplier extends Component
         $this->initialSalesBalance = $supplier['initialSalesBalance'];
         $this->blocked = $supplier['blocked'];
         $this->note = $supplier['note'];
+        $this->cash = $supplier['cash'];
 
     }
 
@@ -336,7 +353,7 @@ class Supplier extends Component
 
     public function resetData($data = null)
     {
-        $this->reset('type', 'debt_amount', 'debtId', 'payment', 'bank', 'due_date', 'blocked', 'discount', 'note', $data);
+        $this->reset('type', 'debt_amount', 'debtId', 'payment', 'bank', 'cash', 'due_date', 'blocked', 'discount', 'note', $data);
     }
 
     public function render()

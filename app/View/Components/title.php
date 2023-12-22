@@ -32,7 +32,7 @@ class title extends Component
     public function render(): View|Closure|string
     {
         $date = session("date") ?? session(['date' => date("Y-m-d")]);
-        $safe = Safe::first() ? Safe::first()->initialBalance : 0;
+        $safe = Safe::where("startingDate", $date)->first()->initialBalance ?? 0;
         $safeBalance = $safe
             + Withdraw::where("due_date", $date)->sum("amount")
             + SaleDebt::where("type", "pay")->where("due_date", $date)->where("payment", "cash")->sum("paid")
@@ -44,7 +44,7 @@ class title extends Component
             - PurchaseDebt::where("type", "pay")->where("payment", "cash")->where("due_date", $date)->sum("paid")
             + PurchaseDebt::where("type", "debt")->where("payment", "cash")->where("due_date", $date)->whereNull("purchase_id")->sum("debt");
 
-        $bankBalance = Bank::sum('initialBalance')
+        $bankBalance = Bank::where("startingDate", $date)->sum('initialBalance')
             + SaleDebt::where("type", "pay")->where("due_date", $date)->where("payment", "bank")->sum("paid")
             - SaleDebt::where("type", "debt")->where("due_date", $date)->where("payment", "bank")->whereNull("sale_id")->sum("debt")
             + Transfer::where("transfer_type", "cash_to_bank")->where("transfer_date", $date)->sum("transfer_amount")

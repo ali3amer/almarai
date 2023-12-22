@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Livewire\Attributes\Rule;
 use Livewire\Component;
 use Livewire\WithPagination;
+
 class Sale extends Component
 {
     use LivewireAlert;
@@ -61,11 +62,17 @@ class Sale extends Component
 
     public function mount()
     {
+        if (\App\Models\Client::count() == 0) {
+            \App\Models\Client::create(['clientName' => "نقدي", 'phone' => "", 'initialBalance' => 0, 'startingDate' => session("date"), 'blocked' => false, 'cash' => true]);
+        }
         if (\App\Models\Client::where("cash", true)->first() != null) {
             $this->currentClient = \App\Models\Client::where("cash", true)->first()->toArray();
-            $client = SaleDebt::where('client_id', $this->currentClient['id'])->get();
-            $this->currentBalance = $client->sum('debt') - $client->sum('paid') + $this->currentClient['initialBalance'];
+        } else {
+            $this->currentClient = \App\Models\Client::first()->toArray();
         }
+
+        $client = SaleDebt::where('client_id', $this->currentClient['id'])->get();
+        $this->currentBalance = $client->sum('debt') - $client->sum('paid') + $this->currentClient['initialBalance'];
         $this->banks = Bank::all();
 
         if ($this->banks->count() != 0) {
@@ -368,7 +375,7 @@ class Sale extends Component
         } elseif ($this->buyer == 'supplier') {
             $this->clients = \App\Models\Supplier::where('supplierName', 'LIKE', '%' . $this->clientSearch . '%')->get();
         }
-        return view('livewire.sale',[
+        return view('livewire.sale', [
             'products' => \App\Models\Product::where('productName', 'LIKE', '%' . $this->productSearch . '%')->simplePaginate(10)
         ]);
     }

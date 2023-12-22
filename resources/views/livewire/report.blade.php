@@ -331,37 +331,37 @@
                         <td>قيمة البضاعه الموجودة</td>
                         <td>{{number_format($stock, 2)}}</td>
                         <td>الدائنون (الموردين)</td>
-                        <td>2,330,000</td>
+                        <td>{{number_format($creditors, 2)}}</td>
                     </tr>
                     <tr>
                         <td>رصيد البنك</td>
                         <td>{{number_format($bankBalance, 2)}}</td>
                         <td>أمانات طرفنا</td>
-                        <td>2,330,000</td>
+                        <td>{{ number_format($deposits, 2) }}</td>
                     </tr>
                     <tr>
                         <td>النقديه بالخزنه</td>
                         <td>{{number_format($balance, 2)}}</td>
                         <td rowspan="2">رأس المال</td>
-                        <td rowspan="2">2,330,000</td>
+                        <td rowspan="2">{{number_format($capital, 2)}}</td>
                     </tr>
                     <tr>
                         <td>مصروفات مدفوعه مقدماً</td>
-                        <td>2,330,000</td>
+                        <td rowspan="2">{{number_format($totalExpenses, 2)}}</td>
                     </tr>
                     </tbody>
                     <tfoot>
                     <tr>
                         <th>الجمله</th>
-                        <th>2,330,000</th>
+                        <th>{{ number_format($assets, 2) }}</th>
                         <th>الجمله</th>
-                        <th>2,330,000</th>
+                        <th>{{ number_format($adversaries, 2) }}</th>
                     </tr>
                     <tr>
                         <th colspan="4">صافي الارباح = الأصول - الخصوم</th>
                     </tr>
                     <tr>
-                        <th colspan="4">2,330,000</th>
+                        <th colspan="4">{{ number_format($assets - $adversaries, 2) }}</th>
                     </tr>
 
                     </tfoot>
@@ -448,8 +448,8 @@
                         <tbody>
                         @if(!empty($clients))
                             @foreach($clients as $client)
-                                @php $clientsBalance += $client->debts->sum("debt") - $client->debts->sum("paid") + $client->initialBalance  @endphp
                                 @php $clientBalance = $client->debts->sum("debt") - $client->debts->sum("paid") + $client->initialBalance  @endphp
+                                @php $clientsBalance += $clientBalance  @endphp
                                 <tr>
                                     <td>{{ $client->clientName }}</td>
                                     <td>{{ number_format($clientBalance , 2) }}</td>
@@ -487,8 +487,8 @@
                         @if(!empty($suppliers))
 
                             @foreach($suppliers as $supplier)
-                                @php $suppliersBalance += $supplier->purchaseDebts->sum("debt") - $supplier->purchaseDebts->sum("paid") + $supplier->saleDebts->sum("debt") - $supplier->saleDebts->sum("paid") + $supplier->initialBalance - $supplier->initialSalesBalance; @endphp
-                                @php $supplierBalance = $supplier->purchaseDebts->sum("debt") - $supplier->purchaseDebts->sum("paid") + $supplier->saleDebts->sum("debt") - $supplier->saleDebts->sum("paid") + $supplier->initialBalance - $supplier->initialSalesBalance; @endphp
+                                @php $supplierBalance = $supplier->purchaseDebts->sum("debt") - $supplier->purchaseDebts->sum("paid") - $supplier->saleDebts->sum("debt") - $supplier->saleDebts->sum("paid") + $supplier->initialBalance - $supplier->initialSalesBalance; @endphp
+                                @php $suppliersBalance += $supplierBalance; @endphp
                                 <tr>
                                     <td>{{ $supplier->supplierName }}</td>
                                     <td>{{ number_format($supplierBalance , 2) }}</td>

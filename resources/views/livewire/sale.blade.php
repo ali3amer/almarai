@@ -133,7 +133,7 @@
                                     <div class="card-title">
                                         <div class="row">
                                             <div class="col-4"><h5>الفاتوره {{$id != 0 ? '#'. $id : ''}}</h5></div>
-                                            <div class="col-4"><input type="date" wire:model.live="sale_date"
+                                            <div class="col-4"><input type="date" disabled wire:model.live="sale_date"
                                                                       class="form-control">
                                             </div>
                                             <div class="col-4">

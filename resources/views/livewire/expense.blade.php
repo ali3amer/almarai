@@ -45,7 +45,7 @@
                             @error('amount') <span class="error text-danger">{{ $message }}</span> @enderror
                         </div>
                         <label for="expense_date" class="form-label">التاريخ</label>
-                        <input type="date" autocomplete="off" wire:model="expense_date" class="form-control" placeholder="التاريخ ....."
+                        <input type="date" disabled autocomplete="off" wire:model="expense_date" class="form-control" placeholder="التاريخ ....."
                                name="expense_date" id="expense_date">
                         <div>
                             @error('expense_date') <span class="error text-danger">{{ $message }}</span> @enderror

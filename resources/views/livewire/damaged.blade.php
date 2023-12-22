@@ -50,7 +50,7 @@
                     <input type="text" id="quantity" wire:model.live="quantity" autocomplete="off" class="form-control text-center"
                            placeholder="الكمية التالفه">
                     <label for="quantity">التاريخ</label>
-                    <input type="date" id="damaged_date" wire:model.live="damaged_date" class="form-control text-center">
+                    <input type="date" disabled id="damaged_date" wire:model.live="damaged_date" class="form-control text-center">
 
 
                     <button @disabled(empty($currentProduct) || ($quantity == 0)) class="btn {{ $id == 0 ? 'btn-primary' : 'btn-success' }} w-100 mt-2" wire:click="save()">{{$id == 0 ? 'حفـــــــــــــــظ' : 'تعـــــــــــــديل'}}</button>

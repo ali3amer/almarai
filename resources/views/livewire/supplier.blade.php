@@ -134,6 +134,7 @@
                                         <th>الهاتف</th>
                                         <th>الرصيد الافتتاحي</th>
                                         <th>الرصيد الافتتاحي للمبيعات</th>
+                                        <th>نقدي</th>
                                         <th>التحكم</th>
                                     </tr>
                                     </thead>
@@ -145,6 +146,7 @@
                                             <td>{{ $supplier->phone }}</td>
                                             <td>{{ number_format($supplier->initialBalance, 2) }}</td>
                                             <td>{{ number_format($supplier->initialSalesBalance, 2) }}</td>
+                                            <td>{{ $supplier->cash ? "نعم" : "لا" }}</td>
                                             <td>
                                                 <button
                                                     @disabled(!$update) class="btn btn-sm btn-info text-white"
@@ -165,6 +167,13 @@
                                                     class="btn btn-sm btn-{{$supplier->blocked ? 'danger' : 'success'}} text-white"
                                                     wire:click="changeBlocked({{$supplier}})"><i
                                                         class="bi bi-{{$supplier->blocked ? 'lock' : 'unlock'}}"></i>
+                                                </button>
+
+                                                /
+                                                <button  @disabled(!$update)
+                                                         class="btn btn-sm btn-{{$supplier->cash ? 'danger' : 'primary'}} text-white"
+                                                         wire:click="changeCash({{$supplier}})"><i
+                                                        class="bi bi-cash"></i>
                                                 </button>
                                             </td>
                                         </tr>

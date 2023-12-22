@@ -24,6 +24,7 @@ class Safe extends Component
     public string $title = 'الخزنه';
 
     public $startingDate;
+    public $capital = 0;
     public int $id = 0;
     public $bank_id = null;
     public int $withdrawId = 0;
@@ -56,8 +57,14 @@ class Safe extends Component
     public function mount()
     {
         $this->startingDate = session("date");
-        $this->banks = Bank::all();
         $this->withdraws = Withdraw::all();
+        $this->getbanksBalance();
+    }
+
+    public function getbanksBalance()
+    {
+        $this->banks = Bank::all();
+
         if ($this->banks->count() > 0) {
             $this->bank_id = $this->banks->first()->id;
 
@@ -73,7 +80,6 @@ class Safe extends Component
             }
         }
     }
-
     public function getWithdraws()
     {
         $this->reset("payment", "amount");
@@ -122,7 +128,9 @@ class Safe extends Component
                 'initialBalance' => floatval($this->initialBalance),
             ]);
         }
-        $this->banks = Bank::all();
+
+        $this->getbanksBalance();
+
         $this->resetBankData();
         $this->alert('success', 'تم حفظ بنجاح', ['timerProgressBar' => true]);
 
@@ -131,11 +139,11 @@ class Safe extends Component
     public function safeInitial()
     {
         if ($this->safeId == 0) {
-            \App\Models\Safe::create(['initialBalance' => floatval($this->safe), "startingDate" => $this->startingDate]);
+            \App\Models\Safe::create(['initialBalance' => floatval($this->safe), "startingDate" => $this->startingDate, 'capital' => floatval($this->capital)]);
             $this->alert('success', 'تم حفظ الرصيد بنجاح', ['timerProgressBar' => true]);
 
         } else {
-            \App\Models\Safe::where('id', $this->safeId)->update(['initialBalance' => floatval($this->safe), "startingDate" => $this->startingDate]);
+            \App\Models\Safe::where('id', $this->safeId)->update(['initialBalance' => floatval($this->safe), "startingDate" => $this->startingDate, 'capital' => floatval($this->capital)]);
             $this->alert('success', 'تم تعديل الرصيد بنجاح', ['timerProgressBar' => true]);
         }
         $this->safeId = 0;
@@ -234,6 +242,16 @@ class Safe extends Component
 
     public function render()
     {
+        $this->safeBalance = \App\Models\Safe::sum('initialBalance')
+            + SaleDebt::where("type", "pay")->where("payment", "cash")->sum("paid")
+            - SaleDebt::where("type", "debt")->where("payment", "cash")->whereNull("sale_id")->sum("debt")
+            + Transfer::where("transfer_type", "bank_to_cash")->sum("transfer_amount")
+            - Transfer::where("transfer_type", "cash_to_bank")->sum("transfer_amount")
+            - Expense::where("payment", "cash")->sum("amount")
+            - EmployeeGift::where("payment", "cash")->sum("gift_amount")
+            - PurchaseDebt::where("type", "pay")->where("payment", "cash")->sum("paid")
+            + PurchaseDebt::where("type", "debt")->where("payment", "cash")->whereNull("purchase_id")->sum("debt")
+            - Withdraw::where("due_date", session("date"))->sum("amount");
 
         if ($this->transfer_date == '') {
             $this->transfer_date = session("date");

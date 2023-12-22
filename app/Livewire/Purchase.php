@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Livewire\Attributes\Rule;
 use Livewire\Component;
 use Livewire\WithPagination;
+
 class Purchase extends Component
 {
     use LivewireAlert;
@@ -58,11 +59,18 @@ class Purchase extends Component
 
     public function mount()
     {
-        if (\App\Models\Supplier::first()) {
-            $this->currentSupplier = \App\Models\Supplier::first()->toArray();
-            $supplier = PurchaseDebt::where('supplier_id', $this->currentSupplier['id'])->get();
-            $this->currentBalance = $supplier->sum('debt') - $supplier->sum('paid') + $this->currentSupplier['initialBalance'];
+        if (\App\Models\Supplier::count() == 0) {
+            \App\Models\Supplier::create(['supplierName' => "نقدي", 'phone' => "", 'initialBalance' => 0, 'startingDate' => session("date"), 'initialSalesBalance' => 0, 'blocked' => false, 'cash' => true]);
         }
+        if (\App\Models\Supplier::where("cash", true)->first() != null) {
+            $this->currentSupplier = \App\Models\Supplier::where("cash", true)->first()->toArray();
+        } else {
+            $this->currentSupplier = \App\Models\Supplier::first()->toArray();
+        }
+
+        $supplier = PurchaseDebt::where('supplier_id', $this->currentSupplier['id'])->get();
+        $this->currentBalance = $supplier->sum('debt') - $supplier->sum('paid') + $this->currentSupplier['initialBalance'];
+
         $this->banks = Bank::all();
         if ($this->banks->count() != 0) {
             $this->bank_id = $this->banks->first()->id;
@@ -163,7 +171,7 @@ class Purchase extends Component
         $this->dispatch('sale_created', $this->invoice);
     }
 
-        public function chooseSupplier($supplier)
+    public function chooseSupplier($supplier)
     {
         $this->currentSupplier = $supplier;
         $supplier = PurchaseDebt::where('supplier_id', $this->currentSupplier['id'])->get();
@@ -314,7 +322,11 @@ class Purchase extends Component
     public function calcRemainder()
     {
         $this->total_amount = $this->amount - floatval($this->discount);
-        $this->remainder = floatval($this->total_amount) - floatval($this->paid);
+        if ($this->currentSupplier['cash']) {
+            $this->paid = $this->total_amount;
+        } else {
+            $this->remainder = floatval($this->total_amount) - floatval($this->paid);
+        }
     }
 
     public function resetData($item = null)

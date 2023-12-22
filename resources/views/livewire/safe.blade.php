@@ -38,7 +38,7 @@
                                 </div>
 
                                 <label for="startingDate1">تاريخ الإضافه</label>
-                                <input type="date" wire:model.live="startingDate" id="startingDate1"
+                                <input type="date" disabled wire:model.live="startingDate" id="startingDate1"
                                        class="form-control text-center">
 
 
@@ -117,10 +117,18 @@
                 <div class="card">
                     <div class="card-body">
                         <div class="card-title">
-                            <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#bankModal"><i
-                                    class="bi bi-bag-plus"></i></button>
+                            <div class="row">
+                                <div class="col-6">
+                                    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#bankModal"><i
+                                            class="bi bi-bag-plus"></i></button>
 
-                            <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#cashModal">سحب كاش من الخزنه</button>
+                                    <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#cashModal">سحب كاش من الخزنه</button>
+
+                                </div>
+                                <div class="col-6">
+                                    <span>الخزنة : </span><span>{{ number_format($safeBalance, 2) }}</span>
+                                </div>
+                            </div>
                         </div>
                         <div class="scroll">
                             <table class="table text-center">
@@ -134,7 +142,9 @@
                                 </tr>
                                 </thead>
                                 <tbody>
+                                @php $banksBalance = 0; @endphp
                                 @foreach($banks as $bank)
+                                    @php $banksBalance += $bank->currentBalance; @endphp
                                     <tr>
                                         <td>{{$bank->bankName}}</td>
                                         <td>{{$bank->accountName}}</td>
@@ -143,6 +153,10 @@
                                         <td>{{number_format($bank->currentBalance, 2)}}</td>
                                     </tr>
                                 @endforeach
+                                <tr>
+                                    <td colspan="4">الجمله</td>
+                                    <td>{{ number_format($banksBalance, 2) }}</td>
+                                </tr>
                                 </tbody>
                             </table>
                         </div>
@@ -178,7 +192,7 @@
                             <div class="row mt-2">
                                 <div class="col-3">
                                     <label for="transfer_date">تاريخ التحويل</label>
-                                    <input type="date" wire:model="transfer_date" id="transfer_date"
+                                    <input type="date" disabled wire:model="transfer_date" id="transfer_date"
                                            class="form-control text-center" placeholder="رقم الاشعار ....">
                                 </div>
 
@@ -247,13 +261,16 @@
             <div class="col-4 mt-5">
                 <div class="card bg-white">
                     <div class="card-body">
-                        <div class="card-title">
-                            <h6>الرصيد الافتتاحي</h6>
-                        </div>
-                        <input type="text" wire:model="safe" placeholder="الرصيد الافتتاحي ...." class="form-control text-center">
+
+                        <label for="capital">رأس المال</label>
+                        <input id="capital" type="text" wire:model="capital" placeholder="رأس المال ...." class="form-control text-center">
+
+                        <label for="safe">الرصيد الافتتاحي</label>
+                        <input id="safe" type="text" wire:model="safe" placeholder="الرصيد الافتتاحي ...." class="form-control text-center">
+
 
                         <label for="startingDate">تاريخ الإضافه</label>
-                        <input type="date" wire:model.live="startingDate" id="startingDate"
+                        <input type="date" disabled wire:model.live="startingDate" id="startingDate"
                                class="form-control text-center">
 
                         <button class="btn btn-primary w-100 mt-3" wire:click="safeInitial()">حــــــــــــــفظ</button>

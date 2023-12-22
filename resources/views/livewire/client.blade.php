@@ -159,10 +159,11 @@
                                                         class="bi bi-{{$client->blocked ? 'lock' : 'unlock'}}"></i>
                                                 </button>
 
+                                                /
                                                 <button  @disabled(!$update)
                                                          class="btn btn-sm btn-{{$client->cash ? 'danger' : 'primary'}} text-white"
                                                          wire:click="changeCash({{$client}})"><i
-                                                        class="bi bi-{{$client->cash ? 'cash' : 'cash'}}"></i>
+                                                        class="bi bi-cash"></i>
                                                 </button>
                                             </td>
                                         </tr>

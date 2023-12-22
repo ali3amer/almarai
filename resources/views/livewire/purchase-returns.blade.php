@@ -204,7 +204,7 @@
 
                         <div class="col">
                             <label for="return_date">تاريخ الارجاع</label>
-                            <input type="date" @disabled(empty($currentDetail)) wire:model="return_date"
+                            <input type="date" disabled @disabled(empty($currentDetail)) wire:model="return_date"
                                    class="form-control text-center">
                         </div>
 

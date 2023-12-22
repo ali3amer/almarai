@@ -109,6 +109,8 @@ class Client extends Component
         $this->blocked = !$client['blocked'];
         \App\Models\Client::where('id', $client['id'])->update(['blocked' => $this->blocked]);
         $this->resetData();
+        $this->alert('success', "تم تغيير حالة العميل النقدي" , ['timerProgressBar' => true]);
+
     }
 
     public function changeCash($client)
@@ -119,6 +121,7 @@ class Client extends Component
         }
         \App\Models\Client::where('id', $client['id'])->update(['cash' => $this->cash]);
         $this->resetData();
+        $this->alert('success', "تم تغيير العميل النقدي" , ['timerProgressBar' => true]);
     }
 
     public function edit($client)
