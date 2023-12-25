@@ -53,9 +53,19 @@ class Safe extends Component
     public $safe = 0;
     public $safeId = 0;
     public $payment = "cash";
+    public bool $create = false;
+    public bool $read = false;
+    public bool $update = false;
+    public bool $delete = false;
 
     public function mount()
     {
+        $user = auth()->user();
+        $this->create = $user->hasPermission('employees-create');
+        $this->read = $user->hasPermission('employees-read');
+        $this->update = $user->hasPermission('employees-update');
+        $this->delete = $user->hasPermission('employees-delete');
+
         $this->startingDate = session("date");
         $this->withdraws = Withdraw::all();
         $this->getbanksBalance();

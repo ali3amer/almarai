@@ -119,10 +119,10 @@
                         <div class="card-title">
                             <div class="row">
                                 <div class="col-6">
-                                    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#bankModal"><i
+                                    <button @disabled(!$create) class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#bankModal"><i
                                             class="bi bi-bag-plus"></i></button>
 
-                                    <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#cashModal">سحب كاش من الخزنه</button>
+                                    <button @disabled(!$create) class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#cashModal">سحب كاش من الخزنه</button>
 
                                 </div>
                                 <div class="col-6">
@@ -213,7 +213,7 @@
 
                                 <div class="col-2 d-flex align-items-end">
                                     <button
-                                        @disabled($transfer_amount == 0) @disabled(\App\Models\Bank::count() == 0) @disabled($bank_id == null) class="btn w-100 btn-{{$transferId == 0 ? 'primary' : 'success'}}"
+                                        @disabled($transfer_amount == 0) @disabled(!$create) @disabled(\App\Models\Bank::count() == 0) @disabled($bank_id == null) class="btn w-100 btn-{{$transferId == 0 ? 'primary' : 'success'}}"
                                         type="submit">{{$transferId == 0 ? 'حــــفظ' : 'تعـــديل'}}</button>
                                 </div>
                             </div>
