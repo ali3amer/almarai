@@ -105,6 +105,7 @@ class Report extends Component
     public float $total = 0;
     public float $deposits = 0;
     public float $creditors = 0;
+    public float $owe = 0;
     public float $salesPaidSum = 0;
     public float $purchasesPaidSum = 0;
     /**
@@ -237,27 +238,51 @@ class Report extends Component
 
             $sum = 0;
             $this->deposits = 0;
+            $this->owe = 0;
             foreach ($this->clients as $client) {
                 $sum = $client->initialBalance + $client->debts->sum("debt") - $client->debts->sum("paid");
                 if ($sum < 0) {
                     $this->deposits += -1 * $sum;
+                } else {
+                    $this->owe += $sum;
                 }
             }
 
             $this->suppliers = \App\Models\Supplier::get();
 
             $sum = 0;
+            $purchaseSum = 0;
             $this->creditors = 0;
             foreach ($this->suppliers as $supplier) {
-                $sum += $supplier->initialBalance + $supplier->purchaseDebts->sum("debt") - $supplier->purchaseDebts->sum("paid");
+                $purchaseSum += $supplier->initialBalance + $supplier->purchaseDebts->sum("debt") - $supplier->purchaseDebts->sum("paid");
                 $sum -= $supplier->initialSalesBalance + $supplier->saleDebts->sum("debt") - $supplier->saleDebts->sum("paid");
+
+                if ($purchaseSum > 0) {
+                    $this->creditors += $purchaseSum;
+                } else {
+                    $this->deposits += -1 * $purchaseSum;
+                }
+
                 if ($sum > 0) {
-                    $this->creditors += $sum;
+                    $this->owe += $sum;
+                } else {
+                    $this->deposits += -1 * $sum;
                 }
 
             }
 
-            $this->assets = $this->stock + $this->bankBalance + $this->balance + $this->totalSales;
+            $this->employees = \App\Models\Employee::get();
+
+            foreach ($this->employees as $employee) {
+                $sum = $employee->initialBalance + $employee->debts->sum("debt") - $employee->debts->sum("paid");
+                if ($sum < 0) {
+                    $this->deposits += -1 * $sum;
+                } else {
+                    $this->owe += $sum;
+                }
+            }
+
+            $this->assets = $this->stock + $this->bankBalance + $this->balance + $this->totalSales + $this->owe;
             $this->adversaries = $this->capital + $this->deposits + $this->creditors;
 
             $this->salesDebts = $this->salesSum - $this->salesPaidSum;
@@ -282,28 +307,38 @@ class Report extends Component
         } elseif ($this->reportType == 'client') { // client
             if ($this->reportDuration == 'day') {
                 $this->saleDebts = SaleDebt::where('client_id', $this->currentClient['id'])->where('due_date', $this->day)->get();
+                $this->salesBalance = $this->saleDebts->sum('debt') - $this->saleDebts->sum('paid') - $this->saleDebts->sum('discount');
             } elseif ($this->reportDuration == 'duration') {
                 $this->saleDebts = SaleDebt::where('client_id', $this->currentClient['id'])->whereBetween('due_date', [$this->from, $this->to])->get();
+                $this->salesBalance = $this->saleDebts->sum('debt') - $this->saleDebts->sum('paid') - $this->saleDebts->sum('discount');
             } else {
                 $this->saleDebts = SaleDebt::where('client_id', $this->currentClient['id'])->get();
+                $this->salesBalance = $this->currentClient['initialBalance'] + $this->saleDebts->sum('debt') - $this->saleDebts->sum('paid') - $this->saleDebts->sum('discount');
             }
-            $this->salesBalance = $this->currentClient['initialBalance'] + $this->saleDebts->sum('debt') - $this->saleDebts->sum('paid') - $this->saleDebts->sum('discount');
             $this->currentSalesBalance = $this->salesBalance;
         } elseif ($this->reportType == 'supplier') {   // supplier
             if ($this->reportDuration == 'day') {
                 $this->saleDebts = \App\Models\SaleDebt::where('supplier_id', $this->currentSupplier['id'])->where('due_date', $this->day)->get();
                 $this->purchaseDebts = \App\Models\PurchaseDebt::where('supplier_id', $this->currentSupplier['id'])->where('due_date', $this->day)->get();
+                $this->salesBalance = $this->saleDebts->sum('debt') - $this->saleDebts->sum('paid') - $this->saleDebts->sum('discount');
+
+                $this->purchasesBalance = $this->purchaseDebts->sum('debt') - $this->purchaseDebts->sum('paid') - $this->purchaseDebts->sum('discount');
+
             } elseif ($this->reportDuration == 'duration') {
                 $this->saleDebts = \App\Models\SaleDebt::where('supplier_id', $this->currentSupplier['id'])->whereBetween('due_date', [$this->from, $this->to])->get();
                 $this->purchaseDebts = \App\Models\PurchaseDebt::where('supplier_id', $this->currentSupplier['id'])->whereBetween('due_date', [$this->from, $this->to])->get();
+                $this->salesBalance = $this->saleDebts->sum('debt') - $this->saleDebts->sum('paid') - $this->saleDebts->sum('discount');
+
+                $this->purchasesBalance = $this->purchaseDebts->sum('debt') - $this->purchaseDebts->sum('paid') - $this->purchaseDebts->sum('discount');
+
             } else {
                 $this->saleDebts = \App\Models\SaleDebt::where('supplier_id', $this->currentSupplier['id'])->get();
                 $this->purchaseDebts = \App\Models\PurchaseDebt::where('supplier_id', $this->currentSupplier['id'])->get();
+                $this->salesBalance = $this->currentSupplier['initialSalesBalance'] + $this->saleDebts->sum('debt') - $this->saleDebts->sum('paid') - $this->saleDebts->sum('discount');
+
+                $this->purchasesBalance = $this->currentSupplier['initialBalance'] + $this->purchaseDebts->sum('debt') - $this->purchaseDebts->sum('paid') - $this->purchaseDebts->sum('discount');
+
             }
-
-            $this->salesBalance = $this->currentSupplier['initialSalesBalance'] + $this->saleDebts->sum('debt') - $this->saleDebts->sum('paid') - $this->saleDebts->sum('discount');
-
-            $this->purchasesBalance = $this->currentSupplier['initialBalance'] + $this->purchaseDebts->sum('debt') - $this->purchaseDebts->sum('paid') - $this->purchaseDebts->sum('discount');
 
             $this->currentSalesBalance = $this->salesBalance;
 
@@ -315,15 +350,19 @@ class Report extends Component
             if ($this->reportDuration == 'day') {
                 $this->saleDebts = \App\Models\SaleDebt::where('employee_id', $this->currentEmployee['id'])->where('due_date', $this->day)->get();
                 $this->employeeGifts = \App\Models\EmployeeGift::where('employee_id', $this->currentEmployee['id'])->where('gift_date', $this->day)->get();
+                $this->salesBalance = $this->saleDebts->sum('debt') - $this->saleDebts->sum('paid') - $this->saleDebts->sum('discount');
             } elseif ($this->reportDuration == 'duration') {
                 $this->saleDebts = \App\Models\SaleDebt::where('employee_id', $this->currentEmployee['id'])->whereBetween('due_date', [$this->from, $this->to])->get();
                 $this->employeeGifts = \App\Models\EmployeeGift::where('employee_id', $this->currentEmployee['id'])->whereBetween('gift_date', [$this->from, $this->to])->get();
+                $this->salesBalance = $this->saleDebts->sum('debt') - $this->saleDebts->sum('paid') - $this->saleDebts->sum('discount');
+
             } else {
                 $this->saleDebts = \App\Models\SaleDebt::where('employee_id', $this->currentEmployee['id'])->get();
                 $this->employeeGifts = \App\Models\EmployeeGift::where('employee_id', $this->currentEmployee['id'])->get();
+                $this->salesBalance = $this->currentEmployee['initialBalance'] + $this->saleDebts->sum('debt') - $this->saleDebts->sum('paid') - $this->saleDebts->sum('discount');
+
             }
 
-            $this->salesBalance = $this->currentEmployee['initialBalance'] + $this->saleDebts->sum('debt') - $this->saleDebts->sum('paid') - $this->saleDebts->sum('discount');
 
             $this->currentSalesBalance = $this->salesBalance;
 

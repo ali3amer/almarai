@@ -342,12 +342,16 @@
                     <tr>
                         <td>النقديه بالخزنه</td>
                         <td>{{number_format($balance, 2)}}</td>
-                        <td rowspan="2">رأس المال</td>
-                        <td rowspan="2">{{number_format($capital, 2)}}</td>
+                        <td rowspan="3">رأس المال</td>
+                        <td rowspan="3">{{number_format($capital, 2)}}</td>
+                    </tr>
+                    <tr>
+                        <td>المدينون</td>
+                        <td>{{number_format($owe, 2)}}</td>
                     </tr>
                     <tr>
                         <td>مصروفات مدفوعه مقدماً</td>
-                        <td rowspan="2">{{number_format($totalExpenses, 2)}}</td>
+                        <td>{{number_format($totalExpenses, 2)}}</td>
                     </tr>
                     </tbody>
                     <tfoot>
@@ -577,7 +581,7 @@
                                 <tr>
                                     @php $currentBalance += $debt->debt - $debt->paid @endphp
                                     <td>{{$debt->due_date}}</td>
-                                    <td {{ $debt->sale_id != null || $debt->purchase_id != null ? "data-bs-toggle=modal data-bs-target=#printModal " : '' }} wire:click="getInvoice({{$debt}})">{{ $debt->note }}</td>
+                                    <td @if($debt->sale_id != null || $debt->purchase_id != null) data-bs-toggle="modal" data-bs-target="#printModal"  wire:click="getInvoice({{$debt}})" @endif >{{ $debt->note }}</td>
                                     <td>{{number_format($debt->debt, 2)}}</td>
                                     <td>{{number_format($debt->paid, 2)}}</td>
                                     <td>{{number_format($currentBalance, 2)}}</td>
@@ -621,8 +625,7 @@
                                 <tr>
                                     @php $currentBalance += $debt->debt - $debt->paid @endphp
                                     <td>{{$debt->due_date}}</td>
-                                    <td colspan="3"
-                                        {{ $debt->sale_id != null || $debt->purchase_id != null ? "data-bs-toggle=modal data-bs-target=#printModal " : '' }} wire:click="getInvoice({{$debt}})">{{ $debt->note }}</td>
+                                    <td colspan="3" @if($debt->sale_id != null || $debt->purchase_id != null) data-bs-toggle="modal" data-bs-target="#printModal" wire:click="getInvoice({{$debt}})" @endif>{{ $debt->note }}</td>
                                     <td>{{$debt->type == "debt" ? number_format($debt->debt, 2) : number_format($debt->paid, 2)}}</td>
                                 </tr>
                                 @if($debt->type == 'debt' && $debt->sale_id != null)
@@ -649,11 +652,11 @@
             <div class="card-body invoice" dir="rtl">
                 <div class="card-title">
                     <div class="row">
-                        <div class="col-4">
+                        <div class="col-3">
                             <h5>{{$currentSupplier['supplierName'] ?? ''}}</h5>
                         </div>
 
-                        <div class="col-4">
+                        <div class="col-5">
                             <div class="row">
                                 <div class="col-6">
                                     <h5>الرصيد الافتتاحي  : {{number_format($currentSupplier['initialBalance'], 2)}}</h5>
@@ -688,7 +691,7 @@
                             <tr>
                                 @php $currentBalance += $debt->debt - $debt->paid @endphp
                                 <td>{{$debt->due_date}}</td>
-                                <td {{ $debt->sale_id != null || $debt->purchase_id != null ? "data-bs-toggle=modal data-bs-target=#printModal " : '' }} wire:click="getInvoice({{$debt}})">{{ $debt->note }}</td>
+                                <td @if($debt->sale_id != null || $debt->purchase_id != null) data-bs-toggle="modal" data-bs-target="#printModal" wire:click="getInvoice({{$debt}})" @endif>{{ $debt->note }}</td>
                                 <td>{{number_format($debt->debt, 2)}}</td>
                                 <td>{{number_format($debt->paid, 2)}}</td>
                                 <td>{{number_format($currentBalance, 2)}}</td>
@@ -704,11 +707,11 @@
             <div class="card-body invoice" dir="rtl">
                 <div class="card-title">
                     <div class="row">
-                        <div class="col-4">
+                        <div class="col-3">
                             <h5>{{$currentSupplier['supplierName'] ?? ''}}</h5>
                         </div>
 
-                        <div class="col-4">
+                        <div class="col-5">
                             <div class="row">
                                 <div class="col-6">
                                     <h5>الرصيد الافتتاحي  : {{number_format($currentSupplier['initialBalance'], 2)}}</h5>
@@ -744,7 +747,7 @@
                                 @php $currentBalance += $debt->debt - $debt->paid @endphp
                                 <td>{{$debt->due_date}}</td>
                                 <td colspan="3"
-                                    {{ $debt->sale_id != null || $debt->purchase_id != null ? "data-bs-toggle=modal data-bs-target=#printModal " : '' }} wire:click="getInvoice({{$debt}})">{{ $debt->note }}</td>
+                                    @if($debt->sale_id != null || $debt->purchase_id != null) data-bs-toggle="modal" data-bs-target="#printModal" wire:click="getInvoice({{$debt}})" @endif>{{ $debt->note }}</td>
                                 <td>{{ $debt->type == "debt" ? number_format($debt->debt, 2) : number_format($debt->paid, 2)}}</td>
                             </tr>
                             @if($debt->type == 'debt' && $debt->sale_id != null)
@@ -811,7 +814,7 @@
                             <tr>
                                 @php $currentBalance += $debt->debt - $debt->paid @endphp
                                 <td>{{$debt->due_date}}</td>
-                                <td {{ $debt->sale_id != null ? "data-bs-toggle=modal data-bs-target=#printModal " : '' }} wire:click="getInvoice({{$debt}})">{{ $debt->note }}</td>
+                                <td @if($debt->sale_id != null) data-bs-toggle="modal" data-bs-target="#printModal" wire:click="getInvoice({{$debt}})" @endif>{{ $debt->note }}</td>
                                 <td>{{number_format($debt->debt, 2)}}</td>
                                 <td>{{number_format($debt->paid, 2)}}</td>
                                 <td>{{number_format($currentBalance, 2)}}</td>
@@ -856,8 +859,7 @@
                             <tr>
                                 @php $currentBalance += $debt->debt - $debt->paid @endphp
                                 <td>{{$debt->due_date}}</td>
-                                <td colspan="3"
-                                    {{ $debt->sale_id != null || $debt->purchase_id != null ? "data-bs-toggle=modal data-bs-target=#printModal " : '' }} wire:click="getInvoice({{$debt}})">{{ $debt->note }}</td>
+                                <td colspan="3" @if($debt->sale_id != null || $debt->purchase_id != null) data-bs-toggle="modal" data-bs-target="#printModal" wire:click="getInvoice({{$debt}})" @endif>{{ $debt->note }}</td>
                                 <td>{{ $debt->type == "debt" ? number_format($debt->debt, 2) : number_format($debt->paid, 2)}}</td>
                             </tr>
                             @if($debt->type == 'debt' && $debt->sale_id != null)

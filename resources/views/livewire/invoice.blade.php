@@ -1,4 +1,4 @@
-<div class="invoice" dir="rtl">
+<div class="invoice mb-3 pb-3" dir="rtl">
     <h6>فاتوره رقم {{$invoice['id'] ?? ''}}</h6>
     <h6>إسم {{ $invoice['clientType'] ?? '' }} : {{$invoice['client'] ?? ''}}</h6>
     <h6>التاريخ : {{$invoice['date'] ?? ''}}</h6>
