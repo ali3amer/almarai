@@ -87,11 +87,11 @@
                 <div class="card-header">
                     <div class="row">
                         <div class="col-4">
-                            <input wire:keydown="searchProduct()" wire:model.live="search" class="form-control"
+                            <input wire:model.live="search" class="form-control"
                                    placeholder="بحث ......">
                         </div>
                         <div class="col-4">
-                            <select wire:change="searchProduct()" class="form-select" wire:model.live="store_id">
+                            <select class="form-select" wire:model.live="store_id">
                                 <option value="0">----------------</option>
                                 @foreach($stores as $store)
                                     <option value="{{ $store->id }}">{{ $store->storeName }}</option>
@@ -99,7 +99,7 @@
                             </select>
                         </div>
                         <div class="col-4">
-                            <select wire:change="searchProduct()" class="form-select" wire:model.live="category_id">
+                            <select class="form-select" wire:model.live="category_id">
                                 <option value="0">----------------</option>
                                 @foreach($categories as $category)
                                     <option value="{{ $category->id }}">{{ $category->categoryName }}</option>
