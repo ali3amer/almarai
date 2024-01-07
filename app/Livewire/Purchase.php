@@ -136,6 +136,7 @@ class Purchase extends Component
                 }
             }
 
+            $this->showInvoice($purchase['id']);
 
             $this->alert('success', 'تم الحفظ بنجاح', ['timerProgressBar' => true]);
 

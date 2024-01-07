@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Collection;
 
 class Category extends Component
 {
+    use LivewireAlert;
 
     protected $listeners = [
         'delete'

@@ -16,11 +16,10 @@
                                     wire:click="deleteMessage({{$invoice['id']}})"><i class="bi bi-trash"></i>
                             </button>
                         @endif
-                        @if(!$editMode)
+                        @if(!$editMode && !isset($invoice['id']))
                             <button class="btn btn-primary" wire:click="save()"><i class="bi bi-bookmark-check"></i>
                             </button>
                         @endif
-
                         <button class="btn btn-info" id="print"><i class="bi bi-printer"></i></button>
                     </h1>
                 </div>
