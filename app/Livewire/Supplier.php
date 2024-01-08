@@ -39,7 +39,7 @@ class Supplier extends Component
     public Collection $suppliers;
     public array $currentSupplier = [];
     public Collection $debts;
-    public string $type = 'debt';
+    public string $type = 'pay';
     public string $debtType = 'purchases';
     public string $payment = 'cash';
     public string $due_date = '';
@@ -345,7 +345,12 @@ class Supplier extends Component
     {
         $debt = $data['inputAttributes']['debt'];
 
-        PurchaseDebt::where('id', $debt['id'])->delete();
+        if ($this->debtType == 'purchases') {
+            PurchaseDebt::where('id', $debt['id'])->forceDelete();
+        } else {
+            SaleDebt::where('id', $debt['id'])->forceDelete();
+        }
+        $this->showDebts($this->currentSupplier);
         $this->alert('success', 'تم حذف الدفعيه بنجاح', ['timerProgressBar' => true]);
 
     }

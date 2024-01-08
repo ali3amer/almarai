@@ -57,8 +57,8 @@
     </div>
 
 
-        <x-title :$title/>
-{{--    <livewire:Title :$title />--}}
+    <x-title :$title/>
+    {{--    <livewire:Title :$title />--}}
 
     <div class="row mt-2">
         @if(empty($currentClient))
@@ -153,16 +153,16 @@
                                                 </button>
 
                                                 /
-                                                <button  @disabled(!$update)
-                                                    class="btn btn-sm btn-{{$client->blocked ? 'danger' : 'success'}} text-white"
-                                                    wire:click="changeBlocked({{$client}})"><i
+                                                <button @disabled(!$update)
+                                                        class="btn btn-sm btn-{{$client->blocked ? 'danger' : 'success'}} text-white"
+                                                        wire:click="changeBlocked({{$client}})"><i
                                                         class="bi bi-{{$client->blocked ? 'lock' : 'unlock'}}"></i>
                                                 </button>
 
                                                 /
-                                                <button  @disabled(!$update)
-                                                         class="btn btn-sm btn-{{$client->cash ? 'danger' : 'primary'}} text-white"
-                                                         wire:click="changeCash({{$client}})"><i
+                                                <button @disabled(!$update)
+                                                        class="btn btn-sm btn-{{$client->cash ? 'danger' : 'primary'}} text-white"
+                                                        wire:click="changeCash({{$client}})"><i
                                                         class="bi bi-cash"></i>
                                                 </button>
                                             </td>
@@ -218,7 +218,8 @@
                             </div>
                             <div class="col-6">
                                 <label for="payment">طريقة الدفع</label>
-                                <select @disabled($banks->count() == 0) class="form-select text-center" wire:model.live="payment">
+                                <select @disabled($banks->count() == 0) class="form-select text-center"
+                                        wire:model.live="payment">
                                     <option value="cash">كاش</option>
                                     <option value="bank">بنك</option>
                                 </select>
@@ -266,8 +267,8 @@
 
 
                         <button data-bs-toggle="modal" data-bs-target="#debtModal"
-                            @disabled($payment == "bank" && $banks->count() == 0) @disabled(empty($currentClient) || $due_date == '') @disabled($debt_amount == 0 && $discount == 0) class="btn btn-{{$debtId == 0 ? 'primary' : 'success'}} w-100"
-                            wire:click="saveDebt()">{{$debtId == 0 ? 'دفــــع' : 'تعــــديل'}}</button>
+                                @disabled($payment == "bank" && $banks->count() == 0) @disabled(empty($currentClient) || $due_date == '') @disabled($debt_amount == 0 && $discount == 0) class="btn btn-{{$debtId == 0 ? 'primary' : 'success'}} w-100"
+                                wire:click="saveDebt()">{{$debtId == 0 ? 'دفــــع' : 'تعــــديل'}}</button>
 
                     </div>
                 </div>
@@ -290,6 +291,7 @@
                                     <th>التاريخ</th>
                                     <th>البيان</th>
                                     <th>المبلغ</th>
+                                    <th>التحكم</th>
                                 </tr>
                                 </thead>
                                 <tbody>
@@ -303,6 +305,15 @@
                                                 {{ $debt->discount }}
                                             @else
                                                 {{$debt->type == 'pay' ? number_format($debt->paid, 2) : number_format($debt->debt, 2)}}
+                                            @endif
+                                        </td>
+                                        <td>
+                                            @if($debt->sale_id == null)
+
+                                                <button class="btn btn-sm btn-danger"
+                                                        wire:click="deleteDebtMessage({{$debt}})"><i
+                                                        class="bi bi-trash"></i>
+                                                </button>
                                             @endif
                                         </td>
                                     </tr>

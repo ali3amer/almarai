@@ -172,8 +172,8 @@
                                 <div class="col-4">
                                     <label for="type">نوع التحويل</label>
                                     <select id="type" class="form-select text-center" wire:model.live="transfer_type">
-                                        <option value="cash_to_bank">من كاش الى بنك</option>
-                                        <option value="bank_to_cash">من بنك الى كاش</option>
+                                        <option value="cash_to_bank">إستلام بنك</option>
+                                        <option value="bank_to_cash">إستلام كاش</option>
                                     </select>
                                 </div>
 
@@ -228,25 +228,30 @@
                                 <table class="table table-responsive text-center">
                                     <thead>
                                     <tr>
-                                        <th>#</th>
                                         <th>التاريخ</th>
                                         <th>البنك</th>
                                         <th>نوع التحويل</th>
                                         <th>المبلغ</th>
                                         <th>رقم الإشعار</th>
                                         <th>ملاحظات</th>
+                                        <th>التحكم</th>
                                     </tr>
                                     </thead>
                                     <tbody>
                                     @foreach($transfers as $transfer)
                                         <tr>
-                                            <td>{{$loop->index + 1}}</td>
                                             <td>{{$transfer->transfer_date}}</td>
                                             <td>{{$transfer->bank->bankName ?? ""}}</td>
-                                            <td>{{$transfer->transfer_type == 'cash_to_bank' ? 'من كاش الى بنك' : 'من بنك الى كاش'}}</td>
+                                            <td>{{$transfer->transfer_type == 'cash_to_bank' ? 'تم إستلام مبلغ في البنك' : 'تم إستلام مبلغ كاش'}}</td>
                                             <td>{{number_format($transfer->transfer_amount, 2)}}</td>
                                             <td>{{$transfer->transfer_number}}</td>
                                             <td>{{$transfer->note}}</td>
+                                            <td>
+                                                <button class="btn btn-sm btn-danger"
+                                                        wire:click="deleteMessage({{$transfer}})"><i
+                                                        class="bi bi-trash"></i>
+                                                </button>
+                                            </td>
                                         </tr>
                                     @endforeach
                                     </tbody>

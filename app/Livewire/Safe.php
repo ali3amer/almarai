@@ -161,7 +161,7 @@ class Safe extends Component
 
     public function saveTransfer()
     {
-        if (floatval($this->transfer_amount) < floatval(session($this->transfer_type == "cash_to_bank" ? "safeBalance" : "bankBalance"))) {
+        if (floatval($this->transfer_amount) <= floatval(session($this->transfer_type == "cash_to_bank" ? "safeBalance" : "bankBalance"))) {
             if ($this->transferId == 0) {
                 Transfer::create([
                     'bank_id' => $this->bank_id,
@@ -271,6 +271,7 @@ class Safe extends Component
             $this->day_date = session("date");
         }
 
+        $this->getbanksBalance();
         return view('livewire.safe', [
             "transfers" => Transfer::all()
         ]);

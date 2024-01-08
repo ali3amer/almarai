@@ -36,7 +36,7 @@ class Client extends Component
     public Collection $clients;
     public array $currentClient = [];
     public Collection $debts;
-    public string $type = 'debt';
+    public string $type = 'pay';
     public string $payment = 'cash';
     public string $due_date = '';
     public bool $blocked = false;
@@ -282,7 +282,9 @@ class Client extends Component
     {
         $debt = $data['inputAttributes']['debt'];
 
-        SaleDebt::where('id', $debt['id'])->delete();
+        SaleDebt::where('id', $debt['id'])->forceDelete();
+        $this->showDebts($this->currentClient);
+
         $this->alert('success', 'تم حذف الدفعيه بنجاح', ['timerProgressBar' => true]);
 
     }

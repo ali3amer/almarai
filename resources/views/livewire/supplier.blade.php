@@ -311,6 +311,7 @@
                                     <th>التاريخ</th>
                                     <th>البيان</th>
                                     <th>المبلغ</th>
+                                    <th>التحكم</th>
                                 </tr>
                                 </thead>
                                 <tbody>
@@ -324,6 +325,15 @@
                                                 {{ $debt->discount }}
                                             @else
                                                 {{$debt->type == 'pay' ? number_format($debt->paid, 2) : number_format($debt->debt, 2)}}
+                                            @endif
+                                        </td>
+                                        <td>
+                                            @if($debt->sale_id == null && $debt->purchase_id == null)
+
+                                                <button class="btn btn-sm btn-danger"
+                                                        wire:click="deleteDebtMessage({{$debt}})"><i
+                                                        class="bi bi-trash"></i>
+                                                </button>
                                             @endif
                                         </td>
                                     </tr>
