@@ -101,7 +101,7 @@ class Purchase extends Component
                     'payment' => $this->payment,
                     'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
                     'due_date' => $this->purchase_date,
-                    'note' => 'تم الإستيراد بالآجل بفاتورة #' . $purchase['id'],
+                    'note' => 'تم الشراء بالآجل بفاتورة #' . $purchase['id'],
                     'purchase_id' => $purchase['id'],
                     'user_id' => auth()->id()
                 ]);

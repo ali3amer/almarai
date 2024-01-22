@@ -102,7 +102,7 @@ class Sale extends Component
                 'payment' => $this->payment,
                 'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
                 'due_date' => $this->sale_date,
-                'note' => 'تم شراء بالآجل بفاتورة #' . $sale['id'],
+                'note' => 'تم البيع بالآجل بفاتورة #' . $sale['id'],
                 'sale_id' => $sale['id'],
                 'user_id' => auth()->id()
             ]);
