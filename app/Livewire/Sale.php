@@ -354,7 +354,7 @@ class Sale extends Component
 
     public function resetData($item = null)
     {
-        $this->reset('currentProduct', 'cart', 'search', 'clientSearch', 'paid', 'remainder', 'total_amount', 'amount', 'discount', 'id', 'oldQuantities', $item);
+        $item == "currentClient" ? $this->reset( 'search', 'clientSearch' , 'id', 'oldQuantities', $item) : $this->reset('currentProduct', 'cart', 'search', 'clientSearch', 'paid', 'remainder', 'total_amount', 'amount', 'discount', 'id', 'oldQuantities', $item);
     }
 
     public function render()

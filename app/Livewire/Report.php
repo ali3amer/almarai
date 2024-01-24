@@ -567,6 +567,8 @@ class Report extends Component
                 $this->invoice['client'] = $this->currentClient['clientName'];
             } elseif ($this->reportType == 'supplier') {
                 $this->invoice['client'] = $this->currentSupplier['supplierName'];
+            } elseif ($this->reportType == 'employee') {
+                $this->invoice['client'] = $this->currentEmployee['employeeName'];
             }
             $this->invoice['clientType'] = $this->reportType == 'supplier' ? 'المورد' : 'العميل';
             if ($type == 'sale') {
