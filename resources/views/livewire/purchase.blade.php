@@ -1,6 +1,6 @@
 <div wire:keydown.escape.window="resetData()">
-        <x-title :$title/>
-{{--    <livewire:Title :$title/>--}}
+    <x-title :$title/>
+    {{--    <livewire:Title :$title/>--}}
 
     <!-- Print Invoice Modal -->
     <div wire:ignore.self class="modal fade" id="printModal" tabindex="-1" aria-labelledby="exampleModalLabel"
@@ -11,7 +11,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"
                             aria-label="Close"></button>
                     <h1 class="modal-title fs-5" id="exampleModalLabel">
-                        @if($editMode)
+                        @if($editMode && isset($invoice['id']))
                             <button data-bs-dismiss="modal" class="btn btn-danger"
                                     wire:click="deleteMessage({{$invoice['id']}})"><i class="bi bi-trash"></i>
                             </button>
@@ -25,6 +25,37 @@
                 </div>
                 <div class="modal-body">
                     <div class="scroll">
+                        @if($editMode && isset($invoice['id']) && $invoice['date'] == session("date") && $invoice['paid'] > 0)
+                            <div class="row mb-1">
+                                <div class="col-4">
+                                    <select @disabled($banks->count() == 0) wire:model.live="payment"
+                                            class="form-select">
+                                        <option value="cash">كاش</option>
+                                        <option value="bank">بنك</option>
+                                    </select>
+                                </div>
+
+                                <div class="col-3">
+                                    <input autocomplete="off" type="text"
+                                           placeholder="رقم الاشعار ....."
+                                           @disabled($payment == 'cash') wire:model.live="bank"
+                                           class="form-control">
+                                </div>
+
+                                <div class="col-3">
+                                    <select wire:model.live="bank_id"
+                                            @disabled($payment == 'cash') class="form-select">
+                                        @foreach($banks as $bank)
+                                            <option value="{{$bank->id}}">{{$bank->bankName}}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+
+                                <div class="col-1">
+                                    <button class="btn btn-info" wire:click="changePayment({{$invoice['paidId']}})"><i class="bi bi-bookmark-check"></i></button>
+                                </div>
+                            </div>
+                        @endif
                         <livewire:invoice/>
                     </div>
                 </div>
@@ -131,7 +162,8 @@
                                     <div class="card-title">
                                         <div class="row">
                                             <div class="col-4"><h5>الفاتوره {{$id != 0 ? '#'. $id : ''}}</h5></div>
-                                            <div class="col-4"><input type="date" disabled wire:model.live="purchase_date"
+                                            <div class="col-4"><input type="date" disabled
+                                                                      wire:model.live="purchase_date"
                                                                       class="form-control">
                                             </div>
                                             <div class="col-4">
@@ -144,10 +176,12 @@
                                         </div>
 
                                         <div class="row mt-1">
-                                            <div class="col-4"><input autocomplete="off" type="text"
-                                                                      placeholder="رقم الاشعار ....."
-                                                                      @disabled($payment == 'cash') wire:model.live="bank"
-                                                                      class="form-control"></div>
+                                            <div class="col-4">
+                                                <input autocomplete="off" type="text"
+                                                       placeholder="رقم الاشعار ....."
+                                                       @disabled($payment == 'cash') wire:model.live="bank"
+                                                       class="form-control">
+                                            </div>
 
                                             <div class="col-4">
                                                 <select wire:model.live="bank_id"
@@ -257,6 +291,7 @@
                                             <th scope="col" style="width: 10px">#</th>
                                             <th scope="col">التاريخ</th>
                                             <th scope="col">المبلغ</th>
+                                            <th scope="col">وسيلة الدفع</th>
                                         </tr>
                                         </thead>
                                         <tbody>
@@ -267,6 +302,11 @@
                                                 <td>{{$purchase->id}}</td>
                                                 <td>{{$purchase->purchase_date}}</td>
                                                 <td>{{number_format($purchase->total_amount, 2)}}</td>
+                                                <td>
+                                                    @if($purchase->paid > 0)
+                                                        {{ $purchase->purchaseDebts->where("type", "pay")->first()->payment == "cash" ? "كاش" : "بنك" }}
+                                                    @endif
+                                                </td>
                                             </tr>
                                         @endforeach
                                         </tbody>

@@ -531,8 +531,8 @@ class Report extends Component
             }
 
             ksort($this->array);
-
-            $this->safeBalance = Safe::first()->initialBalance
+            $initialBalanceSafe = Safe::count() > 0 ? Safe::first()->initialBalance : 0;
+            $this->safeBalance = $initialBalanceSafe
                 + $this->withdraws->sum("amount")
                 + $this->sales->where("type", "pay")->where("payment", "cash")->sum("paid")
                 - $this->sales->where("type", "debt")->where("payment", "cash")->whereNull("sale_id")->sum("debt")

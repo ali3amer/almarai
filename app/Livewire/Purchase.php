@@ -234,10 +234,16 @@ class Purchase extends Component
     public function showPurchases()
     {
         $this->editMode = !$this->editMode;
+        if(!$this->editMode) {
+            $this->id = 0;
+            $this->bank = "";
+            $this->payment = "cash";
+        }
     }
 
     public function getPurchase($purchase)
     {
+
         $this->invoice['id'] = $purchase['id'];
         $this->invoice['type'] = 'purchase';
         $this->invoice['clientType'] = 'المورد';
@@ -250,7 +256,29 @@ class Purchase extends Component
         $this->invoice['amount'] = floatval($purchase['total_amount']) + floatval($purchase['discount']);
         $this->invoice['total_amount'] = $purchase['total_amount'];
         $this->invoice['showMode'] = false;
+
+        $paid = PurchaseDebt::where("purchase_id", $purchase["id"])->where("type", "pay")->first();
+
+        if ($paid) {
+            $this->payment = $paid['payment'];
+            $this->bank = $paid['bank'];
+            $this->invoice['paidId'] = $paid['id'];
+        }
+
         $this->dispatch('sale_created', $this->invoice);
+    }
+
+    public function changePayment($id)
+    {
+        PurchaseDebt::where("id", $id)->update([
+            'payment' => $this->payment,
+            'bank' => $this->payment == "bank" ? $this->bank : ""
+        ]);
+
+        $this->bank = $this->payment == "bank" ? $this->bank : "";
+
+        $this->alert('success', 'تم تعديل وسيلة الدفع بنجاح', ['timerProgressBar' => true]);
+
     }
 
     public function deleteMessage($id)
@@ -277,6 +305,7 @@ class Purchase extends Component
             \App\Models\PurchaseDetail::where('id', $item['id'])->delete();
         }
 
+        PurchaseDetail::where("purchase_id", $id)->delete();;
         \App\Models\Purchase::where('id', $id)->delete();
 
         PurchaseDebt::where("purchase_id", $id)->where("type", "debt")->delete();
@@ -293,7 +322,7 @@ class Purchase extends Component
             'payment' => 'cash',
             'bank_id' => null,
             'due_date' => $this->purchase_date,
-            'note' => 'تم إلغاء الفاتوره رقم #' . $this->invoice['id'],
+            'note' => 'تم إلغاء فاتوره مشتريات رقم #' . $this->invoice['id'],
             'purchase_id' => $this->invoice['id'],
             'user_id' => auth()->id()
         ])->delete();
@@ -308,7 +337,7 @@ class Purchase extends Component
                 'payment' => 'cash',
                 'bank_id' => null,
                 'due_date' => $this->purchase_date,
-                'note' => 'تم إلغاء الفاتوره رقم #' . $this->invoice['id'],
+                'note' => 'تم إلغاء  مدفوعات فاتوره مشتريات رقم #' . $this->invoice['id'],
                 'sale_id' => $this->invoice['id'],
                 'user_id' => auth()->id()
             ])->delete();
@@ -333,7 +362,7 @@ class Purchase extends Component
     public function resetData($item = null)
     {
 
-        $item == "currentSupplier" ? $this->reset( 'search', 'supplierSearch', 'id', 'oldQuantities', $item) : $this->reset('currentProduct', 'cart', 'search', 'supplierSearch', 'discount', 'amount', 'paid', 'remainder', 'total_amount', 'id', 'oldQuantities', $item);
+        $item == "currentSupplier" ? $this->reset( 'search', 'supplierSearch', 'id', 'oldQuantities', $item) : $this->reset('currentProduct', 'cart', 'bank', 'search', 'supplierSearch', 'discount', 'amount', 'paid', 'remainder', 'total_amount', 'id', 'oldQuantities', $item);
     }
 
     public function render()

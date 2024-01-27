@@ -258,6 +258,7 @@ class Sale extends Component
     public function showSales()
     {
         $this->editMode = !$this->editMode;
+        $this->id = !$this->editMode ? 0 : $this->id;
     }
 
     public function getSale($sale)
@@ -274,7 +275,29 @@ class Sale extends Component
         $this->invoice['amount'] = floatval($sale['total_amount']) + floatval($sale['discount']);
         $this->invoice['total_amount'] = $sale['total_amount'];
         $this->invoice['showMode'] = false;
+
+        $paid = SaleDebt::where("sale_id", $sale["id"])->where("type", "pay")->first();
+
+        if ($paid) {
+            $this->payment = $paid['payment'];
+            $this->bank = $paid['bank'];
+            $this->invoice['paidId'] = $paid['id'];
+        }
+
         $this->dispatch('sale_created', $this->invoice);
+    }
+
+    public function changePayment($id)
+    {
+        SaleDebt::where("id", $id)->update([
+            'payment' => $this->payment,
+            'bank' => $this->payment == "bank" ? $this->bank : ""
+        ]);
+
+        $this->bank = $this->payment == "bank" ? $this->bank : "";
+
+        $this->alert('success', 'تم تعديل وسيلة الدفع بنجاح', ['timerProgressBar' => true]);
+
     }
 
     public function deleteMessage($id)
@@ -302,6 +325,7 @@ class Sale extends Component
             \App\Models\SaleDetail::where('id', $item['id'])->delete();
         }
 
+        SaleDetail::where("sale_id", $id)->delete();
         \App\Models\Sale::where('id', $id)->delete();
 
         SaleDebt::where("sale_id", $id)->where("type", "debt")->delete();
@@ -331,7 +355,7 @@ class Sale extends Component
                 'payment' => 'cash',
                 'bank_id' => null,
                 'due_date' => $this->sale_date,
-                'note' => 'تم إلغاء الفاتوره رقم #' . $this->invoice['id'],
+                'note' => 'تم إلغاء مدفوعات الفاتوره رقم #' . $this->invoice['id'],
                 'sale_id' => $this->invoice['id'],
                 'user_id' => auth()->id()
             ])->delete();
