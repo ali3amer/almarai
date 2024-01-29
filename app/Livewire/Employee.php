@@ -238,6 +238,7 @@ class Employee extends Component
                     'employee_id' => $this->currentEmployee['id'],
                     'payment' => $this->payment,
                     'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
+                    'bank' => $this->bank,
                     'gift_amount' => $this->paid != 0 ? $this->remainder : $this->gift_amount,
                     'gift_date' => $this->gift_date,
                     'note' => $this->note
@@ -324,6 +325,7 @@ class Employee extends Component
             $gift = EmployeeGift::where('id', $id)->update([
                 'payment' => $this->payment,
                 'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
+                'bank' => $this->bank,
                 'gift_amount' => $this->gift_amount - $this->paid,
                 'gift_date' => $this->gift_date,
                 'note' => $this->note
@@ -383,7 +385,6 @@ class Employee extends Component
     {
         $this->employees = \App\Models\Employee::where('employeeName', 'like', '%' . $this->search . '%')->get();
 
-        $this->banks = Bank::all();
         return view('livewire.employee');
     }
 }

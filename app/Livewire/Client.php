@@ -238,6 +238,7 @@ class Client extends Component
                     'payment' => $this->payment,
                     'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
                     'bank' => $this->bank,
+                    'discount' => $this->discount,
                     'due_date' => $this->due_date,
                     'user_id' => auth()->id(),
                 ]);
@@ -254,13 +255,14 @@ class Client extends Component
     public function chooseDebt($debt)
     {
         $this->currentDebt = $debt;
-//        $this->debtId = $debt['id'];
-//        $this->bank_id = $debt['bank_id'];
-//        $this->type = $debt['type'];
-//        $this->debt_amount = $debt['type'] == 'debt' ? $debt['debt'] : $debt['paid'];
-//        $this->payment = $debt['payment'];
-//        $this->bank = $debt['bank'];
-//        $this->due_date = $debt['due_date'];
+        $this->debtId = $debt['id'];
+        $this->bank_id = $debt['bank_id'];
+        $this->type = $debt['type'];
+        $this->debt_amount = $debt['type'] == 'debt' ? $debt['debt'] : $debt['paid'];
+        $this->payment = $debt['payment'];
+        $this->bank = $debt['bank'];
+        $this->discount = $debt['discount'];
+        $this->due_date = $debt['due_date'];
     }
 
     public function deleteDebtMessage($debt)

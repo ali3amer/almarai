@@ -212,13 +212,13 @@
                         <div class="row my-2">
                             <div class="col-6">
                                 <label for="debt_amount">المبلغ المدفوع</label>
-                                <input type="text" wire:model.live="debt_amount" autocomplete="off" id="debt_amount"
+                                <input @disabled($debtId != 0 && $discount != 0) type="text" wire:model.live="debt_amount" autocomplete="off" id="debt_amount"
                                        class="form-control text-center"
                                        placeholder="المدفوع ....">
                             </div>
                             <div class="col-6">
                                 <label for="payment">طريقة الدفع</label>
-                                <select @disabled($banks->count() == 0) class="form-select text-center"
+                                <select @disabled($banks->count() == 0) @disabled($debtId !=0 && $discount != 0) class="form-select text-center"
                                         wire:model.live="payment">
                                     <option value="cash">كاش</option>
                                     <option value="bank">بنك</option>
@@ -249,7 +249,7 @@
                             @if($type == "pay")
                                 <div class="col-6">
                                     <label for="discount">التخفيض</label>
-                                    <input autocomplete="off" type="text" autocomplete="off"
+                                    <input @disabled($debtId != 0 && $discount == 0) autocomplete="off" type="text"
                                            wire:model.live="discount" id="discount"
                                            class="form-control text-center mb-2"
                                            placeholder="التخفيض ....">
@@ -258,7 +258,7 @@
 
                             <div class="col-{{ $type == "pay" ? '6' : '12' }}">
                                 <label for="note">ملاحظات</label>
-                                <input autocomplete="off" type="text" autocomplete="off"
+                                <input autocomplete="off" type="text"
                                        wire:model="note" id="note"
                                        class="form-control text-center mb-2"
                                        placeholder="ملاحظات ....">
@@ -296,11 +296,10 @@
                                 </thead>
                                 <tbody>
                                 @foreach($debts as $debt)
-                                    <tr style="cursor: pointer" wire:click="chooseDebt({{$debt}})"
-                                        data-bs-toggle="modal" data-bs-target="#debtModal">
-                                        <td>{{$debt->due_date}}</td>
-                                        <td>{{$debt->note}}</td>
-                                        <td>
+                                    <tr>
+                                        <td style="cursor: pointer" wire:click="chooseDebt({{$debt}})" data-bs-toggle="modal" data-bs-target="#debtModal">{{$debt->due_date}}</td>
+                                        <td style="cursor: pointer" wire:click="chooseDebt({{$debt}})" data-bs-toggle="modal" data-bs-target="#debtModal">{{$debt->note}}</td>
+                                        <td style="cursor: pointer" wire:click="chooseDebt({{$debt}})" data-bs-toggle="modal" data-bs-target="#debtModal">
                                             @if($debt->paid == 0 && $debt->debt == 0)
                                                 {{ $debt->discount }}
                                             @else
@@ -309,6 +308,10 @@
                                         </td>
                                         <td>
                                             @if($debt->sale_id == null)
+                                                <button class="btn btn-sm btn-info"
+                                                        wire:click="chooseDebt({{$debt}})"><i
+                                                        class="bi bi-pen"></i>
+                                                </button>
 
                                                 <button class="btn btn-sm btn-danger"
                                                         wire:click="deleteDebtMessage({{$debt}})"><i

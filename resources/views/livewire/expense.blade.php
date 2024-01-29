@@ -32,7 +32,7 @@
                         </div>
 
                         <label for="bank" class="form-label">رقم الإيصال</label>
-                        <input type="text" autocomplete="off" wire:model="bank" class="form-control" placeholder="رقم الإيصال ..."
+                        <input @disabled($payment == "cash") @disabled($banks->count() == 0) type="text" autocomplete="off" wire:model="bank" class="form-control" placeholder="رقم الإيصال ..."
                                id="bank">
                         <div>
                             @error('bank') <span class="error text-danger">{{ $message }}</span> @enderror
