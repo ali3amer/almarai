@@ -126,6 +126,8 @@ class Returns extends Component
                 ]);
             }
 
+            SaleDetail::where("sale_id", $sale->id)->delete();
+
             \App\Models\SaleDebt::create([
                 $this->buyer . '_id' => $this->currentClient['id'],
                 'paid' => $sale["total_amount"],

@@ -521,6 +521,7 @@ class Report extends Component
                 $this->array[$gift['created_at']]['debt'] = $gift['gift_amount'];
             }
 
+
             foreach ($this->withdraws as $withdraw) {
                 $this->array[$withdraw['created_at']]['date'] = $withdraw['due_date'];
                 $this->array[$withdraw['created_at']]['note'] = "تم السحب من الخزنة";
