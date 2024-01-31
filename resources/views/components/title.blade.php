@@ -1,3 +1,4 @@
+{{--This Is Real Title--}}
 <div wire:ignore.self class="modal fade" id="changeDate" tabindex="-1" aria-labelledby="changeDateLabel"
      aria-hidden="true">
     <div class="modal-dialog">
@@ -26,9 +27,6 @@
     </div>
 </div>
 
-
-
-
 @if($title != "المبيعات" && $title != "المشتريات")
     <div wire:loading class="position-fixed top-0 opacity-25 bg-dark z-3" style="width: 100%; height: 100%;">
         <div class="d-flex justify-content-center" style="height: 100%">
@@ -44,8 +42,6 @@
             </div>
             <div class="col-2">
                 <input type="text" readonly style="cursor:pointer;" value="{{ session("date") }}" class="form-control text-center form-control-sm " data-bs-toggle="modal" data-bs-target="#changeDate">
-
-
             </div>
             <div class="col-2">
                 <h6 class="m-0 px-2">{{ "الخزنة : " . number_format($safeBalance, 2) }}</h6>

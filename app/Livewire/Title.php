@@ -53,14 +53,14 @@ class Title extends Component
                 + PurchaseDebt::where("due_date", $this->date)->where("type", "debt")->where("payment", "cash")->whereNull("purchase_id")->sum("debt");
 
             $bankBalance = Bank::sum('initialBalance')
-                + SaleDebt::where("type", "pay")->where("due_date", $this->date)->where("payment", "bank")->sum("paid")
-                - SaleDebt::where("type", "debt")->where("due_date", $this->date)->where("payment", "bank")->whereNull("sale_id")->sum("paid")
-                + Transfer::where("transfer_type", "cash_to_bank")->where("transfer_date", $this->date)->sum("transfer_amount")
-                - Transfer::where("transfer_type", "bank_to_cash")->where("transfer_date", $this->date)->sum("transfer_amount")
-                - Expense::where("payment", "bank")->where("expense_date", $this->date)->sum("amount")
-                - EmployeeGift::where("payment", "bank")->where("gift_date", $this->date)->sum("gift_amount")
-                - PurchaseDebt::where("type", "pay")->where("payment", "bank")->where("due_date", $this->date)->sum("paid")
-                + PurchaseDebt::where("due_date", $this->date)->where("type", "debt")->where("payment", "bank")->whereNull("purchase_id")->sum("debt");
+                + SaleDebt::where("type", "pay")->where("payment", "bank")->sum("paid")
+                - SaleDebt::where("type", "debt")->where("payment", "bank")->whereNull("sale_id")->sum("paid")
+                + Transfer::where("transfer_type", "cash_to_bank")->sum("transfer_amount")
+                - Transfer::where("transfer_type", "bank_to_cash")->sum("transfer_amount")
+                - Expense::where("payment", "bank")->sum("amount")
+                - EmployeeGift::where("payment", "bank")->sum("gift_amount")
+                - PurchaseDebt::where("type", "pay")->where("payment", "bank")->sum("paid")
+                + PurchaseDebt::where("type", "debt")->where("payment", "bank")->whereNull("purchase_id")->sum("debt");
 
         }
 

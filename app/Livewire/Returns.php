@@ -138,7 +138,7 @@ class Returns extends Component
                 'payment' => 'cash',
                 'bank_id' => null,
                 'due_date' => $this->return_date,
-                'note' => 'تم إلغاء الفاتورة لإرجاع منتج بفاتورة رقم #' . $sale['id'],
+                'note' => 'تم إلغاء الفاتورة لإرجاع منتج بفاتورة مبيعات رقم #' . $sale['id'],
                 'user_id' => auth()->id()
             ])->delete();
 
@@ -154,7 +154,7 @@ class Returns extends Component
                         'payment' => 'cash',
                         'bank_id' => null,
                         'due_date' => $this->return_date,
-                        'note' => 'تم إلغاء مدفوعات فاتورة رقم #' . $sale['id'],
+                        'note' => 'تم إلغاء مدفوعات فاتورة مبيعات رقم #' . $sale['id'],
                         'user_id' => auth()->id()
                     ])->delete();
                 }
@@ -171,7 +171,7 @@ class Returns extends Component
                 'payment' => 'cash',
                 'bank_id' => null,
                 'due_date' => $this->return_date,
-                'note' => 'تم إصدار فاتورة جديده رقم #' . $newSale['id'],
+                'note' => 'تم إصدار فاتورة مبيعات جديده رقم #' . $newSale['id'],
                 'user_id' => auth()->id()
             ]);
 
@@ -187,7 +187,7 @@ class Returns extends Component
                         'payment' => 'cash',
                         'bank_id' => null,
                         'due_date' => $this->return_date,
-                        'note' => 'تم تعديل مدفوعات فاتورة رقم #' . $newSale['id'],
+                        'note' => 'تم تعديل مدفوعات فاتورة مبيعات رقم #' . $newSale['id'],
                         'user_id' => auth()->id()
                     ]);
                     $paid->delete();

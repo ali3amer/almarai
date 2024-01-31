@@ -152,7 +152,7 @@ class PurchaseReturns extends Component
                             'payment' => 'cash',
                             'bank_id' => null,
                             'due_date' => $this->return_date,
-                            'note' => 'تم إلغاء مدفوعات فاتورة رقم #' . $purchase['id'],
+                            'note' => 'تم إلغاء مدفوعات فاتورة مشتريات رقم #' . $purchase['id'],
                             'user_id' => auth()->id()
                         ])->delete();
                     }
@@ -169,7 +169,7 @@ class PurchaseReturns extends Component
                     'payment' => 'cash',
                     'bank_id' => null,
                     'due_date' => $this->return_date,
-                    'note' => 'تم إصدار فاتورة جديده رقم #' . $newPurchase['id'],
+                    'note' => 'تم إصدار فاتورة مشتريات جديده رقم #' . $newPurchase['id'],
                     'user_id' => auth()->id()
                 ]);
 
@@ -185,7 +185,7 @@ class PurchaseReturns extends Component
                             'payment' => 'cash',
                             'bank_id' => null,
                             'due_date' => $this->return_date,
-                            'note' => 'تم تعديل مدفوعات فاتورة رقم #' . $newPurchase['id'],
+                            'note' => 'تم تعديل مدفوعات فاتورة مشتريات رقم #' . $newPurchase['id'],
                             'user_id' => auth()->id()
                         ]);
                         $paid->delete();

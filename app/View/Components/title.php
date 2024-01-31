@@ -31,6 +31,7 @@ class title extends Component
      */
     public function render(): View|Closure|string
     {
+        // real title
         $date = session("date") ?? session(['date' => date("Y-m-d")]);
         $safe = Safe::where("startingDate", $date)->first()->initialBalance ?? 0;
         $safeBalance = $safe
@@ -44,15 +45,15 @@ class title extends Component
             - PurchaseDebt::where("type", "pay")->where("payment", "cash")->where("due_date", $date)->sum("paid")
             + PurchaseDebt::where("type", "debt")->where("payment", "cash")->where("due_date", $date)->whereNull("purchase_id")->sum("debt");
 
-        $bankBalance = Bank::where("startingDate", $date)->sum('initialBalance')
-            + SaleDebt::where("type", "pay")->where("due_date", $date)->where("payment", "bank")->sum("paid")
-            - SaleDebt::where("type", "debt")->where("due_date", $date)->where("payment", "bank")->whereNull("sale_id")->sum("debt")
-            + Transfer::where("transfer_type", "cash_to_bank")->where("transfer_date", $date)->sum("transfer_amount")
-            - Transfer::where("transfer_type", "bank_to_cash")->where("transfer_date", $date)->sum("transfer_amount")
-            - Expense::where("payment", "bank")->where("expense_date", $date)->sum("amount")
-            - EmployeeGift::where("payment", "bank")->where("gift_date", $date)->sum("gift_amount")
-            - PurchaseDebt::where("type", "pay")->where("payment", "bank")->where("due_date", $date)->sum("paid")
-            + PurchaseDebt::where("type", "debt")->where("payment", "bank")->where("due_date", $date)->whereNull("purchase_id")->sum("debt");
+        $bankBalance = Bank::sum('initialBalance')
+            + SaleDebt::where("type", "pay")->where("payment", "bank")->sum("paid")
+            - SaleDebt::where("type", "debt")->where("payment", "bank")->whereNull("sale_id")->sum("debt")
+            + Transfer::where("transfer_type", "cash_to_bank")->sum("transfer_amount")
+            - Transfer::where("transfer_type", "bank_to_cash")->sum("transfer_amount")
+            - Expense::where("payment", "bank")->sum("amount")
+            - EmployeeGift::where("payment", "bank")->sum("gift_amount")
+            - PurchaseDebt::where("type", "pay")->where("payment", "bank")->sum("paid")
+            + PurchaseDebt::where("type", "debt")->where("payment", "bank")->whereNull("purchase_id")->sum("debt");
 
         session(['safeBalance' => $safeBalance]);
         session(['bankBalance' => $bankBalance]);

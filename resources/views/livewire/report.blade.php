@@ -1030,7 +1030,7 @@
             </div>
         </div>
     </div>
-@elseif($reportType == 'safe' && !empty($array))
+@elseif($reportType == 'daily' && !empty($array))
     <div class="card mt-2">
         <div class="card-body invoice">
             <div class="card-title" dir="rtl">
@@ -1057,10 +1057,65 @@
                         <th>البيان</th>
                         <th>الوارد</th>
                         <th>الصادر</th>
+                        <th>آجل</th>
                     </tr>
                     </thead>
                     <tbody>
                     @foreach($array as $item)
+                            <tr>
+                                <td>{{ $item['date'] }}</td>
+                                <td>{{ $item['account'] }}</td>
+                                <td>{{ $item['name'] }}</td>
+                                <td @if(isset($item['invoice'])) data-bs-toggle="modal" data-bs-target="#printModal"
+                                    wire:click="getInvoice({{$item['invoice']}})"
+                                    style="cursor:pointer;" @endif >{{ $item['note'] }}</td>
+                                <td>{{ number_format($item['paid'], 2) }}</td>
+                                <td>{{ number_format($item['debt'], 2) }}</td>
+                                <td>{{ number_format($item['future'], 2) }}</td>
+                            </tr>
+                    @endforeach
+                    </tbody>
+                    <tfoot>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+@elseif($reportType == 'safe' && !empty($array))
+    <div class="card mt-2">
+        <div class="card-body invoice">
+            <div class="card-title" dir="rtl">
+                <div class="row">
+                    <div class="col-4">
+                        <h3>الخزنة : {{number_format($safeBalance, 2)}}</h3>
+                    </div>
+                    <div class="col-4">
+                        <h3>البنك : {{number_format($bankBalance, 2)}}</h3>
+                    </div>
+                    <div class="col-4">
+                        <h3>الجمله : {{number_format($safeBalance + $bankBalance, 2)}}</h3>
+
+                    </div>
+                </div>
+            </div>
+            <div class="scroll">
+                <table class="text-center printInvoice">
+                    <thead>
+                    <tr>
+                        <th>التاريخ</th>
+                        <th>إسم الحساب</th>
+                        <th>الجهة</th>
+                        <th>البيان</th>
+                        <th>نوع المعامله</th>
+                        <th>الوارد</th>
+                        <th>الصادر</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    @php $paid = 0; $debt = 0 @endphp
+                    @foreach($array as $item)
+                        @if($item['future'] == 0)
+                            @php $paid += $item['paid']; $debt += $item['debt']; @endphp
                         <tr>
                             <td>{{ $item['date'] }}</td>
                             <td>{{ $item['account'] }}</td>
@@ -1068,13 +1123,19 @@
                             <td @if(isset($item['invoice'])) data-bs-toggle="modal" data-bs-target="#printModal"
                                 wire:click="getInvoice({{$item['invoice']}})"
                                 style="cursor:pointer;" @endif >{{ $item['note'] }}</td>
+                            <td>{{ $item['payment'] == "cash" ? "كاش" : ($item['payment'] == "bank" ? "بنك" : null) }}</td>
                             <td>{{ number_format($item['paid'], 2) }}</td>
                             <td>{{ number_format($item['debt'], 2) }}</td>
                         </tr>
-
+                        @endif
                     @endforeach
                     </tbody>
                     <tfoot>
+                    <tr>
+                        <th colspan="5">الجمـــــــــــــــلة</th>
+                        <th>{{ number_format($paid, 2) }}</th>
+                        <th>{{ number_format($debt, 2) }}</th>
+                    </tr>
                     </tfoot>
                 </table>
             </div>

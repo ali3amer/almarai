@@ -257,7 +257,7 @@
                             </div>
 
                             <div class="col-1 d-flex align-items-end">
-                                @if($editGiftMode | $editMode)
+                                @if($editGiftMode)
                                     <button class="btn btn-success w-100"
                                             wire:click="updateGift({{$gift_id}})">تعديل
                                     </button>
