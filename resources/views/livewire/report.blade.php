@@ -910,158 +910,160 @@
             </div>
 
         </div>
-</div>
-@elseif($reportType == 'sales' && !empty($sales))
-    <div class="card mt-2">
-        <div class="card-body invoice" dir="rtl">
-            <div class="card-title">
-                <div class="row">
-                    <div class="col-3">
-                        <h5>المبيعات</h5>
-                    </div>
-                    <div class="col-3">
-                        <input type="text" wire:model.live="percent" placeholder="نسبة الربح"
-                               class="form-control text-center">
+
+    @elseif($reportType == 'sales' && !empty($sales))
+        <div class="card mt-2">
+            <div class="card-body invoice" dir="rtl">
+                <div class="card-title">
+                    <div class="row">
+                        <div class="col-3">
+                            <h5>المبيعات</h5>
+                        </div>
+                        <div class="col-3">
+                            <input type="text" wire:model.live="percent" placeholder="نسبة الربح"
+                                   class="form-control text-center">
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="scroll">
-                <table class="text-center printInvoice">
-                    <thead>
-                    <tr>
-                        <th>التاريخ</th>
-                        <th>رقم الفاتوره</th>
-                        <th>العميل</th>
-                        <th>إسم المنتج</th>
-                        <th>سعر البيع</th>
-                        <th>الكميه</th>
-                        <th>الجمله</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    @foreach($sales as $sale)
+                <div class="scroll">
+                    <table class="text-center printInvoice">
+                        <thead>
                         <tr>
-                            <td>{{$sale->sale_date}}</td>
-                            <td>{{$sale->sale_id}}</td>
-                            @if(!empty($sale->sale->client))
-                                <td>{{$sale->sale->client->clientName}}</td>
-                            @elseif(!empty($sale->sale->employee))
-                                <td>الموظف : {{$sale->sale->employee->employeeName}}</td>
-                            @elseif(!empty($sale->sale->supplier))
-                                <td>المورد : {{$sale->sale->supplier->supplierName}}</td>
-                            @endif
+                            <th>التاريخ</th>
+                            <th>رقم الفاتوره</th>
+                            <th>العميل</th>
+                            <th>إسم المنتج</th>
+                            <th>سعر البيع</th>
+                            <th>الكميه</th>
+                            <th>الجمله</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        @foreach($sales as $sale)
+                            <tr>
+                                <td>{{$sale->sale_date}}</td>
+                                <td>{{$sale->sale_id}}</td>
+                                @if(!empty($sale->sale->client))
+                                    <td>{{$sale->sale->client->clientName}}</td>
+                                @elseif(!empty($sale->sale->employee))
+                                    <td>الموظف : {{$sale->sale->employee->employeeName}}</td>
+                                @elseif(!empty($sale->sale->supplier))
+                                    <td>المورد : {{$sale->sale->supplier->supplierName}}</td>
+                                @endif
 
-                            <td>{{ $sale->product->productName }}</td>
-                            <td>{{number_format($sale->price, 2)}}</td>
-                            <td>{{number_format($sale->quantity, 2)}}</td>
-                            <td>{{number_format($sale->quantity * $sale->price, 2)}}</td>
-                        </tr>
-                    @endforeach
-                    </tbody>
-                    <tfoot>
-                    @if(!empty($currentProduct))
-                        <tr>
-                            <td colspan="5">الجــــــــــــــــــــملة</td>
-                            <td>{{number_format($quantity, 2)}}</td>
-                            <td>{{number_format($sum, 2)}}</td>
-                        </tr>
-                    @else
-                        <tr>
-                            <td colspan="6">الجــــــــــــــــــــملة</td>
-                            <td>{{number_format($sum, 2)}}</td>
-                        </tr>
-                    @endif
-                    </tfoot>
-                </table>
+                                <td>{{ $sale->product->productName ?? "" }}</td>
+                                <td>{{number_format($sale->price, 2)}}</td>
+                                <td>{{number_format($sale->quantity, 2)}}</td>
+                                <td>{{number_format($sale->quantity * $sale->price, 2)}}</td>
+                            </tr>
+                        @endforeach
+                        </tbody>
+                        <tfoot>
+                        @if(!empty($currentProduct))
+                            <tr>
+                                <td colspan="5">الجــــــــــــــــــــملة</td>
+                                <td>{{number_format($quantity, 2)}}</td>
+                                <td>{{number_format($sum, 2)}}</td>
+                            </tr>
+                        @else
+                            <tr>
+                                <td colspan="6">الجــــــــــــــــــــملة</td>
+                                <td>{{number_format($sum, 2)}}</td>
+                            </tr>
+                        @endif
+                        </tfoot>
+                    </table>
+                </div>
             </div>
         </div>
-    </div>
-@elseif($reportType == 'purchases' && !empty($purchases))
-    <div class="card mt-2">
-        <div class="card-body invoice" dir="rtl">
-            <div class="card-title">
-                <div class="row">
-                    <div class="col-3">
-                        <h5>المشتريات</h5>
+    @elseif($reportType == 'purchases' && !empty($purchases))
+        <div class="card mt-2">
+            <div class="card-body invoice" dir="rtl">
+                <div class="card-title">
+                    <div class="row">
+                        <div class="col-3">
+                            <h5>المشتريات</h5>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="scroll">
-                <table class="text-center printInvoice">
-                    <thead>
-                    <tr>
-                        <th>التاريخ</th>
-                        <th>رقم الفاتوره</th>
-                        <th>المورد</th>
-                        <th>إسم المنتج</th>
-                        <th>سعر البيع</th>
-                        <th>الكميه</th>
-                        <th>الجمله</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    @foreach($purchases as $purchase)
+                <div class="scroll">
+                    <table class="text-center printInvoice">
+                        <thead>
                         <tr>
-                            <td>{{$purchase->purchase_date}}</td>
-                            <td>{{$purchase->purchase_id}}</td>
-                            <td>{{$purchase->purchase->supplier->supplierName}}</td>
-                            <td>{{ $purchase->product->productName ?? "" }}</td>
-                            <td>{{number_format($purchase->price, 2)}}</td>
-                            <td>{{number_format($purchase->quantity, 2)}}</td>
-                            <td>{{number_format($purchase->quantity * $purchase->price, 2)}}</td>
+                            <th>التاريخ</th>
+                            <th>رقم الفاتوره</th>
+                            <th>المورد</th>
+                            <th>إسم المنتج</th>
+                            <th>سعر البيع</th>
+                            <th>الكميه</th>
+                            <th>الجمله</th>
                         </tr>
-                    @endforeach
-                    </tbody>
-                    <tfoot>
-                    @if(!empty($currentProduct))
-                        <tr>
-                            <td colspan="5">الجــــــــــــــــــــملة</td>
-                            <td>{{number_format($quantity, 2)}}</td>
-                            <td>{{number_format($sum, 2)}}</td>
-                        </tr>
-                    @else
-                        <tr>
-                            <td colspan="6">الجــــــــــــــــــــملة</td>
-                            <td>{{number_format($sum, 2)}}</td>
-                        </tr>
-                    @endif
-                    </tfoot>
-                </table>
+                        </thead>
+                        <tbody>
+                        @foreach($purchases as $purchase)
+                            <tr>
+                                <td>{{$purchase->purchase_date}}</td>
+                                <td>{{$purchase->purchase_id}}</td>
+                                <td>{{$purchase->purchase->supplier->supplierName}}</td>
+                                <td>{{ $purchase->product->productName ?? "" }}</td>
+                                <td>{{number_format($purchase->price, 2)}}</td>
+                                <td>{{number_format($purchase->quantity, 2)}}</td>
+                                <td>{{number_format($purchase->quantity * $purchase->price, 2)}}</td>
+                            </tr>
+                        @endforeach
+                        </tbody>
+                        <tfoot>
+                        @if(!empty($currentProduct))
+                            <tr>
+                                <td colspan="5">الجــــــــــــــــــــملة</td>
+                                <td>{{number_format($quantity, 2)}}</td>
+                                <td>{{number_format($sum, 2)}}</td>
+                            </tr>
+                        @else
+                            <tr>
+                                <td colspan="6">الجــــــــــــــــــــملة</td>
+                                <td>{{number_format($sum, 2)}}</td>
+                            </tr>
+                        @endif
+                        </tfoot>
+                    </table>
+                </div>
             </div>
         </div>
-    </div>
-@elseif($reportType == 'daily' && !empty($array))
-    <div class="card mt-2">
-        <div class="card-body invoice">
-            <div class="card-title" dir="rtl">
-                <div class="row">
-                    <div class="col-4">
-                        <h3>الخزنة : {{number_format($safeBalance, 2)}}</h3>
-                    </div>
-                    <div class="col-4">
-                        <h3>البنك : {{number_format($bankBalance, 2)}}</h3>
-                    </div>
-                    <div class="col-4">
-                        <h3>الجمله : {{number_format($safeBalance + $bankBalance, 2)}}</h3>
+    @elseif($reportType == 'daily' && !empty($array))
+        <div class="card mt-2">
+            <div class="card-body invoice">
+                <div class="card-title" dir="rtl">
+                    <div class="row">
+                        <div class="col-4">
+                             <h3>الخزنة : {{number_format($safeBalance, 2)}}</h3>
+                        </div>
+                        <div class="col-4">
+                            <h3>البنك : {{number_format($bankBalance, 2)}}</h3>
+                        </div>
+                        <div class="col-4">
+                            <h3>الجمله : {{number_format($safeBalance + $bankBalance, 2)}}</h3>
 
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="scroll">
-                <table class="text-center printInvoice">
-                    <thead>
-                    <tr>
-                        <th>التاريخ</th>
-                        <th>إسم الحساب</th>
-                        <th>الجهة</th>
-                        <th>البيان</th>
-                        <th>الوارد</th>
-                        <th>الصادر</th>
-                        <th>آجل</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    @foreach($array as $item)
+                <div class="scroll">
+                    <table class="text-center printInvoice">
+                        <thead>
+                        <tr>
+                            <th>التاريخ</th>
+                            <th>إسم الحساب</th>
+                            <th>الجهة</th>
+                            <th>البيان</th>
+                            <th>الوارد</th>
+                            <th>الصادر</th>
+                            <th>آجل مبيعات</th>
+                            <th>آجل مشتريات</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+
+                        @foreach($array as $item)
                             <tr>
                                 <td>{{ $item['date'] }}</td>
                                 <td>{{ $item['account'] }}</td>
@@ -1071,76 +1073,82 @@
                                     style="cursor:pointer;" @endif >{{ $item['note'] }}</td>
                                 <td>{{ number_format($item['paid'], 2) }}</td>
                                 <td>{{ number_format($item['debt'], 2) }}</td>
-                                <td>{{ number_format($item['future'], 2) }}</td>
+                                <td>{{ number_format($item['saleFuture'], 2) }}</td>
+                                <td>{{ number_format($item['purchaseFuture'], 2) }}</td>
                             </tr>
-                    @endforeach
-                    </tbody>
-                    <tfoot>
-                    </tfoot>
-                </table>
-            </div>
-        </div>
-    </div>
-@elseif($reportType == 'safe' && !empty($array))
-    <div class="card mt-2">
-        <div class="card-body invoice">
-            <div class="card-title" dir="rtl">
-                <div class="row">
-                    <div class="col-4">
-                        <h3>الخزنة : {{number_format($safeBalance, 2)}}</h3>
-                    </div>
-                    <div class="col-4">
-                        <h3>البنك : {{number_format($bankBalance, 2)}}</h3>
-                    </div>
-                    <div class="col-4">
-                        <h3>الجمله : {{number_format($safeBalance + $bankBalance, 2)}}</h3>
-
-                    </div>
+                        @endforeach
+                        </tbody>
+                        <tfoot>
+                        <tr>
+                            <th colspan="4">الجمـــــــــــــــلة</th>
+                            <th>{{ number_format($paid, 2) }}</th>
+                            <th>{{ number_format($debt, 2) }}</th>
+                            <th>{{ number_format($saleFuture, 2) }}</th>
+                            <th>{{ number_format($purchaseFuture, 2) }}</th>
+                        </tr>
+                        </tfoot>
+                    </table>
                 </div>
             </div>
-            <div class="scroll">
-                <table class="text-center printInvoice">
-                    <thead>
-                    <tr>
-                        <th>التاريخ</th>
-                        <th>إسم الحساب</th>
-                        <th>الجهة</th>
-                        <th>البيان</th>
-                        <th>نوع المعامله</th>
-                        <th>الوارد</th>
-                        <th>الصادر</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    @php $paid = 0; $debt = 0 @endphp
-                    @foreach($array as $item)
-                        @if($item['future'] == 0)
-                            @php $paid += $item['paid']; $debt += $item['debt']; @endphp
+        </div>
+    @elseif($reportType == 'safe' && !empty($array))
+        <div class="card mt-2">
+            <div class="card-body invoice">
+                <div class="card-title" dir="rtl">
+                    <div class="row">
+                        <div class="col-4">
+                            <h3>الخزنة : {{number_format($safeBalance, 2)}}</h3>
+                        </div>
+                        <div class="col-4">
+                            <h3>البنك : {{number_format($bankBalance, 2)}}</h3>
+                        </div>
+                        <div class="col-4">
+                            <h3>الجمله : {{number_format($safeBalance + $bankBalance, 2)}}</h3>
+
+                        </div>
+                    </div>
+                </div>
+                <div class="scroll">
+                    <table class="text-center printInvoice">
+                        <thead>
                         <tr>
-                            <td>{{ $item['date'] }}</td>
-                            <td>{{ $item['account'] }}</td>
-                            <td>{{ $item['name'] }}</td>
-                            <td @if(isset($item['invoice'])) data-bs-toggle="modal" data-bs-target="#printModal"
-                                wire:click="getInvoice({{$item['invoice']}})"
-                                style="cursor:pointer;" @endif >{{ $item['note'] }}</td>
-                            <td>{{ $item['payment'] == "cash" ? "كاش" : ($item['payment'] == "bank" ? "بنك" : null) }}</td>
-                            <td>{{ number_format($item['paid'], 2) }}</td>
-                            <td>{{ number_format($item['debt'], 2) }}</td>
+                            <th>التاريخ</th>
+                            <th>إسم الحساب</th>
+                            <th>الجهة</th>
+                            <th>البيان</th>
+                            <th>نوع المعامله</th>
+                            <th>الوارد</th>
+                            <th>الصادر</th>
                         </tr>
-                        @endif
-                    @endforeach
-                    </tbody>
-                    <tfoot>
-                    <tr>
-                        <th colspan="5">الجمـــــــــــــــلة</th>
-                        <th>{{ number_format($paid, 2) }}</th>
-                        <th>{{ number_format($debt, 2) }}</th>
-                    </tr>
-                    </tfoot>
-                </table>
+                        </thead>
+                        <tbody>
+                        @foreach($array as $item)
+                            @if($item['saleFuture'] == 0 && $item['purchaseFuture'] == 0)
+                                <tr>
+                                    <td>{{ $item['date'] }}</td>
+                                    <td>{{ $item['account'] }}</td>
+                                    <td>{{ $item['name'] }}</td>
+                                    <td @if(isset($item['invoice'])) data-bs-toggle="modal" data-bs-target="#printModal"
+                                        wire:click="getInvoice({{$item['invoice']}})"
+                                        style="cursor:pointer;" @endif >{{ $item['note'] }}</td>
+                                    <td>{{ $item['payment'] == "cash" ? "كاش" : ($item['payment'] == "bank" ? "بنك" : "") }}</td>
+                                    <td>{{ number_format($item['paid'], 2) }}</td>
+                                    <td>{{ number_format($item['debt'], 2) }}</td>
+                                </tr>
+                            @endif
+                        @endforeach
+                        </tbody>
+                        <tfoot>
+                        <tr>
+                            <th colspan="5">الجمـــــــــــــــلة</th>
+                            <th>{{ number_format($paid, 2) }}</th>
+                            <th>{{ number_format($debt, 2) }}</th>
+                        </tr>
+                        </tfoot>
+                    </table>
+                </div>
             </div>
         </div>
-    </div>
     @endif
+</div>
 
-    </div>

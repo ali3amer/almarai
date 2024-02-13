@@ -277,26 +277,33 @@
                 <div class="card">
                     <div class="card-body">
                         <div class="card-title">
-                            <h5>المرتبات</h5>
+                            <div class="row">
+                                <div class="col-4">
+                                    <h5>المرتبات</h5>
+                                </div>
+                                <div class="col-8">
+                                    <h5><span>مدفوعات الشهر </span> <span>{{ number_format($currentEmployee["gifts"], 2) }}</span></h5>
+                                </div>
+                            </div>
                         </div>
-                        <table class="table">
-                            <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>التاريخ</th>
-                                <th>المبلغ</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            @foreach($gifts as $gift)
+                        <div class="scroll">
+                            <table class="table">
+                                <thead>
                                 <tr>
-                                    <td>{{$gift->index + 1}}</td>
-                                    <td>{{$gift->gift_date}}</td>
-                                    <td>{{number_format($gift->gift_amount, 2)}}</td>
+                                    <th>التاريخ</th>
+                                    <th>المبلغ</th>
                                 </tr>
-                            @endforeach
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+                                @foreach($gifts as $gift)
+                                    <tr>
+                                        <td>{{$gift->gift_date}}</td>
+                                        <td>{{number_format($gift->gift_amount, 2)}}</td>
+                                    </tr>
+                                @endforeach
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>

@@ -19,6 +19,7 @@ class Safe extends Component
 
     protected $listeners = [
         'deleteTransfer',
+        'deleteWithdraw'
     ];
 
     public string $title = 'الخزنه';
@@ -90,11 +91,13 @@ class Safe extends Component
             }
         }
     }
+
     public function getWithdraws()
     {
-        $this->reset("payment", "amount");
+        $this->reset("payment", "amount", "withdrawId");
         $this->withdraws = Withdraw::all();
     }
+
     public function withdraw()
     {
         if ($this->withdrawId == 0) {
@@ -174,7 +177,6 @@ class Safe extends Component
 
                 $this->alert('success', 'تم الحفظ بنجاح', ['timerProgressBar' => true]);
             } else {
-                $transfer = Transfer::where('id', $this->transferId)->first();
 
                 Transfer::where('id', $this->transferId)->update([
                     'bank_id' => $this->bank_id,
@@ -184,6 +186,7 @@ class Safe extends Component
                     'transfer_date' => $this->transfer_date,
                     'note' => $this->note,
                 ]);
+
                 $this->alert('success', 'تم التعديل بنجاح', ['timerProgressBar' => true]);
 
             }
@@ -240,6 +243,36 @@ class Safe extends Component
 
     }
 
+    public function editWithdraw($withdraw)
+    {
+        $this->withdrawId = $withdraw['id'];
+        $this->amount = $withdraw['amount'];
+    }
+
+    public function deleteMessageWithdraw($withdraw)
+    {
+        $this->confirm("  هل توافق على الحذف ؟", [
+            'inputAttributes' => ["withdraw" => $withdraw],
+            'toast' => false,
+            'showConfirmButton' => true,
+            'confirmButtonText' => 'موافق',
+            'onConfirmed' => "deleteWithdraw",
+            'showCancelButton' => true,
+            'cancelButtonText' => 'إلغاء',
+            'confirmButtonColor' => '#dc2626',
+            'cancelButtonColor' => '#4b5563'
+        ]);
+    }
+
+    public function deleteWithdraw($data)
+    {
+        $withdraw = $data['inputAttributes']['withdraw'];
+        Withdraw::where('id', $withdraw['id'])->delete();
+        $this->getWithdraws();
+        $this->alert('success', 'تم الحذف بنجاح', ['timerProgressBar' => true]);
+
+    }
+
     public function resetData()
     {
         $this->reset('transfer_type', 'transfer_number', 'note', 'transfer_amount', 'transferId', 'transfer_date');
@@ -253,14 +286,14 @@ class Safe extends Component
     public function render()
     {
         $this->safeBalance = \App\Models\Safe::sum('initialBalance')
-            + SaleDebt::where("type", "pay")->where("payment", "cash")->sum("paid")
-            - SaleDebt::where("type", "debt")->where("payment", "cash")->whereNull("sale_id")->sum("debt")
-            + Transfer::where("transfer_type", "bank_to_cash")->sum("transfer_amount")
-            - Transfer::where("transfer_type", "cash_to_bank")->sum("transfer_amount")
-            - Expense::where("payment", "cash")->sum("amount")
-            - EmployeeGift::where("payment", "cash")->sum("gift_amount")
-            - PurchaseDebt::where("type", "pay")->where("payment", "cash")->sum("paid")
-            + PurchaseDebt::where("type", "debt")->where("payment", "cash")->whereNull("purchase_id")->sum("debt")
+            + SaleDebt::where("type", "pay")->where("due_date", "<", session("date"))->where("payment", "cash")->sum("paid")
+            - SaleDebt::where("type", "debt")->where("due_date", "<", session("date"))->where("payment", "cash")->whereNull("sale_id")->sum("debt")
+            + Transfer::where("transfer_type", "bank_to_cash")->where("transfer_date", "<", session("date"))->sum("transfer_amount")
+            - Transfer::where("transfer_type", "cash_to_bank")->where("transfer_date", "<", session("date"))->sum("transfer_amount")
+            - Expense::where("payment", "cash")->where("expense_date", "<", session("date"))->sum("amount")
+            - EmployeeGift::where("payment", "cash")->where("gift_date", "<", session("date"))->sum("gift_amount")
+            - PurchaseDebt::where("type", "pay")->where("due_date", "<", session("date"))->where("payment", "cash")->sum("paid")
+            + PurchaseDebt::where("type", "debt")->where("due_date", "<", session("date"))->where("payment", "cash")->whereNull("purchase_id")->sum("debt")
             - Withdraw::where("due_date", session("date"))->sum("amount");
 
         if ($this->transfer_date == '') {

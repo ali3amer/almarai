@@ -11,6 +11,11 @@ class Expense extends Model
     use HasFactory;
     protected $guarded = [];
 
+    public function option()
+    {
+        return $this->belongsTo(ExpenseOption::class);
+    }
+
     public function getCreatedAtAttribute($value)
     {
         return Carbon::parse($value)->format('Y-m-d h:i:s');

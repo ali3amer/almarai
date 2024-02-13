@@ -15,25 +15,29 @@
                                 <div class="card-title"><h5>{{ $id == 0 ? 'أضف بنك' : 'تعديل بنك' }}</h5></div>
                                 <div>
                                     <label for="bankName">إسم البنك</label>
-                                    <input autocomplete="off" required type="text" wire:model="bankName" placeholder="إسم البنك ....."
+                                    <input autocomplete="off" required type="text" wire:model="bankName"
+                                           placeholder="إسم البنك ....."
                                            id="bankName" class="form-control">
                                 </div>
 
                                 <div>
                                     <label for="accountName">إسم الحساب</label>
-                                    <input autocomplete="off" required type="text" wire:model="accountName" placeholder="إسم الحساب ....."
+                                    <input autocomplete="off" required type="text" wire:model="accountName"
+                                           placeholder="إسم الحساب ....."
                                            id="accountName" class="form-control">
                                 </div>
 
                                 <div class="mt-1">
                                     <label for="number">رقم الحساب</label>
-                                    <input autocomplete="off"  type="text" wire:model="number" placeholder="رقم الحساب ....." id="number"
+                                    <input autocomplete="off" type="text" wire:model="number"
+                                           placeholder="رقم الحساب ....." id="number"
                                            class="form-control">
                                 </div>
 
                                 <div class="mt-1">
                                     <label for="initialBalance">الرصيد الإفتتاحي</label>
-                                    <input autocomplete="off"  type="text" wire:model="initialBalance" placeholder="الرصيد الإفتتاحي ....."
+                                    <input autocomplete="off" type="text" wire:model="initialBalance"
+                                           placeholder="الرصيد الإفتتاحي ....."
                                            id="initialBalance" class="form-control">
                                 </div>
 
@@ -63,44 +67,61 @@
                 </div>
                 <div class="modal-body">
                     <div class="card">
-                        <form wire:submit="withdraw()">
-                            <div class="card-body">
-                                <div class="card-title"><h5>إضافة كاش الى اليومية</h5></div>
-
+                        <div class="card-body">
+                            <div class="card-title"><h5>إضافة كاش الى اليومية</h5></div>
+                            <form wire:submit="withdraw()">
                                 <div class="row align-items-end">
                                     <div class="col-9">
                                         <label for="amount">المبلغ</label>
-                                        <input autocomplete="off" required type="text" wire:model.live="amount" placeholder="المبلغ ....."
+                                        <input autocomplete="off" required type="text" wire:model.live="amount"
+                                               placeholder="المبلغ ....."
                                                id="bankName" class="form-control">
                                     </div>
 
                                     <div class="col-3">
-                                        <button type="submit" @disabled(floatval($amount) == 0) class="btn btn-primary w-100 mt-1">حفظ
-                                        </button>
+                                        @if($withdrawId == 0)
+                                            <button type="submit"
+                                                    @disabled(floatval($safeBalance) == 0) @disabled(floatval($amount) > floatval($safeBalance))  @disabled(floatval($amount) == 0) class="btn btn-primary w-100 mt-1">
+                                                حفظ</button>
+                                        @else
+                                            <button type="submit"
+                                                    @disabled(floatval($safeBalance) == 0) @disabled(floatval($amount) > floatval($safeBalance))  @disabled(floatval($amount) == 0) class="btn btn-success w-100 mt-1">
+                                                تعديل
+                                            </button>
+                                        @endif
                                     </div>
                                 </div>
-
-                                <div class="scroll">
-                                    <table class="table text-center">
-                                        <thead>
+                            </form>
+                            <div class="scroll">
+                                <table class="table text-center">
+                                    <thead>
+                                    <tr>
+                                        <th>التاريخ</th>
+                                        <th>المبلغ</th>
+                                        <th>التحكم</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    @foreach($withdraws as $withdraw)
                                         <tr>
-                                            <th>التاريخ</th>
-                                            <th>المبلغ</th>
+                                            <td>{{$withdraw->due_date}}</td>
+                                            <td>{{number_format($withdraw->amount, 2)}}</td>
+                                            <td>
+                                                <button class="btn btn-sm btn-info text-white"
+                                                        @disabled(!$update) wire:click="editWithdraw({{$withdraw}})">
+                                                    <i class="bi bi-pen"></i></button>
+                                                /
+                                                <button type="button" class="btn btn-sm btn-danger"
+                                                        @disabled(!$delete) wire:click="deleteMessageWithdraw({{$withdraw}})">
+                                                    <i class="bi bi-trash"></i></button>
+                                            </td>
                                         </tr>
-                                        </thead>
-                                        <tbody>
-                                        @foreach($withdraws as $withdraw)
-                                            <tr>
-                                                <td>{{$withdraw->due_date}}</td>
-                                                <td>{{number_format($withdraw->amount, 2)}}</td>
-                                            </tr>
-                                        @endforeach
-                                        </tbody>
-                                    </table>
-                                </div>
-
+                                    @endforeach
+                                    </tbody>
+                                </table>
                             </div>
-                        </form>
+
+                        </div>
                     </div>
                 </div>
             </div>
@@ -108,8 +129,8 @@
     </div>
 
 
-        <x-title :$title/>
-{{--    <livewire:Title :$title />--}}
+    <x-title :$title/>
+    {{--    <livewire:Title :$title />--}}
 
     <div class="row my-2">
         @if(\App\Models\Safe::count() > 0)
@@ -119,10 +140,13 @@
                         <div class="card-title">
                             <div class="row">
                                 <div class="col-6">
-                                    <button @disabled(!$create) class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#bankModal"><i
+                                    <button @disabled(!$create) class="btn btn-primary btn-sm" data-bs-toggle="modal"
+                                            data-bs-target="#bankModal"><i
                                             class="bi bi-bag-plus"></i></button>
 
-                                    <button @disabled(!$create) class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#cashModal">سحب كاش من الخزنه</button>
+                                    <button @disabled(!$create) class="btn btn-danger btn-sm" data-bs-toggle="modal"
+                                            data-bs-target="#cashModal">سحب كاش من الخزنه
+                                    </button>
 
                                 </div>
                                 <div class="col-6">
@@ -179,13 +203,15 @@
 
                                 <div class="col-4">
                                     <label for="transfer_amount">المبلغ</label>
-                                    <input autocomplete="off"  type="text" id="transfer_amount" wire:model.live="transfer_amount"
+                                    <input autocomplete="off" type="text" id="transfer_amount"
+                                           wire:model.live="transfer_amount"
                                            class="form-control text-center" placeholder="المبلغ ....">
                                 </div>
 
                                 <div class="col-4">
                                     <label for="transfer_number">رقم الاشعار</label>
-                                    <input autocomplete="off"  type="text" wire:model.live="transfer_number" id="transfer_amount"
+                                    <input autocomplete="off" type="text" wire:model.live="transfer_number"
+                                           id="transfer_amount"
                                            class="form-control text-center" placeholder="رقم الاشعار ....">
                                 </div>
                             </div>
@@ -207,7 +233,7 @@
 
                                 <div class="col-3">
                                     <label for="note">ملاحظات</label>
-                                    <input autocomplete="off"  type="text" wire:model.live="note" id="note"
+                                    <input autocomplete="off" type="text" wire:model.live="note" id="note"
                                            class="form-control text-center" placeholder="محلاظات ....">
                                 </div>
 
@@ -268,10 +294,12 @@
                     <div class="card-body">
 
                         <label for="capital">رأس المال</label>
-                        <input id="capital" type="text" wire:model="capital" placeholder="رأس المال ...." class="form-control text-center">
+                        <input id="capital" type="text" wire:model="capital" placeholder="رأس المال ...."
+                               class="form-control text-center">
 
                         <label for="safe">الرصيد الافتتاحي</label>
-                        <input id="safe" type="text" wire:model="safe" placeholder="الرصيد الافتتاحي ...." class="form-control text-center">
+                        <input id="safe" type="text" wire:model="safe" placeholder="الرصيد الافتتاحي ...."
+                               class="form-control text-center">
 
 
                         <label for="startingDate">تاريخ الإضافه</label>

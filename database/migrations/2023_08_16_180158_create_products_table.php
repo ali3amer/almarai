@@ -19,9 +19,13 @@ return new class extends Migration
             $table->foreign('store_id')->references('id')->on('stores')->onDelete('cascade')->onUpdate('cascade');
             $table->string('productName');
             $table->string('unit')->nullable();
+            $table->string('batch')->nullable();
+            $table->string('barcode')->nullable();
             $table->decimal('purchase_price', 10, 2)->default(0);
             $table->decimal('sale_price', 10, 2)->default(0);
             $table->decimal('stock', 10, 2)->default(0);
+            $table->date("adding_date")->nullable();
+            $table->date("expired_date")->nullable();
             $table->timestamps();
         });
     }

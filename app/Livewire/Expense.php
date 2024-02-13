@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Models\Bank;
 use App\Models\BankDetail;
+use App\Models\ExpenseOption;
 use Illuminate\Database\Eloquent\Collection;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
 use Livewire\Attributes\Rule;
@@ -14,7 +15,8 @@ class Expense extends Component
     use LivewireAlert;
 
     protected $listeners = [
-        'delete'
+        'delete',
+        'deleteOption'
     ];
     public string $title = 'المصروفات';
     public int $id = 0;
@@ -25,14 +27,21 @@ class Expense extends Component
     public string $payment = 'cash';
     public string $bank = '';
     public $bank_id = null;
+    public $option_id = null;
     public string $expense_date = '';
     public string $search = '';
     public Collection $expenses;
+    public Collection $options;
     public Collection $banks;
     public bool $create = false;
     public bool $read = false;
     public bool $update = false;
     public bool $delete = false;
+    public bool $optionsMode = false;
+    public int $optionId = 0;
+    public $optionName = '';
+    public $optionSearch = "";
+
 
     public function mount()
     {
@@ -43,6 +52,7 @@ class Expense extends Component
         $this->update = $user->hasPermission('expenses-update');
         $this->delete = $user->hasPermission('expenses-delete');
         $this->banks = Bank::all();
+        $this->options = ExpenseOption::all();
         if ($this->banks->count() != 0) {
             $this->bank_id = $this->banks->first()->id;
         }
@@ -69,6 +79,7 @@ class Expense extends Component
                         'amount' => floatval($this->amount),
                         'payment' => $this->payment,
                         'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
+                        'option_id' => $this->option_id == 0 ? null : $this->option_id,
                         'bank' => $this->bank,
                         'expense_date' => $this->expense_date
                     ]);
@@ -83,6 +94,7 @@ class Expense extends Component
                     $expense->amount = floatval($this->amount);
                     $expense->payment = $this->payment;
                     $expense->bank_id = $this->payment == 'bank' ? $this->bank_id : null;
+                    $expense->option_id = $this->option_id == 0 ? null : $this->option_id;
                     $expense->bank = $this->bank;
                     $expense->expense_date = $this->expense_date;
 
@@ -106,6 +118,7 @@ class Expense extends Component
         $this->payment = $expense['payment'];
         $this->bank_id = $expense['bank_id'];
         $this->bank = $expense['bank'];
+        $this->option_id = $expense['option_id'] != null ? $expense['option_id'] : 0;
         $this->expense_date = $expense['expense_date'];
     }
 
@@ -136,7 +149,72 @@ class Expense extends Component
 
     public function resetData()
     {
-        $this->reset('id', 'description', 'amount', 'expense_date');
+        $this->reset('id', 'description', 'amount', 'expense_date', 'option_id');
+    }
+
+    public function changeMode()
+    {
+        $this->optionsMode = !$this->optionsMode;
+        $this->search = "";
+    }
+
+    public function saveOption()
+    {
+        if ($this->optionId == 0) {
+            \App\Models\ExpenseOption::create([
+                'optionName' => $this->optionName,
+            ]);
+
+            $this->alert('success', 'تم الحفظ بنجاح', ['timerProgressBar' => true]);
+
+        } else {
+            $option = \App\Models\ExpenseOption::find($this->optionId);
+
+            $option->optionName = $this->optionName;
+
+            $option->save();
+
+            $this->alert('success', 'تم التعديل بنجاح', ['timerProgressBar' => true]);
+
+        }
+
+        $this->optionId = 0;
+        $this->optionName = "";
+
+        $this->resetData();
+
+
+    }
+
+    public function editOption($option)
+    {
+        $this->optionId = $option['id'];
+        $this->optionName = $option['optionName'];
+    }
+
+    public function deleteOptionMessage($option)
+    {
+        $this->confirm("  هل توافق على حذف   " . $option['optionName'] . "؟", [
+            'inputAttributes' => ["id" => $option['id']],
+            'toast' => false,
+            'showConfirmButton' => true,
+            'confirmButtonText' => 'موافق',
+            'onConfirmed' => "deleteOption",
+            "value" => $option['id'],
+            'showCancelButton' => true,
+            'cancelButtonText' => 'إلغاء',
+            'confirmButtonColor' => '#dc2626',
+            'cancelButtonColor' => '#4b5563'
+        ]);
+    }
+
+    public function deleteOption($data)
+    {
+        $option = \App\Models\ExpenseOption::find($data['inputAttributes']['id']);
+
+        $option->delete();
+        $this->alert('success', 'تم الحذف بنجاح', ['timerProgressBar' => true]);
+
     }
 
     public function render()
@@ -144,8 +222,12 @@ class Expense extends Component
         if ($this->description == '') {
             $this->expense_date = session("date");
         }
-        $this->expenses = \App\Models\Expense::where('description', 'like', '%' . $this->search . '%')->get();
 
+        if ($this->optionsMode) {
+            $this->options = ExpenseOption::where("optionName", "LIKE", "%" . $this->search . "%")->get();
+        } else {
+            $this->expenses = \App\Models\Expense::where('description', 'like', '%' . $this->search . '%')->get();
+        }
         return view('livewire.expense');
     }
 }

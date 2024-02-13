@@ -61,6 +61,8 @@ class Employee extends Component
     public bool $read = false;
     public bool $update = false;
     public bool $delete = false;
+    public $month = "";
+
     protected function rules()
     {
         return [
@@ -78,6 +80,8 @@ class Employee extends Component
 
     public function mount()
     {
+        $date = str_split(session("date"));
+        $this->month = $date[5] . $date[6];
 
         $user = auth()->user();
         $this->create = $user->hasPermission('employees-create');
@@ -187,6 +191,7 @@ class Employee extends Component
         $this->gift_amount = $this->currentEmployee['salary'];
         $this->gifts = EmployeeGift::where('employee_id', $this->currentEmployee['id'])->get();
         $this->debts = SaleDebt::where('employee_id', $this->currentEmployee['id'])->get();
+        $this->currentEmployee['gifts'] = EmployeeGift::where("employee_id", $this->currentEmployee["id"])->where("gift_date", "LIKE", date("Y")."-%" . $this->month."-%")->sum("gift_amount");
         $this->currentBalance = $this->debts->sum('debt') - $this->debts->sum('paid') - $this->debts->sum('discount') + $this->currentEmployee['initialBalance'];
 
     }
@@ -384,7 +389,6 @@ class Employee extends Component
     public function render()
     {
         $this->employees = \App\Models\Employee::where('employeeName', 'like', '%' . $this->search . '%')->get();
-
         return view('livewire.employee');
     }
 }

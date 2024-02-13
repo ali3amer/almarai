@@ -32,6 +32,7 @@ class title extends Component
     public function render(): View|Closure|string
     {
         // real title
+
         $date = session("date") ?? session(['date' => date("Y-m-d")]);
         $safe = Safe::where("startingDate", $date)->first()->initialBalance ?? 0;
         $safeBalance = $safe
