@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 class EmployeeGift extends Model
 {
     use HasFactory;
+
     protected $guarded = [];
 
     public function employee()
@@ -16,9 +17,9 @@ class EmployeeGift extends Model
         return $this->belongsTo(Employee::class);
     }
 
-    public function  debt()
+    public function debt()
     {
-        return $this->hasOne(EmployeeDebt::class, 'gift_id');
+        return $this->belongsTo(SaleDebt::class, 'sale_debt_id');
     }
 
     public function getCreatedAtAttribute($value)

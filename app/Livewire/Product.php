@@ -31,11 +31,12 @@ class Product extends Component
 
 
     public ProductForm $form;
+    public $stock = 0;
 
     protected function rules()
     {
         return [
-            'form.productName' => 'required|unique:products,productName,' . $this->form->id
+            'form.productName' => 'required'
         ];
     }
 
@@ -43,7 +44,6 @@ class Product extends Component
     {
         return [
             'form.productName.required' => 'الرجاء إدخال إسم المنتج',
-            'form.productName.unique' => 'هذا المنتج موجود مسبقاً'
         ];
     }
 
@@ -80,7 +80,6 @@ class Product extends Component
                 $this->form->update();
                 $this->alert('success', 'تم التعديل بنجاح', ['timerProgressBar' => true]);
             }
-            $this->products = \App\Models\Product::all();
 
         }
     }
@@ -90,6 +89,7 @@ class Product extends Component
     {
         $product = \App\Models\Product::find($id);
         $this->form->setProduct($product);
+        $this->stock = $product->stock;
     }
 
     public function deleteMessage($product)

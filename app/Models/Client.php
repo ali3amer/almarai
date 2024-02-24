@@ -20,4 +20,9 @@ class Client extends Model
         return $this->hasMany(SaleDebt::class);
     }
 
+    public function getCurrentBalanceAttribute()
+    {
+        return $this->initialBalance + $this->debts()->sum('debt') - $this->debts()->sum('paid') - $this->debts()->sum('discount');
+    }
+
 }

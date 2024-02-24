@@ -27,7 +27,7 @@ class Sale extends Component
 
     public string $title = 'المبيعات';
     public int $id = 0;
-    public int $bank_id = 0;
+    public $bank_id = null;
     public int $debtId = 0;
     public string $sale_date = '';
     public string $due_date = '';
@@ -134,7 +134,7 @@ class Sale extends Component
                     'price' => floatval($item['price']),
                 ]);
 
-                \App\Models\Product::where('id', $item['id'])->decrement('stock', floatval($item['quantity']));
+//                \App\Models\Product::where('id', $item['id'])->decrement('stock', floatval($item['quantity']));
             }
         }
 
@@ -321,7 +321,7 @@ class Sale extends Component
 
         $items = SaleDetail::where('sale_id', $id)->get();
         foreach ($items as $item) {
-            \App\Models\Product::where('id', $item['product_id'])->increment('stock', floatval($item['quantity']));
+//            \App\Models\Product::where('id', $item['product_id'])->increment('stock', floatval($item['quantity']));
             \App\Models\SaleDetail::where('id', $item['id'])->delete();
         }
 
@@ -384,6 +384,11 @@ class Sale extends Component
     public function render()
     {
 
+        if ($this->payment == "bank" && $this->bank_id == null) {
+            if ($this->banks->count() != 0) {
+                $this->bank_id = $this->banks->first()->id;
+            }
+        }
 
         if (!empty($this->currentClient)) {
             $this->sales = \App\Models\Sale::where($this->buyer . '_id', $this->currentClient['id'])

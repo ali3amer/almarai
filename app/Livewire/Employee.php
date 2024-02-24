@@ -31,12 +31,12 @@ class Employee extends Component
     public $remainder = 0;
     public $startingDate;
     public Collection $debts;
-    public array $oldDebts = [];
     public Collection $details;
     public string $search = '';
     public string $type = '';
     public string $gift_date = '';
-    public null|int $gift_id = 0;
+    public $gift_id = null;
+    public $sale_debt_id = null;
     public string $bank = '';
     public string $payment = 'cash';
     public string $note = '';
@@ -44,9 +44,9 @@ class Employee extends Component
     public $initialBalance = 0;
 
     public array $currentEmployee = [];
-    public array $claimsArray = [];
     public bool $editMode = false;
     public bool $editGiftMode = false;
+    public bool $editDebtMode = false;
     public Collection $employees;
     public Collection $gifts;
     public Collection $banks;
@@ -54,7 +54,6 @@ class Employee extends Component
     public array $currentDebt = [];
     public float $currentBalance = 0;
     public int $debtId = 0;
-    public $debt_amount = 0;
     public string $due_date = '';
     public $discount = 0;
     public bool $create = false;
@@ -98,6 +97,7 @@ class Employee extends Component
 
 
     }
+
     public function save($id)
     {
 
@@ -111,12 +111,14 @@ class Employee extends Component
                 $employee->employeeName = $this->employeeName;
                 $employee->salary = $this->salary;
                 $employee->startingDate = $this->startingDate;
+                $employee->initialBalance = $this->initialBalance;
                 $employee->save();
                 $this->alert('success', 'تم التعديل بنجاح', ['timerProgressBar' => true]);
             }
             $this->id = 0;
             $this->employeeName = '';
             $this->salary = 0;
+            $this->resetData();
         }
 
     }
@@ -127,6 +129,7 @@ class Employee extends Component
         $this->id = $employee['id'];
         $this->employeeName = $employee['employeeName'];
         $this->salary = $employee['salary'];
+        $this->initialBalance = $employee['initialBalance'];
         $this->startingDate = $employee['startingDate'];
     }
 
@@ -191,9 +194,10 @@ class Employee extends Component
         $this->gift_amount = $this->currentEmployee['salary'];
         $this->gifts = EmployeeGift::where('employee_id', $this->currentEmployee['id'])->get();
         $this->debts = SaleDebt::where('employee_id', $this->currentEmployee['id'])->get();
-        $this->currentEmployee['gifts'] = EmployeeGift::where("employee_id", $this->currentEmployee["id"])->where("gift_date", "LIKE", date("Y")."-%" . $this->month."-%")->sum("gift_amount");
+        $this->currentEmployee['gifts'] = EmployeeGift::where("employee_id", $this->currentEmployee["id"])->where("gift_date", "LIKE", date("Y") . "-%" . $this->month . "-%")->sum("gift_amount");
         $this->currentBalance = $this->debts->sum('debt') - $this->debts->sum('paid') - $this->debts->sum('discount') + $this->currentEmployee['initialBalance'];
 
+        $this->calcRemainder();
     }
 
     public function chooseDebt($debt)
@@ -221,7 +225,11 @@ class Employee extends Component
 
     public function calcRemainder()
     {
-        $this->remainder = floatval($this->gift_amount) - floatval($this->paid);
+        if ($this->gift_amount > 0) {
+            $this->remainder = floatval($this->gift_amount) - floatval($this->paid);
+        } else {
+            $this->remainder = 0;
+        }
     }
 
     public function payGift()
@@ -238,29 +246,19 @@ class Employee extends Component
                 'cancelButtonColor' => '#4b5563'
             ]);
         } else {
-            if ($this->gift_amount != 0) {
-                $gift = EmployeeGift::create([
-                    'employee_id' => $this->currentEmployee['id'],
-                    'payment' => $this->payment,
-                    'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
-                    'bank' => $this->bank,
-                    'gift_amount' => $this->paid != 0 ? $this->remainder : $this->gift_amount,
-                    'gift_date' => $this->gift_date,
-                    'note' => $this->note
-                ]);
-            }
 
-            if ($this->paid != 0) {
+            if ($this->paid != 0 || $this->discount != 0) {
                 $type = 'pay';
                 $note = $this->gift_amount == 0 ? 'تم إستلام مبلغ' : 'تم إستلام مبلغ من المرتب';
                 $paid = $this->paid;
                 $debt = 0;
 
-                SaleDebt::create([
+               $debt = SaleDebt::create([
                     'Employee_id' => $this->currentEmployee['id'],
                     'type' => $type,
                     'debt' => $debt,
                     'paid' => $paid,
+                    'discount' => floatval($this->discount),
                     'payment' => $this->payment,
                     'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
                     'bank' => $this->bank,
@@ -268,23 +266,24 @@ class Employee extends Component
                     'note' => $this->note == '' ? $note : $this->note,
                     'user_id' => auth()->id(),
                 ]);
+
+               $this->sale_debt_id = $debt->id;
+
             }
 
-            if (floatval($this->discount) != 0) {
-                SaleDebt::create([
-                    'Employee_id' => $this->currentEmployee['id'],
-                    'type' => 'pay',
-                    'debt' => 0,
-                    'paid' => 0,
-                    'discount' => $this->discount,
-                    'payment' => 'cash',
-                    'bank_id' => null,
-                    'bank' => '',
-                    'due_date' => $this->gift_date,
-                    'note' =>  "تم تخفيض مبلغ " . $this->discount,
-                    'user_id' => auth()->id(),
+            if ($this->gift_amount != 0) {
+                $gift = EmployeeGift::create([
+                    'employee_id' => $this->currentEmployee['id'],
+                    'sale_debt_id' => $this->sale_debt_id,
+                    'payment' => $this->payment,
+                    'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
+                    'bank' => $this->bank,
+                    'gift_amount' => $this->remainder,
+                    'gift_date' => $this->gift_date,
+                    'note' => $this->note
                 ]);
             }
+
 
             $this->getGifts($this->currentEmployee);
 
@@ -296,17 +295,18 @@ class Employee extends Component
 
     }
 
-    public function editGift($debt, $salary)
+    public function editGift(EmployeeGift $gift)
     {
+        dd($gift->debt);
         $this->editGiftMode = true;
-        $this->currentDebt = $debt;
-        $this->gift_id = $this->currentDebt['gift_id'];
+        $this->currentDebt = $gift;
+        $this->gift_id = $this->currentDebt['id'];
         $this->type = $this->currentDebt['type'];
         $this->bank_id = $this->currentDebt['bank_id'];
         $this->bank = $this->currentDebt['bank'];
         $this->paid = $this->currentDebt['paid'];
         $this->note = $this->currentDebt['note'];
-        $this->gift_date = $this->currentDebt['due_date'];
+        $this->gift_date = $this->currentDebt['gift_date'];
         $this->gift_amount = $salary + $this->currentDebt['paid'];
         $this->currentDebt['gift_amount'] = $salary;
         $this->remainder = $salary;
@@ -316,15 +316,10 @@ class Employee extends Component
     public function updateGift($id)
     {
         $type = 'pay';
-        if ($type == 'debt') {
-            $note = 'تم شراء بالآجل';
-            $debt = $this->gift_amount;
-            $paid = 0;
-        } else {
-            $note = $this->gift_amount == 0 ? 'تم إستلام مبلغ' : 'تم إستلام مبلغ من المرتب';
-            $paid = $this->paid;
-            $debt = 0;
-        }
+
+        $note = $this->gift_amount == 0 ? 'تم إستلام مبلغ' : 'تم إستلام مبلغ من المرتب';
+        $paid = $this->paid;
+        $debt = 0;
 
         if ($this->gift_amount != 0) {
             $gift = EmployeeGift::where('id', $id)->update([
@@ -373,7 +368,7 @@ class Employee extends Component
     public function deleteGift($data)
     {
         $gift = EmployeeGift::where('id', $data['inputAttributes']['id'])->first();
-        SaleDebt::where('gift_id', $gift['id'])->delete();
+        SaleDebt::where('id', $gift['sale_debt_id'])->delete();
 
         $gift->delete();
         $this->getGifts($this->currentEmployee);
@@ -383,11 +378,16 @@ class Employee extends Component
     #[On('reset-employee')]
     public function resetData($data = null)
     {
-        $this->reset('id', 'employeeName', 'id', 'salary', 'editMode', 'currentDebt', 'note', 'paid', 'remainder', 'editGiftMode', $data);
+        $this->reset('id', 'employeeName', 'id', 'salary', 'editMode', 'currentDebt', 'sale_debt_id', 'note', 'paid', 'remainder', 'editGiftMode', 'initialBalance', $data);
     }
 
     public function render()
     {
+        if ($this->payment == "bank" && $this->bank_id == null) {
+            if ($this->banks->count() != 0) {
+                $this->bank_id = $this->banks->first()->id;
+            }
+        }
         $this->employees = \App\Models\Employee::where('employeeName', 'like', '%' . $this->search . '%')->get();
         return view('livewire.employee');
     }

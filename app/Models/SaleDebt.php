@@ -29,9 +29,16 @@ class SaleDebt extends Model
     {
         return $this->belongsTo(Employee::class);
     }
+
+    public function gift()
+    {
+        return $this->hasOne(EmployeeGift::class);
+    }
     public function getCreatedAtAttribute($value)
     {
         return Carbon::parse($value)->format('Y-m-d h:i:s');
     }
 
 }
+
+

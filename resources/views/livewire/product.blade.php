@@ -1,11 +1,11 @@
 <div>
 
-        <x-title :$title/>
-{{--    <livewire:Title :$title />--}}
+    <x-title :$title/>
+    {{--    <livewire:Title :$title />--}}
 
     <div class="row mt-2">
 
-        <div class="col-4">
+        <div class="col-3">
             <div class="card ">
                 <div class="card-body">
                     <form action="" wire:submit="save({{ $form->id }})">
@@ -47,13 +47,24 @@
                             @error('form.category_id') <span class="error text-danger">{{ $message }}</span> @enderror
                         </div>
 
-                        <label for="stock" class="form-label">الكمية</label>
-                        <input type="text" autocomplete="off" wire:model="form.stock"
-                               class="form-control @error('form.stock') is-invalid @enderror"
-                               placeholder="الكمية ..." id="stock">
+                        <label for="stock" class="form-label">الكمية الإفتتاحيه</label>
+                        <input type="text" autocomplete="off" wire:model="form.initialStock"
+                               class="form-control @error('form.initialStock') is-invalid @enderror"
+                               placeholder="الكمية الإفتتاحيى ..." id="initialStock">
                         <div>
-                            @error('form.stock') <span class="error text-danger">{{ $message }}</span> @enderror
+                            @error('form.initialStock') <span class="error text-danger">{{ $message }}</span> @enderror
                         </div>
+
+                        @if($form->id != 0)
+                            <label for="stock" class="form-label">الكمية</label>
+                            <input type="text" disabled autocomplete="off" wire:model="stock"
+                                   class="form-control @error('stock') is-invalid @enderror"
+                                   placeholder="الكمية ..." id="stock">
+                            <div>
+                                @error('stock') <span class="error text-danger">{{ $message }}</span> @enderror
+                            </div>
+                        @endif
+
 
                         <label for="purchase_price" class="form-label">سعر الجرد</label>
                         <input type="text" autocomplete="off" wire:model="form.purchase_price"
@@ -82,7 +93,7 @@
             </div>
         </div>
 
-        <div class="col-8">
+        <div class="col-9">
             <div class="card">
                 <div class="card-header">
                     <div class="row">
@@ -114,13 +125,13 @@
                             <table class="table text-center">
                                 <thead>
                                 <tr>
-                                    <th>#</th>
                                     <th>إسم المنتج</th>
                                     <th>الوحده</th>
                                     <th>المخزن</th>
                                     <th>القسم</th>
                                     <th>سعر الجرد</th>
                                     <th>سعر البيع</th>
+                                    <th>الكميه الإفتتاحية</th>
                                     <th>الكميه</th>
                                     <th>التحكم</th>
                                 </tr>
@@ -128,13 +139,13 @@
                                 <tbody>
                                 @foreach($products as $product)
                                     <tr>
-                                        <td>{{ $loop->index + 1}}</td>
                                         <td>{{ $product->productName }}</td>
                                         <td>{{ $product->unit }}</td>
                                         <td>{{ $stores[$product->store_id]['storeName'] }}</td>
                                         <td>{{ $categories[$product->category_id]['categoryName'] }}</td>
                                         <td>{{ number_format($product->purchase_price, 2) }}</td>
                                         <td>{{ number_format($product->sale_price, 2) }}</td>
+                                        <td>{{ number_format($product->initialStock, 2) }}</td>
                                         <td>{{ number_format($product->stock, 2) }}</td>
                                         <td>
                                             <button

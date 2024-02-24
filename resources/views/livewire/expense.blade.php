@@ -79,7 +79,7 @@
                     @else
                         <form action="" wire:submit="saveOption()">
                             <label for="description" class="form-label">البيان</label>
-                            <input type="optionName" autocomplete="off" wire:model="optionName" class="form-control"
+                            <input type="text" autocomplete="off" wire:model="optionName" class="form-control"
                                    placeholder="البيان ..."
                                    name="optionName" id="optionName">
                             <div>
@@ -132,7 +132,7 @@
                                     @foreach($expenses as $expense)
                                         <tr>
                                             <td>{{ $loop->index + 1 }}</td>
-                                            <td>{{ $expense->option->optionName }}</td>
+                                            <td>{{ $expense->option->optionName ?? "" }}</td>
                                             <td>{{ $expense->description }}</td>
                                             <td>{{ number_format($expense->amount, 2) }}</td>
                                             <td>{{ $expense->expense_date }}</td>

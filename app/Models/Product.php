@@ -45,4 +45,10 @@ class Product extends Model
         return $this->hasMany(Damaged::class);
     }
 
+
+    public function getStockAttribute()
+    {
+        return $this->initialStock + $this->purchaseDetails()->sum("quantity") - $this->saleDetails()->sum("quantity") - $this->damageds()->sum("quantity");
+    }
+
 }

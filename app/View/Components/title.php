@@ -13,6 +13,7 @@ use App\Models\Withdraw;
 use Closure;
 use Illuminate\Contracts\View\View;
 use Illuminate\View\Component;
+use function Symfony\Component\String\b;
 
 class title extends Component
 {
@@ -46,15 +47,11 @@ class title extends Component
             - PurchaseDebt::where("type", "pay")->where("payment", "cash")->where("due_date", $date)->sum("paid")
             + PurchaseDebt::where("type", "debt")->where("payment", "cash")->where("due_date", $date)->whereNull("purchase_id")->sum("debt");
 
-        $bankBalance = Bank::sum('initialBalance')
-            + SaleDebt::where("type", "pay")->where("payment", "bank")->sum("paid")
-            - SaleDebt::where("type", "debt")->where("payment", "bank")->whereNull("sale_id")->sum("debt")
-            + Transfer::where("transfer_type", "cash_to_bank")->sum("transfer_amount")
-            - Transfer::where("transfer_type", "bank_to_cash")->sum("transfer_amount")
-            - Expense::where("payment", "bank")->sum("amount")
-            - EmployeeGift::where("payment", "bank")->sum("gift_amount")
-            - PurchaseDebt::where("type", "pay")->where("payment", "bank")->sum("paid")
-            + PurchaseDebt::where("type", "debt")->where("payment", "bank")->whereNull("purchase_id")->sum("debt");
+        $banks = Bank::all();
+        $bankBalance = 0;
+        foreach ($banks as $bank) {
+            $bankBalance += $bank->currentBalance;
+        }
 
         session(['safeBalance' => $safeBalance]);
         session(['bankBalance' => $bankBalance]);

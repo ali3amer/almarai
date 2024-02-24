@@ -92,7 +92,7 @@ class Returns extends Component
             $client = SaleDebt::where("client_id", $this->currentClient['id'])->get();
             $balance = $client->sum("debt") - $client->sum("paid") - $client->sum("discount");
 
-            \App\Models\Product::where('id', $this->currentDetail['product_id'])->increment('stock', floatval($this->quantityReturn));
+//            \App\Models\Product::where('id', $this->currentDetail['product_id'])->increment('stock', floatval($this->quantityReturn));
 
             $sale = \App\Models\Sale::where('id', $this->currentDetail['sale_id'])->first();
 
@@ -159,7 +159,7 @@ class Returns extends Component
                     ])->delete();
                 }
             }
-            $sale->decrement('total_amount', $this->priceReturn);
+//            $sale->decrement('total_amount', $this->priceReturn);
 
             \App\Models\SaleDebt::create([
                 $this->buyer . '_id' => $this->currentClient['id'],

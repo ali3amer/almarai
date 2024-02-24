@@ -90,7 +90,7 @@ class PurchaseReturns extends Component
                 $supplier = PurchaseDebt::where("supplier_id", $this->currentSupplier['id'])->get();
                 $balance = $supplier->sum("debt") - $supplier->sum("paid") - $supplier->sum("discount");
 
-                \App\Models\Product::where('id', $this->currentDetail['product_id'])->decrement('stock', floatval($this->quantityReturn));
+//                \App\Models\Product::where('id', $this->currentDetail['product_id'])->decrement('stock', floatval($this->quantityReturn));
 
                 $purchase = \App\Models\Purchase::where('id', $this->currentDetail['purchase_id'])->first();
 
@@ -157,7 +157,7 @@ class PurchaseReturns extends Component
                         ])->delete();
                     }
                 }
-                $purchase->decrement('total_amount', $this->priceReturn);
+//                $purchase->decrement('total_amount', $this->priceReturn);
 
                 \App\Models\PurchaseDebt::create([
                     'supplier_id' => $this->currentSupplier['id'],

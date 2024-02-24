@@ -39,7 +39,7 @@ class Damaged extends Component
                 'damaged_date' => $this->damaged_date,
             ]);
 
-            \App\Models\Product::where('id', $this->currentProduct['id'])->decrement('stock', $this->quantity);
+//            \App\Models\Product::where('id', $this->currentProduct['id'])->decrement('stock', $this->quantity);
             $this->alert('success', 'تم الحفظ بنجاح', ['timerProgressBar' => true]);
         } else {
             \App\Models\Damaged::where('id', $this->id)->update([
@@ -48,8 +48,8 @@ class Damaged extends Component
                 'damaged_date' => $this->damaged_date,
             ]);
 
-            \App\Models\Product::where('id', $this->currentProduct['id'])->increment('stock', $this->currentDamaged['quantity']);
-            \App\Models\Product::where('id', $this->currentProduct['id'])->decrement('stock', $this->quantity);
+//            \App\Models\Product::where('id', $this->currentProduct['id'])->increment('stock', $this->currentDamaged['quantity']);
+//            \App\Models\Product::where('id', $this->currentProduct['id'])->decrement('stock', $this->quantity);
             $this->alert('success', 'تم التعديل بنجاح', ['timerProgressBar' => true]);
         }
 
@@ -82,7 +82,7 @@ class Damaged extends Component
     public function delete($data)
     {
         $damaged = $data['inputAttributes']['damaged'];
-        \App\Models\Product::where('id', $damaged['product_id'])->increment('stock', $damaged['quantity']);
+//        \App\Models\Product::where('id', $damaged['product_id'])->increment('stock', $damaged['quantity']);
         \App\Models\Damaged::where('id', $damaged['id'])->delete();
         $this->alert('success', 'تم الحذف بنجاح', ['timerProgressBar' => true]);
         $this->resetData();

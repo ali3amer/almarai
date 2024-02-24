@@ -23,7 +23,7 @@ return new class extends Migration
             $table->string('barcode')->nullable();
             $table->decimal('purchase_price', 10, 2)->default(0);
             $table->decimal('sale_price', 10, 2)->default(0);
-            $table->decimal('stock', 10, 2)->default(0);
+            $table->decimal('initialStock', 10, 2)->default(0);
             $table->date("adding_date")->nullable();
             $table->date("expired_date")->nullable();
             $table->timestamps();

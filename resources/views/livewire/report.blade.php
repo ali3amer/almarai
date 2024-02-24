@@ -275,7 +275,7 @@
                         <input data-bs-toggle="modal" wire:model="currentEmployee.employeeName" readonly
                                placeholder="إسم الموظف ...." class="form-control" data-bs-target="#employeeModal">
                     @endif
-                    @if($reportType =='inventory' || $reportType =='sales' || $reportType =='purchases')
+                    @if($reportType =='inventory' || $reportType =='sales' || $reportType =='purchases' || $reportType =='tracking')
                         <label for="store_id">المخزن</label>
                         <select class="form-select mt-2" wire:model.live="store_id" id="store_id">
                             <option value="0">-----------------</option>
@@ -284,7 +284,7 @@
                             @endforeach
                         </select>
 
-                        @if($store_id != 0 && ($reportType =='sales' || $reportType =='purchases'))
+                        @if($store_id != 0 && ($reportType =='sales' || $reportType =='purchases' || $reportType =='tracking'))
                             <label for="product">المنتج</label>
                             <input id="product" data-bs-toggle="modal" wire:model="currentProduct.productName" readonly
                                    placeholder="إسم المنتج ...." class="form-control" data-bs-target="#productModal">
@@ -307,7 +307,7 @@
                         @endif
                     @endif
                     <button
-                        @disabled($reportType == "employee" && empty($currentEmployee)) @disabled($reportType == 'supplier' && empty($currentSupplier))  @disabled($reportType == 'client' && empty($currentClient)) @disabled($reportDuration == 'day' && $day == '') @disabled($reportDuration == 'duration' && $from == '') @disabled($reportDuration == 'duration' && $to == '') class="btn btn-primary w-100 mt-2"
+                        @disabled($reportType == "employee" && empty($currentEmployee)) @disabled($reportType == "tracking" && empty($currentProduct)) @disabled($reportType == 'supplier' && empty($currentSupplier))  @disabled($reportType == 'client' && empty($currentClient)) @disabled($reportDuration == 'day' && $day == '') @disabled($reportDuration == 'duration' && $from == '') @disabled($reportDuration == 'duration' && $to == '') class="btn btn-primary w-100 mt-2"
                         wire:click="chooseReport()">جلب التقرير
                     </button>
                 </div>
@@ -1025,6 +1025,62 @@
                                 <td>{{number_format($sum, 2)}}</td>
                             </tr>
                         @endif
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    @elseif($reportType == 'tracking' && !empty($currentProduct))
+        <div class="card mt-2">
+            <div class="card-body invoice">
+                <div class="card-title" dir="rtl">
+                    <div class="row">
+                        <div class="col-4">
+                            <h3>{{ $currentProduct['productName'] }}</h3>
+                        </div>
+                        <div class="col-4">
+                            <h3>الكمية الافتتاحيه : {{number_format($currentProduct['initialStock'], 2)}}</h3>
+                        </div>
+                        <div class="col-4">
+                            <h3>الكمية الحالية : {{number_format($currentProduct['stock'], 2)}}</h3>
+
+                        </div>
+                    </div>
+                </div>
+                <div class="scroll">
+                    <table class="text-center printInvoice">
+                        <thead>
+                        <tr>
+                            <th>التاريخ</th>
+                            <th>البيان</th>
+                            <th>الوارد</th>
+                            <th>الصادر</th>
+                            <th>الرصيد</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+
+                        @php $currentStock = $currentProduct['initialStock']; @endphp
+                        @foreach($array as $item)
+                            <tr>
+                                @php $currentStock += $item['purchase'] - $item['sale'] @endphp
+                                <td>{{ $item['date'] }}</td>
+                                <td data-bs-toggle="modal" data-bs-target="#printModal"
+                                    wire:click="getInvoice({{$item['invoice']}})"
+                                    style="cursor:pointer;" >{{ $item['note'] }}</td>
+                                <td>{{ number_format($item['purchase'], 2) }}</td>
+                                <td>{{ number_format($item['sale'], 2) }}</td>
+                                <td>{{ number_format($currentStock, 2) }}</td>
+                            </tr>
+                        @endforeach
+                        </tbody>
+                        <tfoot>
+                        <tr>
+                            <th colspan="2">الجمـــــــــــــــلة</th>
+                            <th>{{ number_format($purchase, 2) }}</th>
+                            <th>{{ number_format($sale, 2) }}</th>
+                            <th>{{ number_format($currentStock, 2) }}</th>
+                        </tr>
                         </tfoot>
                     </table>
                 </div>

@@ -21,7 +21,7 @@ class ProductForm extends Form
     public float $sale_price = 0;
     #[Rule('required|numeric|min:1', message: 'أدخل سعر الشراء (الجرد)')]
     public float $purchase_price = 0;
-    public float $stock = 0;
+    public float $initialStock = 0;
 
     public function setProduct(Product $product)
     {
@@ -32,7 +32,7 @@ class ProductForm extends Form
         $this->category_id = $product->category_id;
         $this->sale_price = $product->sale_price;
         $this->purchase_price = $product->purchase_price;
-        $this->stock = $product->stock;
+        $this->initialStock = $product->initialStock;
     }
     public function store()
     {

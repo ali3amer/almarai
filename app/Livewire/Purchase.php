@@ -132,7 +132,7 @@ class Purchase extends Component
                         'price' => floatval($item['price']),
                     ]);
 
-                    \App\Models\Product::where('id', $item['id'])->increment('stock', floatval($item['quantity']));
+//                    \App\Models\Product::where('id', $item['id'])->increment('stock', floatval($item['quantity']));
                 }
             }
 
@@ -301,7 +301,7 @@ class Purchase extends Component
         $id = $data['inputAttributes']['id'];
         $items = PurchaseDetail::where('purchase_id', $id)->get();
         foreach ($items as $item) {
-            \App\Models\Product::where('id', $item['product_id'])->decrement('stock', floatval(floatval($item['quantity'])));
+//            \App\Models\Product::where('id', $item['product_id'])->decrement('stock', floatval(floatval($item['quantity'])));
             \App\Models\PurchaseDetail::where('id', $item['id'])->delete();
         }
 
@@ -368,6 +368,11 @@ class Purchase extends Component
     public function render()
     {
 
+        if ($this->payment == "bank" && $this->bank_id == null) {
+            if ($this->banks->count() != 0) {
+                $this->bank_id = $this->banks->first()->id;
+            }
+        }
 
         if (!empty($this->currentSupplier)) {
             $this->purchases = \App\Models\Purchase::where('supplier_id', $this->currentSupplier['id'])

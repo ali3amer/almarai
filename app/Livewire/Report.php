@@ -56,6 +56,7 @@ class Report extends Component
         'supplier' => 'تقرير مورد',
         'sales' => 'تقرير مبيعات',
         'purchases' => 'تقرير مشتريات',
+        'tracking' => 'تقرير متابعة منتج',
         'daily' => 'تقرير القيود اليومية',
         'safe' => 'تقرير خزنة',
     ];
@@ -80,6 +81,8 @@ class Report extends Component
     public string $clientSearch = '';
     public string $supplierSearch = '';
     public string $employeeSearch = '';
+    public float $sale = 0;
+    public float $purchase = 0;
     public float $paid = 0;
     public float $debt = 0;
     public float $saleFuture = 0;
@@ -434,6 +437,52 @@ class Report extends Component
                     $this->quantity += $purchase->quantity;
                 }
             }
+        } elseif ($this->reportType == "tracking") {
+            $this->array = [];
+            $this->sale = 0;
+            $this->purchase = 0;
+
+            if ($this->reportDuration == "day") {
+                $sales = SaleDetail::join('sales', 'sales.id', '=', 'sale_details.sale_id')->where('sales.sale_date', $this->day)->where('product_id', $this->currentProduct['id'])->get();
+                $purchases = PurchaseDetail::join('purchases', 'purchases.id', '=', 'purchase_details.purchase_id')->where('purchases.purchase_date', $this->day)->where('product_id', $this->currentProduct['id'])->get();
+
+            } elseif ($this->reportDuration == "duration") {
+                $sales = SaleDetail::join('sales', 'sales.id', '=', 'sale_details.sale_id')->whereBetween('sales.sale_date', [$this->from, $this->to])->where('product_id', $this->currentProduct['id'])->get();
+                $purchases = PurchaseDetail::join('purchases', 'purchases.id', '=', 'purchase_details.purchase_id')->whereBetween('purchases.purchase_date', [$this->from, $this->to])->where('product_id', $this->currentProduct['id'])->get();
+            } else {
+                $sales = SaleDetail::join('sales', 'sales.id', '=', 'sale_details.sale_id')->where('product_id', $this->currentProduct['id'])->get();
+                $purchases = PurchaseDetail::join('purchases', 'purchases.id', '=', 'purchase_details.purchase_id')->where('product_id', $this->currentProduct['id'])->get();
+            }
+
+            foreach ($sales as $index => $sale) {
+
+                $this->array[$sale['created_at'] . $index]['invoice'] = $sale->sale->saleDebts->first();
+                $this->array[$sale['created_at'] . $index]['invoice']['sale_id'] = $sale->sale->id;
+
+                $this->array[$sale['created_at'] . $index]['date'] = $sale['sale_date'];
+                $this->array[$sale['created_at'] . $index]['note'] = $sale->client_id == null ? ($sale->supplier_id == null ? $sale->sale->employee->employeeName : $sale->sale->supplier->supplierName) : $sale->sale->client->clientName;
+                $this->array[$sale['created_at'] . $index]['sale'] = $sale['quantity'];
+                $this->array[$sale['created_at'] . $index]['purchase'] = 0;
+                $this->sale += $sale['quantity'];
+            }
+
+
+            foreach ($purchases as $index => $purchase) {
+
+                $this->array[$purchase['created_at'] . $index]['invoice'] = $purchase->purchase->purchaseDebts->first();
+
+
+                $this->array[$purchase['created_at'] . $index]['date'] = $purchase['purchase_date'];
+                $this->array[$purchase['created_at'] . $index]['note'] = $purchase->purchase->supplier->supplierName;
+                $this->array[$purchase['created_at'] . $index]['sale'] = 0;
+                $this->array[$purchase['created_at'] . $index]['purchase'] = $purchase['quantity'];
+                $this->purchase += $purchase['quantity'];
+
+            }
+
+            ksort($this->array);
+
+
         } elseif ($this->reportType == "safe" || $this->reportType == "daily") {
 
             $this->paid = 0;
@@ -706,7 +755,7 @@ class Report extends Component
             $this->suppliers = \App\Models\Supplier::where('supplierName', 'LIKE', '%' . $this->supplierSearch . '%')->get();
         } elseif ($this->reportType == 'employee') {
             $this->employees = \App\Models\Employee::where('employeeName', 'LIKE', '%' . $this->employeeSearch . '%')->get();
-        } elseif ($this->reportType == 'sales' || $this->reportType == 'purchases') {
+        } elseif ($this->reportType == 'sales' || $this->reportType == 'purchases' || $this->reportType == 'tracking') {
             if ($this->store_id == 0) {
                 $this->products = \App\Models\Product::where('productName', 'LIKE', '%' . $this->productSearch . '%')->get();
             } else {
