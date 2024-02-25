@@ -179,13 +179,14 @@ class Sale extends Component
 
     }
 
-    public function chooseProduct($product)
+    public function chooseProduct(\App\Models\Product $product)
     {
-        if ($product["stock"] > 0) {
-            $this->currentProduct = $product;
+        if ($product->stock > 0) {
+            $this->currentProduct = $product->toArray();
             $this->currentProduct['quantity'] = 1;
             $this->currentProduct['price'] = $product['sale_price'];
             $this->currentProduct['amount'] = $product['sale_price'];
+            $this->currentProduct['stock'] = $product->stock;
             $this->productSearch = '';
         }
 

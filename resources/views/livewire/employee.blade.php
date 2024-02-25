@@ -176,14 +176,34 @@
 
                         <div class="row">
                             <div class="col-6">
+                                <label for="type">نوع العملية</label>
+                                <select id="type" class="form-select text-center" @disabled($editGiftMode || $editDebtMode)
+                                        wire:model.live="type">
+                                    <option value="gift">حافز او مرتب او سلفيه</option>
+                                    <option value="pay">سداد</option>
+                                </select>
+                            </div>
+
+                            <div class="col-6">
                                 <label for="gift_date">التاريخ</label>
                                 <input type="date" disabled class="form-control text-center" id="gift_date"
                                        wire:model.live="gift_date">
                             </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-6">
+                                <label for="gift_amount">المدفوع</label>
+                                <input type="text" id="gift_amount" autocomplete="off"
+                                       class="form-control text-center" @disabled($type == "pay" && $editDebtMode && $discount> 0)
+                                       placeholder="المبلغ ...."
+                                       wire:model.live="gift_amount">
+
+                            </div>
 
                             <div class="col-6">
                                 <label for="payment">طريقة الدفع</label>
-                                <select id="payment" @disabled($banks->count() == 0) class="form-select text-center"
+                                <select id="payment" @disabled($type == "pay" && $editDebtMode && $discount> 0) @disabled($banks->count() == 0) class="form-select text-center"
                                         wire:model.live="payment">
                                     <option value="cash">كاش</option>
                                     <option value="bank">بنك</option>
@@ -191,75 +211,58 @@
                             </div>
                         </div>
 
-                        <label for="bank_id">البنك</label>
-                        <select id="bank_id"
-                                @disabled($banks->count() == 0) @disabled($payment == 'cash') class="form-select text-center"
-                                wire:model="bank_id">
-                            @foreach($banks as $bank)
-                                <option value="{{$bank->id}}">{{$bank->bankName}}</option>
-                            @endforeach
-                        </select>
-                        <div>
-                            @error('bank_id') <span class="error text-danger">{{ $message }}</span> @enderror
-                        </div>
-
-                        <label for="bank">رقم الايصال</label>
-                        <input type="text" id="bank" autocomplete="off" class="form-control text-center"
-                               @disabled($payment == 'cash') placeholder="رقم الإيصال ...."
-                               wire:model.live="bank">
-
                         <div class="row">
                             <div class="col-6">
-                                <label for="gift_amount">المدفوع</label>
-                                <input type="text" id="gift_amount" wire:keydown="calcRemainder()" autocomplete="off"
-                                       class="form-control text-center"
-                                       placeholder="المبلغ ...."
-                                       wire:model.live="gift_amount">
-
+                                <label for="bank_id">البنك</label>
+                                <select id="bank_id"
+                                       @disabled($type == "pay" && $editDebtMode && $discount> 0) @disabled($banks->count() == 0) @disabled($payment == 'cash') class="form-select text-center"
+                                        wire:model="bank_id">
+                                    @foreach($banks as $bank)
+                                        <option value="{{$bank->id}}">{{$bank->bankName}}</option>
+                                    @endforeach
+                                </select>
+                                <div>
+                                    @error('bank_id') <span class="error text-danger">{{ $message }}</span> @enderror
+                                </div>
                             </div>
 
                             <div class="col-6">
-                                <label for="paid">سداد من المدفوع</label>
-                                <input type="text" id="paid" wire:keydown="calcRemainder()" autocomplete="off"
-                                       class="form-control text-center"
-                                       placeholder="سداد ...."
-                                       wire:model.live="paid">
+                                <label for="bank">رقم الايصال</label>
+                                <input type="text" id="bank" autocomplete="off" class="form-control text-center"
+                                       @disabled($type == "pay" && $editDebtMode && $discount> 0) @disabled($payment == 'cash') placeholder="رقم الإيصال ...."
+                                       wire:model.live="bank">
                             </div>
                         </div>
 
                         <div class="row">
-                            <div class="col-6">
-                                <label for="discount">التخفيض</label>
+                            @if($type == "pay")
+                                <div class="col-6">
+                                    <label for="discount">التخفيض</label>
 
-                                <input type="text" id="discount" autocomplete="off" class="form-control text-center"
-                                       placeholder="التخفيض ...."
-                                       wire:model.live="discount">
+                                    <input type="text" id="discount" autocomplete="off" class="form-control text-center"
+                                           @disabled($type == "pay" && $editDebtMode && $gift_amount > 0) placeholder="التخفيض ...."
+                                           wire:model.live="discount">
 
-                            </div>
+                                </div>
+                            @endif
 
-                            <div class="col-6">
-                                <label for="remainder">متبقي المدفوع</label>
-                                <input type="text" id="remainder" disabled autocomplete="off"
-                                       class="form-control text-center"
-                                       placeholder="سداد ...."
-                                       wire:model.live="remainder">
+                            <div class="col-{{ $type == "pay" ? "6" : "12" }}">
 
+                                <label for="note">ملاحظات</label>
+
+                                <input type="text" id="note" autocomplete="off" class="form-control text-center mb-2"
+                                       placeholder="ملاحظات ...."
+                                       wire:model.live="note">
                             </div>
                         </div>
-
-                        <label for="note">ملاحظات</label>
-
-                        <input type="text" id="note" autocomplete="off" class="form-control text-center mb-2"
-                               placeholder="ملاحظات ...."
-                               wire:model.live="note">
 
                         @if($editGiftMode)
                             <button class="btn btn-success w-100"
-                                    wire:click="updateGift({{$gift_id}})">تعديل
+                                    @if($type == "gift") wire:click="updateGift()" @else wire:click="updateDebt()" @endif>تعديل
                             </button>
                         @else
                             <button class="btn btn-primary w-100"
-                                    @disabled($payment == "bank" && $bank_id == null) wire:click="payGift()">دفع
+                                    @disabled($payment == "bank" && $bank_id == null) @if($type == "gift") wire:click="payGift()" @else wire:click="payDebt()" @endif>{{ $type == "gift" ? "دفع" : "سداد" }}
                             </button>
                         @endif
 
@@ -273,7 +276,7 @@
                         <div class="card-title">
                             <div class="row">
                                 <div class="col-4">
-                                    <h5>المرتبات</h5>
+                                    <h5>المرتبات والحوافز والسلفيات</h5>
                                 </div>
                                 <div class="col-8">
                                     <h5><span>مدفوعات الشهر </span>
@@ -332,16 +335,30 @@
                                     <th>البيان</th>
                                     <th>المبلغ</th>
                                     <th>التخفيض</th>
+                                    <th>التحكم</th>
                                 </tr>
                                 </thead>
                                 <tbody>
                                 @foreach($debts as $debt)
-                                    <tr style="cursor: pointer" wire:click="chooseDebt({{$debt}})"
-                                        data-bs-toggle="modal" data-bs-target="#debtModal">
+                                    <tr style="cursor: pointer" wire:click="editDebt({{$debt}})">
                                         <td>{{$debt->due_date}}</td>
-                                        <td>{{$debt->note}}</td>
-                                        <td>{{$debt->type == 'pay' ? number_format($debt->paid, 2) : number_format($debt->debt, 2)}}</td>
+                                        <td data-bs-toggle="modal" data-bs-target="#debtModal">{{$debt->note}}</td>
+                                        <td>{{number_format($debt->paid, 2)}}</td>
                                         <td>{{number_format($debt->discount, 2)}}</td>
+                                        <td>
+                                            @if($debt->sale_id == null)
+                                                <button
+                                                    @disabled(!$update)
+                                                    class="btn btn-sm btn-info text-white"
+                                                    wire:click="editDebt({{$debt}})">
+                                                    <i class="bi bi-pen"></i></button>
+                                                /
+                                                <button class="btn btn-sm btn-danger"
+                                                        wire:click="deleteDebtMessage({{$debt}})">
+                                                    <i
+                                                        class="bi bi-trash"></i></button>
+                                            @endif
+                                        </td>
                                     </tr>
                                 @endforeach
                                 </tbody>

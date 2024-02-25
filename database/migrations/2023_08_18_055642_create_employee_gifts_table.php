@@ -17,8 +17,6 @@ return new class extends Migration
             $table->foreign('bank_id')->references('id')->on('banks')->onDelete('cascade')->onUpdate('cascade');
             $table->unsignedBigInteger('employee_id');
             $table->foreign('employee_id')->references('id')->on('employees')->onDelete('cascade')->onUpdate('cascade');
-            $table->unsignedBigInteger('sale_debt_id')->nullable();
-            $table->foreign('sale_debt_id')->references('id')->on('sale_debts')->onDelete('cascade')->onUpdate('cascade');
             $table->string('bank')->nullable();
             $table->enum('payment', ['cash', 'bank']);
             $table->decimal('gift_amount', 10, 2);
