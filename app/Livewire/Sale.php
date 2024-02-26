@@ -200,20 +200,21 @@ class Sale extends Component
 
     public function addToCart()
     {
-        if (!isset($this->cart[$this->currentProduct['id']])) {
-
-            if ($this->currentProduct["quantity"] > $this->currentProduct["stock"]) {
-                $this->confirm("العدد المطلوب من " . $this->currentProduct['productName'] . " غير متوفر لايوجد سوى " . $this->currentProduct['stock'], [
-                    'toast' => false,
-                    'showConfirmButton' => false,
-                    'confirmButtonText' => 'موافق',
-                    'onConfirmed' => "cancelSale",
-                    'showCancelButton' => true,
-                    'cancelButtonText' => 'إلغاء',
-                    'confirmButtonColor' => '#dc2626',
-                    'cancelButtonColor' => '#4b5563'
-                ]);
-            } else {
+        $stock = $this->currentProduct['quantity'];
+        $quantity = isset($this->cart[$this->currentProduct['id']]) ? $this->cart[$this->currentProduct['id']]['quantity'] : 0;
+        if ($stock + $quantity > $this->currentProduct["stock"]) {
+            $this->confirm("العدد المطلوب من " . $this->currentProduct['productName'] . " غير متوفر لايوجد سوى " . $this->currentProduct['stock'], [
+                'toast' => false,
+                'showConfirmButton' => false,
+                'confirmButtonText' => 'موافق',
+                'onConfirmed' => "cancelSale",
+                'showCancelButton' => true,
+                'cancelButtonText' => 'إلغاء',
+                'confirmButtonColor' => '#dc2626',
+                'cancelButtonColor' => '#4b5563'
+            ]);
+        } else {
+            if (!isset($this->cart[$this->currentProduct['id']])) {
                 $this->cart[$this->currentProduct['id']] = $this->currentProduct;
 
                 $this->cart[$this->currentProduct['id']]['amount'] = floatval($this->currentProduct['price']) * floatval($this->currentProduct['quantity']);
@@ -223,18 +224,19 @@ class Sale extends Component
                     $this->paid = $this->amount - $this->discount;
                 }
 
-            }
 
-        } else {
-            $this->amount -= $this->cart[$this->currentProduct['id']]['amount'];
-            $this->cart[$this->currentProduct['id']]['quantity'] += floatval($this->currentProduct['quantity']);
-            $this->cart[$this->currentProduct['id']]['amount'] = floatval($this->cart[$this->currentProduct['id']]['price']) * floatval($this->cart[$this->currentProduct['id']]['quantity']);
-            $this->amount += $this->cart[$this->currentProduct['id']]['amount'];
+
+            } else {
+                $this->amount -= $this->cart[$this->currentProduct['id']]['amount'];
+                $this->cart[$this->currentProduct['id']]['quantity'] += floatval($this->currentProduct['quantity']);
+                $this->cart[$this->currentProduct['id']]['amount'] = floatval($this->cart[$this->currentProduct['id']]['price']) * floatval($this->cart[$this->currentProduct['id']]['quantity']);
+                $this->amount += $this->cart[$this->currentProduct['id']]['amount'];
+
+            }
+            $this->currentProduct = [];
+            $this->calcRemainder();
 
         }
-        $this->currentProduct = [];
-        $this->calcRemainder();
-
     }
 
     public function deleteFromCart($id)

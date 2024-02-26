@@ -1,4 +1,4 @@
-<div>
+<div wire:keydown.escape.window="resetData()">
 
     <x-title :$title/>
     {{--    <livewire:Title :$title />--}}
@@ -9,6 +9,27 @@
             <div class="card ">
                 <div class="card-body">
                     <form action="" wire:submit="save({{ $form->id }})">
+
+                        @if($settings && $settings->barcode)
+                            <label for="barcode" class="form-label">الباركود</label>
+                            <input type="text" autocomplete="off" wire:model="form.barcode"
+                                   class="form-control @error('form.barcode') is-invalid @enderror"
+                                   placeholder="الباركود ..." id="barcode">
+                            <div>
+                                @error('form.barcode') <span class="error text-danger">{{ $message }}</span> @enderror
+                            </div>
+                        @endif
+
+                        @if($settings && $settings->batch)
+                            <label for="batch" class="form-label">الباتش</label>
+                            <input type="text" autocomplete="off" wire:model="form.batch"
+                                   class="form-control @error('form.batch') is-invalid @enderror"
+                                   placeholder="الباتش ..." id="batch">
+                            <div>
+                                @error('form.batch') <span class="error text-danger">{{ $message }}</span> @enderror
+                            </div>
+                        @endif
+
                         <label for="productName" class="form-label">إسم المنتج</label>
                         <input type="text" autocomplete="off" wire:model="form.productName"
                                class="form-control @error('form.productName') is-invalid @enderror"
@@ -82,6 +103,17 @@
                         <div>
                             @error('form.sale_price') <span class="error text-danger">{{ $message }}</span> @enderror
                         </div>
+
+                        @if($settings && $settings->expired_date)
+                            <label for="expired_date" class="form-label">تاريخ الانتهاء</label>
+                            <input type="date" autocomplete="off" wire:model="form.expired_date"
+                                   class="form-control @error('form.expired_date') is-invalid @enderror"
+                                    id="expired_date">
+                            <div>
+                                @error('form.expired_date') <span
+                                    class="error text-danger">{{ $message }}</span> @enderror
+                            </div>
+                        @endif
 
                         <div class="d-grid mt-2">
                             <button

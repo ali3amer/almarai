@@ -22,6 +22,9 @@ class ProductForm extends Form
     #[Rule('required|numeric|min:1', message: 'أدخل سعر الشراء (الجرد)')]
     public float $purchase_price = 0;
     public float $initialStock = 0;
+    public $barcode = null;
+    public $batch = null;
+    public $expired_date = null;
 
     public function setProduct(Product $product)
     {
@@ -33,6 +36,10 @@ class ProductForm extends Form
         $this->sale_price = $product->sale_price;
         $this->purchase_price = $product->purchase_price;
         $this->initialStock = $product->initialStock;
+        $this->batch = $product->batch;
+        $this->barcode = $product->barcode;
+        $this->expired_date = $product->expired_date;
+        $this->adding_date = session("date");
     }
     public function store()
     {

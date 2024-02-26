@@ -12,6 +12,22 @@
                     @error('name') <span class="error text-danger">{{ $message }}</span> @enderror
                 </div>
 
+                <label for="initialBalance" class="form-label">الرصيد الافتتاحي للخزنه</label>
+                <input type="text" autocomplete="off" wire:model="initialBalance" class="form-control"
+                       placeholder="الرصيد الافتتاحي للخزنه ..."
+                       name="initialBalance" id="initialBalance">
+                <div>
+                    @error('initialBalance') <span class="error text-danger">{{ $message }}</span> @enderror
+                </div>
+
+                <label for="capital" class="form-label">رأس المال</label>
+                <input type="text" autocomplete="off" wire:model="capital" class="form-control"
+                       placeholder="رأس المال ..."
+                       name="capital" id="capital">
+                <div>
+                    @error('capital') <span class="error text-danger">{{ $message }}</span> @enderror
+                </div>
+
                 <label for="logo" class="form-label">لوقو</label>
                 <input type="file" autocomplete="off" wire:model="logo" class="form-control"
                        name="logo" id="logo">

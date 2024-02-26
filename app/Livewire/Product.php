@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Models\Setting;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
 use App\Livewire\Forms\ProductForm;
 use Illuminate\Database\Eloquent\Collection;
@@ -28,6 +29,7 @@ class Product extends Component
 
     public Collection $categories;
     public Collection $stores;
+    public Setting $settings;
 
 
     public ProductForm $form;
@@ -49,6 +51,7 @@ class Product extends Component
 
     public function mount()
     {
+        $this->settings = Setting::first();
         $user = auth()->user();
         $this->stores = \App\Models\Store::get()->keyBy("id");
         $this->categories = \App\Models\Category::get()->keyBy("id");
@@ -115,6 +118,11 @@ class Product extends Component
         $this->products = \App\Models\Product::all();
 
         $this->alert('success', 'تم الحذف بنجاح', ['timerProgressBar' => true]);
+    }
+
+    public function resetData()
+    {
+        $this->form->reset();
     }
 
     public function render()
