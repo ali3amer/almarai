@@ -8,11 +8,10 @@
         <div class="col-3">
             <div class="card ">
                 <div class="card-body">
-                    <form action="" wire:submit="save({{ $form->id }})">
 
                         @if($settings && $settings->barcode)
                             <label for="barcode" class="form-label">الباركود</label>
-                            <input type="text" autocomplete="off" wire:model="form.barcode"
+                            <input type="text" autocomplete="off" wire:keydown.enter="getProduct()" wire:model.live="form.barcode"
                                    class="form-control @error('form.barcode') is-invalid @enderror"
                                    placeholder="الباركود ..." id="barcode">
                             <div>
@@ -116,11 +115,10 @@
                         @endif
 
                         <div class="d-grid mt-2">
-                            <button
+                            <button wire:click="save({{ $form->id }})"
                                 @disabled(!$create) class="btn btn- btn-{{$form->id == 0 ? 'primary' : 'success'}}">{{$form->id == 0 ? 'حفــــــــــــــــظ' : 'تعـــــــــــــديل'}}</button>
                         </div>
 
-                    </form>
                 </div>
             </div>
         </div>

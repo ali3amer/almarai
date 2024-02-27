@@ -1,4 +1,5 @@
 <div class="invoice mb-3 pb-3" dir="rtl">
+    <h6 class="d-none d-print-block text-center py-2" style="background-color: #4a5568; color: #fff">{{ $settings ? $settings->name : "POS" }}</h6>
     <h6>فاتوره رقم {{$invoice['id'] ?? ''}}</h6>
     <h6>إسم {{ $invoice['clientType'] ?? '' }} : {{$invoice['client'] ?? ''}}</h6>
     <h6>التاريخ : {{$invoice['date'] ?? ''}}</h6>
@@ -11,6 +12,11 @@
             <th>سعر الوحدة</th>
             <th>الكمية</th>
             <th>المجموع</th>
+            @if($settings)
+                @if($settings->expired_date)
+                    <th>تاريخ الانتهاء</th>
+                @endif
+            @endif
         </tr>
         </thead>
         <tbody>
@@ -22,6 +28,11 @@
                     <td>{{number_format(floatval($item['price']), 2)}}</td>
                     <td>{{number_format(floatval($item['quantity']), 2)}}</td>
                     <td>{{number_format(floatval($item['price']) * floatval($item['quantity']), 2)}}</td>
+                    @if($settings)
+                        @if($settings->expired_date)
+                            <td>{{ $item['expired_date'] }}</td>
+                        @endif
+                    @endif
                 </tr>
             @endforeach
         @endif

@@ -73,6 +73,15 @@ class Product extends Component
 //            $this->products = \App\Models\Product::where('productName', 'LIKE', '%' . $this->search . '%')->get();
 //        }
 //    }
+
+    public function getProduct()
+    {
+        $product = \App\Models\Product::whereNotNull("barcode")->where("barcode", $this->form->barcode)->first();
+        if ($product) {
+            $this->form->getProduct($product);
+        }
+    }
+
     public function save($id)
     {
         if ($this->validate()) {

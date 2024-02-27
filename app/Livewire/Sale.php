@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Models\ClientDebt;
 use App\Models\EmployeeDebt;
+use App\Models\Setting;
 use App\Models\SupplierDebt;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
 
@@ -59,9 +60,13 @@ class Sale extends Component
     public Collection $saleDebts;
     public array $invoice = [];
     public $discount = 0;
+    public Setting $settings;
 
     public function mount()
     {
+        $this->settings = Setting::first();
+
+
         if (\App\Models\Client::count() == 0) {
             \App\Models\Client::create(['clientName' => "نقدي", 'phone' => "", 'initialBalance' => 0, 'startingDate' => session("date"), 'blocked' => false, 'cash' => true]);
         }
@@ -407,8 +412,20 @@ class Sale extends Component
         } elseif ($this->buyer == 'supplier') {
             $this->clients = \App\Models\Supplier::where('supplierName', 'LIKE', '%' . $this->clientSearch . '%')->get();
         }
+
+
+        if ($this->settings->barcode) {
+            $barcode = \App\Models\Product::where("barcode", $this->productSearch)->first();
+
+            if ($barcode) {
+                $this->chooseProduct($barcode);
+            }
+        }
+
+        $product = \App\Models\Product::where('productName', 'LIKE', '%' . $this->productSearch . '%')->simplePaginate(10);
+
         return view('livewire.sale', [
-            'products' => \App\Models\Product::where('productName', 'LIKE', '%' . $this->productSearch . '%')->simplePaginate(10)
+            'products' => $product
         ]);
     }
 }

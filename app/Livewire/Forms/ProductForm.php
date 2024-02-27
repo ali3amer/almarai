@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Forms;
 
+use App\Models\Price;
 use App\Models\Product;
 use Livewire\Attributes\Rule;
 use Livewire\Form;
@@ -13,7 +14,6 @@ class ProductForm extends Form
 
     public string|null $unit = null;
     #[Rule('required|numeric|min:1', message: 'حدد المخزن')]
-
     public int $store_id = 0;
     #[Rule('required|numeric|min:1', message: 'حدد القسم')]
     public int $category_id = 0;
@@ -25,6 +25,7 @@ class ProductForm extends Form
     public $barcode = null;
     public $batch = null;
     public $expired_date = null;
+    public $adding_date = null;
 
     public function setProduct(Product $product)
     {
@@ -41,15 +42,41 @@ class ProductForm extends Form
         $this->expired_date = $product->expired_date;
         $this->adding_date = session("date");
     }
+
+    public function getProduct(Product $product)
+    {
+        $this->productName = $product->productName;
+        $this->unit = $product->unit;
+        $this->store_id = $product->store_id;
+        $this->category_id = $product->category_id;
+        $this->sale_price = $product->sale_price;
+        $this->purchase_price = $product->purchase_price;
+    }
+
     public function store()
     {
-        Product::create($this->all());
+        $this->adding_date = session('date');
+        $product = Product::create($this->all());
+        Price::create([
+            "product_id" => $product->id,
+            "purchase_price" => $this->purchase_price,
+            "sale_price" => $this->sale_price,
+            "due_date" => session("date"),
+        ]);
         $this->reset();
     }
 
     public function update()
     {
         Product::find($this->id)->update($this->all());
+
+        Price::create([
+            "product_id" => $this->id,
+            "purchase_price" => $this->purchase_price,
+            "sale_price" => $this->sale_price,
+            "due_date" => session("date"),
+        ]);
+
         $this->reset();
 
     }

@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Models\SaleDebt;
+use App\Models\Setting;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
 
 use App\Models\Bank;
@@ -56,9 +57,13 @@ class Purchase extends Component
     public array $invoice = [];
     public $discount = 0;
     public $amount = 0;
+    public Setting $settings;
+
 
     public function mount()
     {
+        $this->settings = Setting::first();
+
         if (\App\Models\Supplier::count() == 0) {
             \App\Models\Supplier::create(['supplierName' => "نقدي", 'phone' => "", 'initialBalance' => 0, 'startingDate' => session("date"), 'initialSalesBalance' => 0, 'blocked' => false, 'cash' => true]);
         }
@@ -179,9 +184,9 @@ class Purchase extends Component
         $this->currentBalance = $supplier->sum('debt') - $supplier->sum('paid') + $this->currentSupplier['initialBalance'];
     }
 
-    public function chooseProduct($product)
+    public function chooseProduct(\App\Models\Product $product)
     {
-        $this->currentProduct = $product;
+        $this->currentProduct = $product->toArray();
         $this->currentProduct['quantity'] = 1;
         $this->currentProduct['price'] = $product['purchase_price'];
         $this->currentProduct['amount'] = $product['purchase_price'];
@@ -383,8 +388,18 @@ class Purchase extends Component
         }
         $this->suppliers = \App\Models\Supplier::where('supplierName', 'LIKE', '%' . $this->supplierSearch . '%')->get();
 
+        if ($this->settings->barcode) {
+            $barcode = \App\Models\Product::where("barcode", $this->productSearch)->first();
+
+            if ($barcode) {
+                $this->chooseProduct($barcode);
+            }
+        }
+
+        $product = \App\Models\Product::where('productName', 'LIKE', '%' . $this->productSearch . '%')->simplePaginate(10);
+
         return view('livewire.purchase', [
-            'products' => \App\Models\Product::where('productName', 'LIKE', '%' . $this->productSearch . '%')->simplePaginate(10)
+            'products' => $product
         ]);
     }
 }
