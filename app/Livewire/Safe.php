@@ -274,16 +274,7 @@ class Safe extends Component
 
     public function render()
     {
-        $this->safeBalance = \App\Models\Safe::sum('initialBalance')
-            + SaleDebt::where("type", "pay")->where("due_date", "<", session("date"))->where("payment", "cash")->sum("paid")
-            - SaleDebt::where("type", "debt")->where("due_date", "<", session("date"))->where("payment", "cash")->whereNull("sale_id")->sum("debt")
-            + Transfer::where("transfer_type", "bank_to_cash")->where("transfer_date", "<", session("date"))->sum("transfer_amount")
-            - Transfer::where("transfer_type", "cash_to_bank")->where("transfer_date", "<", session("date"))->sum("transfer_amount")
-            - Expense::where("payment", "cash")->where("expense_date", "<", session("date"))->sum("amount")
-            - EmployeeGift::where("payment", "cash")->where("gift_date", "<", session("date"))->sum("gift_amount")
-            - PurchaseDebt::where("type", "pay")->where("due_date", "<", session("date"))->where("payment", "cash")->sum("paid")
-            + PurchaseDebt::where("type", "debt")->where("due_date", "<", session("date"))->where("payment", "cash")->whereNull("purchase_id")->sum("debt")
-            - Withdraw::where("due_date", session("date"))->sum("amount");
+        $this->safeBalance = \App\Models\Safe::first()->pastBalance;
 
         if ($this->transfer_date == '') {
             $this->transfer_date = session("date");

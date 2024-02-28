@@ -35,17 +35,7 @@ class title extends Component
         // real title
 
         $date = session("date") ?? session(['date' => date("Y-m-d")]);
-        $safe = Safe::where("startingDate", $date)->first()->initialBalance ?? 0;
-        $safeBalance = $safe
-            + Withdraw::where("due_date", $date)->sum("amount")
-            + SaleDebt::where("type", "pay")->where("due_date", $date)->where("payment", "cash")->sum("paid")
-            - SaleDebt::where("type", "debt")->where("due_date", $date)->where("payment", "cash")->whereNull("sale_id")->sum("debt")
-            + Transfer::where("transfer_type", "bank_to_cash")->where("transfer_date", $date)->sum("transfer_amount")
-            - Transfer::where("transfer_type", "cash_to_bank")->where("transfer_date", $date)->sum("transfer_amount")
-            - Expense::where("payment", "cash")->where("expense_date", $date)->sum("amount")
-            - EmployeeGift::where("payment", "cash")->where("gift_date", $date)->sum("gift_amount")
-            - PurchaseDebt::where("type", "pay")->where("payment", "cash")->where("due_date", $date)->sum("paid")
-            + PurchaseDebt::where("type", "debt")->where("payment", "cash")->where("due_date", $date)->whereNull("purchase_id")->sum("debt");
+        $safeBalance = Safe::first()->safeDayBalance;
 
         $banks = Bank::all();
         $bankBalance = 0;

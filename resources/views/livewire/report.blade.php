@@ -828,7 +828,9 @@
                         @if(!empty($merged))
                             @foreach($merged as $debt)
                                 <tr>
-                                    @php $currentBalance += $debt->debt - $debt->paid @endphp
+                                    @if (isset($debt->type))
+                                        @php $currentBalance += floatval($debt->debt) - floatval($debt->paid) @endphp
+                                    @endif
                                     <td>{{$debt->due_date ?? $debt->gift_date}}</td>
                                     <td @if($debt->sale_id != null) data-bs-toggle="modal" data-bs-target="#printModal"
                                         wire:click="getInvoice({{$debt}})" @endif>{{ $debt->note != "" ? $debt->note : "تم دفع مبلغ" }}</td>
@@ -883,7 +885,9 @@
                         @if(!empty($merged))
                             @foreach($merged as $debt)
                                 <tr>
-                                    @php $currentBalance += $debt->debt - $debt->paid @endphp
+                                    @if (isset($debt->type))
+                                        @php $currentBalance += floatval($debt->debt) - floatval($debt->paid) @endphp
+                                    @endif
                                     <td>{{$debt->due_date ?? $debt->gift_date}}</td>
                                     <td colspan="3"
                                         @if($debt->sale_id != null || $debt->purchase_id != null) data-bs-toggle="modal"
@@ -1067,7 +1071,7 @@
                                 <td>{{ $item['date'] }}</td>
                                 <td data-bs-toggle="modal" data-bs-target="#printModal"
                                     wire:click="getInvoice({{$item['invoice']}})"
-                                    style="cursor:pointer;" >{{ $item['note'] }}</td>
+                                    style="cursor:pointer;">{{ $item['note'] }}</td>
                                 <td>{{ number_format($item['purchase'], 2) }}</td>
                                 <td>{{ number_format($item['sale'], 2) }}</td>
                                 <td>{{ number_format($currentStock, 2) }}</td>
@@ -1092,7 +1096,7 @@
                 <div class="card-title" dir="rtl">
                     <div class="row">
                         <div class="col-4">
-                             <h3>الخزنة : {{number_format($safeBalance, 2)}}</h3>
+                            <h3>الخزنة : {{number_format($safeBalance, 2)}}</h3>
                         </div>
                         <div class="col-4">
                             <h3>البنك : {{number_format($bankBalance, 2)}}</h3>
