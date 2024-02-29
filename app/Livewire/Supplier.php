@@ -52,6 +52,7 @@ class Supplier extends Component
     public bool $read = false;
     public bool $update = false;
     public bool $delete = false;
+    public array $currentReceipt = [];
 
     protected function rules()
     {
@@ -333,6 +334,11 @@ class Supplier extends Component
         }
         $this->showDebts($this->currentSupplier);
 
+    }
+
+    public function showReceipt($debt)
+    {
+        $this->currentReceipt = $debt;
     }
 
     public function chooseDebt($debt)

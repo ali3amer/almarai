@@ -48,6 +48,7 @@ class Client extends Component
     public bool $read = false;
     public bool $update = false;
     public bool $delete = false;
+    public array $currentReceipt = [];
 
     protected function rules()
     {
@@ -250,6 +251,11 @@ class Client extends Component
             $this->showDebts($this->currentClient);
         }
 
+    }
+
+    public function showReceipt($debt)
+    {
+        $this->currentReceipt = $debt;
     }
 
     public function chooseDebt($debt)

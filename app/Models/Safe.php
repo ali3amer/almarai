@@ -24,7 +24,7 @@ class Safe extends Model
             + PurchaseDebt::where("type", "debt")->where("due_date", "<", session("date"))->where("payment", "cash")->whereNull("purchase_id")->sum("debt")
             - Withdraw::where("due_date", session("date"))->sum("amount");
     }
-    public function getcurrentBalanceAttribute()
+    public function getCurrentBalanceAttribute()
     {
         return $this->initialBalance
             + Withdraw::sum("amount")

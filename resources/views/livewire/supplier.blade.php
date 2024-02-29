@@ -12,7 +12,7 @@
                 <div class="modal-body">
                     <div class="card">
                         <div class="card-body bg-white">
-                            @if(!empty($currentDebt) && !empty($currentSupplier))
+                            @if(!empty($currentReceipt) && !empty($currentSupplier))
                                 <table class="table note ">
                                     <tbody>
                                     <tr>
@@ -21,13 +21,13 @@
                                     </tr>
                                     <tr>
                                         <td>البيان</td>
-                                        <td>{{$currentDebt['note']}}</td>
+                                        <td>{{$currentReceipt['note']}}</td>
                                     </tr>
                                     <tr>
                                         <td>نوع العملية</td>
-                                        <td>{{$currentDebt['type'] == 'pay' ? 'دفع' : 'سحب'}}</td>
+                                        <td>{{$currentReceipt['type'] == 'pay' ? 'دفع' : 'سحب'}}</td>
                                     </tr>
-                                    @if($currentDebt['payment'] == 'cash')
+                                    @if($currentReceipt['payment'] == 'cash')
                                         <tr>
                                             <td>وسيلة الدفع</td>
                                             <td>كاش</td>
@@ -39,12 +39,12 @@
                                         </tr>
                                         <tr>
                                             <td>الايصال</td>
-                                            <td>{{ $currentDebt['bank'] }}</td>
+                                            <td>{{ $currentReceipt['bank'] }}</td>
                                         </tr>
                                     @endif
                                     <tr>
                                         <td>المبلغ</td>
-                                        <td>{{ $currentDebt['type'] == 'pay' ? $currentDebt['paid'] : $currentDebt['debt'] }}</td>
+                                        <td>{{ $currentReceipt['type'] == 'pay' ? $currentReceipt['paid'] : $currentReceipt['debt'] }}</td>
                                     </tr>
                                     </tbody>
                                 </table>
@@ -319,10 +319,10 @@
                                 <tbody>
                                 @foreach($debts as $debt)
                                     <tr>
-                                        <td style="cursor: pointer" wire:click="chooseDebt({{$debt}})"
-                                            data-bs-toggle="modal" data-bs-target="#debtModal">{{$debt->due_date}}</td>
-                                        <td style="cursor: pointer" wire:click="chooseDebt({{$debt}})"
-                                            data-bs-toggle="modal" data-bs-target="#debtModal">{{$debt->note}}</td>
+                                        <td style="cursor: pointer"
+                                            data-bs-toggle="modal" wire:click="showReceipt({{$debt}})" data-bs-target="#debtModal">{{$debt->due_date}}</td>
+                                        <td style="cursor: pointer"
+                                            data-bs-toggle="modal" wire:click="showReceipt({{$debt}})" data-bs-target="#debtModal">{{$debt->note}}</td>
                                         <td>
                                             @if($debt->paid == 0 && $debt->debt == 0)
                                                 {{ $debt->discount }}

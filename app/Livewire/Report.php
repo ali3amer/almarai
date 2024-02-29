@@ -216,31 +216,18 @@ class Report extends Component
                 }
             }
 
-            $this->stock = floatval(\App\Models\Product::selectRaw('SUM(stock * purchase_price) as totalStockValue')->first()->totalStockValue);
+            $this->stock = 0;
+
+            $products = \App\Models\Product::all();
+            foreach ($products as $product) {
+                $this->stock += $product->stock * $product->purchase_price;
+            }
 
             $this->capital = Safe::first()->capital ?? 0;
-            $safe = \App\Models\Safe::count() != 0 ? \App\Models\Safe::first()->initialBalance : 0;
 
-            $this->bankBalance = Bank::sum('initialBalance')
-                + SaleDebt::where("type", "pay")->where("payment", "bank")->sum("paid")
-                - SaleDebt::where("type", "debt")->whereNull("sale_id")->where("payment", "bank")->sum("debt")
-                - Transfer::where("transfer_type", "bank_to_cash")->sum("transfer_amount")
-                + Transfer::where("transfer_type", "cash_to_bank")->sum("transfer_amount")
-                - Expense::where("payment", "bank")->sum("amount")
-                - EmployeeGift::where("payment", "bank")->sum("gift_amount")
-                - PurchaseDebt::where("type", "pay")->where("payment", "bank")->sum("paid")
-                + PurchaseDebt::where("type", "debt")->whereNull("purchase_id")->where("payment", "bank")->sum("debt");
+            $this->bankBalance = session('bankBalance');
 
-            $this->balance = $safe
-                + SaleDebt::where("type", "pay")->where("payment", "cash")->sum("paid")
-                - SaleDebt::where("type", "debt")->whereNull("sale_id")->where("payment", "cash")->sum("debt")
-                - Transfer::where("transfer_type", "cash_to_bank")->sum("transfer_amount")
-                + Transfer::where("transfer_type", "bank_to_cash")->sum("transfer_amount")
-                - Expense::where("payment", "cash")->sum("amount")
-                - EmployeeGift::where("payment", "bank")->sum("gift_amount")
-                - PurchaseDebt::where("type", "pay")->where("payment", "cash")->sum("paid")
-                + PurchaseDebt::where("type", "debt")->whereNull("purchase_id")->where("payment", "cash")->sum("debt");
-
+            $this->balance = Safe::first()->currentBalance ?? 0;
             $this->totalExpenses = Expense::sum("amount") + EmployeeGift::sum("gift_amount");
             $this->clients = \App\Models\Client::get();
 
@@ -298,7 +285,7 @@ class Report extends Component
             $this->purchasesDebts = $this->purchasesSum - $this->purchasesPaidSum;
 
 
-            $this->safeBalance = $safe + $this->salesPaidSum - $this->purchasesPaidSum - $this->expensesSum - $this->employeesSum - $this->damagedsSum;
+            $this->safeBalance = Safe::sum("initialBalance") + $this->salesPaidSum - $this->purchasesPaidSum - $this->expensesSum - $this->employeesSum - $this->damagedsSum;
 
             $this->total = $this->safeBalance + $this->salesDebts - $this->purchasesDebts;
 
