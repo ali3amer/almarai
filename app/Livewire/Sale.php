@@ -76,7 +76,7 @@ class Sale extends Component
             $this->currentClient = \App\Models\Client::first()->toArray();
         }
 
-        $client = SaleDebt::where('client_id', $this->currentClient['id'])->get();
+        $client = SaleDebt::where('client_id', $this->currentClient['id'])->withTrashed()->get();
         $this->currentBalance = $client->sum('debt') - $client->sum('paid') + $this->currentClient['initialBalance'];
         $this->banks = Bank::all();
 
@@ -400,7 +400,7 @@ class Sale extends Component
 
         if (!empty($this->currentClient)) {
             $this->sales = \App\Models\Sale::where($this->buyer . '_id', $this->currentClient['id'])
-                ->where('id', 'LIKE', '%' . $this->saleSearch . '%')->where('sale_date', 'LIKE', '%' . $this->saleSearch . '%')->latest()->get();
+                ->where('id', 'LIKE', '%' . $this->saleSearch . '%')->orWhere('sale_date', 'LIKE', '%' . $this->saleSearch . '%')->latest()->get();
         }
         if ($this->sale_date == '') {
             $this->sale_date = session("date");

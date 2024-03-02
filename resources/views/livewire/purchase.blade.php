@@ -52,7 +52,7 @@
                                 </div>
 
                                 <div class="col-1">
-                                    <button class="btn btn-info" wire:click="changePayment({{$invoice['paidId']}})"><i class="bi bi-bookmark-check"></i></button>
+                                    <button class="btn btn-info" @if(isset($invoice['paidId'])) wire:click="changePayment({{$invoice['paidId']}})" @endif><i class="bi bi-bookmark-check"></i></button>
                                 </div>
                             </div>
                         @endif

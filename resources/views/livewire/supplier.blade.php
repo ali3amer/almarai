@@ -44,7 +44,7 @@
                                     @endif
                                     <tr>
                                         <td>المبلغ</td>
-                                        <td>{{ $currentReceipt['type'] == 'pay' ? $currentReceipt['paid'] : $currentReceipt['debt'] }}</td>
+                                        <td>{{ $currentReceipt['type'] == 'pay' ? number_format($currentReceipt['paid'], 2) : number_format($currentReceipt['debt'], 2) }}</td>
                                     </tr>
                                     </tbody>
                                 </table>

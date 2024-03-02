@@ -73,7 +73,7 @@ class Purchase extends Component
             $this->currentSupplier = \App\Models\Supplier::first()->toArray();
         }
 
-        $supplier = PurchaseDebt::where('supplier_id', $this->currentSupplier['id'])->get();
+        $supplier = PurchaseDebt::where('supplier_id', $this->currentSupplier['id'])->withTrashed()->get();
         $this->currentBalance = $supplier->sum('debt') - $supplier->sum('paid') + $this->currentSupplier['initialBalance'];
 
         $this->banks = Bank::all();
@@ -180,7 +180,7 @@ class Purchase extends Component
     public function chooseSupplier($supplier)
     {
         $this->currentSupplier = $supplier;
-        $supplier = PurchaseDebt::where('supplier_id', $this->currentSupplier['id'])->get();
+        $supplier = PurchaseDebt::where('supplier_id', $this->currentSupplier['id'])->withTrashed()->get();
         $this->currentBalance = $supplier->sum('debt') - $supplier->sum('paid') + $this->currentSupplier['initialBalance'];
     }
 
@@ -381,7 +381,7 @@ class Purchase extends Component
 
         if (!empty($this->currentSupplier)) {
             $this->purchases = \App\Models\Purchase::where('supplier_id', $this->currentSupplier['id'])
-                ->where('id', 'LIKE', '%' . $this->purchaseSearch . '%')->where('purchase_date', 'LIKE', '%' . $this->purchaseSearch . '%')->get();
+                ->where('id', 'LIKE', '%' . $this->purchaseSearch . '%')->orWhere('purchase_date', 'LIKE', '%' . $this->purchaseSearch . '%')->latest()->get();
         }
         if ($this->purchase_date == '') {
             $this->purchase_date = session("date");
