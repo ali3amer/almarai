@@ -46,6 +46,16 @@ class Settings extends Component
             $this->capital = $safe->capital;
         }
     }
+
+    public function createSettings()
+    {
+        Setting::create([
+            "name" => "pos",
+            "barcode" => false,
+            "batch" => false,
+            "expired_date" => false,
+        ]);
+    }
     public function save()
     {
 

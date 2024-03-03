@@ -64,7 +64,18 @@ class Sale extends Component
 
     public function mount()
     {
-        $this->settings = Setting::first();
+        if (Setting::count() != 0) {
+            $this->settings = Setting::first();
+        } else {
+            $this->settings = Setting::create([
+                "name" => "pos",
+                "barcode" => false,
+                "batch" => false,
+                "expired_date" => false,
+            ]);
+        }
+
+
 
 
         if (\App\Models\Client::count() == 0) {

@@ -157,9 +157,10 @@ class Report extends Component
         $this->currentEmployee = $employee;
     }
 
-    public function chooseProduct($supplier)
+    public function chooseProduct(\App\Models\Product $product)
     {
-        $this->currentProduct = $supplier;
+        $this->currentProduct = $product->toArray();
+        $this->currentProduct['stock'] = $product->stock;
     }
 
 

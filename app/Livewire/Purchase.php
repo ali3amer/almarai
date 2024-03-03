@@ -62,7 +62,16 @@ class Purchase extends Component
 
     public function mount()
     {
-        $this->settings = Setting::first();
+        if (Setting::count() != 0) {
+            $this->settings = Setting::first();
+        } else {
+            $this->settings = Setting::create([
+                "name" => "pos",
+                "barcode" => false,
+                "batch" => false,
+                "expired_date" => false,
+            ]);
+        }
 
         if (\App\Models\Supplier::count() == 0) {
             \App\Models\Supplier::create(['supplierName' => "نقدي", 'phone' => "", 'initialBalance' => 0, 'startingDate' => session("date"), 'initialSalesBalance' => 0, 'blocked' => false, 'cash' => true]);
@@ -239,7 +248,7 @@ class Purchase extends Component
     public function showPurchases()
     {
         $this->editMode = !$this->editMode;
-        if(!$this->editMode) {
+        if (!$this->editMode) {
             $this->id = 0;
             $this->bank = "";
             $this->payment = "cash";
@@ -367,7 +376,7 @@ class Purchase extends Component
     public function resetData($item = null)
     {
 
-        $item == "currentSupplier" ? $this->reset( 'search', 'supplierSearch', 'id', 'oldQuantities', $item) : $this->reset('currentProduct', 'cart', 'bank', 'search', 'supplierSearch', 'discount', 'amount', 'paid', 'remainder', 'total_amount', 'id', 'oldQuantities', $item);
+        $item == "currentSupplier" ? $this->reset('search', 'supplierSearch', 'id', 'oldQuantities', $item) : $this->reset('currentProduct', 'cart', 'bank', 'search', 'supplierSearch', 'discount', 'amount', 'paid', 'remainder', 'total_amount', 'id', 'oldQuantities', $item);
     }
 
     public function render()

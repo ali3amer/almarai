@@ -1065,6 +1065,15 @@
                         <tbody>
 
                         @php $currentStock = $currentProduct['initialStock']; @endphp
+                        @if($currentProduct['initialStock'] != 0)
+                            <tr>
+                                <td></td>
+                                <td style="cursor:pointer;">الكمية الافتتاحيه</td>
+                                <td>{{ number_format($currentProduct['initialStock'], 2) }}</td>
+                                <td>0</td>
+                                <td>{{ number_format($currentProduct['initialStock'], 2) }}</td>
+                            </tr>
+                        @endif
                         @foreach($array as $item)
                             <tr>
                                 @php $currentStock += $item['purchase'] - $item['sale'] @endphp
