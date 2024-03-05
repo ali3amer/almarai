@@ -134,6 +134,7 @@ class Client extends Component
         $this->blocked = $client['blocked'];
         $this->note = $client['note'];
         $this->cash = $client['cash'];
+        $this->startingDate = $client['startingDate'];
 
     }
 

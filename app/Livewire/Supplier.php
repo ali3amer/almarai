@@ -143,6 +143,7 @@ class Supplier extends Component
         $this->blocked = $supplier['blocked'];
         $this->note = $supplier['note'];
         $this->cash = $supplier['cash'];
+        $this->startingDate = $supplier['startingDate'];
 
     }
 

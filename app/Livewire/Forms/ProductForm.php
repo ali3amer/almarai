@@ -51,6 +51,7 @@ class ProductForm extends Form
         $this->category_id = $product->category_id;
         $this->sale_price = $product->sale_price;
         $this->purchase_price = $product->purchase_price;
+        $this->adding_date = $product->adding_date;
     }
 
     public function store()

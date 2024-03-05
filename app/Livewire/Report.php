@@ -306,99 +306,87 @@ class Report extends Component
                 $this->currentClient['initialBalance'] += SaleDebt::where('client_id', $this->currentClient['id'])->where('due_date', '<', $this->day)->sum('debt')
                     - SaleDebt::where('client_id', $this->currentClient['id'])->where('due_date', '<', $this->day)->sum('paid')
                     - SaleDebt::where('client_id', $this->currentClient['id'])->where('due_date', '<', $this->day)->sum('discount');
+
                 $this->saleDebts = SaleDebt::where('client_id', $this->currentClient['id'])->where('due_date', $this->day)->get();
-                $this->salesBalance = $this->saleDebts->sum('debt') - $this->saleDebts->sum('paid') - $this->saleDebts->sum('discount');
+
             } elseif ($this->reportDuration == 'duration') {
                 $this->currentClient['initialBalance'] += SaleDebt::where('client_id', $this->currentClient['id'])->where('due_date', '<', $this->from)->sum('debt')
                     - SaleDebt::where('client_id', $this->currentClient['id'])->where('due_date', '<', $this->from)->sum('paid')
                     - SaleDebt::where('client_id', $this->currentClient['id'])->where('due_date', '<', $this->from)->sum('discount');
-                $this->saleDebts = SaleDebt::where('client_id', $this->currentClient['id'])->whereBetween('due_date', [$this->from, $this->to])->get();
-                $this->salesBalance = $this->saleDebts->sum('debt') - $this->saleDebts->sum('paid') - $this->saleDebts->sum('discount');
+
+                $this->saleDebts = SaleDebt::where('client_id', $this->currentClient['id'])->whereBetween('due_date', [$this->from, $this->to])->orderBy('due_date')->get();
+
             } else {
-                $this->saleDebts = SaleDebt::where('client_id', $this->currentClient['id'])->get();
-                $this->salesBalance = $this->currentClient['initialBalance'] + $this->saleDebts->sum('debt') - $this->saleDebts->sum('paid') - $this->saleDebts->sum('discount');
+                $this->saleDebts = SaleDebt::where('client_id', $this->currentClient['id'])->orderBy('due_date')->get();
             }
+            $this->salesBalance = $this->currentClient['initialBalance'] + $this->saleDebts->sum('debt') - $this->saleDebts->sum('paid') - $this->saleDebts->sum('discount');
+
             $this->currentSalesBalance = $this->salesBalance;
         } elseif ($this->reportType == 'supplier') {   // supplier
-            $this->merged = [];
+            $this->currentSupplier['initialBalance'] = \App\Models\Supplier::find($this->currentSupplier['id'])->initialBalance;
+            $this->currentSupplier['initialSalesBalance'] = \App\Models\Supplier::find($this->currentSupplier['id'])->initialSalesBalance;
+
             if ($this->reportDuration == 'day') {
-                $this->saleDebts = \App\Models\SaleDebt::where('supplier_id', $this->currentSupplier['id'])->where('due_date', $this->day)->get();
-                $this->purchaseDebts = \App\Models\PurchaseDebt::where('supplier_id', $this->currentSupplier['id'])->where('due_date', $this->day)->get();
-                $this->salesBalance = $this->saleDebts->sum('debt') - $this->saleDebts->sum('paid') - $this->saleDebts->sum('discount');
 
-                $this->purchasesBalance = $this->purchaseDebts->sum('debt') - $this->purchaseDebts->sum('paid') - $this->purchaseDebts->sum('discount');
+                $this->currentSupplier['initialBalance'] += PurchaseDebt::where('supplier_id', $this->currentSupplier['id'])->where('due_date', '<', $this->day)->sum('debt')
+                    - PurchaseDebt::where('supplier_id', $this->currentSupplier['id'])->where('due_date', '<', $this->day)->sum('paid')
+                    - PurchaseDebt::where('supplier_id', $this->currentSupplier['id'])->where('due_date', '<', $this->day)->sum('discount');
 
+                $this->currentSupplier['initialSalesBalance'] += SaleDebt::where('supplier_id', $this->currentSupplier['id'])->where('due_date', '<', $this->day)->sum('debt')
+                    - SaleDebt::where('supplier_id', $this->currentSupplier['id'])->where('due_date', '<', $this->day)->sum('paid')
+                    - SaleDebt::where('supplier_id', $this->currentSupplier['id'])->where('due_date', '<', $this->day)->sum('discount');
+
+                $this->saleDebts = \App\Models\SaleDebt::where('supplier_id', $this->currentSupplier['id'])->where('due_date', $this->day)->orderBy('due_date')->get();
+                $this->purchaseDebts = \App\Models\PurchaseDebt::where('supplier_id', $this->currentSupplier['id'])->where('due_date', $this->day)->orderBy('due_date')->get();
             } elseif ($this->reportDuration == 'duration') {
-                $this->saleDebts = \App\Models\SaleDebt::where('supplier_id', $this->currentSupplier['id'])->whereBetween('due_date', [$this->from, $this->to])->get();
-                $this->purchaseDebts = \App\Models\PurchaseDebt::where('supplier_id', $this->currentSupplier['id'])->whereBetween('due_date', [$this->from, $this->to])->get();
-                $this->salesBalance = $this->saleDebts->sum('debt') - $this->saleDebts->sum('paid') - $this->saleDebts->sum('discount');
 
-                $this->purchasesBalance = $this->purchaseDebts->sum('debt') - $this->purchaseDebts->sum('paid') - $this->purchaseDebts->sum('discount');
+                $this->currentSupplier['initialBalance'] += PurchaseDebt::where('supplier_id', $this->currentSupplier['id'])->where('due_date', '<', $this->from)->sum('debt')
+                    - PurchaseDebt::where('supplier_id', $this->currentSupplier['id'])->where('due_date', '<', $this->from)->sum('paid')
+                    - PurchaseDebt::where('supplier_id', $this->currentSupplier['id'])->where('due_date', '<', $this->from)->sum('discount');
 
+                $this->currentSupplier['initialSalesBalance'] += SaleDebt::where('supplier_id', $this->currentSupplier['id'])->where('due_date', '<', $this->from)->sum('debt')
+                    - SaleDebt::where('supplier_id', $this->currentSupplier['id'])->where('due_date', '<', $this->from)->sum('paid')
+                    - SaleDebt::where('supplier_id', $this->currentSupplier['id'])->where('due_date', '<', $this->from)->sum('discount');
+
+                $this->saleDebts = \App\Models\SaleDebt::where('supplier_id', $this->currentSupplier['id'])->whereBetween('due_date', [$this->from, $this->to])->orderBy('due_date')->get();
+                $this->purchaseDebts = \App\Models\PurchaseDebt::where('supplier_id', $this->currentSupplier['id'])->whereBetween('due_date', [$this->from, $this->to])->orderBy('due_date')->get();
             } else {
-                $this->saleDebts = \App\Models\SaleDebt::where('supplier_id', $this->currentSupplier['id'])->get();
-                $this->purchaseDebts = \App\Models\PurchaseDebt::where('supplier_id', $this->currentSupplier['id'])->get();
-                $this->salesBalance = $this->currentSupplier['initialSalesBalance'] + $this->saleDebts->sum('debt') - $this->saleDebts->sum('paid') - $this->saleDebts->sum('discount');
-
-                $this->purchasesBalance = $this->currentSupplier['initialBalance'] + $this->purchaseDebts->sum('debt') - $this->purchaseDebts->sum('paid') - $this->purchaseDebts->sum('discount');
+                $this->saleDebts = \App\Models\SaleDebt::where('supplier_id', $this->currentSupplier['id'])->orderBy('due_date')->get();
+                $this->purchaseDebts = \App\Models\PurchaseDebt::where('supplier_id', $this->currentSupplier['id'])->orderBy('due_date')->get();
 
             }
 
-            $this->currentSalesBalance = $this->salesBalance;
+            $this->currentSalesBalance = $this->saleDebts->sum("debt") - $this->saleDebts->sum("paid");
+            $this->currentPurchasesBalance = $this->purchaseDebts->sum("debt") - $this->purchaseDebts->sum("paid");
 
-            $this->currentPurchasesBalance = $this->purchasesBalance;
-
-            foreach ($this->saleDebts as $index => $sale) {
-                $this->merged[$sale['created_at'] . $index]['due_date'] = $sale['due_date'];
-                $this->merged[$sale['created_at'] . $index]['note'] = $sale['note'];
-                $this->merged[$sale['created_at'] . $index]['type'] = $sale['type'];
-                $this->merged[$sale['created_at'] . $index]['sale_id'] = $sale['sale_id'];
-                if ($sale["sale_id"] != null) {
-                    $this->merged[$sale['created_at'] . $index]['invoice'] = $sale->sale;
-                }
-                $this->merged[$sale['created_at'] . $index]['paid'] = $sale->debt;
-                $this->merged[$sale['created_at'] . $index]['debt'] = $sale->paid;
-                $this->merged[$sale['created_at'] . $index]['sale_id'] = $sale->sale_id ?? null;
-                $this->merged[$sale['created_at'] . $index]['purchase_id'] = null;
-                $this->merged[$sale['created_at'] . $index]['process'] = "sale";
-            }
-
-            foreach ($this->purchaseDebts as $index => $purchase) {
-                $this->merged[$purchase['created_at'] . $index]['due_date'] = $purchase['due_date'];
-                $this->merged[$purchase['created_at'] . $index]['note'] = $purchase['note'];
-                $this->merged[$purchase['created_at'] . $index]['type'] = $purchase['type'];
-                $this->merged[$purchase['created_at'] . $index]['sale_id'] = $purchase['sale_id'];
-                if ($purchase["purchase_id"] != null) {
-                    $this->merged[$purchase['created_at'] . $index]['invoice'] = $purchase->purchase;
-                }
-                $this->merged[$purchase['created_at'] . $index]['paid'] = $purchase->paid;
-                $this->merged[$purchase['created_at'] . $index]['debt'] = $purchase->debt;
-                $this->merged[$purchase['created_at'] . $index]['purchase_id'] = $sale->purchase_id ?? null;
-                $this->merged[$purchase['created_at'] . $index]['sale_id'] = null;
-                $this->merged[$purchase['created_at'] . $index]['process'] = "purchase";
-            }
-
-            ksort($this->merged);
         } elseif ($this->reportType == 'employee') {   // employee
+            $this->currentEmployee['initialBalance'] = \App\Models\Employee::find($this->currentEmployee['id'])->initialBalance;
+
             if ($this->reportDuration == 'day') {
+
+                $this->currentEmployee['initialBalance'] += SaleDebt::where('employee_id', $this->currentEmployee['id'])->where('due_date', '<', $this->day)->sum('debt')
+                    - SaleDebt::where('employee_id', $this->currentEmployee['id'])->where('due_date', '<', $this->day)->sum('paid')
+                    - SaleDebt::where('employee_id', $this->currentEmployee['id'])->where('due_date', '<', $this->day)->sum('discount');
+
                 $this->saleDebts = \App\Models\SaleDebt::where('employee_id', $this->currentEmployee['id'])->where('due_date', $this->day)->get();
                 $this->employeeGifts = \App\Models\EmployeeGift::where('employee_id', $this->currentEmployee['id'])->where('gift_date', $this->day)->get();
-                $this->salesBalance = $this->saleDebts->sum('debt') - $this->saleDebts->sum('paid') - $this->saleDebts->sum('discount');
             } elseif ($this->reportDuration == 'duration') {
+
+                $this->currentEmployee['initialBalance'] += SaleDebt::where('employee_id', $this->currentEmployee['id'])->where('due_date', '<', $this->from)->sum('debt')
+                    - SaleDebt::where('employee_id', $this->currentEmployee['id'])->where('due_date', '<', $this->from)->sum('paid')
+                    - SaleDebt::where('employee_id', $this->currentEmployee['id'])->where('due_date', '<', $this->from)->sum('discount');
+
                 $this->saleDebts = \App\Models\SaleDebt::where('employee_id', $this->currentEmployee['id'])->whereBetween('due_date', [$this->from, $this->to])->get();
                 $this->employeeGifts = \App\Models\EmployeeGift::where('employee_id', $this->currentEmployee['id'])->whereBetween('gift_date', [$this->from, $this->to])->get();
-                $this->salesBalance = $this->saleDebts->sum('debt') - $this->saleDebts->sum('paid') - $this->saleDebts->sum('discount');
 
             } else {
                 $this->saleDebts = \App\Models\SaleDebt::where('employee_id', $this->currentEmployee['id'])->get();
                 $this->employeeGifts = \App\Models\EmployeeGift::where('employee_id', $this->currentEmployee['id'])->get();
-                $this->salesBalance = $this->currentEmployee['initialBalance'] + $this->saleDebts->sum('debt') - $this->saleDebts->sum('paid') - $this->saleDebts->sum('discount');
             }
+            $this->salesBalance = $this->currentEmployee['initialBalance'] + $this->saleDebts->sum('debt') - $this->saleDebts->sum('paid') - $this->saleDebts->sum('discount');
 
             $this->currentSalesBalance = $this->salesBalance;
 
-            $this->merged = $this->saleDebts->merge($this->employeeGifts);
-            $this->merged->sortBy('created_at');
         } elseif ($this->reportType == 'sales') {  // sale
             if ($this->reportDuration == 'day') {
                 if (!empty($this->currentProduct)) {

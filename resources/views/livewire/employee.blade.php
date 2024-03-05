@@ -90,7 +90,7 @@
                             </div>
 
                             <label for="startingDate">تاريخ الإضافه</label>
-                            <input type="date" wire:model.live="startingDate" id="startingDate"
+                            <input type="date" disabled wire:model.live="startingDate" id="startingDate"
                                    class="form-control text-center">
 
 

@@ -96,7 +96,7 @@
                             </div>
 
                             <label for="startingDate">تاريخ بداية التعامل</label>
-                            <input type="date" wire:model.live="startingDate" id="startingDate"
+                            <input type="date" disabled wire:model.live="startingDate" id="startingDate"
                                    class="form-control text-center">
 
                             @if($blocked == true)
@@ -215,7 +215,7 @@
                             </div>
                             <div class="col-6">
                                 <label for="due_date">التاريخ</label>
-                                <input type="date" wire:model.live="due_date" id="due_date"
+                                <input type="date" disabled wire:model.live="due_date" id="due_date"
                                        class="form-control text-center">
                             </div>
                         </div>
@@ -276,7 +276,7 @@
                         </div>
 
                         <button
-                            @disabled($payment == "bank" && $banks->count() == 0) @disabled(empty($currentSupplier) || $due_date == '') @disabled($debt_amount == 0 && $discount == 0) class="btn btn-{{$debtId == 0 ? 'primary' : 'success'}} w-100"
+                            @disabled($payment == "bank" && $banks->count() == 0) @disabled($currentSupplier['cash']) @disabled(empty($currentSupplier) || $due_date == '') @disabled($debt_amount == 0 && $discount == 0) class="btn btn-{{$debtId == 0 ? 'primary' : 'success'}} w-100"
                             wire:click="saveDebt()">{{$debtId == 0 ? 'دفــــع' : 'تعــــديل'}}</button>
 
                     </div>
