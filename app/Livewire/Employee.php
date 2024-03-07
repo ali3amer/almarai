@@ -28,11 +28,11 @@ class Employee extends Component
     public string $employeeName = '';
     public $salary = 0;
     public $paid = 0;
-    public $startingDate;
+    public $startingDate = '';
     public Collection $debts;
     public Collection $details;
     public string $search = '';
-    public string $type = '';
+    public string $type = 'gift';
     public string $gift_date = '';
     public $bank = '';
     public string $payment = 'cash';
@@ -220,15 +220,13 @@ class Employee extends Component
                 'gift_date' => $this->gift_date,
                 'note' => $this->note ?? "تم دفع مبلغ للموظف"
             ]);
+            $this->getGifts($this->currentEmployee);
+
+            $this->resetData();
+
+            $this->alert('success', 'تم الدفع بنجاح', ['timerProgressBar' => true]);
+
         }
-
-        $this->getGifts($this->currentEmployee);
-
-        $this->resetData();
-
-
-        $this->alert('success', 'تم الدفع بنجاح', ['timerProgressBar' => true]);
-
     }
 
     public function editGift(EmployeeGift $gift)
