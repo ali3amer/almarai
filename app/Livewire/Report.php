@@ -78,6 +78,7 @@ class Report extends Component
     public collection $suppliers;
     public collection $employees;
     public collection $products;
+    public string $payment = '';
     public string $clientSearch = '';
     public string $supplierSearch = '';
     public string $employeeSearch = '';
@@ -541,7 +542,15 @@ class Report extends Component
                 $this->withdraws = \App\Models\Withdraw::get();
             }
 
-            if ($this->reportDuration == "" || ($this->reportDuration == "duration" && Safe::first()->startingDate >= $this->from) || ($this->reportDuration == "day" && Safe::first()->startingDate == $this->day)) {
+            if ($this->payment != "") {
+                $this->sales = $this->sales->where("payment", $this->payment);
+                $this->purchases = $this->purchases->where("payment", $this->payment);
+                $this->expenses = $this->expenses->where("payment", $this->payment);
+                $this->employeeGifts = $this->employeeGifts->where("payment", $this->payment);
+                $this->withdraws = $this->withdraws->where("payment", $this->payment);
+            }
+
+            if (($this->reportDuration == "" || ($this->reportDuration == "duration" && Safe::first()->startingDate >= $this->from) || ($this->reportDuration == "day" && Safe::first()->startingDate == $this->day)) && ($this->payment == "" || $this->payment == "cash")) {
                 $safe = Safe::first();
 
                 if ($safe) {
@@ -720,6 +729,11 @@ class Report extends Component
                 }
             }
         }
+    }
+
+    public function clearArray()
+    {
+        $this->array = [];
     }
 
     public function getInvoice($debt)

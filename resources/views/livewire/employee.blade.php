@@ -343,7 +343,7 @@
                                     <tr style="cursor: pointer" wire:click="editDebt({{$debt}})">
                                         <td>{{$debt->due_date}}</td>
                                         <td data-bs-toggle="modal" data-bs-target="#debtModal">{{$debt->note}}</td>
-                                        <td>{{number_format($debt->paid, 2)}}</td>
+                                        <td>{{number_format($debt->type == "pay" ? $debt->paid : $debt->debt, 2)}}</td>
                                         <td>{{number_format($debt->discount, 2)}}</td>
                                         <td>
                                             @if($debt->sale_id == null)

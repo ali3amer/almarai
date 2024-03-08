@@ -246,7 +246,7 @@
                 <div class="card-body">
                     <div class="card-title"><h6>نوع وفترة التقرير</h6></div>
                     <label for="reportType">نوع التقرير</label>
-                    <select class="form-select" wire:model.live="reportType" id="reportType">
+                    <select class="form-select" wire:change="clearArray()" wire:model.live="reportType" id="reportType">
                         @foreach($reportTypes as $key => $type)
                             <option value="{{$key}}">{{$type}}</option>
                         @endforeach
@@ -259,6 +259,16 @@
                             @foreach($reportDurations as $key => $duration)
                                 <option value="{{$key}}">{{$duration}}</option>
                             @endforeach
+                        </select>
+                    @endif
+
+                    @if($reportType == "daily" || $reportType == "safe")
+                        <label for="payment">وسيلة الدفع</label>
+                        <select class="form-select" wire:model.live="payment"
+                                id="payment">
+                                <option value="">--------------------</option>
+                                <option value="cash">كاش</option>
+                                <option value="bank">بنك</option>
                         </select>
                     @endif
 
@@ -1281,16 +1291,23 @@
             <div class="card-body invoice">
                 <div class="card-title" dir="rtl">
                     <div class="row">
-                        <div class="col-4">
-                            <h3>الخزنة : {{number_format($safeBalance, 2)}}</h3>
-                        </div>
-                        <div class="col-4">
-                            <h3>البنك : {{number_format($bankBalance, 2)}}</h3>
-                        </div>
-                        <div class="col-4">
-                            <h3>الجمله : {{number_format($safeBalance + $bankBalance, 2)}}</h3>
+                        @if($payment == "" || $payment == "cash")
+                            <div class="col-4">
+                                <h3>الخزنة : {{number_format($safeBalance, 2)}}</h3>
+                            </div>
+                        @endif
 
-                        </div>
+                        @if($payment == "" || $payment == "bank")
+                            <div class="col-4">
+                                <h3>البنك : {{number_format($bankBalance, 2)}}</h3>
+                            </div>
+                        @endif
+
+                        @if($payment == "")
+                            <div class="col-4">
+                                <h3>الجمله : {{number_format($safeBalance + $bankBalance, 2)}}</h3>
+                            </div>
+                        @endif
                     </div>
                 </div>
                 <div class="scroll">
@@ -1342,16 +1359,23 @@
             <div class="card-body invoice">
                 <div class="card-title" dir="rtl">
                     <div class="row">
-                        <div class="col-4">
-                            <h3>الخزنة : {{number_format($safeBalance, 2)}}</h3>
-                        </div>
-                        <div class="col-4">
-                            <h3>البنك : {{number_format($bankBalance, 2)}}</h3>
-                        </div>
-                        <div class="col-4">
-                            <h3>الجمله : {{number_format($safeBalance + $bankBalance, 2)}}</h3>
+                        @if($payment == "" || $payment == "cash")
+                            <div class="col-4">
+                                <h3>الخزنة : {{number_format($safeBalance, 2)}}</h3>
+                            </div>
+                        @endif
 
-                        </div>
+                        @if($payment == "" || $payment == "bank")
+                            <div class="col-4">
+                                <h3>البنك : {{number_format($bankBalance, 2)}}</h3>
+                            </div>
+                        @endif
+
+                        @if($payment == "")
+                            <div class="col-4">
+                                <h3>الجمله : {{number_format($safeBalance + $bankBalance, 2)}}</h3>
+                            </div>
+                        @endif
                     </div>
                 </div>
                 <div class="scroll">
