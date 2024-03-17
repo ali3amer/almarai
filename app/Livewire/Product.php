@@ -26,7 +26,10 @@ class Product extends Component
     public bool $read = false;
     public bool $update = false;
     public bool $delete = false;
+    public bool $priceMode = false;
 
+    public Collection $list;
+    public $prices;
     public Collection $categories;
     public Collection $stores;
     public Setting $settings;
@@ -59,7 +62,16 @@ class Product extends Component
         $this->read = $user->hasPermission('products-read');
         $this->update = $user->hasPermission('products-update');
         $this->delete = $user->hasPermission('products-delete');
+        $this->prices = collect();
+        $this->priceList();
     }
+
+    public function priceList()
+    {
+        $this->list = \App\Models\Product::get()->keyBy("id");
+    }
+
+
 
 //    public function searchProduct()
 //    {

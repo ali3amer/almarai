@@ -307,7 +307,7 @@
                                             @endif
                                         </td>
                                         <td>
-                                            @if($debt->sale_id == null)
+                                            @if($debt->sale_id == null && $debt->due_date == session("date"))
                                                 <button class="btn btn-sm btn-info"
                                                         wire:click="chooseDebt({{$debt}})"><i
                                                         class="bi bi-pen"></i>

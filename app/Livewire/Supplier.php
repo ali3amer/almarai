@@ -117,7 +117,7 @@ class Supplier extends Component
         $this->blocked = !$supplier['blocked'];
         \App\Models\Supplier::where('id', $supplier['id'])->update(['blocked' => $this->blocked]);
         $this->resetData();
-        $this->alert('success', "تم تغيير حالة المورد النقدي" , ['timerProgressBar' => true]);
+        $this->alert('success', "تم تغيير حالة المورد النقدي", ['timerProgressBar' => true]);
 
     }
 
@@ -129,7 +129,7 @@ class Supplier extends Component
         }
         \App\Models\Supplier::where('id', $supplier['id'])->update(['cash' => $this->cash]);
         $this->resetData();
-        $this->alert('success', "تم تغيير المورد النقدي" , ['timerProgressBar' => true]);
+        $this->alert('success', "تم تغيير المورد النقدي", ['timerProgressBar' => true]);
 
     }
 
@@ -186,132 +186,84 @@ class Supplier extends Component
     public function saveDebt()
     {
         if ($this->debtId == 0) {
-            if ($this->type == 'debt') {
-                $note = 'تم إستلاف مبلغ';
-                $debt = $this->debt_amount;
-                $paid = 0;
-            } else {
-                $note = 'تم دفع مبلغ';
-                $paid = $this->debt_amount;
-                $debt = 0;
-            }
+
 
             if ($this->debtType == 'purchases') {
-                if ($this->type == "pay" && floatval($this->debt_amount) > floatval(session($this->payment == "cash" ? "safeBalance" : "bankBalance"))) {
-                    $this->confirm("المبلغ المدفوع أكبر من المبلغ المتوفر", [
-                        'toast' => false,
-                        'showConfirmButton' => false,
-                        'confirmButtonText' => 'موافق',
-                        'onConfirmed' => "cancelSale",
-                        'showCancelButton' => true,
-                        'cancelButtonText' => 'إلغاء',
-                        'confirmButtonColor' => '#dc2626',
-                        'cancelButtonColor' => '#4b5563'
-                    ]);
 
-                } else {
-                    if (floatval($this->debt_amount) != 0) {
-                        PurchaseDebt::create([
-                            'supplier_id' => $this->currentSupplier['id'],
-                            'type' => $this->type,
-                            'debt' => $debt,
-                            'paid' => $paid,
-                            'payment' => $this->payment,
-                            'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
-                            'bank' => $this->bank,
-                            'due_date' => $this->due_date,
-                            'note' => $this->note == '' ? $note : $this->note,
-                            'user_id' => auth()->id(),
-                        ]);
-                    }
-
-                    if (floatval($this->discount) != 0) {
-                        PurchaseDebt::create([
-                            'supplier_id' => $this->currentSupplier['id'],
-                            'type' => $this->type,
-                            'debt' => 0,
-                            'paid' => 0,
-                            'discount' => $this->discount,
-                            'payment' => 'cash',
-                            'bank_id' => null,
-                            'bank' => '',
-                            'due_date' => $this->due_date,
-                            'note' => "تم تخفيض مبلغ ",
-                            'user_id' => auth()->id(),
-                        ]);
-                    }
-
-                    $this->resetData();
-
-                    $this->alert('success', 'تم السداد بنجاح', ['timerProgressBar' => true]);
-                }
             } else {
-                if ($this->type == "debt" && floatval($this->debt_amount) > floatval(session($this->payment == "cash" ? "safeBalance" : "bankBalance"))) {
-                    $this->confirm("المبلغ المدفوع أكبر من المبلغ المتوفر", [
-                        'toast' => false,
-                        'showConfirmButton' => false,
-                        'confirmButtonText' => 'موافق',
-                        'onConfirmed' => "cancelSale",
-                        'showCancelButton' => true,
-                        'cancelButtonText' => 'إلغاء',
-                        'confirmButtonColor' => '#dc2626',
-                        'cancelButtonColor' => '#4b5563'
-                    ]);
-                } else {
-                    SaleDebt::create([
-                        'supplier_id' => $this->currentSupplier['id'],
-                        'type' => $this->type,
-                        'debt' => $debt,
-                        'paid' => $paid,
-                        'payment' => $this->payment,
-                        'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
-                        'bank' => $this->bank,
-                        'due_date' => $this->due_date,
-                        'note' => $this->note == '' ? $note : $this->note,
-                        'user_id' => auth()->id(),
-                    ]);
-
-                    if (floatval($this->discount) != 0) {
-                        SaleDebt::create([
-                            'supplier_id' => $this->currentSupplier['id'],
-                            'type' => $this->type,
-                            'debt' => 0,
-                            'paid' => 0,
-                            'discount' => $this->discount,
-                            'payment' => 'cash',
-                            'bank_id' => null,
-                            'bank' => '',
-                            'due_date' => $this->due_date,
-                            'note' => "تم تخفيض مبلغ " . $this->discount,
-                            'user_id' => auth()->id(),
-                        ]);
-                    }
-
-                    $this->resetData();
-
-                    $this->alert('success', 'تم السداد بنجاح', ['timerProgressBar' => true]);
-                }
             }
 
         } else {
 
             if ($this->debtType == 'purchases') {
 
-                $debt = PurchaseDebt::where('id', $this->debtId)->first();
 
-                $debt->update([
+            } else {
+            }
+
+
+        }
+
+    }
+
+    public function saveSaleDebt()
+    {
+
+        if ($this->type == 'debt') {
+            $note = 'تم إستلاف مبلغ';
+            $debt = $this->debt_amount;
+            $paid = 0;
+        } else {
+            $note = 'تم دفع مبلغ';
+            $paid = $this->debt_amount;
+            $debt = 0;
+        }
+
+        if ($this->type == "debt" && floatval($this->debt_amount) > floatval(session($this->payment == "cash" ? "safeBalance" : "bankBalance"))) {
+            $this->confirm("المبلغ المدفوع أكبر من المبلغ المتوفر", [
+                'toast' => false,
+                'showConfirmButton' => false,
+                'confirmButtonText' => 'موافق',
+                'onConfirmed' => "cancelSale",
+                'showCancelButton' => true,
+                'cancelButtonText' => 'إلغاء',
+                'confirmButtonColor' => '#dc2626',
+                'cancelButtonColor' => '#4b5563'
+            ]);
+        } else {
+            if ($this->debtId == 0) {
+                SaleDebt::create([
                     'supplier_id' => $this->currentSupplier['id'],
                     'type' => $this->type,
-                    'debt' => $this->type == 'debt' ? $this->debt_amount : 0,
-                    'paid' => $this->type == 'pay' ? $this->debt_amount : 0,
+                    'debt' => $debt,
+                    'paid' => $paid,
                     'payment' => $this->payment,
                     'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
                     'bank' => $this->bank,
-                    'discount' => $this->discount,
                     'due_date' => $this->due_date,
+                    'note' => $this->note == '' ? $note : $this->note,
                     'user_id' => auth()->id(),
                 ]);
 
+                if (floatval($this->discount) != 0) {
+                    SaleDebt::create([
+                        'supplier_id' => $this->currentSupplier['id'],
+                        'type' => $this->type,
+                        'debt' => 0,
+                        'paid' => 0,
+                        'discount' => $this->discount,
+                        'payment' => 'cash',
+                        'bank_id' => null,
+                        'bank' => '',
+                        'due_date' => $this->due_date,
+                        'note' => "تم تخفيض مبلغ " . $this->discount,
+                        'user_id' => auth()->id(),
+                    ]);
+                }
+
+                $this->resetData();
+
+                $this->alert('success', 'تم السداد بنجاح', ['timerProgressBar' => true]);
             } else {
                 $debt = SaleDebt::where('id', $this->debtId)->first();
 
@@ -327,12 +279,99 @@ class Supplier extends Component
                     'due_date' => $this->due_date,
                     'user_id' => auth()->id(),
                 ]);
+                $this->alert('success', 'تم تعديل الدفعيه بنجاح', ['timerProgressBar' => true]);
+
             }
 
-            $this->resetData();
-            $this->alert('success', 'تم تعديل الدفعيه بنجاح', ['timerProgressBar' => true]);
-
         }
+        $this->showDebts($this->currentSupplier);
+
+    }
+
+    public function savePurchaseDebt()
+    {
+        if ($this->type == 'debt') {
+            $note = 'تم إستلاف مبلغ';
+            $debt = $this->debt_amount;
+            $paid = 0;
+        } else {
+            $note = 'تم دفع مبلغ';
+            $paid = $this->debt_amount;
+            $debt = 0;
+        }
+
+        if ($this->type == "pay" && floatval($this->debt_amount) > floatval(session($this->payment == "cash" ? "safeBalance" : "bankBalance"))) {
+            $this->confirm("المبلغ المدفوع أكبر من المبلغ المتوفر", [
+                'toast' => false,
+                'showConfirmButton' => false,
+                'confirmButtonText' => 'موافق',
+                'onConfirmed' => "cancelSale",
+                'showCancelButton' => true,
+                'cancelButtonText' => 'إلغاء',
+                'confirmButtonColor' => '#dc2626',
+                'cancelButtonColor' => '#4b5563'
+            ]);
+
+        } else {
+            if ($this->debtId == 0) {
+
+                if (floatval($this->debt_amount) != 0) {
+                    PurchaseDebt::create([
+                        'supplier_id' => $this->currentSupplier['id'],
+                        'type' => $this->type,
+                        'debt' => $debt,
+                        'paid' => $paid,
+                        'payment' => $this->payment,
+                        'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
+                        'bank' => $this->bank,
+                        'due_date' => $this->due_date,
+                        'note' => $this->note == '' ? $note : $this->note,
+                        'user_id' => auth()->id(),
+                    ]);
+                }
+
+                if (floatval($this->discount) != 0) {
+                    PurchaseDebt::create([
+                        'supplier_id' => $this->currentSupplier['id'],
+                        'type' => $this->type,
+                        'debt' => 0,
+                        'paid' => 0,
+                        'discount' => $this->discount,
+                        'payment' => 'cash',
+                        'bank_id' => null,
+                        'bank' => '',
+                        'due_date' => $this->due_date,
+                        'note' => "تم تخفيض مبلغ ",
+                        'user_id' => auth()->id(),
+                    ]);
+                }
+
+                $this->resetData();
+
+                $this->alert('success', 'تم السداد بنجاح', ['timerProgressBar' => true]);
+
+            } else {
+
+                $debt = PurchaseDebt::where('id', $this->debtId)->first();
+
+                $debt->update([
+                    'supplier_id' => $this->currentSupplier['id'],
+                    'type' => $this->type,
+                    'debt' => $this->type == 'debt' ? $this->debt_amount : 0,
+                    'paid' => $this->type == 'pay' ? $this->debt_amount : 0,
+                    'payment' => $this->payment,
+                    'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
+                    'bank' => $this->bank,
+                    'discount' => $this->discount,
+                    'due_date' => $this->due_date,
+                    'user_id' => auth()->id(),
+                ]);
+                $this->alert('success', 'تم تعديل الدفعيه بنجاح', ['timerProgressBar' => true]);
+
+            }
+        }
+
+        $this->resetData();
         $this->showDebts($this->currentSupplier);
 
     }

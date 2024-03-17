@@ -346,7 +346,7 @@
                                         <td>{{number_format($debt->type == "pay" ? $debt->paid : $debt->debt, 2)}}</td>
                                         <td>{{number_format($debt->discount, 2)}}</td>
                                         <td>
-                                            @if($debt->sale_id == null)
+                                            @if($debt->sale_id == null && $debt->due_date == session("date"))
                                                 <button
                                                     @disabled(!$update)
                                                     class="btn btn-sm btn-info text-white"

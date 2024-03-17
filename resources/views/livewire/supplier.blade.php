@@ -275,10 +275,11 @@
                             </div>
                         </div>
 
-                        <button
-                            @disabled($payment == "bank" && $banks->count() == 0) @disabled($currentSupplier['cash']) @disabled(empty($currentSupplier) || $due_date == '') @disabled($debt_amount == 0 && $discount == 0) class="btn btn-{{$debtId == 0 ? 'primary' : 'success'}} w-100"
-                            wire:click="saveDebt()">{{$debtId == 0 ? 'دفــــع' : 'تعــــديل'}}</button>
-
+@if($debtType == "purchases")
+                            <button @disabled($payment == "bank" && $banks->count() == 0) @disabled($currentSupplier['cash']) @disabled(empty($currentSupplier) || $due_date == '') @disabled($debt_amount == 0 && $discount == 0) class="btn btn-{{$debtId == 0 ? 'primary' : 'success'}} w-100" wire:click="savePurchaseDebt()" >{{$debtId == 0 ? 'دفــــع' : 'تعــــديل'}}</button>
+                        @else
+                            <button @disabled($payment == "bank" && $banks->count() == 0) @disabled($currentSupplier['cash']) @disabled(empty($currentSupplier) || $due_date == '') @disabled($debt_amount == 0 && $discount == 0) class="btn btn-{{$debtId == 0 ? 'primary' : 'success'}} w-100" wire:click="saveSaleDebt()" >{{$debtId == 0 ? 'دفــــع' : 'تعــــديل'}}</button>
+@endif
                     </div>
                 </div>
             </div>
@@ -331,7 +332,7 @@
                                             @endif
                                         </td>
                                         <td>
-                                            @if($debt->sale_id == null && $debt->purchase_id == null)
+                                            @if($debt->sale_id == null && $debt->purchase_id == null && $debt->due_date == session("date"))
 
                                                 <button class="btn btn-sm btn-info"
                                                         wire:click="chooseDebt({{$debt}})"><i

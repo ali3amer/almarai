@@ -286,7 +286,6 @@ class Employee extends Component
             'type' => $type,
             'debt' => $debt,
             'paid' => $paid,
-            'discount' => floatval($this->discount),
             'payment' => $this->payment,
             'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
             'bank' => $this->bank,
@@ -304,7 +303,7 @@ class Employee extends Component
                 'discount' => floatval($this->discount),
                 'payment' => "cash",
                 'due_date' => $this->gift_date,
-                'note' => $this->note == '' ? $note : $this->note,
+                'note' => "تم تخفيض مبلغ",
                 'user_id' => auth()->id(),
             ]);
         }
@@ -359,13 +358,15 @@ class Employee extends Component
         SaleDebt::where('id', $id)->delete();
         $this->getGifts($this->currentEmployee);
 
+        $this->resetData();
+
         $this->alert('success', 'تم الحذف بنجاح', ['timerProgressBar' => true]);
     }
 
     #[On('reset-employee')]
     public function resetData($data = null)
     {
-        $this->reset('id', 'employeeName', 'gift_id', 'debtId', 'editMode', 'currentDebt', 'note', 'editGiftMode', 'editDebtMode', 'initialBalance', $data);
+        $this->reset('id', 'employeeName', 'gift_id', "type", 'debtId', 'editMode', 'currentDebt', 'note', 'editGiftMode', 'editDebtMode', 'initialBalance', 'discount', $data);
     }
 
     public function render()
