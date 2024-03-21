@@ -1,5 +1,7 @@
 <div class="invoice mb-3 pb-3" dir="rtl">
-    <h6 class="d-none d-print-block text-center py-2" style="background-color: #4a5568; color: #fff">{{ $settings ? $settings->name : "POS" }}</h6>
+    <label for="name" class="d-print-none">طباعة إسم المحل</label>
+    <input id="name" class="d-print-none" type="checkbox" wire:model.live="name">
+    <h5  class="d-none @if($name) d-print-block @endif  text-center py-2" style="background-color: #333; color: #fff">{{ $settings ? $settings->name : "POS" }}</h5>
     <h6>فاتوره رقم {{$invoice['id'] ?? ''}}</h6>
     <h6>إسم {{ $invoice['clientType'] ?? '' }} : {{$invoice['client'] ?? ''}}</h6>
     <h6>التاريخ : {{$invoice['date'] ?? ''}}</h6>

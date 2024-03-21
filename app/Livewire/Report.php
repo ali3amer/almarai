@@ -56,7 +56,7 @@ class Report extends Component
         'supplier' => 'تقرير مورد',
         'sales' => 'تقرير مبيعات',
         'purchases' => 'تقرير مشتريات',
-        'tracking' => 'تقرير متابعة منتج',
+        'tracking' => 'تقرير متابعة حركة صنف',
         'daily' => 'تقرير القيود اليومية',
         'safe' => 'تقرير خزنة',
     ];

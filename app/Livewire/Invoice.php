@@ -11,6 +11,7 @@ class Invoice extends Component
     public array $invoice = [];
 
     public Setting $settings;
+    public $name = true;
     #[On('sale_created')]
     public function printInvoice($invoice)
     {
