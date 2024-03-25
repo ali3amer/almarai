@@ -68,12 +68,15 @@
                             <div>
                                 @error('expense_date') <span class="error text-danger">{{ $message }}</span> @enderror
                             </div>
-                            <div class="d-grid mt-2">
-                                <button
-                                    @disabled(!$create) @disabled($amount <= 0) class="btn btn- btn-{{$id==0?'primary':'success'}}">
-                                    {{$id == 0 ? 'حفـــــــــــــــــــظ' : 'تعـــــــــــــــديل'}}
-                                </button>
-                            </div>
+
+                            @if(!session("closed") || $payment == "bank")
+                                <div class="d-grid mt-2">
+                                    <button
+                                        @disabled(!$create) @disabled($amount <= 0) class="btn btn- btn-{{$id==0?'primary':'success'}}">
+                                        {{$id == 0 ? 'حفـــــــــــــــــــظ' : 'تعـــــــــــــــديل'}}
+                                    </button>
+                                </div>
+                            @endif
 
                         </form>
                     @else

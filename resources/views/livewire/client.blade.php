@@ -266,9 +266,11 @@
                         </div>
 
 
-                        <button data-bs-toggle="modal" data-bs-target="#debtModal"
-                                @disabled($payment == "bank" && $banks->count() == 0) @disabled($currentClient['cash']) @disabled(empty($currentClient) || $due_date == '') @disabled($debt_amount == 0 && $discount == 0) class="btn btn-{{$debtId == 0 ? 'primary' : 'success'}} w-100"
-                                wire:click="saveDebt()">{{$debtId == 0 ? 'دفــــع' : 'تعــــديل'}}</button>
+                        @if(!session("closed") || $payment == "bank")
+                            <button data-bs-toggle="modal" data-bs-target="#debtModal"
+                                    @disabled($payment == "bank" && $banks->count() == 0) @disabled($currentClient['cash']) @disabled(empty($currentClient) || $due_date == '') @disabled($debt_amount == 0 && $discount == 0) class="btn btn-{{$debtId == 0 ? 'primary' : 'success'}} w-100"
+                                    wire:click="saveDebt()">{{$debtId == 0 ? 'دفــــع' : 'تعــــديل'}}</button>
+                        @endif
 
                     </div>
                 </div>

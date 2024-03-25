@@ -256,14 +256,16 @@
                             </div>
                         </div>
 
-                        @if($editGiftMode)
-                            <button class="btn btn-success w-100"
-                                    @if($type == "gift") wire:click="updateGift()" @else wire:click="updateDebt()" @endif>تعديل
-                            </button>
-                        @else
-                            <button class="btn btn-primary w-100"
-                                    @disabled($payment == "bank" && $bank_id == null) @if($type == "gift") wire:click="payGift()" @else wire:click="payDebt()" @endif>{{ $type == "gift" ? "دفع" : "سداد" }}
-                            </button>
+                        @if(!session("closed") || $payment == "bank")
+                            @if($editGiftMode)
+                                <button class="btn btn-success w-100"
+                                        @if($type == "gift") wire:click="updateGift()" @else wire:click="updateDebt()" @endif>تعديل
+                                </button>
+                            @else
+                                <button class="btn btn-primary w-100"
+                                        @disabled($payment == "bank" && $bank_id == null) @if($type == "gift") wire:click="payGift()" @else wire:click="payDebt()" @endif>{{ $type == "gift" ? "دفع" : "سداد" }}
+                                </button>
+                            @endif
                         @endif
 
                     </div>

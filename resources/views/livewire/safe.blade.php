@@ -82,7 +82,8 @@
                                         @if($withdrawId == 0)
                                             <button type="submit"
                                                     @disabled(floatval($safeBalance) == 0) @disabled(floatval($amount) > floatval($safeBalance))  @disabled(floatval($amount) == 0) class="btn btn-primary w-100 mt-1">
-                                                حفظ</button>
+                                                حفظ
+                                            </button>
                                         @else
                                             <button type="submit"
                                                     @disabled(floatval($safeBalance) == 0) @disabled(floatval($amount) > floatval($safeBalance))  @disabled(floatval($amount) == 0) class="btn btn-success w-100 mt-1">
@@ -128,6 +129,35 @@
         </div>
     </div>
 
+    <!-- close Day Modal -->
+
+    <div wire:ignore.self class="modal fade" id="closeDayModal" tabindex="-1" aria-labelledby="closeDayLabel"
+         aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <h1 class="modal-title fs-5" id="closeDayModalLabel">تغير التاريخ</h1>
+                </div>
+                <div class="modal-body">
+                    <div class="card">
+                        <form method="post" action="{{ route("closeDay") }}">
+                            @csrf
+                            <div class="card-body">
+                                <div class="card-title"><h5>إغلاق اليومية</h5></div>
+
+                                <p>هل أنت متأكد من إغلاق اليومية؟</p>
+
+                                <button type="submit" class="btn btn-primary w-100 mt-1">حفــــــــــــــــــظ
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
 
     <x-title :$title/>
     {{--    <livewire:Title :$title />--}}
@@ -139,17 +169,23 @@
                     <div class="card-body">
                         <div class="card-title">
                             <div class="row">
-                                <div class="col-6">
+                                <div class="col-8">
                                     <button @disabled(!$create) class="btn btn-primary btn-sm" data-bs-toggle="modal"
                                             data-bs-target="#bankModal"><i
                                             class="bi bi-bag-plus"></i></button>
 
-                                    <button @disabled(!$create) class="btn btn-danger btn-sm" data-bs-toggle="modal"
-                                            data-bs-target="#cashModal">سحب كاش من الخزنه
-                                    </button>
+                                    @if(!session("closed"))
+                                        <button @disabled(!$create) class="btn btn-info btn-sm" data-bs-toggle="modal"
+                                                data-bs-target="#cashModal">سحب كاش من الخزنه
+                                        </button>
+
+                                        <button @disabled(!$create) class="btn btn-danger btn-sm" data-bs-toggle="modal"
+                                                data-bs-target="#closeDayModal">إغلاق اليومية
+                                        </button>
+                                    @endif
 
                                 </div>
-                                <div class="col-6">
+                                <div class="col-4">
                                     <span>الخزنة : </span><span>{{ number_format($safeBalance, 2) }}</span>
                                 </div>
                             </div>
@@ -237,11 +273,13 @@
                                            class="form-control text-center" placeholder="محلاظات ....">
                                 </div>
 
-                                <div class="col-2 d-flex align-items-end">
-                                    <button
-                                        @disabled($transfer_amount == 0) @disabled(!$create) @disabled(\App\Models\Bank::count() == 0) @disabled($bank_id == null) class="btn w-100 btn-{{$transferId == 0 ? 'primary' : 'success'}}"
-                                        type="submit">{{$transferId == 0 ? 'حــــفظ' : 'تعـــديل'}}</button>
-                                </div>
+                                @if(!session("closed"))
+                                    <div class="col-2 d-flex align-items-end">
+                                        <button
+                                            @disabled($transfer_amount == 0) @disabled(!$create) @disabled(\App\Models\Bank::count() == 0) @disabled($bank_id == null) class="btn w-100 btn-{{$transferId == 0 ? 'primary' : 'success'}}"
+                                            type="submit">{{$transferId == 0 ? 'حــــفظ' : 'تعـــديل'}}</button>
+                                    </div>
+                                @endif
                             </div>
                         </form>
                     </div>

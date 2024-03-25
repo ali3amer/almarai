@@ -480,7 +480,6 @@ class Report extends Component
 
 
             foreach ($sales as $index => $sale) {
-
                 $this->array[$sale['created_at'] . $index]['invoice'] = $sale->sale->saleDebts->first();
                 $this->array[$sale['created_at'] . $index]['invoice']['sale_id'] = $sale->sale->id;
 

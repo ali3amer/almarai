@@ -203,9 +203,11 @@
                                 <input type="date" disabled @disabled(empty($currentDetail)) wire:model="return_date" class="form-control text-center">
                             </div>
 
-                            <div class="col d-flex align-items-end">
-                                <button @disabled(empty($currentDetail) || ($quantityReturn == 0) || ($quantityReturn == null) || ($quantityReturn > $quantity)) class="btn {{ $editMode ? 'btn-success' : 'btn-primary' }} " wire:click="save()">{{ $editMode ? 'تعـــــــــــــــديل' : 'حــــــــــــــفظ' }}</button>
-                            </div>
+                            @if(!session("closed"))
+                                <div class="col d-flex align-items-end">
+                                    <button @disabled(empty($currentDetail) || ($quantityReturn == 0) || ($quantityReturn == null) || ($quantityReturn > $quantity)) class="btn {{ $editMode ? 'btn-success' : 'btn-primary' }} " wire:click="save()">{{ $editMode ? 'تعـــــــــــــــديل' : 'حــــــــــــــفظ' }}</button>
+                                </div>
+                            @endif
                         </div>
                     </div>
                 </div>

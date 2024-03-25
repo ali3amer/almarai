@@ -61,3 +61,4 @@ Auth::routes([
 
 //Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 Route::post('/changeDate', [App\Http\Controllers\HomeController::class, 'changeDate'])->name('changeDate');
+Route::post('/closeDay', [App\Http\Controllers\HomeController::class, 'closeDay'])->name('closeDay');

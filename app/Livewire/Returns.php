@@ -92,8 +92,6 @@ class Returns extends Component
             $client = SaleDebt::where("client_id", $this->currentClient['id'])->get();
             $balance = $client->sum("debt") - $client->sum("paid") - $client->sum("discount");
 
-//            \App\Models\Product::where('id', $this->currentDetail['product_id'])->increment('stock', floatval($this->quantityReturn));
-
             $sale = \App\Models\Sale::where('id', $this->currentDetail['sale_id'])->first();
 
             $paid = SaleDebt::where("sale_id", $sale->id)->where("type", "pay")->first();

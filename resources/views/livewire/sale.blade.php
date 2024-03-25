@@ -77,10 +77,10 @@
                                     style="cursor: pointer"><i class="bi bi-pen"></i></button>
                             <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#printModal"
                                     style="cursor: pointer"
-                                    wire:click="showInvoice()" {{empty($cart) ? 'disabled':''}} ><i
+                                    wire:click="showInvoice()" @disabled(empty($cart)) @disabled(session("closed") && (floatval($paid) != 0 && $payment == "cash"))><i
                                     class="bi bi-bookmark-check"></i></button>
                             <button class="btn btn-danger"
-                                    wire:click="resetData('currentClient')" {{empty($currentClient) ? 'disabled':''}}><i
+                                    wire:click="resetData('currentClient')" @disabled(empty($currentClient)) ><i
                                     class="bi bi-x"></i></button>
 
                             {{$currentClient[$buyer.'Name']}}
@@ -246,7 +246,7 @@
                                                 <td>المدفوع</td>
                                                 <td><input autocomplete="off" type="text" min="0"
                                                            wire:keydown="calcRemainder()"
-                                                           wire:model.live="paid"
+                                                           wire:model.live="paid" @disabled(session("closed") && $payment == "cash")
                                                            class="form-control text-center">
                                                 </td>
                                             </tr>

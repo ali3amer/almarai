@@ -208,11 +208,13 @@
                                    class="form-control text-center">
                         </div>
 
-                        <div class="col d-flex align-items-end">
-                            <button
-                                @disabled(empty($currentDetail) || ($quantityReturn == 0) || ($quantityReturn == null) || ($quantityReturn > $quantity)) class="btn {{ $editMode ? 'btn-success' : 'btn-primary' }} "
-                                wire:click="save()">حفـــــــــــــــظ</button>
-                        </div>
+                        @if(!session("closed"))
+                            <div class="col d-flex align-items-end">
+                                <button
+                                    @disabled(empty($currentDetail) || ($quantityReturn == 0) || ($quantityReturn == null) || ($quantityReturn > $quantity)) class="btn {{ $editMode ? 'btn-success' : 'btn-primary' }} "
+                                    wire:click="save()">حفـــــــــــــــظ</button>
+                            </div>
+                        @endif
                     </div>
                 </div>
             </div>

@@ -3,6 +3,7 @@
 namespace App\View\Components;
 
 use App\Models\Bank;
+use App\Models\Day;
 use App\Models\EmployeeGift;
 use App\Models\Expense;
 use App\Models\PurchaseDebt;
@@ -43,6 +44,15 @@ class title extends Component
             $bankBalance += $bank->currentBalance;
         }
 
+        $count = Day::where("due_date", session('date'))->count();
+
+        if ($count != 0) {
+            $closed = true;
+        } else {
+            $closed = false;
+        }
+
+        session(["closed" => $closed]);
         session(['safeBalance' => $safeBalance]);
         session(['bankBalance' => $bankBalance]);
         return view('components.title', [
