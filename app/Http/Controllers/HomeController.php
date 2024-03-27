@@ -41,6 +41,7 @@ class HomeController extends Controller
             Day::create([
                 "due_date" => session("date"),
                 "closed" => true,
+                "balance" => session("safeBalance"),
                 'user_id' => auth()->id()
         ]);
         }

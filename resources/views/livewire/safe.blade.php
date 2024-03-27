@@ -146,7 +146,7 @@
                             <div class="card-body">
                                 <div class="card-title"><h5>إغلاق اليومية</h5></div>
 
-                                <p>هل أنت متأكد من إغلاق اليومية؟</p>
+                                <p>هل أنت متأكد من إغلاق اليومية بمبلغ {{ number_format(session("safeBalance")) }}؟</p>
 
                                 <button type="submit" class="btn btn-primary w-100 mt-1">حفــــــــــــــــــظ
                                 </button>
@@ -316,6 +316,35 @@
                                                         class="bi bi-trash"></i>
                                                 </button>
                                             </td>
+                                        </tr>
+                                    @endforeach
+                                    </tbody>
+                                </table>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-5 mt-2">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="scroll">
+                            @if(!empty($transfers))
+                                <table class="table table-responsive text-center">
+                                    <thead>
+                                    <tr>
+                                        <th>التاريخ</th>
+                                        <th>الرصيد</th>
+                                        <th>الحاله</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    @foreach($days as $day)
+                                        <tr>
+                                            <td>{{$day->due_date}}</td>
+                                            <td>{{number_format($day->balance)}}</td>
+                                            <td><button @disabled(!$create) wire:click="changeStatus({{ $day }})" class="btn btn-sm btn-{{$day->closed ? 'danger' : 'primary'}}">{{ $day->closed ? "مغلق" : "مفتوح" }}</button></td>
                                         </tr>
                                     @endforeach
                                     </tbody>

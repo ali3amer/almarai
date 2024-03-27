@@ -89,46 +89,11 @@ class Returns extends Component
 
         if ($this->id == 0) {
 
-            $client = SaleDebt::where("client_id", $this->currentClient['id'])->get();
-            $balance = $client->sum("debt") - $client->sum("paid") - $client->sum("discount");
-
             $sale = \App\Models\Sale::where('id', $this->currentDetail['sale_id'])->first();
-
-            $paid = SaleDebt::where("sale_id", $sale->id)->where("type", "pay")->first();
-            $oldSale = SaleDebt::where("sale_id", $sale->id)->where("type", "debt")->first();
-
-            if (floatval($sale["paid"]) == 0 || floatval($sale["paid"]) < $this->priceReturn) {
-                $salePaid = 0;
-            } else {
-                $salePaid = floatval($sale["paid"]) - $this->priceReturn;
-            }
-
-            $total_amount = $sale['total_amount'] - $this->priceReturn;
-            $remainder = $total_amount - $salePaid - $sale['discount'];
-            $newSale = \App\Models\Sale::create([
-                $this->buyer . '_id' => $this->currentClient['id'],
-                'paid' => $salePaid,
-                'remainder' => $remainder,
-                'discount' => $sale['discount'],
-                'total_amount' => $total_amount,
-                'sale_date' => $this->return_date,
-                'user_id' => auth()->id(),
-            ]);
-
-            foreach ($sale->saleDetails as $item) {
-                SaleDetail::create([
-                    'sale_id' => $newSale['id'],
-                    'product_id' => $item['product_id'],
-                    'quantity' => $this->currentDetail['product_id'] == $item['product_id'] ? floatval($item['quantity']) - floatval($this->quantityReturn) : floatval($item['quantity']),
-                    'price' => floatval($item['price']),
-                ]);
-            }
-
-            SaleDetail::where("sale_id", $sale->id)->delete();
 
             \App\Models\SaleDebt::create([
                 $this->buyer . '_id' => $this->currentClient['id'],
-                'paid' => $sale["total_amount"],
+                'paid' => floatval($this->priceReturn),
                 'sale_id' => $this->currentDetail['sale_id'],
                 'debt' => 0,
                 'type' => 'pay',
@@ -136,76 +101,53 @@ class Returns extends Component
                 'payment' => 'cash',
                 'bank_id' => null,
                 'due_date' => $this->return_date,
-                'note' => 'تم إلغاء الفاتورة لإرجاع منتج بفاتورة مبيعات رقم #' . $sale['id'],
-                'user_id' => auth()->id()
-            ])->delete();
-
-            if ($paid) {
-                if ($paid->paid == $sale['total_amount']) {
-                    \App\Models\SaleDebt::create([
-                        $this->buyer . '_id' => $this->currentClient['id'],
-                        'sale_id' => $this->currentDetail['sale_id'],
-                        'paid' => 0,
-                        'debt' => $paid->paid,
-                        'type' => 'debt',
-                        'bank' => '',
-                        'payment' => 'cash',
-                        'bank_id' => null,
-                        'due_date' => $this->return_date,
-                        'note' => 'تم إلغاء مدفوعات فاتورة مبيعات رقم #' . $sale['id'],
-                        'user_id' => auth()->id()
-                    ])->delete();
-                }
-            }
-//            $sale->decrement('total_amount', $this->priceReturn);
-
-            \App\Models\SaleDebt::create([
-                $this->buyer . '_id' => $this->currentClient['id'],
-                'sale_id' => $newSale['id'],
-                'paid' => 0,
-                'debt' => $total_amount,
-                'type' => 'debt',
-                'bank' => '',
-                'payment' => 'cash',
-                'bank_id' => null,
-                'due_date' => $this->return_date,
-                'note' => 'تم إصدار فاتورة مبيعات جديده رقم #' . $newSale['id'],
+                'note' => 'تم خصم قيمة المنتج المرجع من فاتورة #' . $sale['id'],
                 'user_id' => auth()->id()
             ]);
 
-            if ($paid) {
-                if ($paid->paid == $sale['total_amount'] + $this->priceReturn) {
-                    \App\Models\SaleDebt::create([
-                        $this->buyer . '_id' => $this->currentClient['id'],
-                        'sale_id' => $newSale['id'],
-                        'paid' => $salePaid,
-                        'debt' => 0,
-                        'type' => 'pay',
-                        'bank' => '',
-                        'payment' => 'cash',
-                        'bank_id' => null,
-                        'due_date' => $this->return_date,
-                        'note' => 'تم تعديل مدفوعات فاتورة مبيعات رقم #' . $newSale['id'],
-                        'user_id' => auth()->id()
-                    ]);
-                    $paid->delete();
-                }
+            if (floatval($sale["paid"]) == 0 || floatval($sale["paid"]) < $this->priceReturn) {
+                $salePaid = 0;
+            } else {
+                $salePaid = floatval($sale["paid"]) - $this->priceReturn;
             }
 
-            if ($oldSale) {
-                $oldSale->delete();
+            if ($salePaid != 0 || floatval($sale["paid"]) >= $this->priceReturn)
+            {
+                \App\Models\SaleDebt::create([
+                    $this->buyer . '_id' => $this->currentClient['id'],
+                    'paid' => 0,
+                    'sale_id' => $this->currentDetail['sale_id'],
+                    'debt' => floatval($this->priceReturn),
+                    'type' => 'debt',
+                    'bank' => '',
+                    'payment' => 'cash',
+                    'bank_id' => null,
+                    'due_date' => $this->return_date,
+                    'note' => 'تم دفع قيمة المنتج المرجع الى العميل من فاتورة #' . $sale['id'],
+                    'user_id' => auth()->id()
+                ]);
             }
+
+            $total_amount = $sale['total_amount'] - $this->priceReturn;
+            $remainder = $total_amount - $salePaid - $sale['discount'];
+            $sale->update([
+                'paid' => $salePaid,
+                'remainder' => $remainder,
+                'total_amount' => $total_amount,
+            ]);
+
+            SaleDetail::where("sale_id", $sale['id'])->where("product_id", $this->currentDetail['product_id'])->decrement("quantity", floatval($this->quantityReturn));
+
 
             SaleReturn::create([
-                'sale_id' => $newSale['id'],
+                'sale_id' => $sale['id'],
                 'product_id' => $this->currentDetail['product_id'],
                 'quantity' => floatval($this->quantityReturn),
                 'return_date' => $this->return_date,
                 'price' => $this->currentDetail['price']
             ]);
 
-            $sale->delete();
-            $this->getReturns($newSale->toArray());
+            $this->getReturns($sale->toArray());
 
             $this->alert('success', 'تم الحفظ بنجاح', ['timerProgressBar' => true]);
         }

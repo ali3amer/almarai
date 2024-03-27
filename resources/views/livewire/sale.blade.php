@@ -26,7 +26,7 @@
                 </div>
                 <div class="modal-body">
                     <div class="scroll">
-                        @if($editMode && isset($invoice['id']) && $invoice['date'] == session("date") && $invoice['paid'] > 0)
+                        @if($editMode && isset($invoice['id']) && !session("closed") && $invoice['date'] == session("date") && $invoice['paid'] > 0)
                             <div class="row mb-1">
                                 <div class="col-4">
                                     <select @disabled($banks->count() == 0) wire:model.live="payment"
@@ -53,7 +53,9 @@
                                 </div>
 
                                 <div class="col-1">
-                                    <button class="btn btn-info" @if(isset($invoice['paidId'])) wire:click="changePayment({{$invoice['paidId']}})" @endif><i class="bi bi-bookmark-check"></i></button>
+                                    <button class="btn btn-info"
+                                            @if(isset($invoice['paidId'])) wire:click="changePayment({{$invoice['paidId']}})" @endif>
+                                        <i class="bi bi-bookmark-check"></i></button>
                                 </div>
                             </div>
                         @endif
@@ -77,7 +79,8 @@
                                     style="cursor: pointer"><i class="bi bi-pen"></i></button>
                             <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#printModal"
                                     style="cursor: pointer"
-                                    wire:click="showInvoice()" @disabled(empty($cart)) @disabled(session("closed") && (floatval($paid) != 0 && $payment == "cash"))><i
+                                    wire:click="showInvoice()" @disabled(empty($cart)) @disabled(session("closed") && (floatval($paid) != 0 && $payment == "cash"))>
+                                <i
                                     class="bi bi-bookmark-check"></i></button>
                             <button class="btn btn-danger"
                                     wire:click="resetData('currentClient')" @disabled(empty($currentClient)) ><i
@@ -138,14 +141,14 @@
                                     <label for="productName">إسم المنتج</label>
                                     <input type="text" id="productName" class="form-control" disabled
                                            wire:model="currentProduct.productName">
-                                    <label for="price">سعر الوحده</label>
-                                    <input autocomplete="off" type="text" id="price" class="form-control"
-                                           {{ empty($currentProduct) ? 'disabled' : '' }} wire:model.live="currentProduct.price">
                                     <label for="quantity">الكميه</label>
-
-                                    <input autocomplete="off" type="text" id="quantity" wire:keydown.enter="addToCart()"
+                                    <input autocomplete="off" type="text" id="quantity"
                                            class="form-control"
                                            {{ empty($currentProduct) ? 'disabled' : '' }} wire:model.live="currentProduct.quantity">
+                                    <label for="price">سعر الوحده</label>
+                                    <input autocomplete="off" type="text" id="price" class="form-control"  wire:keydown.enter="addToCart()"
+                                           {{ empty($currentProduct) ? 'disabled' : '' }} wire:model.live="currentProduct.price">
+
                                     <label for="amount">الجمله</label>
                                     <input type="text" class="form-control" disabled
                                            value="{{ !empty($currentProduct) ? number_format(floatval($currentProduct['price']) * floatval($currentProduct['quantity']), 2) : '' }}">
@@ -246,7 +249,8 @@
                                                 <td>المدفوع</td>
                                                 <td><input autocomplete="off" type="text" min="0"
                                                            wire:keydown="calcRemainder()"
-                                                           wire:model.live="paid" @disabled(session("closed") && $payment == "cash")
+                                                           wire:model.live="paid"
+                                                           @disabled(session("closed") && $payment == "cash")
                                                            class="form-control text-center">
                                                 </td>
                                             </tr>
@@ -304,7 +308,7 @@
                                                 <td>{{number_format($sale->total_amount, 2)}}</td>
                                                 <td>
                                                     @if($sale->paid > 0)
-                                                        {{ $sale->saleDebts->where("type", "pay")->first()->payment == "cash" ? "كاش" : "بنك" }}
+                                                        {{ $sale->saleDebts->where("type", "pay")->first()->payment == "cash" ? "كاش" : "بنك"}}
                                                     @endif
                                                 </td>
                                             </tr>
@@ -379,11 +383,11 @@
             if (event.key === "Enter") {
 
                 if (event.target.id === "productSearch") {
-                    document.getElementById("price").removeAttribute('disabled');
-                    document.getElementById("price").focus();
-                } else if (event.target.id === "price") {
+                    document.getElementById("quantity").removeAttribute('disabled');
                     document.getElementById("quantity").focus();
                 } else if (event.target.id === "quantity") {
+                    document.getElementById("price").focus();
+                } else if (event.target.id === "price") {
                     document.getElementById("productSearch").focus();
                 }
             }

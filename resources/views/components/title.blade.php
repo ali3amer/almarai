@@ -34,7 +34,7 @@
         </div>
     </div>
 @endif
-<div class="card bg-white mt-2 d-print-non shadow">
+<div class="card bg-{{ session("closed") ? "danger" : "white" }} mt-2 d-print-non shadow">
     <div class="card-body p-1">
         <div class="row align-items-center">
             <div class="col-2">

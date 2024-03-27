@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Models\Bank;
+use App\Models\Day;
 use App\Models\EmployeeGift;
 use App\Models\Expense;
 use App\Models\PurchaseDebt;
@@ -45,6 +46,7 @@ class Safe extends Component
     public $banksBalance = 0;
     public string $transfer_type = 'cash_to_bank';
 
+    public Collection $days;
     public Collection $banks;
     public Collection $withdraws;
     public Collection $clientDebts;
@@ -69,7 +71,17 @@ class Safe extends Component
 
         $this->startingDate = session("date");
         $this->withdraws = Withdraw::all();
+        $this->days = Day::all();
         $this->getbanksBalance();
+    }
+
+    public function changeStatus($day)
+    {
+        Day::where("id", $day['id'])->update([
+            "closed" => !$day['closed'],
+            "balance" => session("safeBalance")
+        ]);
+        $this->days = Day::all();
     }
 
     public function getbanksBalance()
@@ -284,6 +296,7 @@ class Safe extends Component
             $this->day_date = session("date");
         }
 
+        $this->days = Day::all();
         $this->getbanksBalance();
         return view('livewire.safe', [
             "transfers" => Transfer::all()

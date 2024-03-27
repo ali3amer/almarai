@@ -25,7 +25,7 @@
                 </div>
                 <div class="modal-body">
                     <div class="scroll">
-                        @if($editMode && isset($invoice['id']) && $invoice['date'] == session("date") && $invoice['paid'] > 0)
+                        @if($editMode && isset($invoice['id']) && !session("closed") && $invoice['date'] == session("date") && $invoice['paid'] > 0)
                             <div class="row mb-1">
                                 <div class="col-4">
                                     <select @disabled($banks->count() == 0) wire:model.live="payment"
@@ -135,14 +135,14 @@
                                     <label for="productName">إسم المنتج</label>
                                     <input type="text" id="productName" class="form-control" disabled
                                            wire:model="currentProduct.productName">
-                                    <label for="price">سعر الوحده</label>
-                                    <input autocomplete="off" type="text" id="price" class="form-control"
-                                           {{ empty($currentProduct) ? 'disabled' : '' }} wire:model.live="currentProduct.price">
                                     <label for="quantity">الكميه</label>
-
-                                    <input autocomplete="off" type="text" id="quantity" wire:keydown.enter="addToCart()"
+                                    <input autocomplete="off" type="text" id="quantity"
                                            class="form-control"
                                            {{ empty($currentProduct) ? 'disabled' : '' }} wire:model.live="currentProduct.quantity">
+                                    <label for="price">سعر الوحده</label>
+                                    <input autocomplete="off" type="text" id="price" class="form-control" wire:keydown.enter="addToCart()"
+                                           {{ empty($currentProduct) ? 'disabled' : '' }} wire:model.live="currentProduct.price">
+
                                     <label for="amount">الجمله</label>
                                     <input type="text" class="form-control" disabled
                                            value="{{ !empty($currentProduct) ? number_format(floatval($currentProduct['price']) * floatval($currentProduct['quantity']), 2) : '' }}">
@@ -367,11 +367,11 @@
             if (event.key === "Enter") {
 
                 if (event.target.id === "productSearch") {
-                    document.getElementById("price").removeAttribute('disabled');
-                    document.getElementById("price").focus();
-                } else if (event.target.id === "price") {
+                    document.getElementById("quantity").removeAttribute('disabled');
                     document.getElementById("quantity").focus();
                 } else if (event.target.id === "quantity") {
+                    document.getElementById("price").focus();
+                } else if (event.target.id === "price") {
                     document.getElementById("productSearch").focus();
                 }
             }
