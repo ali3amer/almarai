@@ -411,7 +411,7 @@ class Sale extends Component
 
         if (!empty($this->currentClient)) {
             $this->sales = \App\Models\Sale::where($this->buyer . '_id', $this->currentClient['id'])
-                ->where('id', 'LIKE', '%' . $this->saleSearch . '%')->orWhere('sale_date', 'LIKE', '%' . $this->saleSearch . '%')->latest()->get();
+                ->where('id', 'LIKE', '%' . $this->saleSearch . '%')->latest()->get();
         }
         if ($this->sale_date == '') {
             $this->sale_date = session("date");

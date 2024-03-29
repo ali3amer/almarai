@@ -390,7 +390,7 @@ class Purchase extends Component
 
         if (!empty($this->currentSupplier)) {
             $this->purchases = \App\Models\Purchase::where('supplier_id', $this->currentSupplier['id'])
-                ->where('id', 'LIKE', '%' . $this->purchaseSearch . '%')->orWhere('purchase_date', 'LIKE', '%' . $this->purchaseSearch . '%')->latest()->get();
+                ->where('id', 'LIKE', '%' . $this->purchaseSearch . '%')->latest()->get();
         }
         if ($this->purchase_date == '') {
             $this->purchase_date = session("date");

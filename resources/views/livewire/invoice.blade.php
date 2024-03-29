@@ -1,7 +1,8 @@
 <div class="invoice mb-3 pb-3" dir="rtl">
     <label for="name" class="d-print-none">طباعة إسم المحل</label>
     <input id="name" class="d-print-none" type="checkbox" wire:model.live="name">
-    <h5  class="d-none @if($name) d-print-block @endif  text-center py-2" style="background-color: #333; color: #fff">{{ $settings ? $settings->name : "POS" }}</h5>
+    <h5 class="d-none @if($name) d-print-block @endif  text-center py-2"
+        style="background-color: #333; color: #fff">{{ $settings ? $settings->name : "POS" }}</h5>
     <h6>فاتوره رقم {{$invoice['id'] ?? ''}}</h6>
     <h6>إسم {{ $invoice['clientType'] ?? '' }} : {{$invoice['client'] ?? ''}}</h6>
     <h6>التاريخ : {{$invoice['date'] ?? ''}}</h6>
@@ -42,14 +43,14 @@
         </tbody>
         <tfoot>
         @if(isset($invoice['showMode']) && !$invoice['showMode'])
-        <tr>
-            <td colspan="4">المجموع الكلي</td>
-            <td>{{isset($invoice['amount']) ? number_format($invoice['amount'], 2) : ''}}</td>
-        </tr>
-        <tr>
-            <td colspan="4">التخفيض</td>
-            <td>{{isset($invoice['discount']) ? number_format($invoice['discount'], 2) : ''}}</td>
-        </tr>
+            <tr>
+                <td colspan="4">المجموع الكلي</td>
+                <td>{{isset($invoice['amount']) ? number_format($invoice['amount'], 2) : ''}}</td>
+            </tr>
+            <tr>
+                <td colspan="4">التخفيض</td>
+                <td>{{isset($invoice['discount']) ? number_format($invoice['discount'], 2) : ''}}</td>
+            </tr>
         @endif
         <tr>
             <td colspan="4">الصافي</td>
@@ -67,4 +68,31 @@
         @endif
         </tfoot>
     </table>
+
+    @if(isset($invoice['cart']) && $returns->count() > 0)
+        <h4>المرتجعات</h4>
+        <table class="mt-3 printInvoice text-center">
+            <thead>
+            <tr>
+                <th>#</th>
+                <th>اسم المنتج</th>
+                <th>سعر الوحدة</th>
+                <th>الكمية</th>
+                <th>المجموع</th>
+            </tr>
+            </thead>
+            <tbody>
+            @foreach($returns as $item)
+                <tr style="cursor: pointer" class="align-items-center">
+                    <td scope="row">{{$loop->index + 1}}</td>
+                    <td>{{$item->product->productName}}</td>
+                    <td>{{number_format(floatval($item['price']), 2)}}</td>
+                    <td>{{number_format(floatval($item['quantity']), 2)}}</td>
+                    <td>{{number_format(floatval($item['price']) * floatval($item['quantity']), 2)}}</td>
+                </tr>
+            @endforeach
+
+            </tbody>
+        </table>
+    @endif
 </div>

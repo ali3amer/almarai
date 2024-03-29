@@ -9,9 +9,11 @@ use App\Models\EmployeeGift;
 use App\Models\Expense;
 use App\Models\PurchaseDebt;
 use App\Models\PurchaseDetail;
+use App\Models\PurchaseReturn;
 use App\Models\Safe;
 use App\Models\SaleDebt;
 use App\Models\SaleDetail;
+use App\Models\SaleReturn;
 use App\Models\SupplierDebt;
 use App\Models\Transfer;
 use App\Models\Withdraw;
@@ -461,6 +463,8 @@ class Report extends Component
                     - SaleDetail::join('sales', 'sales.id', '=', 'sale_details.sale_id')->where('sales.sale_date', '<', $this->day)->where('product_id', $this->currentProduct['id'])->sum('quantity');
 
                 $sales = SaleDetail::join('sales', 'sales.id', '=', 'sale_details.sale_id')->where('sales.sale_date', $this->day)->where('product_id', $this->currentProduct['id'])->get();
+                $saleReturns = SaleReturn::where('return_date', $this->day)->where('product_id', $this->currentProduct['id'])->get();
+                $purchaseReturns = PurchaseReturn::where('return_date', $this->day)->where('product_id', $this->currentProduct['id'])->get();
                 $purchases = PurchaseDetail::join('purchases', 'purchases.id', '=', 'purchase_details.purchase_id')->where('purchases.purchase_date', $this->day)->where('product_id', $this->currentProduct['id'])->get();
 
             } elseif ($this->reportDuration == "duration") {
@@ -470,9 +474,13 @@ class Report extends Component
 
 
                 $sales = SaleDetail::join('sales', 'sales.id', '=', 'sale_details.sale_id')->whereBetween('sales.sale_date', [$this->from, $this->to])->where('product_id', $this->currentProduct['id'])->get();
+                $saleReturns = SaleReturn::whereBetween('return_date', [$this->from, $this->to])->where('product_id', $this->currentProduct['id'])->get();
+                $purchaseReturns = PurchaseReturn::whereBetween('return_date', [$this->from, $this->to])->where('product_id', $this->currentProduct['id'])->get();
                 $purchases = PurchaseDetail::join('purchases', 'purchases.id', '=', 'purchase_details.purchase_id')->whereBetween('purchases.purchase_date', [$this->from, $this->to])->where('product_id', $this->currentProduct['id'])->get();
             } else {
                 $sales = SaleDetail::join('sales', 'sales.id', '=', 'sale_details.sale_id')->where('product_id', $this->currentProduct['id'])->get();
+                $saleReturns = SaleReturn::where('product_id', $this->currentProduct['id'])->get();
+                $purchaseReturns = PurchaseReturn::where('product_id', $this->currentProduct['id'])->get();
                 $purchases = PurchaseDetail::join('purchases', 'purchases.id', '=', 'purchase_details.purchase_id')->where('product_id', $this->currentProduct['id'])->get();
             }
 
@@ -481,7 +489,7 @@ class Report extends Component
 
             foreach ($sales as $index => $sale) {
                 $this->array[$sale['created_at'] . $index]['invoice'] = $sale->sale->saleDebts->first();
-                $this->array[$sale['created_at'] . $index]['invoice']['sale_id'] = $sale->sale->id;
+                $this->array[$sale['created_at'] . $index]['invoice']['sale_id'] = $sale->sale_id;
 
                 $this->array[$sale['created_at'] . $index]['date'] = $sale['sale_date'];
                 $this->array[$sale['created_at'] . $index]['note'] = $sale->client_id == null ? ($sale->supplier_id == null ? $sale->sale->employee->employeeName : $sale->sale->supplier->supplierName) : $sale->sale->client->clientName;
@@ -490,11 +498,21 @@ class Report extends Component
                 $this->sale += $sale['quantity'];
             }
 
+            foreach ($saleReturns as $index => $sale) {
+                $this->array[$sale['created_at'] . $index]['invoice'] = $sale->sale->saleDebts->first();
+                $this->array[$sale['created_at'] . $index]['invoice']['sale_id'] = $sale->sale_id;
+
+                $this->array[$sale['created_at'] . $index]['date'] = $sale['sale_date'];
+                $this->array[$sale['created_at'] . $index]['note'] = "مرتجعات فاتورة مبيعات رقم #" . $sale['sale_id'];
+                $this->array[$sale['created_at'] . $index]['sale'] = 0;
+                $this->array[$sale['created_at'] . $index]['purchase'] = $sale['quantity'];
+                $this->purchase += $sale['quantity'];
+            }
 
             foreach ($purchases as $index => $purchase) {
 
                 $this->array[$purchase['created_at'] . $index]['invoice'] = $purchase->purchase->purchaseDebts->first();
-
+                $this->array[$purchase['created_at'] . $index]['invoice']['purchase_id'] = $purchase->purchase_id;
 
                 $this->array[$purchase['created_at'] . $index]['date'] = $purchase['purchase_date'];
                 $this->array[$purchase['created_at'] . $index]['note'] = $purchase->purchase->supplier->supplierName;
@@ -504,6 +522,19 @@ class Report extends Component
 
             }
 
+
+            foreach ($purchaseReturns as $index => $purchase) {
+
+                $this->array[$purchase['created_at'] . $index]['invoice'] = $purchase->purchase->purchaseDebts->first();
+                $this->array[$purchase['created_at'] . $index]['invoice']['sale_id'] = $purchase->purchase_id;
+
+                $this->array[$purchase['created_at'] . $index]['date'] = $purchase['return_date'];
+                $this->array[$purchase['created_at'] . $index]['note'] = "مرتجعات فاتورة مشتريات رقم #" . $purchase['purchase_id'];
+                $this->array[$purchase['created_at'] . $index]['sale'] = $purchase['quantity'];
+                $this->array[$purchase['created_at'] . $index]['purchase'] = 0;
+                $this->sale += $purchase['quantity'];
+
+            }
             ksort($this->array);
 
 
