@@ -189,6 +189,9 @@ class Purchase extends Component
     public function chooseSupplier($supplier)
     {
         $this->currentSupplier = $supplier;
+        if ($this->currentSupplier['cash']) {
+            $this->paid = $this->total_amount;
+        }
         $supplier = PurchaseDebt::where('supplier_id', $this->currentSupplier['id'])->withTrashed()->get();
         $this->currentBalance = $supplier->sum('debt') - $supplier->sum('paid') + $this->currentSupplier['initialBalance'];
     }
@@ -313,13 +316,8 @@ class Purchase extends Component
     public function cancelPurchase($data)
     {
         $id = $data['inputAttributes']['id'];
-        $items = PurchaseDetail::where('purchase_id', $id)->get();
-        foreach ($items as $item) {
-//            \App\Models\Product::where('id', $item['product_id'])->decrement('stock', floatval(floatval($item['quantity'])));
-            \App\Models\PurchaseDetail::where('id', $item['id'])->delete();
-        }
+        PurchaseDetail::where('purchase_id', $id)->delete();
 
-        PurchaseDetail::where("purchase_id", $id)->delete();;
         \App\Models\Purchase::where('id', $id)->delete();
 
         PurchaseDebt::where("purchase_id", $id)->where("type", "debt")->delete();

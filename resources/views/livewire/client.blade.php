@@ -126,7 +126,7 @@
                                         <th>إسم العميل</th>
                                         <th>الهاتف</th>
                                         <th>الرصيد الافتتاحي</th>
-                                        <th>نقدي</th>
+                                        <th class="d-none">نقدي</th>
                                         <th>التحكم</th>
                                     </tr>
                                     </thead>
@@ -137,7 +137,7 @@
                                             <td>{{ $client->clientName }}</td>
                                             <td>{{ $client->phone }}</td>
                                             <td>{{ number_format($client->initialBalance, 2) }}</td>
-                                            <td>{{ $client->cash ? "نعم" : "لا" }}</td>
+                                            <td class="d-none">{{ $client->cash ? "نعم" : "لا" }}</td>
                                             <td>
                                                 <button
                                                     @disabled(!$update) class="btn btn-sm btn-info text-white"
@@ -159,9 +159,9 @@
                                                         class="bi bi-{{$client->blocked ? 'lock' : 'unlock'}}"></i>
                                                 </button>
 
-                                                /
+
                                                 <button @disabled(!$update)
-                                                        class="btn btn-sm btn-{{$client->cash ? 'danger' : 'primary'}} text-white"
+                                                        class="btn d-none btn-sm btn-{{$client->cash ? 'danger' : 'primary'}} text-white"
                                                         wire:click="changeCash({{$client}})"><i
                                                         class="bi bi-cash"></i>
                                                 </button>

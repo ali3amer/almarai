@@ -326,11 +326,11 @@
                 </div>
             </div>
 
-            <div class="col-5 mt-2">
+            <div class="col-5 mt-2 d-none">
                 <div class="card">
                     <div class="card-body">
                         <div class="scroll">
-                            @if(!empty($transfers))
+                            @if(!empty($days))
                                 <table class="table table-responsive text-center">
                                     <thead>
                                     <tr>

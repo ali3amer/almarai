@@ -25,7 +25,6 @@ class Supplier extends Component
     public int $id = 0;
     public int $debtId = 0;
     public string $supplierName = '';
-    #[Rule('required|min:2', message: 'قم بإدخال رقم الهاتف')]
     public string $phone = '';
     public string $search = '';
     public string|null $note = '';

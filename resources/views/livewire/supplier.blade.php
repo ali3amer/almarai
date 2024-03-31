@@ -134,7 +134,7 @@
                                         <th>الهاتف</th>
                                         <th>الرصيد الافتتاحي</th>
                                         <th>الرصيد الافتتاحي للمبيعات</th>
-                                        <th>نقدي</th>
+                                        <th class="d-none">نقدي</th>
                                         <th>التحكم</th>
                                     </tr>
                                     </thead>
@@ -146,7 +146,7 @@
                                             <td>{{ $supplier->phone }}</td>
                                             <td>{{ number_format($supplier->initialBalance, 2) }}</td>
                                             <td>{{ number_format($supplier->initialSalesBalance, 2) }}</td>
-                                            <td>{{ $supplier->cash ? "نعم" : "لا" }}</td>
+                                            <td class="d-none">{{ $supplier->cash ? "نعم" : "لا" }}</td>
                                             <td>
                                                 <button
                                                     @disabled(!$update) class="btn btn-sm btn-info text-white"
@@ -169,9 +169,9 @@
                                                         class="bi bi-{{$supplier->blocked ? 'lock' : 'unlock'}}"></i>
                                                 </button>
 
-                                                /
+
                                                 <button @disabled(!$update)
-                                                        class="btn btn-sm btn-{{$supplier->cash ? 'danger' : 'primary'}} text-white"
+                                                        class="btn d-none btn-sm btn-{{$supplier->cash ? 'danger' : 'primary'}} text-white"
                                                         wire:click="changeCash({{$supplier}})"><i
                                                         class="bi bi-cash"></i>
                                                 </button>

@@ -191,6 +191,10 @@ class Sale extends Component
             $client = SaleDebt::where('employee_id', $this->currentClient['id'])->get();
         }
 
+        if ($this->currentClient['cash']) {
+            $this->paid = $this->total_amount;
+        }
+
         $this->currentBalance = $client->sum('debt') - $client->sum('paid') + $this->currentClient['initialBalance'];
 
     }
@@ -338,11 +342,8 @@ class Sale extends Component
     {
         $id = $data['inputAttributes']['id'];
 
-        $items = SaleDetail::where('sale_id', $id)->get();
-        foreach ($items as $item) {
-//            \App\Models\Product::where('id', $item['product_id'])->increment('stock', floatval($item['quantity']));
-            \App\Models\SaleDetail::where('id', $item['id'])->delete();
-        }
+        SaleDetail::where('sale_id', $id)->delete();
+
 
         SaleDetail::where("sale_id", $id)->delete();
         \App\Models\Sale::where('id', $id)->delete();
@@ -357,7 +358,7 @@ class Sale extends Component
             'bank' => '',
             'payment' => 'cash',
             'bank_id' => null,
-            'due_date' => $this->sale_date,
+            'due_date' => session("date"),
             'note' => 'تم إلغاء الفاتوره رقم #' . $this->invoice['id'],
             'sale_id' => $this->invoice['id'],
             'user_id' => auth()->id()

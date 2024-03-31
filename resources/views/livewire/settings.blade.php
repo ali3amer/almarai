@@ -64,7 +64,7 @@
 
                 <div class="d-grid mt-2">
                     <button
-                        class="btn btn- btn-primary">حفـــــــــــــــــــظ
+                        class="btn btn-primary">حفـــــــــــــــــــظ
                     </button>
                 </div>
 
