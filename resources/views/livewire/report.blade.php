@@ -1286,6 +1286,43 @@
                 </div>
             </div>
         </div>
+    @elseif($reportType == 'expenses' && !empty($expenses))
+        <div class="card mt-2">
+            <div class="card-body invoice">
+                <div class="card-title" dir="rtl">
+                    <h4>المصروفات</h4>
+                </div>
+                <div class="scroll">
+                    <table class="text-center printInvoice">
+                        <thead>
+                        <tr>
+                            <th>التاريخ</th>
+                            <th>البند</th>
+                            <th>البيان</th>
+                            <th>المبلغ</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+
+                        @foreach($expenses as $expense)
+                            <tr>
+                                <td>{{ $expense->expense_date }}</td>
+                                <td>{{ $expense->option_id != null ? $expense->option->optionName : "" }}</td>
+                                <td>{{ $expense->description }}</td>
+                                <td>{{ number_format($expense->amount, 2) }}</td>
+                            </tr>
+                        @endforeach
+                        </tbody>
+                        <tfoot>
+                        <tr>
+                            <th colspan="3">الجمـــــــــــــــلة</th>
+                            <th>{{ !empty($expenses) ? number_format($expenses->sum("amount"), 2) : 0 }}</th>
+                        </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
     @elseif($reportType == 'daily' && !empty($array))
         <div class="card mt-2">
             <div class="card-body invoice">

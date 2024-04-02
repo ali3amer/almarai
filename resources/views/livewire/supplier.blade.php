@@ -261,11 +261,11 @@
 
                             @if($type == "pay")
                                 <div class="col-6">
-                                    <label for="discount">التخفيض</label>
+                                    <label for="discount">خصم</label>
                                     <input @disabled($debtId != 0 && $discount == 0) autocomplete="off" type="text"
                                            wire:model.live="discount" id="discount"
                                            class="form-control text-center mb-2"
-                                           placeholder="التخفيض ....">
+                                           placeholder="خصم ....">
                                 </div>
                             @endif
 

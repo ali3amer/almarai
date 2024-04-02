@@ -58,6 +58,7 @@ class Report extends Component
         'supplier' => 'تقرير مورد',
         'sales' => 'تقرير مبيعات',
         'purchases' => 'تقرير مشتريات',
+        'expenses' => 'تقرير المصروفات',
         'tracking' => 'تقرير متابعة حركة صنف',
         'daily' => 'تقرير القيود اليومية',
         'safe' => 'تقرير خزنة',
@@ -538,6 +539,14 @@ class Report extends Component
             ksort($this->array);
 
 
+        } elseif ($this->reportType == "expenses") {
+            if ($this->reportDuration == "day") {
+                $this->expenses = \App\Models\Expense::where("expense_date", $this->day)->get();
+            } elseif ($this->reportDuration == "duration") {
+                $this->expenses = \App\Models\Expense::whereBetween("expense_date", [$this->from, $this->to])->get();
+            } else {
+                $this->expenses = \App\Models\Expense::get();
+            }
         } elseif ($this->reportType == "safe" || $this->reportType == "daily") {
 
             $this->paid = 0;
