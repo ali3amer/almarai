@@ -307,7 +307,7 @@
                                                 <td>{{$sale->sale_date}}</td>
                                                 <td>{{number_format($sale->total_amount, 2)}}</td>
                                                 <td>
-                                                    @if($sale->paid > 0)
+                                                    @if($sale->paid > 0 && $sale->saleDebts->where("type", "pay")->first())
                                                         {{ $sale->saleDebts->where("type", "pay")->first()->payment == "cash" ? "كاش" : "بنك"}}
                                                     @endif
                                                 </td>

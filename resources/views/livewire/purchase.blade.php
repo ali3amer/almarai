@@ -303,7 +303,7 @@
                                                 <td>{{$purchase->purchase_date}}</td>
                                                 <td>{{number_format($purchase->total_amount, 2)}}</td>
                                                 <td>
-                                                    @if($purchase->paid > 0)
+                                                    @if($purchase->paid > 0 && $purchase->purchaseDebts->where("type", "pay")->first())
                                                         {{ $purchase->purchaseDebts->where("type", "pay")->first()->payment == "cash" ? "كاش" : "بنك" }}
                                                     @endif
                                                 </td>
