@@ -292,7 +292,8 @@
                                 <tr>
                                     <th>التاريخ</th>
                                     <th>المبلغ</th>
-                                    <th>التحكم</th>
+                                    <th>البيان</th>
+                                    <th class="d-none">التحكم</th>
                                 </tr>
                                 </thead>
                                 <tbody>
@@ -300,7 +301,8 @@
                                     <tr>
                                         <td>{{$gift->gift_date}}</td>
                                         <td>{{number_format($gift->gift_amount, 2)}}</td>
-                                        <td>
+                                        <td>{{$gift->note}}</td>
+                                        <td class="d-none">
                                             <button
                                                 @disabled(!$update)
                                                 class="btn btn-sm btn-info text-white"

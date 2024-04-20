@@ -30,6 +30,7 @@ class Supplier extends Component
     public string|null $note = '';
     public $initialBalance = 0;
     public $discount = 0;
+    public $service = 0;
     public bool $cash = false;
     public $debt_amount = 0;
     public string $bank = '';
@@ -175,9 +176,9 @@ class Supplier extends Component
         }
         $this->currentSupplier = $supplier;
         if ($this->debtType == 'purchases') {
-            $this->debts = PurchaseDebt::where('supplier_id', $supplier['id'])->withTrashed()->get();
+            $this->debts = PurchaseDebt::where('supplier_id', $supplier['id'])->withTrashed()->latest()->get();
         } else {
-            $this->debts = SaleDebt::where('supplier_id', $supplier['id'])->withTrashed()->get();
+            $this->debts = SaleDebt::where('supplier_id', $supplier['id'])->withTrashed()->latest()->get();
         }
         $this->currentBalance = $this->debts->sum('debt') - $this->debts->sum('paid') - $this->debts->sum('discount') + $this->currentSupplier[$this->debtType == 'purchases' ? 'initialBalance' : 'initialSalesBalance'];
     }
@@ -247,7 +248,7 @@ class Supplier extends Component
                 if (floatval($this->discount) != 0) {
                     SaleDebt::create([
                         'supplier_id' => $this->currentSupplier['id'],
-                        'type' => $this->type,
+                        'type' => "pay",
                         'debt' => 0,
                         'paid' => 0,
                         'discount' => $this->discount,
@@ -260,6 +261,21 @@ class Supplier extends Component
                     ]);
                 }
 
+                if (floatval($this->sarvice) != 0) {
+                    SaleDebt::create([
+                        'supplier_id' => $this->currentSupplier['id'],
+                        'type' => "debt",
+                        'debt' => 0,
+                        'paid' => 0,
+                        'service' => $this->service,
+                        'payment' => 'cash',
+                        'bank_id' => null,
+                        'bank' => '',
+                        'due_date' => $this->due_date,
+                        'note' => $note == "" ? "تم إضافة خدمة" : $note,
+                        'user_id' => auth()->id(),
+                    ]);
+                }
                 $this->resetData();
 
                 $this->alert('success', 'تم السداد بنجاح', ['timerProgressBar' => true]);
@@ -332,7 +348,7 @@ class Supplier extends Component
                 if (floatval($this->discount) != 0) {
                     PurchaseDebt::create([
                         'supplier_id' => $this->currentSupplier['id'],
-                        'type' => $this->type,
+                        'type' => "pay",
                         'debt' => 0,
                         'paid' => 0,
                         'discount' => $this->discount,
@@ -419,7 +435,6 @@ class Supplier extends Component
         }
         $this->showDebts($this->currentSupplier);
         $this->alert('success', 'تم حذف الدفعيه بنجاح', ['timerProgressBar' => true]);
-
     }
 
 
@@ -430,6 +445,11 @@ class Supplier extends Component
 
     public function render()
     {
+        if ($this->payment == "bank" && $this->bank_id == null) {
+            if ($this->banks->count() != 0) {
+                $this->bank_id = $this->banks->first()->id;
+            }
+        }
         if ($this->due_date == '') {
             $this->due_date = session("date");
         }

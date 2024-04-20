@@ -223,7 +223,7 @@
                             <div class="col-6">
                                 <label for="debt_amount">المبلغ المدفوع</label>
                                 <input type="text"
-                                       @disabled($debtId != 0 && $discount != 0) wire:model.live="debt_amount"
+                                       @disabled(floatval($service) != 0 || floatval($discount) != 0) wire:model.live="debt_amount"
                                        autocomplete="off" id="debt_amount"
                                        class="form-control text-center"
                                        placeholder="المدفوع ....">
@@ -231,7 +231,7 @@
                             <div class="col-6">
                                 <label for="payment">طريقة الدفع</label>
                                 <select
-                                    @disabled($banks->count() == 0) @disabled($debtId !=0 && $discount != 0) class="form-select text-center"
+                                    @disabled($banks->count() == 0) @disabled($debtId != 0 && $discount != 0) class="form-select text-center"
                                     wire:model.live="payment">
                                     <option value="cash">كاش</option>
                                     <option value="bank">بنك</option>
@@ -261,11 +261,11 @@
 
                             @if($type == "pay")
                                 <div class="col-6">
-                                    <label for="discount">خصم</label>
-                                    <input @disabled($debtId != 0 && $discount == 0) autocomplete="off" type="text"
+                                    <label for="discount">{{ $debtType == 'purchases' ? "الخصم" : "التخفيض" }}</label>
+                                    <input @disabled($debtId != 0 && $discount == 0) @disabled(floatval($debt_amount) != 0 || floatval($service) != 0) autocomplete="off" type="text"
                                            wire:model.live="discount" id="discount"
                                            class="form-control text-center mb-2"
-                                           placeholder="خصم ....">
+                                           placeholder="{{ $debtType == 'purchases' ? "خصم" : "تخفيض" }} ....">
                                 </div>
                             @endif
 
@@ -278,17 +278,32 @@
                             </div>
                         </div>
 
-                        @if(!session("closed") || $payment == "bank")
-                            @if($debtType == "purchases")
-                                <button
-                                    @disabled($payment == "bank" && $banks->count() == 0) @disabled($currentSupplier['cash']) @disabled(empty($currentSupplier) || $due_date == '') @disabled($debt_amount == 0 && $discount == 0) class="btn btn-{{$debtId == 0 ? 'primary' : 'success'}} w-100"
-                                    wire:click="savePurchaseDebt()">{{$debtId == 0 ? 'دفــــع' : 'تعــــديل'}}</button>
-                            @else
-                                <button
-                                    @disabled($payment == "bank" && $banks->count() == 0) @disabled($currentSupplier['cash']) @disabled(empty($currentSupplier) || $due_date == '') @disabled($debt_amount == 0 && $discount == 0) class="btn btn-{{$debtId == 0 ? 'primary' : 'success'}} w-100"
-                                    wire:click="saveSaleDebt()">{{$debtId == 0 ? 'دفــــع' : 'تعــــديل'}}</button>
+                        <div class="row">
+                            @if($type == "pay" && $debtType == 'sales')
+                                <div class="col-6">
+                                    <label for="discount">خدمه</label>
+                                    <input @disabled(floatval($debt_amount) != 0 || floatval($discount) != 0) autocomplete="off"
+                                           type="text"
+                                           wire:model.live="service" id="service"
+                                           class="form-control text-center"
+                                           placeholder="خدمه ....">
+                                </div>
                             @endif
-                        @endif
+
+                            @if(!session("closed") || $payment == "bank")
+                                <div class="col-{{ $type == "pay" && $debtType == 'sales' ? '6' : '12' }} d-flex align-items-end">
+                                    @if($debtType == "purchases")
+                                        <button
+                                            @disabled($payment == "bank" && $banks->count() == 0) @disabled($currentSupplier['cash']) @disabled(empty($currentSupplier) || $due_date == '') @disabled($debt_amount == 0 && $discount == 0) class="btn btn-{{$debtId == 0 ? 'primary' : 'success'}} w-100"
+                                            wire:click="savePurchaseDebt()">{{$debtId == 0 ? 'دفــــع' : 'تعــــديل'}}</button>
+                                    @else
+                                        <button
+                                            @disabled($payment == "bank" && $banks->count() == 0) @disabled($currentSupplier['cash']) @disabled(empty($currentSupplier) || $due_date == '') @disabled($debt_amount == 0 && $discount == 0) class="btn btn-{{$debtId == 0 ? 'primary' : 'success'}} w-100"
+                                            wire:click="saveSaleDebt()">{{$debtId == 0 ? 'دفــــع' : 'تعــــديل'}}</button>
+                                    @endif
+                                </div>
+                            @endif
+                        </div>
                     </div>
                 </div>
             </div>
@@ -323,7 +338,7 @@
                                     <th>التاريخ</th>
                                     <th>البيان</th>
                                     <th>المبلغ</th>
-                                    <th>التحكم</th>
+                                    <th class="d-none">التحكم</th>
                                 </tr>
                                 </thead>
                                 <tbody>
@@ -342,7 +357,7 @@
                                                 {{$debt->type == 'pay' ? number_format($debt->paid, 2) : number_format($debt->debt, 2)}}
                                             @endif
                                         </td>
-                                        <td>
+                                        <td class="d-none">
                                             @if($debt->sale_id == null && $debt->purchase_id == null && $debt->due_date == session("date"))
 
                                                 <button class="btn btn-sm btn-info"

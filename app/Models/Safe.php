@@ -27,7 +27,6 @@ class Safe extends Model
     public function getCurrentBalanceAttribute()
     {
         return $this->initialBalance
-            + Withdraw::sum("amount")
             + SaleDebt::where("type", "pay")->where("payment", "cash")->sum("paid")
             - SaleDebt::where("type", "debt")->where("payment", "cash")->whereNull("sale_id")->sum("debt")
             + Transfer::where("transfer_type", "bank_to_cash")->sum("transfer_amount")
@@ -50,6 +49,5 @@ class Safe extends Model
             - EmployeeGift::where("payment", "cash")->where("gift_date", session("date"))->sum("gift_amount")
             - PurchaseDebt::where("type", "pay")->where("payment", "cash")->where("due_date", session("date"))->sum("paid")
             + PurchaseDebt::where("type", "debt")->where("payment", "cash")->where("due_date", session("date"))->whereNull("purchase_id")->sum("debt");
-
     }
 }

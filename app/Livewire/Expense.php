@@ -219,6 +219,12 @@ class Expense extends Component
 
     public function render()
     {
+        if ($this->payment == "bank" && $this->bank_id == null) {
+            if ($this->banks->count() != 0) {
+                $this->bank_id = $this->banks->first()->id;
+            }
+        }
+
         if ($this->description == '') {
             $this->expense_date = session("date");
         }

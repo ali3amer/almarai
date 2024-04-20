@@ -71,17 +71,38 @@ class Safe extends Component
 
         $this->startingDate = session("date");
         $this->withdraws = Withdraw::all();
-        $this->days = Day::all();
+        $this->days = Day::get()->sortBy("due_date");
         $this->getbanksBalance();
     }
 
+    public function getAllDueDates()
+    {
+        $dates = \App\Models\Sale::select('sale_date')->distinct()->get()->sortBy('sale_date');
+        $toDay = session("date");
+        foreach ($dates as $date) {
+            session(["date" => $date->sale_date]);
+            $day = Day::updateOrCreate(
+                ['due_date' => session('date')],
+                [
+                    'closed' => false,
+                    'balance' => \App\Models\Safe::first()->safeDayBalance,
+                    'user_id' => auth()->id()
+                ]
+            );
+        }
+        session(["date" => $toDay]);
+    }
+
+    public function closeAllDays() {
+        Day::query()->update(["closed" => true]);
+    }
     public function changeStatus($day)
     {
         Day::where("id", $day['id'])->update([
             "closed" => !$day['closed'],
             "balance" => session("safeBalance")
         ]);
-        $this->days = Day::all();
+        $this->days = Day::get()->sortBy("due_date");
     }
 
     public function getbanksBalance()
@@ -288,6 +309,12 @@ class Safe extends Component
     {
         $this->safeBalance = \App\Models\Safe::first()->pastBalance;
 
+        if ($this->payment == "bank" && $this->bank_id == null) {
+            if ($this->banks->count() != 0) {
+                $this->bank_id = $this->banks->first()->id;
+            }
+        }
+
         if ($this->transfer_date == '') {
             $this->transfer_date = session("date");
         }
@@ -296,7 +323,7 @@ class Safe extends Component
             $this->day_date = session("date");
         }
 
-        $this->days = Day::all();
+        $this->days = Day::get()->sortBy("due_date");
         $this->getbanksBalance();
         return view('livewire.safe', [
             "transfers" => Transfer::all()

@@ -1287,6 +1287,39 @@
             </div>
         </div>
     @elseif($reportType == 'expenses' && !empty($expenses))
+
+        <div class="card mt-2">
+            <div class="card-body invoice">
+                <h4>البنود</h4>
+                <div class="scroll">
+                    <table class="text-center printInvoice">
+                        <thead>
+                        <tr>
+                            <th>البند</th>
+                            <th>المبلغ</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        @php $sumOptions = 0 @endphp
+                        @foreach($expensesByOptions as $option)
+                            <tr>
+                                <td>{{ $option['option_name']}}</td>
+                                <td>{{ number_format($option['total_amount'], 2) }}</td>
+                            </tr>
+                            @php $sumOptions += $option['total_amount'] @endphp
+                        @endforeach
+                        </tbody>
+                        <tfoot>
+                        <tr>
+                            <th>الجمـــــــــــــــلة</th>
+                            <th>{{ number_format($sumOptions, 2) }}</th>
+                        </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+
         <div class="card mt-2">
             <div class="card-body invoice">
                 <div class="card-title" dir="rtl">

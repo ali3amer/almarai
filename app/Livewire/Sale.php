@@ -87,7 +87,7 @@ class Sale extends Component
             $this->currentClient = \App\Models\Client::first()->toArray();
         }
 
-        $client = SaleDebt::where('client_id', $this->currentClient['id'])->withTrashed()->get();
+        $client = SaleDebt::where('client_id', $this->currentClient['id'])->withTrashed()->withTrashed()->get();
         $this->currentBalance = $client->sum('debt') - $client->sum('paid') + $this->currentClient['initialBalance'];
         $this->banks = Bank::all();
 

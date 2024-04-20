@@ -142,6 +142,7 @@ class Report extends Component
     public $totalExpenses = 0;
     public $assets = 0;
     public $adversaries = 0;
+    public \Illuminate\Support\Collection $expensesByOptions;
 
     public function chooseClient($client)
     {
@@ -547,6 +548,13 @@ class Report extends Component
             } else {
                 $this->expenses = \App\Models\Expense::get();
             }
+
+            $this->expensesByOptions = $this->expenses->groupBy('option_id')->map(function ($expenses) {
+                $optionName = $expenses->first()->option->optionName;
+                $totalAmount = $expenses->sum('amount');
+                return ['option_name' => $optionName, 'total_amount' => $totalAmount];
+            });
+
         } elseif ($this->reportType == "safe" || $this->reportType == "daily") {
 
             $this->paid = 0;

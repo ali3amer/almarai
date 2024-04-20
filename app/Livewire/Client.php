@@ -43,6 +43,7 @@ class Client extends Component
     public float $currentBalance = 0;
     public array $currentDebt = [];
     public $discount = 0;
+    public $service = 0;
     public bool $cash = false;
     public bool $create = false;
     public bool $read = false;
@@ -163,7 +164,7 @@ class Client extends Component
     public function showDebts($client)
     {
         $this->currentClient = $client;
-        $this->debts = SaleDebt::where('client_id', $client['id'])->withTrashed()->get();
+        $this->debts = SaleDebt::where('client_id', $client['id'])->withTrashed()->latest()->get();
         $this->currentBalance = $this->debts->sum('debt') - $this->debts->sum('paid') - $this->debts->sum('discount') + $this->currentClient['initialBalance'];
 
     }
@@ -212,7 +213,7 @@ class Client extends Component
                 if (floatval($this->discount) != 0) {
                     SaleDebt::create([
                         'client_id' => $this->currentClient['id'],
-                        'type' => $this->type,
+                        'type' => "pay",
                         'debt' => 0,
                         'paid' => 0,
                         'discount' => $this->discount,
@@ -224,6 +225,24 @@ class Client extends Component
                         'user_id' => auth()->id(),
                     ]);
                 }
+
+                if (floatval($this->service) != 0) {
+                    SaleDebt::create([
+                        'client_id' => $this->currentClient['id'],
+                        'type' => "debt",
+                        'debt' => 0,
+                        'paid' => 0,
+                        'service' => $this->service,
+                        'payment' => 'cash',
+                        'bank_id' => null,
+                        'bank' => '',
+                        'due_date' => $this->due_date,
+                        'note' => $note == "" ? "تم إضافة خدمه" : $this->note,
+                        'user_id' => auth()->id(),
+                    ]);
+                }
+
+
 
                 $this->resetData();
 
@@ -306,6 +325,12 @@ class Client extends Component
 
     public function render()
     {
+        if ($this->payment == "bank" && $this->bank_id == null) {
+            if ($this->banks->count() != 0) {
+                $this->bank_id = $this->banks->first()->id;
+            }
+        }
+
         if ($this->due_date == '') {
             $this->due_date = session("date");
         }
