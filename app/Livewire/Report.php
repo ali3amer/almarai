@@ -324,7 +324,7 @@ class Report extends Component
             } else {
                 $this->saleDebts = SaleDebt::where('client_id', $this->currentClient['id'])->orderBy('due_date')->get();
             }
-            $this->salesBalance = $this->currentClient['initialBalance'] + $this->saleDebts->sum('debt') - $this->saleDebts->sum('paid') - $this->saleDebts->sum('discount');
+            $this->salesBalance = $this->currentClient['initialBalance'] + $this->saleDebts->sum('debt') - $this->saleDebts->sum('paid') - $this->saleDebts->sum('discount') + $this->saleDebts->sum('service');
 
             $this->currentSalesBalance = $this->salesBalance;
         } elseif ($this->reportType == 'supplier') {   // supplier
@@ -361,7 +361,7 @@ class Report extends Component
 
             }
 
-            $this->currentSalesBalance = $this->saleDebts->sum("debt") - $this->saleDebts->sum("paid");
+            $this->currentSalesBalance = $this->saleDebts->sum("debt") - $this->saleDebts->sum("paid") - $this->saleDebts->sum("discount") + $this->saleDebts->sum("service");
             $this->currentPurchasesBalance = $this->purchaseDebts->sum("debt") - $this->purchaseDebts->sum("paid");
 
         } elseif ($this->reportType == 'employee') {   // employee
@@ -641,7 +641,7 @@ class Report extends Component
                 } else {
                     $this->array[$sale['created_at'] . $index]['paid'] = $sale["paid"];
                     $this->array[$sale['created_at'] . $index]['debt'] = $sale["debt"];
-                    $this->array[$sale['created_at'] . $index]['saleFuture'] = 0;
+                    $this->array[$sale['created_at'] . $index]['saleFuture'] = $sale['service'];
                 }
                 $this->array[$sale['created_at'] . $index]['purchaseFuture'] = 0;
 
@@ -673,45 +673,54 @@ class Report extends Component
 
             foreach ($this->transfers as $index => $transfer) {
                 if ($transfer['transfer_type'] == "cash_to_bank") {
-                    $this->array[$transfer['created_at'] . $index . 1]['date'] = $transfer['transfer_date'];
-                    $this->array[$transfer['created_at'] . $index . 1]['note'] = "صادر كاش";
-                    $this->array[$transfer['created_at'] . $index . 1]['account'] = "تحويلات";
-                    $this->array[$transfer['created_at'] . $index . 1]['payment'] = "cash";
-                    $this->array[$transfer['created_at'] . $index . 1]['name'] = $transfer->note;
-                    $this->array[$transfer['created_at'] . $index . 1]['paid'] = 0;
-                    $this->array[$transfer['created_at'] . $index . 1]['debt'] = $transfer['transfer_amount'];
-                    $this->array[$transfer['created_at'] . $index . 1]['saleFuture'] = 0;
-                    $this->array[$transfer['created_at'] . $index . 1]['purchaseFuture'] = 0;
+                    if ($this->payment == "" || $this->payment == "cash") {
+                        $this->array[$transfer['created_at'] . $index . 1]['date'] = $transfer['transfer_date'];
+                        $this->array[$transfer['created_at'] . $index . 1]['note'] = "صادر كاش";
+                        $this->array[$transfer['created_at'] . $index . 1]['account'] = "تحويلات";
+                        $this->array[$transfer['created_at'] . $index . 1]['payment'] = "cash";
+                        $this->array[$transfer['created_at'] . $index . 1]['name'] = $transfer->note;
+                        $this->array[$transfer['created_at'] . $index . 1]['paid'] = 0;
+                        $this->array[$transfer['created_at'] . $index . 1]['debt'] = $transfer['transfer_amount'];
+                        $this->array[$transfer['created_at'] . $index . 1]['saleFuture'] = 0;
+                        $this->array[$transfer['created_at'] . $index . 1]['purchaseFuture'] = 0;
+                    }
 
-                    $this->array[$transfer['created_at'] . $index . 2]['date'] = $transfer['transfer_date'];
-                    $this->array[$transfer['created_at'] . $index . 2]['note'] = "وارد بنك";
-                    $this->array[$transfer['created_at'] . $index . 2]['account'] = "تحويلات";
-                    $this->array[$transfer['created_at'] . $index . 2]['payment'] = "bank";
-                    $this->array[$transfer['created_at'] . $index . 2]['name'] = $transfer->note;
-                    $this->array[$transfer['created_at'] . $index . 2]['paid'] = $transfer['transfer_amount'];
-                    $this->array[$transfer['created_at'] . $index . 2]['debt'] = 0;
-                    $this->array[$transfer['created_at'] . $index . 2]['saleFuture'] = 0;
-                    $this->array[$transfer['created_at'] . $index . 2]['purchaseFuture'] = 0;
+                    if ($this->payment == "" || $this->payment == "bank") {
+                        $this->array[$transfer['created_at'] . $index . 2]['date'] = $transfer['transfer_date'];
+                        $this->array[$transfer['created_at'] . $index . 2]['note'] = "وارد بنك";
+                        $this->array[$transfer['created_at'] . $index . 2]['account'] = "تحويلات";
+                        $this->array[$transfer['created_at'] . $index . 2]['payment'] = "bank";
+                        $this->array[$transfer['created_at'] . $index . 2]['name'] = $transfer->note;
+                        $this->array[$transfer['created_at'] . $index . 2]['paid'] = $transfer['transfer_amount'];
+                        $this->array[$transfer['created_at'] . $index . 2]['debt'] = 0;
+                        $this->array[$transfer['created_at'] . $index . 2]['saleFuture'] = 0;
+                        $this->array[$transfer['created_at'] . $index . 2]['purchaseFuture'] = 0;
+                    }
+
                 } else {
-                    $this->array[$transfer['created_at'] . $index . 1]['date'] = $transfer['transfer_date'];
-                    $this->array[$transfer['created_at'] . $index . 1]['note'] = "صادر بنك";
-                    $this->array[$transfer['created_at'] . $index . 1]['account'] = "تحويلات";
-                    $this->array[$transfer['created_at'] . $index . 1]['payment'] = "bank";
-                    $this->array[$transfer['created_at'] . $index . 1]['name'] = $transfer->note;
-                    $this->array[$transfer['created_at'] . $index . 1]['paid'] = 0;
-                    $this->array[$transfer['created_at'] . $index . 1]['debt'] = $transfer['transfer_amount'];
-                    $this->array[$transfer['created_at'] . $index . 1]['saleFuture'] = 0;
-                    $this->array[$transfer['created_at'] . $index . 1]['purchaseFuture'] = 0;
+                    if ($this->payment == "" || $this->payment == "bank") {
+                        $this->array[$transfer['created_at'] . $index . 1]['date'] = $transfer['transfer_date'];
+                        $this->array[$transfer['created_at'] . $index . 1]['note'] = "صادر بنك";
+                        $this->array[$transfer['created_at'] . $index . 1]['account'] = "تحويلات";
+                        $this->array[$transfer['created_at'] . $index . 1]['payment'] = "bank";
+                        $this->array[$transfer['created_at'] . $index . 1]['name'] = $transfer->note;
+                        $this->array[$transfer['created_at'] . $index . 1]['paid'] = 0;
+                        $this->array[$transfer['created_at'] . $index . 1]['debt'] = $transfer['transfer_amount'];
+                        $this->array[$transfer['created_at'] . $index . 1]['saleFuture'] = 0;
+                        $this->array[$transfer['created_at'] . $index . 1]['purchaseFuture'] = 0;
+                    }
 
-                    $this->array[$transfer['created_at'] . $index . 2]['date'] = $transfer['transfer_date'];
-                    $this->array[$transfer['created_at'] . $index . 2]['note'] = "وارد كاش";
-                    $this->array[$transfer['created_at'] . $index . 2]['account'] = "تحويلات";
-                    $this->array[$transfer['created_at'] . $index . 2]['payment'] = "cash";
-                    $this->array[$transfer['created_at'] . $index . 2]['name'] = $transfer->note;
-                    $this->array[$transfer['created_at'] . $index . 2]['paid'] = $transfer['transfer_amount'];
-                    $this->array[$transfer['created_at'] . $index . 2]['debt'] = 0;
-                    $this->array[$transfer['created_at'] . $index . 2]['saleFuture'] = 0;
-                    $this->array[$transfer['created_at'] . $index . 2]['purchaseFuture'] = 0;
+                    if ($this->payment == "" || $this->payment == "cash") {
+                        $this->array[$transfer['created_at'] . $index . 2]['date'] = $transfer['transfer_date'];
+                        $this->array[$transfer['created_at'] . $index . 2]['note'] = "وارد كاش";
+                        $this->array[$transfer['created_at'] . $index . 2]['account'] = "تحويلات";
+                        $this->array[$transfer['created_at'] . $index . 2]['payment'] = "cash";
+                        $this->array[$transfer['created_at'] . $index . 2]['name'] = $transfer->note;
+                        $this->array[$transfer['created_at'] . $index . 2]['paid'] = $transfer['transfer_amount'];
+                        $this->array[$transfer['created_at'] . $index . 2]['debt'] = 0;
+                        $this->array[$transfer['created_at'] . $index . 2]['saleFuture'] = 0;
+                        $this->array[$transfer['created_at'] . $index . 2]['purchaseFuture'] = 0;
+                    }
                 }
 
             }

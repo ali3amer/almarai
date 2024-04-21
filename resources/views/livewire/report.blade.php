@@ -566,6 +566,8 @@
                             <div class="col-4"><h5>مبيعات
                                     : {{$currentClient['clientName'] ?? ''}}</h5>
                             </div>
+                            <div class="col-4"><h5>الرصيد : {{number_format($salesBalance, 2)}}</h5></div>
+
                         </div>
                     </div>
                     <div class="scroll">
@@ -595,16 +597,16 @@
                             @foreach($saleDebts as $debt)
                                 <tr>
                                     @php
-                                        $currentBalance += $debt->debt - $debt->paid;
-                                        $paid += $debt->paid;
-                                        $debts += $debt->debt;
+                                        $currentBalance += $debt->debt - $debt->paid - $debt->discount + $debt->service;
+                                        $paid += $debt->paid + $debt->discount;
+                                        $debts += $debt->debt + $debt->service;
                                     @endphp
                                     <td>{{$debt->due_date}}</td>
                                     <td @if($debt->sale_id != null || $debt->purchase_id != null) data-bs-toggle="modal"
                                         data-bs-target="#printModal"
                                         wire:click="getInvoice({{$debt}})" @endif >{{ $debt->note }}</td>
-                                    <td>{{number_format($debt->debt, 2)}}</td>
-                                    <td>{{number_format($debt->paid, 2)}}</td>
+                                    <td>{{$debt->debt != 0 ? number_format($debt->debt, 2) : number_format($debt->service, 2)}}</td>
+                                    <td>{{$debt->paid != 0 ? number_format($debt->paid, 2) : number_format($debt->discount, 2)}}</td>
                                     <td>{{number_format($currentBalance, 2)}}</td>
                                 </tr>
                             @endforeach
@@ -653,14 +655,14 @@
                             @foreach($saleDebts as $debt)
                                 <tr>
                                     @php
-                                        $currentBalance += $debt->debt - $debt->paid;
+                                        $currentBalance += $debt->debt - $debt->paid - $debt->discount + $debt->service;
                                     @endphp
                                     <td>{{$debt->due_date}}</td>
                                     <td colspan="3"
                                         @if($debt->sale_id != null || $debt->purchase_id != null) data-bs-toggle="modal"
                                         data-bs-target="#printModal"
                                         wire:click="getInvoice({{$debt}})" @endif>{{ $debt->note }}</td>
-                                    <td>{{$debt->type == "debt" ? number_format($debt->debt, 2) : number_format($debt->paid, 2)}}</td>
+                                    <td>{{$debt->type == "debt" ? number_format($debt->debt != 0 ? $debt->debt : $debt->service, 2) : number_format($debt->paid != 0 ? $debt->paid : $debt->discount, 2)}}</td>
                                 </tr>
                                 @if($debt->type == 'debt' && $debt->sale_id != null)
                                     @foreach($debt->sale->saleDetails as $product)
@@ -732,8 +734,8 @@
                             @foreach($purchaseDebts as $debt)
                                 <tr>
                                     @php
-                                        $currentBalance += $debt->debt - $debt->paid;
-                                        $paid += $debt->paid;
+                                        $currentBalance += $debt->debt - $debt->paid - $debt->discount;
+                                        $paid += $debt->paid + $debt->discount;
                                         $debts += $debt->debt;
                                     @endphp
                                     <td>{{$debt->due_date}}</td>
@@ -741,7 +743,7 @@
                                         data-bs-target="#printModal"
                                         wire:click="getInvoice({{$debt}})" @endif >{{ $debt->note }}</td>
                                     <td>{{number_format($debt->debt, 2)}}</td>
-                                    <td>{{number_format($debt->paid, 2)}}</td>
+                                    <td>{{$debt->paid != 0 ? number_format($debt->paid, 2) : number_format($debt->discount, 2)}}</td>
                                     <td>{{number_format($currentBalance, 2)}}</td>
                                 </tr>
                             @endforeach
@@ -787,7 +789,7 @@
                             @foreach($purchaseDebts as $debt)
                                 <tr>
                                     @php
-                                        $currentBalance += $debt->debt - $debt->paid;
+                                        $currentBalance += $debt->debt - $debt->paid - $debt->discount;
                                     @endphp
                                     <td>{{$debt->due_date}}</td>
                                     <td colspan="3"
@@ -852,16 +854,16 @@
                             @foreach($saleDebts as $debt)
                                 <tr>
                                     @php
-                                        $currentBalance += $debt->debt - $debt->paid;
-                                        $paid += $debt->paid;
-                                        $debts += $debt->debt;
+                                        $currentBalance += $debt->debt - $debt->paid - $debt->discount + $debt->service;
+                                        $paid += $debt->paid  + $debt->discount;
+                                        $debts += $debt->debt + $debt->service;
                                     @endphp
                                     <td>{{$debt->due_date}}</td>
                                     <td @if($debt->sale_id != null) data-bs-toggle="modal"
                                         data-bs-target="#printModal"
                                         wire:click="getInvoice({{$debt}})" @endif >{{ $debt->note }}</td>
-                                    <td>{{number_format($debt->debt, 2)}}</td>
-                                    <td>{{number_format($debt->paid, 2)}}</td>
+                                    <td>{{$debt->debt != 0 ? number_format($debt->debt, 2): number_format($debt->service, 2)}}</td>
+                                    <td>{{$debt->paid != 0 ? number_format($debt->paid, 2) : number_format($debt->discount, 2)}}</td>
                                     <td>{{number_format($currentBalance, 2)}}</td>
                                 </tr>
                             @endforeach
@@ -906,14 +908,14 @@
                             @foreach($saleDebts as $debt)
                                 <tr>
                                     @php
-                                        $currentBalance += $debt->debt - $debt->paid;
+                                        $currentBalance += $debt->debt - $debt->paid - $debt->discount + $debt->service;
                                     @endphp
                                     <td>{{$debt->due_date}}</td>
                                     <td colspan="3"
                                         @if($debt->sale_id != null || $debt->purchase_id != null) data-bs-toggle="modal"
                                         data-bs-target="#printModal"
                                         wire:click="getInvoice({{$debt}})" @endif>{{ $debt->note }}</td>
-                                    <td>{{$debt->type == "debt" ? number_format($debt->debt, 2) : number_format($debt->paid, 2)}}</td>
+                                    <td>{{$debt->type == "debt" ? number_format($debt->debt != 0 ? $debt->debt : $debt->service, 2) : number_format($debt->paid != 0 ? $debt->paid : $debt->discount, 2)}}</td>
                                 </tr>
                                 @if($debt->type == 'debt' && $debt->sale_id != null)
                                     @foreach($debt->sale->saleDetails as $product)

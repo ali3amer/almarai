@@ -165,7 +165,7 @@ class Client extends Component
     {
         $this->currentClient = $client;
         $this->debts = SaleDebt::where('client_id', $client['id'])->withTrashed()->latest()->get();
-        $this->currentBalance = $this->debts->sum('debt') - $this->debts->sum('paid') - $this->debts->sum('discount') + $this->currentClient['initialBalance'];
+        $this->currentBalance = $this->debts->sum('debt') + $this->debts->sum('service') - $this->debts->sum('paid') - $this->debts->sum('discount') + $this->currentClient['initialBalance'];
 
     }
 
@@ -211,7 +211,7 @@ class Client extends Component
                 }
 
                 if (floatval($this->discount) != 0) {
-                    SaleDebt::create([
+                    $debt = SaleDebt::create([
                         'client_id' => $this->currentClient['id'],
                         'type' => "pay",
                         'debt' => 0,
@@ -227,7 +227,7 @@ class Client extends Component
                 }
 
                 if (floatval($this->service) != 0) {
-                    SaleDebt::create([
+                    $debt = SaleDebt::create([
                         'client_id' => $this->currentClient['id'],
                         'type' => "debt",
                         'debt' => 0,
@@ -237,14 +237,14 @@ class Client extends Component
                         'bank_id' => null,
                         'bank' => '',
                         'due_date' => $this->due_date,
-                        'note' => $note == "" ? "تم إضافة خدمه" : $this->note,
+                        'note' => $this->note == "" ? "تمت إضافة خدمه" : $this->note,
                         'user_id' => auth()->id(),
                     ]);
                 }
 
-
-
                 $this->resetData();
+
+                $this->showReceipt($debt->toArray());
 
                 $this->alert('success', 'تم السداد بنجاح', ['timerProgressBar' => true]);
 
@@ -320,7 +320,7 @@ class Client extends Component
 
     public function resetData($data = null)
     {
-        $this->reset('type', 'debt_amount', 'debtId', 'payment', 'bank', 'due_date', 'blocked', 'cash', 'discount', 'note', $data);
+        $this->reset('type', 'debt_amount', 'debtId', 'payment', 'bank', 'due_date', 'blocked', 'cash', 'discount', 'service', 'note', $data);
     }
 
     public function render()

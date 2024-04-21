@@ -44,7 +44,13 @@
                                     @endif
                                     <tr>
                                         <td>المبلغ</td>
-                                        <td>{{ $currentReceipt['type'] == 'pay' ? number_format($currentReceipt['paid'], 2) : number_format($currentReceipt['debt'], 2) }}</td>
+                                        <td>
+                                            @if($currentReceipt['type'] == 'pay')
+                                                {{ number_format($currentReceipt['paid'] != 0 ? $currentReceipt['paid'] : $currentReceipt['discount'], 2) }}
+                                            @else
+                                                {{ number_format($currentReceipt['debt'] != 0 ? $currentReceipt['debt'] : $currentReceipt['service'], 2) }}
+                                            @endif
+                                        </td>
                                     </tr>
                                     </tbody>
                                 </table>
@@ -293,12 +299,12 @@
                             @if(!session("closed") || $payment == "bank")
                                 <div class="col-{{ $type == "pay" && $debtType == 'sales' ? '6' : '12' }} d-flex align-items-end">
                                     @if($debtType == "purchases")
-                                        <button
+                                        <button data-bs-toggle="modal" data-bs-target="#debtModal"
                                             @disabled($payment == "bank" && $banks->count() == 0) @disabled($currentSupplier['cash']) @disabled(empty($currentSupplier) || $due_date == '') @disabled($debt_amount == 0 && $discount == 0) class="btn btn-{{$debtId == 0 ? 'primary' : 'success'}} w-100"
                                             wire:click="savePurchaseDebt()">{{$debtId == 0 ? 'دفــــع' : 'تعــــديل'}}</button>
                                     @else
-                                        <button
-                                            @disabled($payment == "bank" && $banks->count() == 0) @disabled($currentSupplier['cash']) @disabled(empty($currentSupplier) || $due_date == '') @disabled($debt_amount == 0 && $discount == 0) class="btn btn-{{$debtId == 0 ? 'primary' : 'success'}} w-100"
+                                        <button data-bs-toggle="modal" data-bs-target="#debtModal"
+                                            @disabled($payment == "bank" && $banks->count() == 0) @disabled($currentSupplier['cash']) @disabled(empty($currentSupplier) || $due_date == '') @disabled($debt_amount == 0 && $discount == 0 && $service == 0) class="btn btn-{{$debtId == 0 ? 'primary' : 'success'}} w-100"
                                             wire:click="saveSaleDebt()">{{$debtId == 0 ? 'دفــــع' : 'تعــــديل'}}</button>
                                     @endif
                                 </div>
@@ -352,7 +358,7 @@
                                             data-bs-target="#debtModal">{{$debt->note}}</td>
                                         <td>
                                             @if($debt->paid == 0 && $debt->debt == 0)
-                                                {{ $debt->discount }}
+                                                {{ $debt->discount != 0 ? number_format($debt->discount, 2) : number_format($debt->service, 2) }}
                                             @else
                                                 {{$debt->type == 'pay' ? number_format($debt->paid, 2) : number_format($debt->debt, 2)}}
                                             @endif

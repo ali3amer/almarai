@@ -181,29 +181,9 @@ class Supplier extends Component
             $this->debts = SaleDebt::where('supplier_id', $supplier['id'])->withTrashed()->latest()->get();
         }
         $this->currentBalance = $this->debts->sum('debt') - $this->debts->sum('paid') - $this->debts->sum('discount') + $this->currentSupplier[$this->debtType == 'purchases' ? 'initialBalance' : 'initialSalesBalance'];
-    }
-
-    public function saveDebt()
-    {
-        if ($this->debtId == 0) {
-
-
-            if ($this->debtType == 'purchases') {
-
-            } else {
-            }
-
-        } else {
-
-            if ($this->debtType == 'purchases') {
-
-
-            } else {
-            }
-
-
+        if ($this->debtType == "sales") {
+            $this->currentBalance += $this->debts->sum('service');
         }
-
     }
 
     public function saveSaleDebt()
@@ -214,7 +194,7 @@ class Supplier extends Component
             $debt = $this->debt_amount;
             $paid = 0;
         } else {
-            $note = 'تم دفع مبلغ';
+            $note = 'تم إستلام مبلغ';
             $paid = $this->debt_amount;
             $debt = 0;
         }
@@ -232,7 +212,7 @@ class Supplier extends Component
             ]);
         } else {
             if ($this->debtId == 0) {
-                SaleDebt::create([
+                $debt = SaleDebt::create([
                     'supplier_id' => $this->currentSupplier['id'],
                     'type' => $this->type,
                     'debt' => $debt,
@@ -246,7 +226,7 @@ class Supplier extends Component
                 ]);
 
                 if (floatval($this->discount) != 0) {
-                    SaleDebt::create([
+                    $debt = SaleDebt::create([
                         'supplier_id' => $this->currentSupplier['id'],
                         'type' => "pay",
                         'debt' => 0,
@@ -256,13 +236,13 @@ class Supplier extends Component
                         'bank_id' => null,
                         'bank' => '',
                         'due_date' => $this->due_date,
-                        'note' => "تم تخفيض مبلغ " . $this->discount,
+                        'note' => "تم تخفيض مبلغ ",
                         'user_id' => auth()->id(),
                     ]);
                 }
 
-                if (floatval($this->sarvice) != 0) {
-                    SaleDebt::create([
+                if (floatval($this->service) != 0) {
+                    $debt = SaleDebt::create([
                         'supplier_id' => $this->currentSupplier['id'],
                         'type' => "debt",
                         'debt' => 0,
@@ -277,7 +257,7 @@ class Supplier extends Component
                     ]);
                 }
                 $this->resetData();
-
+                $this->showReceipt($debt->toArray());
                 $this->alert('success', 'تم السداد بنجاح', ['timerProgressBar' => true]);
             } else {
                 $debt = SaleDebt::where('id', $this->debtId)->first();
@@ -331,7 +311,7 @@ class Supplier extends Component
             if ($this->debtId == 0) {
 
                 if (floatval($this->debt_amount) != 0) {
-                    PurchaseDebt::create([
+                    $debt = PurchaseDebt::create([
                         'supplier_id' => $this->currentSupplier['id'],
                         'type' => $this->type,
                         'debt' => $debt,
@@ -346,7 +326,7 @@ class Supplier extends Component
                 }
 
                 if (floatval($this->discount) != 0) {
-                    PurchaseDebt::create([
+                    $debt = PurchaseDebt::create([
                         'supplier_id' => $this->currentSupplier['id'],
                         'type' => "pay",
                         'debt' => 0,
@@ -362,7 +342,7 @@ class Supplier extends Component
                 }
 
                 $this->resetData();
-
+                $this->showReceipt($debt->toArray());
                 $this->alert('success', 'تم السداد بنجاح', ['timerProgressBar' => true]);
 
             } else {
@@ -440,7 +420,7 @@ class Supplier extends Component
 
     public function resetData($data = null)
     {
-        $this->reset('type', 'debt_amount', 'debtId', 'payment', 'bank', 'cash', 'due_date', 'blocked', 'discount', 'note', $data);
+        $this->reset('type', 'debt_amount', 'debtId', 'payment', 'bank', 'cash', 'due_date', 'blocked', 'discount', 'service', 'note', $data);
     }
 
     public function render()
