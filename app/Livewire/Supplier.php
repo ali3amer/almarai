@@ -420,7 +420,7 @@ class Supplier extends Component
 
     public function resetData($data = null)
     {
-        $this->reset('type', 'debt_amount', 'debtId', 'payment', 'bank', 'cash', 'due_date', 'blocked', 'discount', 'service', 'note', $data);
+        $this->reset('type', 'debt_amount', 'debtId', 'payment', 'bank', 'bank_id', 'cash', 'due_date', 'blocked', 'discount', 'service', 'note', $data);
     }
 
     public function render()

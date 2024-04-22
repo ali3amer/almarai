@@ -149,7 +149,7 @@ class Expense extends Component
 
     public function resetData()
     {
-        $this->reset('id', 'description', 'amount', 'expense_date', 'option_id');
+        $this->reset('id', 'description', 'amount', 'bank', 'bank_id', 'payment', 'expense_date', 'option_id');
     }
 
     public function changeMode()

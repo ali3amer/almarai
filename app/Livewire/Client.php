@@ -320,7 +320,7 @@ class Client extends Component
 
     public function resetData($data = null)
     {
-        $this->reset('type', 'debt_amount', 'debtId', 'payment', 'bank', 'due_date', 'blocked', 'cash', 'discount', 'service', 'note', $data);
+        $this->reset('type', 'debt_amount', 'debtId', 'payment', 'bank', 'bank_id', 'due_date', 'blocked', 'cash', 'discount', 'service', 'note', $data);
     }
 
     public function render()

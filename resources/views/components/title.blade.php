@@ -50,7 +50,7 @@
                 <h6 class="m-0 px-2">{{ "البنك : " . number_format($bankBalance, 2) }}</h6>
             </div>
             <div class="col-3">
-                <h6 class="m-0 px-2">{{ "الجمله : " . number_format($bankBalance + $safeBalance, 2) }}</h6>
+                <h6 class="m-0 px-2">{{ "الجمله : " . number_format(floatval($bankBalance) + floatval($safeBalance), 2) }}</h6>
             </div>
         </div>
     </div>

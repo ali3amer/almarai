@@ -366,7 +366,7 @@ class Employee extends Component
     #[On('reset-employee')]
     public function resetData($data = null)
     {
-        $this->reset('id', 'employeeName', 'gift_id', "type", 'debtId', 'editMode', 'currentDebt', 'note', 'editGiftMode', 'editDebtMode', 'initialBalance', 'discount', $data);
+        $this->reset('id', 'employeeName', 'gift_id', "type", 'debtId', 'editMode', 'currentDebt', 'payment', 'bank', 'bank_id', 'note', 'editGiftMode', 'editDebtMode', 'initialBalance', 'discount', $data);
     }
 
     public function render()
