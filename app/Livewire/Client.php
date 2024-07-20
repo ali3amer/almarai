@@ -164,8 +164,13 @@ class Client extends Component
     public function showDebts($client)
     {
         $this->currentClient = $client;
+        $returns = 0;
+        foreach (\App\Models\Client::find($client['id'])->sales as $sale) {
+                $returns += $sale->saleReturns->sum('paid');
+        }
+
         $this->debts = SaleDebt::where('client_id', $client['id'])->withTrashed()->latest()->get();
-        $this->currentBalance = $this->debts->sum('debt') + $this->debts->sum('service') - $this->debts->sum('paid') - $this->debts->sum('discount') + $this->currentClient['initialBalance'];
+        $this->currentBalance = $this->debts->sum('debt') + $this->debts->sum('service') - $this->debts->sum('paid') - $this->debts->sum('discount') + $this->currentClient['initialBalance'] - $returns;
 
     }
 

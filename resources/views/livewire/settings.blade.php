@@ -71,4 +71,5 @@
             </form>
         </div>
     </div>
+    <button class="btn btn-warning mt-2" wire:click="fixData()">إصلاح</button>
 </div>

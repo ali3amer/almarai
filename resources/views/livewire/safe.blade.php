@@ -326,7 +326,7 @@
                 </div>
             </div>
 
-            <div class="col-5 mt-2">
+            <div class="col-5 mt-2 d-none">
                 <div class="card">
                     <div class="card-body">
                         <div class="card-title">

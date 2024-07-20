@@ -24,6 +24,7 @@ class Returns extends Component
     public bool $editMode = false;
     public int $id = 0;
     public float $price = 0;
+    public $paid = 0;
     public float $quantity = 0;
     public float $amount = 0;
     public $quantityReturn = 0;
@@ -87,8 +88,18 @@ class Returns extends Component
     public function save()
     {
 
-        if ($this->id == 0) {
-
+        if (floatval($this->paid) > floatval(session("safeBalance"))) {
+            $this->confirm("المبلغ المدفوع أكبر من المبلغ المتوفر", [
+                'toast' => false,
+                'showConfirmButton' => false,
+                'confirmButtonText' => 'موافق',
+                'onConfirmed' => "cancelSale",
+                'showCancelButton' => true,
+                'cancelButtonText' => 'إلغاء',
+                'confirmButtonColor' => '#dc2626',
+                'cancelButtonColor' => '#4b5563'
+            ]);
+        } else {
             $sale = \App\Models\Sale::where('id', $this->currentDetail['sale_id'])->first();
 
             \App\Models\SaleDebt::create([
@@ -111,8 +122,7 @@ class Returns extends Component
                 $salePaid = floatval($sale["paid"]) - $this->priceReturn;
             }
 
-            if ($salePaid != 0 || floatval($sale["paid"]) >= $this->priceReturn)
-            {
+            if ($salePaid != 0 || floatval($sale["paid"]) >= $this->priceReturn) {
                 \App\Models\SaleDebt::create([
                     $this->buyer . '_id' => $this->currentClient['id'],
                     'paid' => 0,
@@ -144,15 +154,17 @@ class Returns extends Component
                 'product_id' => $this->currentDetail['product_id'],
                 'quantity' => floatval($this->quantityReturn),
                 'return_date' => $this->return_date,
-                'price' => $this->currentDetail['price']
+                'price' => $this->currentDetail['price'],
+                'paid' => $this->paid
             ]);
 
             $this->getReturns($sale->toArray());
 
             $this->alert('success', 'تم الحفظ بنجاح', ['timerProgressBar' => true]);
+
+            $this->resetData();
         }
 
-        $this->resetData();
     }
 
     public function deleteMessage($return)

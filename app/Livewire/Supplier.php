@@ -212,18 +212,21 @@ class Supplier extends Component
             ]);
         } else {
             if ($this->debtId == 0) {
-                $debt = SaleDebt::create([
-                    'supplier_id' => $this->currentSupplier['id'],
-                    'type' => $this->type,
-                    'debt' => $debt,
-                    'paid' => $paid,
-                    'payment' => $this->payment,
-                    'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
-                    'bank' => $this->bank,
-                    'due_date' => $this->due_date,
-                    'note' => $this->note == '' ? $note : $this->note,
-                    'user_id' => auth()->id(),
-                ]);
+
+                if (floatval($this->debt_amount) != 0) {
+                    $debt = SaleDebt::create([
+                        'supplier_id' => $this->currentSupplier['id'],
+                        'type' => $this->type,
+                        'debt' => $debt,
+                        'paid' => $paid,
+                        'payment' => $this->payment,
+                        'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
+                        'bank' => $this->bank,
+                        'due_date' => $this->due_date,
+                        'note' => $this->note == '' ? $note : $this->note,
+                        'user_id' => auth()->id(),
+                    ]);
+                }
 
                 if (floatval($this->discount) != 0) {
                     $debt = SaleDebt::create([
@@ -252,7 +255,7 @@ class Supplier extends Component
                         'bank_id' => null,
                         'bank' => '',
                         'due_date' => $this->due_date,
-                        'note' => $note == "" ? "تم إضافة خدمة" : $note,
+                        'note' => $this->note == "" ? "تم إضافة خدمة" : $note,
                         'user_id' => auth()->id(),
                     ]);
                 }

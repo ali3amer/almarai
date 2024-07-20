@@ -199,6 +199,22 @@
                             </div>
 
                             <div class="col">
+                                <label for="priceReturn">قيمة المرتجعات</label>
+
+                                <input type="text" autocomplete="off" disabled id="priceReturn" wire:model="priceReturn"
+                                       class="form-control text-center"
+                                       placeholder="قيمة المرتجعات">
+                            </div>
+
+                            <div class="col">
+                                <label for="paid">المبلغ المدفوع</label>
+
+                                <input type="text" autocomplete="off" @disabled(empty($currentDetail)) id="paid" wire:model="paid"
+                                       class="form-control text-center"
+                                       placeholder="المبلغ المدفوع">
+                            </div>
+
+                            <div class="col">
                                 <label for="return_date">تاريخ الارجاع</label>
                                 <input type="date" disabled @disabled(empty($currentDetail)) wire:model="return_date" class="form-control text-center">
                             </div>
@@ -217,7 +233,7 @@
                             <div class="card-title">
                                 <div class="row">
                                     <div class="col-4"><h6>المنتجات المرجعه بفاتورة رقم {{ $currentSale['id'] }}</h6></div>
-                                    <div class="col"><h6>{{$currentSale['sale_date']}}</h6></div>
+                                    <div class="col"><h6>{{"التاريخ الفاتورة : " . $currentSale['sale_date']}}</h6></div>
                                 </div>
                             </div>
                             <div class="scroll">

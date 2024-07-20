@@ -86,116 +86,100 @@ class PurchaseReturns extends Component
 
     public function save()
     {
-        if ($this->id == 0) {
-            $purchase = \App\Models\Purchase::where('id', $this->currentDetail['purchase_id'])->first();
-//            $payment = $purchase->purchaseDebts->where("type", "pay")->first()->paid;
+        $purchase = \App\Models\Purchase::where('id', $this->currentDetail['purchase_id'])->first();
+        // $payment = $purchase->purchaseDebts->where("type", "pay")->first()->paid;
 
-            if ($purchase->paid > 0 && floatval($this->priceReturn) <= floatval(session("safeBalance"))) {
-                $this->confirm("المبلغ المرتجع أكبر من المبلغ المتوفر", [
-                    'toast' => false,
-                    'showConfirmButton' => false,
-                    'confirmButtonText' => 'موافق',
-                    'onConfirmed' => "cancelSale",
-                    'showCancelButton' => true,
-                    'cancelButtonText' => 'إلغاء',
-                    'confirmButtonColor' => '#dc2626',
-                    'cancelButtonColor' => '#4b5563'
+        $quantity = \App\Models\Product::where("id", $this->currentDetail['product_id'])->first()->stock;
+        if (floatval($this->quantityReturn) < floatval($quantity)) {
+
+            if ($purchase->paid == 0) {
+                \App\Models\PurchaseDebt::create([
+                    'supplier_id' => $this->currentSupplier['id'],
+                    'paid' => 0,
+                    'purchase_id' => $this->currentDetail['purchase_id'],
+                    'debt' => 0,
+                    'discount' => floatval($this->priceReturn),
+                    'type' => 'pay',
+                    'bank' => '',
+                    'payment' => 'cash',
+                    'bank_id' => null,
+                    'due_date' => $this->return_date,
+                    'note' => 'تم خصم قيمة المنتج المرجع من فاتورة #' . $purchase['id'],
+                    'user_id' => auth()->id()
                 ]);
             } else {
-            }
-
-            $quantity = \App\Models\Product::where("id", $this->currentDetail['product_id'])->first()->stock;
-            if (floatval($this->quantityReturn) < floatval($quantity)) {
-
-                if ($purchase->paid == 0) {
-                    \App\Models\PurchaseDebt::create([
-                        'supplier_id' => $this->currentSupplier['id'],
-                        'paid' => 0,
-                        'purchase_id' => $this->currentDetail['purchase_id'],
-                        'debt' => 0,
-                        'discount' => floatval($this->priceReturn),
-                        'type' => 'pay',
-                        'bank' => '',
-                        'payment' => 'cash',
-                        'bank_id' => null,
-                        'due_date' => $this->return_date,
-                        'note' => 'تم خصم قيمة المنتج المرجع من فاتورة #' . $purchase['id'],
-                        'user_id' => auth()->id()
-                    ]);
-                } else {
-                    \App\Models\PurchaseDebt::create([
-                        'supplier_id' => $this->currentSupplier['id'],
-                        'paid' => 0,
-                        'debt' => floatval($this->priceReturn),
-                        'discount' => 0,
-                        'type' => 'debt',
-                        'bank' => '',
-                        'payment' => 'cash',
-                        'bank_id' => null,
-                        'due_date' => $this->return_date,
-                        'note' => 'تم خصم قيمة المنتج المرجع من فاتورة #' . $purchase['id'],
-                        'user_id' => auth()->id()
-                    ]);
-                }
-
-                if (floatval($purchase["paid"]) == 0 || floatval($purchase["paid"]) < $this->priceReturn) {
-                    $purchasePaid = 0;
-                } else {
-                    $purchasePaid = floatval($purchase["paid"]) - $this->priceReturn;
-                }
-
-                if ($purchasePaid != 0 || floatval($purchase["paid"]) >= $this->priceReturn) {
-                    \App\Models\PurchaseDebt::create([
-                        'supplier_id' => $this->currentSupplier['id'],
-                        'paid' => 0,
-                        'purchase_id' => $this->currentDetail['purchase_id'],
-                        'debt' => floatval($this->priceReturn),
-                        'type' => 'debt',
-                        'bank' => '',
-                        'payment' => 'cash',
-                        'bank_id' => null,
-                        'due_date' => $this->return_date,
-                        'note' => 'تم دفع قيمة المنتج المرجع الى العميل من فاتورة #' . $purchase['id'],
-                        'user_id' => auth()->id()
-                    ]);
-                }
-                $total_amount = $purchase['total_amount'] - $this->priceReturn;
-                $remainder = $total_amount - $purchasePaid - $purchase['discount'];
-                $purchase->update([
-                    'paid' => $purchasePaid,
-                    'remainder' => $remainder,
-                    'total_amount' => $total_amount,
-                ]);
-
-                PurchaseDetail::where("purchase_id", $purchase['id'])->where("product_id", $this->currentDetail['product_id'])->decrement("quantity", floatval($this->quantityReturn));
-
-                PurchaseReturn::create([
-                    'purchase_id' => $purchase['id'],
-                    'product_id' => $this->currentDetail['product_id'],
-                    'quantity' => floatval($this->quantityReturn),
-                    'return_date' => $this->return_date,
-                    'price' => $this->currentDetail['price']
-                ]);
-
-                $this->getReturns($purchase->toArray());
-
-                $this->alert('success', 'تم الحفظ بنجاح', ['timerProgressBar' => true]);
-            } else {
-                $this->confirm("لايمكنك إرجاع كمية المنتج لان الكمية الموجوده بالمخزن اقل من المرتجعه", [
-                    'toast' => false,
-                    'showConfirmButton' => false,
-                    'confirmButtonText' => 'موافق',
-                    'onConfirmed' => "cancelSale",
-                    'showCancelButton' => true,
-                    'cancelButtonText' => 'إلغاء',
-                    'confirmButtonColor' => '#dc2626',
-                    'cancelButtonColor' => '#4b5563'
+                \App\Models\PurchaseDebt::create([
+                    'supplier_id' => $this->currentSupplier['id'],
+                    'paid' => 0,
+                    'debt' => floatval($this->priceReturn),
+                    'discount' => 0,
+                    'type' => 'debt',
+                    'bank' => '',
+                    'payment' => 'cash',
+                    'bank_id' => null,
+                    'due_date' => $this->return_date,
+                    'note' => 'تم خصم قيمة المنتج المرجع من فاتورة #' . $purchase['id'],
+                    'user_id' => auth()->id()
                 ]);
             }
 
+            if (floatval($purchase["paid"]) == 0 || floatval($purchase["paid"]) < $this->priceReturn) {
+                $purchasePaid = 0;
+            } else {
+                $purchasePaid = floatval($purchase["paid"]) - $this->priceReturn;
+            }
+
+            if ($purchasePaid != 0 || floatval($purchase["paid"]) >= $this->priceReturn) {
+                \App\Models\PurchaseDebt::create([
+                    'supplier_id' => $this->currentSupplier['id'],
+                    'paid' => 0,
+                    'purchase_id' => $this->currentDetail['purchase_id'],
+                    'debt' => floatval($this->priceReturn),
+                    'type' => 'debt',
+                    'bank' => '',
+                    'payment' => 'cash',
+                    'bank_id' => null,
+                    'due_date' => $this->return_date,
+                    'note' => 'تم دفع قيمة المنتج المرجع الى العميل من فاتورة #' . $purchase['id'],
+                    'user_id' => auth()->id()
+                ]);
+            }
+            $total_amount = $purchase['total_amount'] - $this->priceReturn;
+            $remainder = $total_amount - $purchasePaid - $purchase['discount'];
+            $purchase->update([
+                'paid' => $purchasePaid,
+                'remainder' => $remainder,
+                'total_amount' => $total_amount,
+            ]);
+
+            PurchaseDetail::where("purchase_id", $purchase['id'])->where("product_id", $this->currentDetail['product_id'])->decrement("quantity", floatval($this->quantityReturn));
+
+            PurchaseReturn::create([
+                'purchase_id' => $purchase['id'],
+                'product_id' => $this->currentDetail['product_id'],
+                'quantity' => floatval($this->quantityReturn),
+                'return_date' => $this->return_date,
+                'price' => $this->currentDetail['price']
+            ]);
+
+            $this->getReturns($purchase->toArray());
+
+            $this->alert('success', 'تم الحفظ بنجاح', ['timerProgressBar' => true]);
+            $this->resetData();
+
+        } else {
+            $this->confirm("لايمكنك إرجاع كمية المنتج لان الكمية الموجوده بالمخزن اقل من المرتجعه", [
+                'toast' => false,
+                'showConfirmButton' => false,
+                'confirmButtonText' => 'موافق',
+                'onConfirmed' => "cancelSale",
+                'showCancelButton' => true,
+                'cancelButtonText' => 'إلغاء',
+                'confirmButtonColor' => '#dc2626',
+                'cancelButtonColor' => '#4b5563'
+            ]);
         }
 
-        $this->resetData();
     }
 
     public function deleteMessage($return)

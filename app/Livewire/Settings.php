@@ -2,6 +2,8 @@
 
 namespace App\Livewire;
 
+use App\Models\PurchaseDebt;
+use App\Models\SaleDebt;
 use App\Models\Setting;
 use Livewire\Component;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
@@ -82,5 +84,15 @@ class Settings extends Component
     public function render()
     {
         return view('livewire.settings');
+    }
+
+    public function fixData()
+    {
+        SaleDebt::where("payment", "bank")->whereNull("bank_id")->update(["bank_id" => 1]);
+        SaleDebt::where("payment", "cash")->whereNotNull("bank_id")->update(["bank_id" => null]);
+        PurchaseDebt::where("payment", "bank")->whereNull("bank_id")->update(["bank_id" => 1]);
+        PurchaseDebt::where("payment", "cash")->whereNotNull("bank_id")->update(["bank_id" => null]);
+        \App\Models\Expense::where("payment", "bank")->whereNull("bank_id")->update(["bank_id" => 1]);
+        \App\Models\Expense::where("payment", "cash")->whereNotNull("bank_id")->update(["bank_id" => null]);
     }
 }
