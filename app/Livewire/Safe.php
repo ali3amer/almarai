@@ -307,7 +307,7 @@ class Safe extends Component
 
     public function render()
     {
-        $this->safeBalance = \App\Models\Safe::first()->pastBalance;
+        $this->safeBalance = \App\Models\Safe::first()->pastBalance ?? 0;
 
         if ($this->payment == "bank" && $this->bank_id == null) {
             if ($this->banks->count() != 0) {

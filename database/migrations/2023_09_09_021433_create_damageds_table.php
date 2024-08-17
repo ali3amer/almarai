@@ -16,7 +16,7 @@ return new class extends Migration
             $table->unsignedBigInteger('product_id');
             $table->foreign('product_id')->references('id')->on('products')->onDelete('cascade')->onUpdate('cascade');
             $table->decimal('quantity', 10, 2);
-            $table->date('damaged_date');
+            $table->date('due_date');
             $table->timestamps();
         });
     }

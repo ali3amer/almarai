@@ -5,8 +5,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class SupplierDebt extends Model
+class DepositDebt extends Model
 {
     use HasFactory;
     protected $guarded = [];
+
+    public function deposit()
+    {
+        return $this->belongsTo(Deposit::class);
+    }
 }

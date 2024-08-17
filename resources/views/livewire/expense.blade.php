@@ -61,12 +61,12 @@
                             <div>
                                 @error('amount') <span class="error text-danger">{{ $message }}</span> @enderror
                             </div>
-                            <label for="expense_date" class="form-label">التاريخ</label>
-                            <input type="date" disabled autocomplete="off" wire:model="expense_date" class="form-control text-center"
+                            <label for="due_date" class="form-label">التاريخ</label>
+                            <input type="date" disabled autocomplete="off" wire:model="due_date" class="form-control text-center"
                                    placeholder="التاريخ ....."
-                                   name="expense_date" id="expense_date">
+                                   name="due_date" id="due_date">
                             <div>
-                                @error('expense_date') <span class="error text-danger">{{ $message }}</span> @enderror
+                                @error('due_date') <span class="error text-danger">{{ $message }}</span> @enderror
                             </div>
 
                             @if(!session("closed") || $payment == "bank")
@@ -138,7 +138,7 @@
                                             <td>{{ $expense->option->optionName ?? "" }}</td>
                                             <td>{{ $expense->description }}</td>
                                             <td>{{ number_format($expense->amount, 2) }}</td>
-                                            <td>{{ $expense->expense_date }}</td>
+                                            <td>{{ $expense->due_date }}</td>
                                             <td>
                                                 <button class="btn btn-sm btn-info text-white"
                                                         @disabled(!$update) wire:click="edit({{$expense}})">

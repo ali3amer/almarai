@@ -57,7 +57,7 @@
                                 <div class="card-title">
                                     <div class="row">
                                         <div class="col-4"><h6>فاتوره رقم {{ $id }}</h6></div>
-                                        <div class="col"><h6>{{$currentPurchase['purchase_date']}}</h6></div>
+                                        <div class="col"><h6>{{$currentPurchase['due_date']}}</h6></div>
                                     </div>
                                 </div>
                                 <div class="scroll">
@@ -84,7 +84,7 @@
                                         @endforeach
                                         <tr>
                                             <td>الجمله</td>
-                                            <td>{{$currentPurchase['total_amount']}}</td>
+                                            <td>{{$currentPurchase['amount']}}</td>
                                         </tr>
                                         </tbody>
                                     </table>
@@ -136,8 +136,8 @@
                                 @foreach($purchases as $purchase)
                                     <tr>
                                         <td>{{$purchase['id']}}</td>
-                                        <td>{{number_format($purchase['total_amount'], 2)}}</td>
-                                        <td>{{$purchase['purchase_date']}}</td>
+                                        <td>{{number_format($purchase['amount'], 2)}}</td>
+                                        <td>{{$purchase['due_date']}}</td>
                                         <td>
                                             <button class="btn btn-sm btn-warning text-white"
                                                     wire:click="getReturns({{$purchase}})"><i class="bi bi-eye"></i>
@@ -183,6 +183,7 @@
                                    class="form-control text-center"
                                    placeholder="الكمية">
                         </div>
+
                         <div class="col">
                             <label for="amount">الجمله</label>
 
@@ -203,8 +204,24 @@
                         </div>
 
                         <div class="col">
-                            <label for="return_date">تاريخ الارجاع</label>
-                            <input type="date" disabled @disabled(empty($currentDetail)) wire:model="return_date"
+                            <label for="priceReturn">قيمة المرتجعات</label>
+
+                            <input type="text" autocomplete="off" disabled id="priceReturn" wire:model="priceReturn"
+                                   class="form-control text-center"
+                                   placeholder="قيمة المرتجعات">
+                        </div>
+
+                        <div class="col">
+                            <label for="amount">المبلغ المدفوع</label>
+
+                            <input type="text" autocomplete="off" @disabled(empty($currentDetail)) @disabled(empty($currentPurchase) || $currentPurchase['amount'] == 0) id="amount" wire:model="amount"
+                                   class="form-control text-center"
+                                   placeholder="المبلغ المدفوع">
+                        </div>
+
+                        <div class="col">
+                            <label for="due_date">تاريخ الارجاع</label>
+                            <input type="date" disabled @disabled(empty($currentDetail)) wire:model="due_date"
                                    class="form-control text-center">
                         </div>
 
@@ -224,7 +241,7 @@
                         <div class="card-title">
                             <div class="row">
                                 <div class="col-4"><h6>المنتجات المرجعه بفاتورة رقم {{ $currentPurchase['id'] }}</h6></div>
-                                <div class="col"><h6>{{$currentPurchase['purchase_date']}}</h6></div>
+                                <div class="col"><h6>{{$currentPurchase['due_date']}}</h6></div>
                             </div>
                         </div>
                         <div class="scroll">
@@ -247,7 +264,7 @@
                                         <td>{{number_format($return['price'], 2)}}</td>
                                         <td>{{number_format($return['quantity'], 2)}}</td>
                                         <td>{{number_format($return['quantity'] * $return['price'], 2)}}</td>
-                                        <td>{{$return['return_date']}}</td>
+                                        <td>{{$return['due_date']}}</td>
                                     </tr>
                                 @endforeach
                                 </tbody>

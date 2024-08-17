@@ -36,7 +36,8 @@ class title extends Component
         // real title
 
         $date = session("date") ?? session(['date' => date("Y-m-d")]);
-        $safeBalance = Safe::first()->safeDayBalance;
+        $safeBalance = Safe::first()->safeDayBalance ?? 0;
+
 
         $banks = Bank::all();
         $bankBalance = 0;

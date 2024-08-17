@@ -21,7 +21,7 @@ return new class extends Migration
             $table->decimal('amount', 10, 2);
             $table->string('bank')->nullable();
             $table->enum('payment', ['cash', 'bank']);
-            $table->date('expense_date');
+            $table->date('due_date');
             $table->timestamps();
         });
     }

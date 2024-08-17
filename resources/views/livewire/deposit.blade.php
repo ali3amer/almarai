@@ -12,16 +12,16 @@
                 <div class="modal-body">
                     <div class="card">
                         <div class="card-body bg-white">
-                            @if(!empty($currentReceipt) && !empty($currentClient))
+                            @if(!empty($currentReceipt) && !empty($currentDeposit))
                                 <table class="table note ">
                                     <tbody>
                                     <tr>
                                         <td>السيد</td>
-                                        <td>{{$currentClient['clientName']}}</td>
+                                        <td>{{$currentDeposit['name']}}</td>
                                     </tr>
                                     <tr>
                                         <td>البيان</td>
-                                        <td>{{ $currentReceipt['note'] == null ? 'مبيعات بفاتورة رقم #' . $currentReceipt['invoice_id'] : $currentReceipt['note']  }}</td>
+                                        <td>{{$currentReceipt['note']}}</td>
                                     </tr>
                                     <tr>
                                         <td>نوع العملية</td>
@@ -45,11 +45,7 @@
                                     <tr>
                                         <td>المبلغ</td>
                                         <td>
-                                            @if(!isset($currentReceipt['transaction_amount']))
-                                                {{ number_format($currentReceipt['amount'], 2) }}
-                                            @else
-                                                {{ number_format($currentReceipt['transaction_amount'] != 0 ? $currentReceipt['transaction_amount'] : $currentReceipt['transaction_discount'], 2) }}
-                                            @endif
+                                            {{ number_format($currentReceipt['amount'], 2) }}
                                         </td>
                                     </tr>
                                     </tbody>
@@ -67,17 +63,17 @@
     {{--    <livewire:Title :$title />--}}
 
     <div class="row mt-2">
-        @if(empty($currentClient))
+        @if(empty($currentDeposit))
             <div class="col-4">
                 <div class="card bg-white">
                     <div class="card-body">
-                        <form id="client_form" wire:submit="save({{ $id }})">
-                            <label for="clientName" class="form-label">إسم العميل</label>
-                            <input type="text" wire:model="clientName" autocomplete="off" class="form-control"
-                                   placeholder="إسم العميل ..."
-                                   id="clientName">
+                        <form action="" wire:submit="save({{ $id }})">
+                            <label for="name" class="form-label">الإسم</label>
+                            <input type="text" wire:model="name" autocomplete="off" class="form-control"
+                                   placeholder="الإسم ..."
+                                   id="name">
                             <div>
-                                @error('clientName') <span class="error text-danger">{{ $message }}</span> @enderror
+                                @error('name') <span class="error text-danger">{{ $message }}</span> @enderror
                             </div>
                             <label for="phone" class="form-label">الهاتف</label>
                             <input type="text" wire:model="phone" class="form-control" autocomplete="off"
@@ -123,53 +119,44 @@
                     </div>
 
                     <div class="card-body">
-                        @if(count($clients) > 0 && $read)
+                        @if(count($deposits) > 0 && $read)
                             <div class="scroll">
                                 <table class="table text-center">
                                     <thead>
                                     <tr>
-                                        <th>إسم العميل</th>
+                                        <th>الإسم</th>
                                         <th>الهاتف</th>
                                         <th>الرصيد الافتتاحي</th>
                                         <th>الرصيد الحالي</th>
-                                        <th class="d-none">نقدي</th>
                                         <th>التحكم</th>
                                     </tr>
                                     </thead>
                                     <tbody>
-                                    @foreach($clients as $client)
+                                    @foreach($deposits as $deposit)
                                         <tr>
-                                            <td>{{ $client->clientName }}</td>
-                                            <td>{{ $client->phone }}</td>
-                                            <td>{{ number_format($client->initialBalance, 2) }}</td>
-                                            <td>{{ number_format($client->currentBalance, 2) }}</td>
-                                            <td class="d-none">{{ $client->cash ? "نعم" : "لا" }}</td>
+                                            <td>{{ $deposit->name }}</td>
+                                            <td>{{ $deposit->phone }}</td>
+                                            <td>{{ number_format($deposit->initialBalance, 2) }}</td>
+                                            <td>{{ number_format($deposit->currentBalance, 2) }}</td>
                                             <td>
                                                 <button
                                                     @disabled(!$update) class="btn btn-sm btn-info text-white"
-                                                    wire:click="edit({{$client}})"><i class="bi bi-pen"></i></button>
+                                                    wire:click="edit({{$deposit}})"><i class="bi bi-pen"></i></button>
                                                 /
                                                 <button
-                                                    @disabled(!$delete || count($client->sales) > 0) class="btn btn-sm btn-danger"
-                                                    wire:click="deleteMessage({{$client}})"><i class="bi bi-trash"></i>
+                                                    @disabled(!$delete) class="btn btn-sm btn-danger"
+                                                    wire:click="deleteMessage({{$deposit}})"><i class="bi bi-trash"></i>
                                                 </button>
                                                 /
                                                 <button @disabled(!$update) class="btn btn-sm btn-warning text-white"
-                                                        wire:click="showDebts({{$client}})"><i class="bi bi-eye"></i>
+                                                        wire:click="showDebts({{$deposit}})"><i class="bi bi-eye"></i>
                                                 </button>
 
                                                 /
                                                 <button @disabled(!$update)
-                                                        class="btn btn-sm btn-{{$client->blocked ? 'danger' : 'success'}} text-white"
-                                                        wire:click="changeBlocked({{$client}})"><i
-                                                        class="bi bi-{{$client->blocked ? 'lock' : 'unlock'}}"></i>
-                                                </button>
-
-
-                                                <button @disabled(!$update)
-                                                        class="btn d-none btn-sm btn-{{$client->cash ? 'danger' : 'primary'}} text-white"
-                                                        wire:click="changeCash({{$client}})"><i
-                                                        class="bi bi-cash"></i>
+                                                        class="btn btn-sm btn-{{$deposit->blocked ? 'danger' : 'success'}} text-white"
+                                                        wire:click="changeBlocked({{$deposit}})"><i
+                                                        class="bi bi-{{$deposit->blocked ? 'lock' : 'unlock'}}"></i>
                                                 </button>
                                             </td>
                                         </tr>
@@ -178,7 +165,7 @@
                                 </table>
                             </div>
                         @else
-                            <div class="alert alert-danger text-center">لايوجد عملاء ....</div>
+                            <div class="alert alert-danger text-center">لايوجد ....</div>
                         @endif
 
                     </div>
@@ -194,8 +181,8 @@
                                     <h6>سداد</h6>
                                 </div>
                                 <div class="col-9">
-                                    <input type="text" style="cursor:pointer;" wire:click="resetData('currentClient')"
-                                           readonly value="{{$currentClient['clientName']}}"
+                                    <input type="text" style="cursor:pointer;" wire:click="resetData('currentDeposit')"
+                                           readonly value="{{$currentDeposit['name']}}"
                                            class="border-danger form-control text-center" placeholder="إسم العيل">
                                 </div>
                             </div>
@@ -203,10 +190,10 @@
 
                         <div class="row">
                             <div class="col-6">
-                                <label for="type">نوع العملية</label>
+                                <label for="payment">نوع العملية</label>
                                 <select class="form-select text-center" wire:model.live="type">
-                                    <option value="debt">دين</option>
-                                    <option value="pay">توريد</option>
+                                    <option value="pay">توريد للخزنه</option>
+                                    <option value="debt">سحب من الامانات</option>
                                 </select>
                             </div>
                             <div class="col-6">
@@ -218,7 +205,7 @@
                         <div class="row my-2">
                             <div class="col-6">
                                 <label for="amount">المبلغ المدفوع</label>
-                                <input @disabled($service != 0 || $discount != 0) type="text"
+                                <input type="text"
                                        wire:model.live="amount" autocomplete="off" id="amount"
                                        class="form-control text-center"
                                        placeholder="المدفوع ....">
@@ -226,7 +213,7 @@
                             <div class="col-6">
                                 <label for="payment">طريقة الدفع</label>
                                 <select
-                                    @disabled($banks->count() == 0) @disabled($debtId !=0 && $discount != 0) class="form-select text-center"
+                                    @disabled($banks->count() == 0) @disabled($debtId !=0) class="form-select text-center"
                                     wire:model.live="payment">
                                     <option value="cash">كاش</option>
                                     <option value="bank">بنك</option>
@@ -236,7 +223,7 @@
 
                         <div class="row">
                             <div class="col-6">
-                                <label for="bank_id">البنك</label>
+                                <label for="payment">البنك</label>
                                 <select @disabled($payment == 'cash') class="form-select text-center"
                                         wire:model.live="bank_id">
                                     @foreach($banks as $bank)
@@ -254,17 +241,7 @@
 
                             </div>
 
-                            @if($type == "pay")
-                                <div class="col-6">
-                                    <label for="discount">التخفيض</label>
-                                    <input @disabled($amount != 0 || $service != 0) autocomplete="off" type="text"
-                                           wire:model.live="discount" id="discount"
-                                           class="form-control text-center mb-2"
-                                           placeholder="التخفيض ....">
-                                </div>
-                            @endif
-
-                            <div class="col-{{ $type == "pay" ? '6' : '12' }}">
+                            <div class="col-12">
                                 <label for="note">ملاحظات</label>
                                 <input autocomplete="off" type="text"
                                        wire:model="note" id="note"
@@ -275,20 +252,10 @@
 
                         <div class="row">
                             @if(!session("closed") || $payment == "bank")
-                                @if($type == "pay")
-                                    <div class="col-6">
-                                        <label for="discount">خدمه</label>
-                                        <input @disabled($amount != 0 || $discount != 0) autocomplete="off"
-                                               type="text"
-                                               wire:model.live="service" id="service"
-                                               class="form-control text-center"
-                                               placeholder="خدمه ....">
-                                    </div>
-                                @endif
 
-                                <div class="col-{{ $type == "pay" ? '6' : '12' }} d-flex align-items-end">
+                                <div class="col-12 d-flex align-items-end">
                                     <button data-bs-toggle="modal" data-bs-target="#debtModal"
-                                            @disabled($payment == "bank" && $banks->count() == 0) @disabled($currentClient['cash']) @disabled(empty($currentClient) || $due_date == '') @disabled($amount == 0 && $discount == 0 && $service == 0) class="btn btn-{{$debtId == 0 ? 'primary' : 'success'}} w-100"
+                                            @disabled($payment == "bank" && $banks->count() == 0) @disabled(empty($currentDeposit) || $due_date == '') @disabled($amount == 0) class="btn btn-{{$debtId == 0 ? 'primary' : 'success'}} w-100"
                                             wire:click="saveDebt()">{{$debtId == 0 ? 'دفــــع' : 'تعــــديل'}}</button>
                                 </div>
                             @endif
@@ -321,58 +288,28 @@
                                 <tbody>
                                 @foreach($debts as $debt)
                                     <tr>
-                                        <td style="cursor: pointer" wire:click="showReceipt({{ json_encode($debt) }})"
-                                            data-bs-toggle="modal"
-                                            data-bs-target="#debtModal">{{$debt['transaction_date']}}</td>
-                                        <td style="cursor: pointer" wire:click="showReceipt({{ json_encode($debt) }})"
+                                        <td style="cursor: pointer" wire:click="showReceipt({{$debt}})"
+                                            data-bs-toggle="modal" data-bs-target="#debtModal">{{$debt->due_date}}</td>
+                                        <td style="cursor: pointer" wire:click="showReceipt({{$debt}})"
+                                            data-bs-toggle="modal" data-bs-target="#debtModal">{{$debt->note}}</td>
+                                        <td style="cursor: pointer" wire:click="showReceipt({{$debt}})"
                                             data-bs-toggle="modal" data-bs-target="#debtModal">
-                                                {{ $debt['note'] }}
-                                        </td>
-                                        <td style="cursor: pointer" wire:click="showReceipt({{ json_encode($debt) }})"
-                                            data-bs-toggle="modal" data-bs-target="#debtModal">
-                                            {{$debt['transaction_discount'] != 0 ? number_format($debt['transaction_discount'], 2) : ($debt['transaction_service'] != 0 ? number_format($debt['transaction_service'], 2) : number_format($debt['transaction_amount'], 2))}}
+                                            {{number_format($debt->amount, 2)}}
                                         </td>
                                         <td class="d-none">
-                                            @if($debt['invoice_id'] == null && $debt['transaction_date'] == session("date"))
+                                            @if($debt->due_date == session("date"))
                                                 <button class="btn btn-sm btn-info"
-                                                        wire:click="chooseDebt({{ json_encode($debt) }})"><i
-                                                        class="bi bi-pen"></i></button>
+                                                        wire:click="chooseDebt({{$debt}})"><i
+                                                        class="bi bi-pen"></i>
+                                                </button>
+
                                                 <button class="btn btn-sm btn-danger"
-                                                        wire:click="deleteDebtMessage({{ json_encode($debt) }})"><i
-                                                        class="bi bi-trash"></i></button>
+                                                        wire:click="deleteDebtMessage({{$debt}})"><i
+                                                        class="bi bi-trash"></i>
+                                                </button>
                                             @endif
                                         </td>
                                     </tr>
-
-                                    @if($debt['tableName'] == "sale_returns" && floatval($debt['transaction_paid']) != 0)
-                                        <tr>
-                                            <td style="cursor: pointer"
-                                                wire:click="showReceipt({{ json_encode($debt) }})"
-                                                data-bs-toggle="modal"
-                                                data-bs-target="#debtModal">{{$debt['transaction_date']}}</td>
-                                            <td style="cursor: pointer"
-                                                wire:click="showReceipt({{ json_encode($debt) }})"
-                                                data-bs-toggle="modal" data-bs-target="#debtModal">
-                                                {{ 'مبلغ مرتجعات مبيعات بفاتورة رقم #' . $debt['invoice_id']}}
-                                            </td>
-                                            <td style="cursor: pointer"
-                                                wire:click="showReceipt({{ json_encode($debt) }})"
-                                                data-bs-toggle="modal" data-bs-target="#debtModal">
-                                                {{number_format($debt['transaction_paid'], 2)}}
-                                            </td>
-                                            <td class="d-none">
-                                                @if($debt['invoice_id'] == null && $debt['transaction_date'] == session("date"))
-                                                    <button class="btn btn-sm btn-info"
-                                                            wire:click="chooseDebt({{ json_encode($debt) }})"><i
-                                                            class="bi bi-pen"></i></button>
-                                                    <button class="btn btn-sm btn-danger"
-                                                            wire:click="deleteDebtMessage({{ json_encode($debt) }})"><i
-                                                            class="bi bi-trash"></i></button>
-                                                @endif
-                                            </td>
-                                        </tr>
-                                    @endif
-
                                 @endforeach
                                 </tbody>
                             </table>

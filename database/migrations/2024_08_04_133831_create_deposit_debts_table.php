@@ -11,23 +11,18 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('employee_debts', function (Blueprint $table) {
+        Schema::create('deposit_debts', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('employee_id');
-            $table->foreign('employee_id')->references('id')->on('employees')->onDelete('cascade')->onUpdate('cascade');
+            $table->unsignedBigInteger('deposit_id')->nullable();
+            $table->foreign('deposit_id')->references('id')->on('deposits')->onDelete('cascade')->onUpdate('cascade');
             $table->enum('type', ['debt', 'pay']);
-            $table->decimal('debt', 10, 2);
-            $table->decimal('paid', 10, 2);
+            $table->decimal('amount', 10, 2);
             $table->enum('payment', ['cash', 'bank']);
             $table->unsignedBigInteger('bank_id')->nullable();
             $table->foreign('bank_id')->references('id')->on('banks')->onDelete('cascade')->onUpdate('cascade');
             $table->string('bank')->nullable();
-            $table->date('due_date');
             $table->string('note')->nullable();
-            $table->unsignedBigInteger('gift_id')->nullable();
-            $table->foreign('gift_id')->references('id')->on('employee_gifts')->onDelete('cascade')->onUpdate('cascade');
-            $table->unsignedBigInteger('sale_id')->nullable();
-            $table->foreign('sale_id')->references('id')->on('sales')->onDelete('cascade')->onUpdate('cascade');
+            $table->date('due_date');
             $table->unsignedBigInteger('user_id')->nullable();
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade')->onUpdate('cascade');
             $table->timestamps();
@@ -39,6 +34,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('employee_debts');
+        Schema::dropIfExists('deposit_debts');
     }
 };

@@ -66,8 +66,8 @@
                             <div class="card-body">
                                 <div class="card-title">
                                     <div class="row">
-                                        <div class="col-4"><h6>فاتوره رقم {{ $id }}</h6></div>
-                                        <div class="col"><h6>{{$currentSale['sale_date']}}</h6></div>
+                                        <div class="col-4"><h6>فاتوره رقم {{ $currentSale['id'] }}</h6></div>
+                                        <div class="col"><h6>{{$currentSale['due_date']}}</h6></div>
                                     </div>
                                 </div>
                                 <div class="scroll">
@@ -83,7 +83,7 @@
                                         </thead>
                                         <tbody>
                                         @foreach($saleDetails as $detail)
-                                            <tr wire:click="chooseDetail({{$detail}}, {{$detail['product']}})" data-bs-dismiss="modal">
+                                            <tr style="cursor:pointer;" wire:click="chooseDetail({{$detail}}, {{$detail['product']}})" data-bs-dismiss="modal">
                                                 <td>{{$loop->index + 1}}</td>
                                                 <td>{{$detail['product']['productName']}}</td>
                                                 <td>{{number_format($detail['price'], 2)}}</td>
@@ -93,7 +93,15 @@
                                         @endforeach
                                         <tr>
                                             <td>الجمله</td>
-                                            <td>{{$currentSale['total_amount']}}</td>
+                                            <td>{{number_format($currentSale['amount'], 2)}}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>المدفوع</td>
+                                            <td>{{number_format($currentSale['paid'], 2)}}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>المتبقي</td>
+                                            <td>{{number_format($currentSale['remainder'], 2)}}</td>
                                         </tr>
                                         </tbody>
                                     </table>
@@ -143,8 +151,8 @@
                                 @foreach($sales as $sale)
                                     <tr>
                                         <td>{{$sale['id']}}</td>
-                                        <td>{{number_format($sale['total_amount'], 2)}}</td>
-                                        <td>{{$sale['sale_date']}}</td>
+                                        <td>{{number_format($sale['amount'], 2)}}</td>
+                                        <td>{{$sale['due_date']}}</td>
                                         <td>
                                             <button class="btn btn-sm text-white btn-warning" wire:click="getReturns({{$sale}})"><i class="bi bi-eye"></i></button> /
                                             <button  data-bs-toggle="modal" data-bs-target="#saleModal" wire:click="chooseSale({{$sale}}, false)" class="btn btn-sm btn-danger"><i class="bi bi-arrow-return-left"></i></button>
@@ -209,14 +217,14 @@
                             <div class="col">
                                 <label for="paid">المبلغ المدفوع</label>
 
-                                <input type="text" autocomplete="off" @disabled(empty($currentDetail)) id="paid" wire:model="paid"
+                                <input type="text" autocomplete="off" @disabled(empty($currentDetail)) @disabled(empty($currentSale) || $currentSale['paid'] == 0) id="paid" wire:model="paid"
                                        class="form-control text-center"
                                        placeholder="المبلغ المدفوع">
                             </div>
 
                             <div class="col">
-                                <label for="return_date">تاريخ الارجاع</label>
-                                <input type="date" disabled @disabled(empty($currentDetail)) wire:model="return_date" class="form-control text-center">
+                                <label for="due_date">تاريخ الارجاع</label>
+                                <input type="date" disabled @disabled(empty($currentDetail)) wire:model="due_date" class="form-control text-center">
                             </div>
 
                             @if(!session("closed"))
@@ -233,7 +241,7 @@
                             <div class="card-title">
                                 <div class="row">
                                     <div class="col-4"><h6>المنتجات المرجعه بفاتورة رقم {{ $currentSale['id'] }}</h6></div>
-                                    <div class="col"><h6>{{"التاريخ الفاتورة : " . $currentSale['sale_date']}}</h6></div>
+                                    <div class="col"><h6>{{"التاريخ الفاتورة : " . $currentSale['due_date']}}</h6></div>
                                 </div>
                             </div>
                             <div class="scroll">
@@ -256,7 +264,7 @@
                                             <td>{{number_format($return['price'], 2)}}</td>
                                             <td>{{number_format($return['quantity'], 2)}}</td>
                                             <td>{{number_format($return['quantity'] * $return['price'], 2)}}</td>
-                                            <td>{{$return['return_date']}}</td>
+                                            <td>{{$return['due_date']}}</td>
                                         </tr>
                                     @endforeach
                                     </tbody>

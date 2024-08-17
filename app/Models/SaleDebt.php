@@ -12,11 +12,6 @@ class SaleDebt extends Model
     use HasFactory, SoftDeletes;
     protected $guarded = [];
 
-    public function sale()
-    {
-        return $this->belongsTo(Sale::class);
-    }
-
     public function client()
     {
         return $this->belongsTo(Client::class);
@@ -36,7 +31,7 @@ class SaleDebt extends Model
     }
     public function getCreatedAtAttribute($value)
     {
-        return Carbon::parse($value)->format('Y-m-d h:i:s');
+        return Carbon::parse($value)->format('Y-m-d H:i:s.u');
     }
 
 }

@@ -19,11 +19,16 @@ return new class extends Migration
             $table->foreign('employee_id')->references('id')->on('employees')->onDelete('cascade')->onUpdate('cascade');
             $table->unsignedBigInteger('supplier_id')->nullable();
             $table->foreign('supplier_id')->references('id')->on('suppliers')->onDelete('cascade')->onUpdate('cascade');
+            $table->enum('payment', ['cash', 'bank']);
+            $table->unsignedBigInteger('bank_id')->nullable();
+            $table->foreign('bank_id')->references('id')->on('banks')->onDelete('cascade')->onUpdate('cascade');
+            $table->string('bank')->nullable();
+            $table->string('note')->nullable();
             $table->decimal('paid', 10, 2);
             $table->decimal('remainder', 10, 2)->nullable();
             $table->decimal('discount', 10, 2)->nullable();
-            $table->decimal('total_amount', 10, 2);
-            $table->date('sale_date');
+            $table->decimal('amount', 10, 2);
+            $table->date('due_date');
             $table->unsignedBigInteger('user_id')->nullable();
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade')->onUpdate('cascade');
             $table->softDeletes();

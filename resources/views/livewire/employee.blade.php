@@ -12,7 +12,7 @@
                 <div class="modal-body">
                     <div class="card">
                         <div class="card-body bg-white">
-                            @if(!empty($currentDebt) && !empty($currentEmployee))
+                            @if(!empty($currentReceipt) && !empty($currentEmployee))
                                 <table class="table note ">
                                     <tbody>
                                     <tr>
@@ -21,13 +21,13 @@
                                     </tr>
                                     <tr>
                                         <td>البيان</td>
-                                        <td>{{$currentDebt['note']}}</td>
+                                        <td>{{ $currentReceipt['note'] == null ? 'مبيعات بفاتورة رقم #' . $currentReceipt['invoice_id'] : $currentReceipt['note']  }}</td>
                                     </tr>
                                     <tr>
                                         <td>نوع العملية</td>
-                                        <td>{{$currentDebt['type'] == 'pay' ? 'دفع' : 'سحب'}}</td>
+                                        <td>{{$currentReceipt['type'] == 'pay' ? 'دفع' : 'سحب'}}</td>
                                     </tr>
-                                    @if($currentDebt['payment'] == 'cash')
+                                    @if($currentReceipt['payment'] == 'cash')
                                         <tr>
                                             <td>وسيلة الدفع</td>
                                             <td>كاش</td>
@@ -39,12 +39,18 @@
                                         </tr>
                                         <tr>
                                             <td>الايصال</td>
-                                            <td>{{ $currentDebt['bank'] }}</td>
+                                            <td>{{ $currentReceipt['bank'] }}</td>
                                         </tr>
                                     @endif
                                     <tr>
                                         <td>المبلغ</td>
-                                        <td>{{ $currentDebt['type'] == 'pay' ? $currentDebt['paid'] : $currentDebt['debt'] }}</td>
+                                        <td>
+                                            @if(!isset($currentReceipt['transaction_amount']))
+                                                {{ number_format($currentReceipt['amount'], 2) }}
+                                            @else
+                                                {{ number_format($currentReceipt['transaction_amount'] != 0 ? $currentReceipt['transaction_amount'] : $currentReceipt['transaction_discount'], 2) }}
+                                            @endif
+                                        </td>
                                     </tr>
                                     </tbody>
                                 </table>
@@ -121,6 +127,7 @@
                                         <th>إسم الموظف</th>
                                         <th>المرتب</th>
                                         <th>الرصيد الإفتتاحي</th>
+                                        <th>الرصيد الحالي</th>
                                         <th>التحكم</th>
                                     </tr>
                                     </thead>
@@ -131,6 +138,7 @@
                                             <td>{{ $employee->employeeName }}</td>
                                             <td>{{ number_format($employee->salary, 2) }}</td>
                                             <td>{{ number_format($employee->initialBalance, 2) }}</td>
+                                            <td>{{ number_format($employee->currentBalance, 2) }}</td>
                                             <td>
                                                 <button
                                                     @disabled(!$update) data-bs-target="#employeeModal"
@@ -177,7 +185,8 @@
                         <div class="row">
                             <div class="col-6">
                                 <label for="type">نوع العملية</label>
-                                <select id="type" class="form-select text-center" @disabled($editGiftMode || $editDebtMode)
+                                <select id="type" class="form-select text-center"
+                                        @disabled($editGiftMode || $editDebtMode)
                                         wire:model.live="type">
                                     <option value="gift">حافز او مرتب او سلفيه</option>
                                     <option value="pay">سداد</option>
@@ -185,25 +194,27 @@
                             </div>
 
                             <div class="col-6">
-                                <label for="gift_date">التاريخ</label>
-                                <input type="date" disabled class="form-control text-center" id="gift_date"
-                                       wire:model.live="gift_date">
+                                <label for="due_date">التاريخ</label>
+                                <input type="date" disabled class="form-control text-center" id="due_date"
+                                       wire:model.live="due_date">
                             </div>
                         </div>
 
                         <div class="row">
                             <div class="col-6">
-                                <label for="gift_amount">المدفوع</label>
-                                <input type="text" id="gift_amount" autocomplete="off"
-                                       class="form-control text-center" @disabled($type == "pay" && $editDebtMode && $discount> 0)
+                                <label for="amount">المدفوع</label>
+                                <input type="text" id="amount" autocomplete="off"
+                                       class="form-control text-center"
+                                       @disabled($type == "pay" && $editDebtMode && $discount> 0)
                                        placeholder="المبلغ ...."
-                                       wire:model.live="gift_amount">
+                                       wire:model.live="amount">
 
                             </div>
 
                             <div class="col-6">
                                 <label for="payment">طريقة الدفع</label>
-                                <select id="payment" @disabled($type == "pay" && $editDebtMode && $discount> 0) @disabled($banks->count() == 0) class="form-select text-center"
+                                <select id="payment"
+                                        @disabled($type == "pay" && $editDebtMode && $discount> 0) @disabled($banks->count() == 0) class="form-select text-center"
                                         wire:model.live="payment">
                                     <option value="cash">كاش</option>
                                     <option value="bank">بنك</option>
@@ -215,7 +226,7 @@
                             <div class="col-6">
                                 <label for="bank_id">البنك</label>
                                 <select id="bank_id"
-                                       @disabled($type == "pay" && $editDebtMode && $discount> 0) @disabled($banks->count() == 0) @disabled($payment == 'cash') class="form-select text-center"
+                                        @disabled($type == "pay" && $editDebtMode && $discount> 0) @disabled($banks->count() == 0) @disabled($payment == 'cash') class="form-select text-center"
                                         wire:model="bank_id">
                                     @foreach($banks as $bank)
                                         <option value="{{$bank->id}}">{{$bank->bankName}}</option>
@@ -240,7 +251,7 @@
                                     <label for="discount">التخفيض</label>
 
                                     <input type="text" id="discount" autocomplete="off" class="form-control text-center"
-                                           @disabled($type == "pay" && $editDebtMode && $gift_amount > 0) placeholder="التخفيض ...."
+                                           @disabled($type == "pay" && $editDebtMode && $amount > 0) placeholder="التخفيض ...."
                                            wire:model.live="discount">
 
                                 </div>
@@ -259,11 +270,13 @@
                         @if(!session("closed") || $payment == "bank")
                             @if($editGiftMode)
                                 <button class="btn btn-success w-100"
-                                        @if($type == "gift") wire:click="updateGift()" @else wire:click="updateDebt()" @endif>تعديل
+                                        @if($type == "gift") wire:click="updateGift()"
+                                        @else wire:click="updateDebt()" @endif>تعديل
                                 </button>
                             @else
                                 <button class="btn btn-primary w-100"
-                                        @disabled($payment == "bank" && $bank_id == null) @if($type == "gift") wire:click="payGift()" @else wire:click="payDebt()" @endif>{{ $type == "gift" ? "دفع" : "سداد" }}
+                                        @disabled($payment == "bank" && $bank_id == null) @if($type == "gift") wire:click="payGift()"
+                                        @else wire:click="payDebt()" @endif>{{ $type == "gift" ? "دفع" : "سداد" }}
                                 </button>
                             @endif
                         @endif
@@ -299,8 +312,8 @@
                                 <tbody>
                                 @foreach($gifts as $gift)
                                     <tr>
-                                        <td>{{$gift->gift_date}}</td>
-                                        <td>{{number_format($gift->gift_amount, 2)}}</td>
+                                        <td>{{$gift->due_date}}</td>
+                                        <td>{{number_format($gift->amount, 2)}}</td>
                                         <td>{{$gift->note}}</td>
                                         <td class="d-none">
                                             <button
@@ -338,32 +351,62 @@
                                     <th>التاريخ</th>
                                     <th>البيان</th>
                                     <th>المبلغ</th>
-                                    <th>التخفيض</th>
-                                    <th>التحكم</th>
                                 </tr>
                                 </thead>
                                 <tbody>
                                 @foreach($debts as $debt)
-                                    <tr style="cursor: pointer" wire:click="editDebt({{$debt}})">
-                                        <td>{{$debt->due_date}}</td>
-                                        <td data-bs-toggle="modal" data-bs-target="#debtModal">{{$debt->note}}</td>
-                                        <td>{{number_format($debt->type == "pay" ? $debt->paid : $debt->debt, 2)}}</td>
-                                        <td>{{number_format($debt->discount, 2)}}</td>
-                                        <td>
-                                            @if($debt->sale_id == null && $debt->due_date == session("date"))
-                                                <button
-                                                    @disabled(!$update)
-                                                    class="btn btn-sm btn-info text-white"
-                                                    wire:click="editDebt({{$debt}})">
-                                                    <i class="bi bi-pen"></i></button>
-                                                /
+                                    <tr>
+                                        <td style="cursor: pointer" wire:click="showReceipt({{ json_encode($debt) }})"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#debtModal">{{$debt['transaction_date']}}</td>
+                                        <td style="cursor: pointer" wire:click="showReceipt({{ json_encode($debt) }})"
+                                            data-bs-toggle="modal" data-bs-target="#debtModal">
+                                                {{ $debt['note'] }}
+                                        </td>
+                                        <td style="cursor: pointer" wire:click="showReceipt({{ json_encode($debt) }})"
+                                            data-bs-toggle="modal" data-bs-target="#debtModal">
+                                            {{$debt['transaction_discount'] != 0 ? number_format($debt['transaction_discount'], 2) : ($debt['transaction_service'] != 0 ? number_format($debt['transaction_service'], 2) : number_format($debt['transaction_amount'], 2))}}
+                                        </td>
+                                        <td class="d-none">
+                                            @if($debt['invoice_id'] == null && $debt['transaction_date'] == session("date"))
+                                                <button class="btn btn-sm btn-info"
+                                                        wire:click="chooseDebt({{ json_encode($debt) }})"><i
+                                                        class="bi bi-pen"></i></button>
                                                 <button class="btn btn-sm btn-danger"
-                                                        wire:click="deleteDebtMessage({{$debt}})">
-                                                    <i
+                                                        wire:click="deleteDebtMessage({{ json_encode($debt) }})"><i
                                                         class="bi bi-trash"></i></button>
                                             @endif
                                         </td>
                                     </tr>
+
+                                    @if($debt['tableName'] == "sale_returns" && floatval($debt['transaction_paid']) != 0)
+                                        <tr>
+                                            <td style="cursor: pointer"
+                                                wire:click="showReceipt({{ json_encode($debt) }})"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#debtModal">{{$debt['transaction_date']}}</td>
+                                            <td style="cursor: pointer"
+                                                wire:click="showReceipt({{ json_encode($debt) }})"
+                                                data-bs-toggle="modal" data-bs-target="#debtModal">
+                                                {{ 'مبلغ مرتجعات مبيعات بفاتورة رقم #' . $debt['invoice_id']}}
+                                            </td>
+                                            <td style="cursor: pointer"
+                                                wire:click="showReceipt({{ json_encode($debt) }})"
+                                                data-bs-toggle="modal" data-bs-target="#debtModal">
+                                                {{number_format($debt['transaction_paid'], 2)}}
+                                            </td>
+                                            <td class="d-none">
+                                                @if($debt['invoice_id'] == null && $debt['transaction_date'] == session("date"))
+                                                    <button class="btn btn-sm btn-info"
+                                                            wire:click="chooseDebt({{ json_encode($debt) }})"><i
+                                                            class="bi bi-pen"></i></button>
+                                                    <button class="btn btn-sm btn-danger"
+                                                            wire:click="deleteDebtMessage({{ json_encode($debt) }})"><i
+                                                            class="bi bi-trash"></i></button>
+                                                @endif
+                                            </td>
+                                        </tr>
+                                    @endif
                                 @endforeach
                                 </tbody>
                             </table>

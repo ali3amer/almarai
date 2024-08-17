@@ -16,9 +16,9 @@ return new class extends Migration
             $table->unsignedBigInteger('bank_id')->nullable();
             $table->foreign('bank_id')->references('id')->on('banks')->onDelete('cascade')->onUpdate('cascade');
             $table->enum('transfer_type', ['cash_to_bank', 'bank_to_cash']);
-            $table->decimal('transfer_amount', 10, 2);
+            $table->decimal('amount', 10, 2);
             $table->string('transfer_number')->nullable();
-            $table->date('transfer_date');
+            $table->date('due_date');
             $table->string('note')->nullable();
             $table->timestamps();
         });

@@ -20,8 +20,7 @@ return new class extends Migration
             $table->unsignedBigInteger('supplier_id')->nullable();
             $table->foreign('supplier_id')->references('id')->on('suppliers')->onDelete('cascade')->onUpdate('cascade');
             $table->enum('type', ['debt', 'pay']);
-            $table->decimal('debt', 10, 2);
-            $table->decimal('paid', 10, 2);
+            $table->decimal('amount', 10, 2);
             $table->decimal('discount', 10, 2)->default(0);
             $table->decimal('service', 10, 2)->default(0);
             $table->enum('payment', ['cash', 'bank']);
@@ -30,8 +29,6 @@ return new class extends Migration
             $table->string('bank')->nullable();
             $table->string('note')->nullable();
             $table->date('due_date');
-            $table->unsignedBigInteger('sale_id')->nullable();
-            $table->foreign('sale_id')->references('id')->on('sales')->onDelete('cascade')->onUpdate('cascade');
             $table->unsignedBigInteger('user_id')->nullable();
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade')->onUpdate('cascade');
             $table->softDeletes();

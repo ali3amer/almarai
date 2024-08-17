@@ -32,13 +32,13 @@ class Supplier extends Component
     public $discount = 0;
     public $service = 0;
     public bool $cash = false;
-    public $debt_amount = 0;
+    public $amount = 0;
     public string $bank = '';
     public Collection $banks;
     public null|int $bank_id = null;
     public Collection $suppliers;
     public array $currentSupplier = [];
-    public Collection $debts;
+    public array $debts = [];
     public string $type = 'pay';
     public string $debtType = 'purchases';
     public string $payment = 'cash';
@@ -176,13 +176,11 @@ class Supplier extends Component
         }
         $this->currentSupplier = $supplier;
         if ($this->debtType == 'purchases') {
-            $this->debts = PurchaseDebt::where('supplier_id', $supplier['id'])->withTrashed()->latest()->get();
+            $this->debts = \App\Models\Supplier::find($this->currentSupplier['id'])->getMovements()->toArray();
+            $this->currentBalance = \App\Models\Supplier::find($this->currentSupplier['id'])->currentBalance;
         } else {
-            $this->debts = SaleDebt::where('supplier_id', $supplier['id'])->withTrashed()->latest()->get();
-        }
-        $this->currentBalance = $this->debts->sum('debt') - $this->debts->sum('paid') - $this->debts->sum('discount') + $this->currentSupplier[$this->debtType == 'purchases' ? 'initialBalance' : 'initialSalesBalance'];
-        if ($this->debtType == "sales") {
-            $this->currentBalance += $this->debts->sum('service');
+            $this->debts = \App\Models\Supplier::find($this->currentSupplier['id'])->getSalesMovements()->toArray();
+            $this->currentBalance = \App\Models\Supplier::find($this->currentSupplier['id'])->currentSalesBalance;
         }
     }
 
@@ -191,15 +189,11 @@ class Supplier extends Component
 
         if ($this->type == 'debt') {
             $note = 'تم إستلاف مبلغ';
-            $debt = $this->debt_amount;
-            $paid = 0;
         } else {
             $note = 'تم إستلام مبلغ';
-            $paid = $this->debt_amount;
-            $debt = 0;
         }
 
-        if ($this->type == "debt" && floatval($this->debt_amount) > floatval(session($this->payment == "cash" ? "safeBalance" : "bankBalance"))) {
+        if ($this->type == "debt" && floatval($this->amount) > floatval(session($this->payment == "cash" ? "safeBalance" : "bankBalance"))) {
             $this->confirm("المبلغ المدفوع أكبر من المبلغ المتوفر", [
                 'toast' => false,
                 'showConfirmButton' => false,
@@ -213,12 +207,11 @@ class Supplier extends Component
         } else {
             if ($this->debtId == 0) {
 
-                if (floatval($this->debt_amount) != 0) {
+                if (floatval($this->amount) != 0) {
                     $debt = SaleDebt::create([
                         'supplier_id' => $this->currentSupplier['id'],
                         'type' => $this->type,
-                        'debt' => $debt,
-                        'paid' => $paid,
+                        'amount' => $this->amount,
                         'payment' => $this->payment,
                         'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
                         'bank' => $this->bank,
@@ -232,9 +225,9 @@ class Supplier extends Component
                     $debt = SaleDebt::create([
                         'supplier_id' => $this->currentSupplier['id'],
                         'type' => "pay",
-                        'debt' => 0,
-                        'paid' => 0,
+                        'amount' => 0,
                         'discount' => $this->discount,
+                        'service' => 0,
                         'payment' => 'cash',
                         'bank_id' => null,
                         'bank' => '',
@@ -248,8 +241,7 @@ class Supplier extends Component
                     $debt = SaleDebt::create([
                         'supplier_id' => $this->currentSupplier['id'],
                         'type' => "debt",
-                        'debt' => 0,
-                        'paid' => 0,
+                        'amount' => 0,
                         'service' => $this->service,
                         'payment' => 'cash',
                         'bank_id' => null,
@@ -268,8 +260,7 @@ class Supplier extends Component
                 $debt->update([
                     'supplier_id' => $this->currentSupplier['id'],
                     'type' => $this->type,
-                    'debt' => $this->type == 'debt' ? $this->debt_amount : 0,
-                    'paid' => $this->type == 'pay' ? $this->debt_amount : 0,
+                    'paid' => $this->amount,
                     'payment' => $this->payment,
                     'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
                     'bank' => $this->bank,
@@ -290,15 +281,11 @@ class Supplier extends Component
     {
         if ($this->type == 'debt') {
             $note = 'تم إستلاف مبلغ';
-            $debt = $this->debt_amount;
-            $paid = 0;
         } else {
             $note = 'تم دفع مبلغ';
-            $paid = $this->debt_amount;
-            $debt = 0;
         }
 
-        if ($this->type == "pay" && floatval($this->debt_amount) > floatval(session($this->payment == "cash" ? "safeBalance" : "bankBalance"))) {
+        if ($this->type == "pay" && floatval($this->amount) > floatval(session($this->payment == "cash" ? "safeBalance" : "bankBalance"))) {
             $this->confirm("المبلغ المدفوع أكبر من المبلغ المتوفر", [
                 'toast' => false,
                 'showConfirmButton' => false,
@@ -313,12 +300,11 @@ class Supplier extends Component
         } else {
             if ($this->debtId == 0) {
 
-                if (floatval($this->debt_amount) != 0) {
+                if (floatval($this->amount) != 0) {
                     $debt = PurchaseDebt::create([
                         'supplier_id' => $this->currentSupplier['id'],
                         'type' => $this->type,
-                        'debt' => $debt,
-                        'paid' => $paid,
+                        'amount' => $this->amount,
                         'payment' => $this->payment,
                         'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
                         'bank' => $this->bank,
@@ -332,8 +318,7 @@ class Supplier extends Component
                     $debt = PurchaseDebt::create([
                         'supplier_id' => $this->currentSupplier['id'],
                         'type' => "pay",
-                        'debt' => 0,
-                        'paid' => 0,
+                        'amount' => 0,
                         'discount' => $this->discount,
                         'payment' => 'cash',
                         'bank_id' => null,
@@ -355,8 +340,7 @@ class Supplier extends Component
                 $debt->update([
                     'supplier_id' => $this->currentSupplier['id'],
                     'type' => $this->type,
-                    'debt' => $this->type == 'debt' ? $this->debt_amount : 0,
-                    'paid' => $this->type == 'pay' ? $this->debt_amount : 0,
+                    'amount' => $this->amount,
                     'payment' => $this->payment,
                     'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
                     'bank' => $this->bank,
@@ -376,7 +360,16 @@ class Supplier extends Component
 
     public function showReceipt($debt)
     {
-        $this->currentReceipt = $debt;
+        $this->currentReceipt = (array)$debt;
+        if (!isset($debt['transaction_amount'])) {
+            $debt['invoice_id'] = null;
+            $debt['transaction_amount'] = $debt['amount'];
+            $debt['transaction_paid'] = 0;
+            $debt['transaction_remainder'] = 0;
+            $debt['transaction_discount'] = $debt['discount'] ?? 0;
+            $debt['transaction_service'] = $debt['service'] ?? 0;
+            $debt['transaction_date'] = $debt['due_date'];
+        }
     }
 
     public function chooseDebt($debt)
@@ -385,10 +378,11 @@ class Supplier extends Component
         $this->debtId = $debt['id'];
         $this->bank_id = $debt['bank_id'];
         $this->type = $debt['type'];
-        $this->debt_amount = $debt['type'] == 'debt' ? $debt['debt'] : $debt['paid'];
+        $this->amount = $debt['amount'];
         $this->payment = $debt['payment'];
         $this->bank = $debt['bank'];
         $this->discount = $debt['discount'];
+        $this->service = $debt['service'];
         $this->due_date = $debt['due_date'];
     }
 
@@ -420,10 +414,9 @@ class Supplier extends Component
         $this->alert('success', 'تم حذف الدفعيه بنجاح', ['timerProgressBar' => true]);
     }
 
-
     public function resetData($data = null)
     {
-        $this->reset('type', 'debt_amount', 'debtId', 'payment', 'bank', 'bank_id', 'cash', 'due_date', 'blocked', 'discount', 'service', 'note', $data);
+        $this->reset('type', 'amount', 'debtId', 'payment', 'bank', 'bank_id', 'cash', 'due_date', 'blocked', 'discount', 'service', 'note', $data);
     }
 
     public function render()

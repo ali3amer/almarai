@@ -11,6 +11,7 @@ return [
             'sales' => 'c,r,u,d',
             'clients' => 'c,r,u,d',
             'suppliers' => 'c,r,u,d',
+            'deposits' => 'c,r,u,d',
             'expenses' => 'c,r,u,d',
             'returns' => 'c,r,u,d',
             'purchase-returns' => 'c,r,u,d',

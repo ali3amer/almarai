@@ -48,19 +48,7 @@ class Product extends Model
 
     public function getStockAttribute()
     {
-        return $this->initialStock + $this->purchaseDetails()->sum("quantity") - $this->saleDetails()->sum("quantity") - $this->damageds()->sum("quantity");
-//        $purchaseQuantity = $this->purchaseDetails()->whereHas('purchase', function ($query) {
-//            $query->whereDate('purchase_date', '<=', session("date"));
-//        })->sum('quantity');
-//
-//        $saleQuantity = $this->saleDetails()->whereHas('sale', function ($query) {
-//            $query->whereDate('sale_date', '<=', session("date"));
-//        })->sum('quantity');
-//
-//        $damagedQuantity = $this->damageds()->whereDate('damaged_date', '<=', session("date"))->sum('quantity');
-//
-//        return $this->initialStock + $purchaseQuantity - $saleQuantity - $damagedQuantity;
-
+        return $this->initialStock + $this->purchaseDetails()->sum("quantity") - $this->saleDetails()->sum("quantity") + $this->saleReturns()->sum("quantity") - $this->purchaseReturns()->sum("quantity") - $this->damageds()->sum("quantity");
     }
 
 }

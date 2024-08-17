@@ -19,8 +19,8 @@ return new class extends Migration
             $table->foreign('employee_id')->references('id')->on('employees')->onDelete('cascade')->onUpdate('cascade');
             $table->string('bank')->nullable();
             $table->enum('payment', ['cash', 'bank']);
-            $table->decimal('gift_amount', 10, 2);
-            $table->date('gift_date');
+            $table->decimal('amount', 10, 2);
+            $table->date('due_date');
             $table->string('note')->nullable();
             $table->timestamps();
         });

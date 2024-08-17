@@ -2,6 +2,7 @@
 
 use App\Livewire\Category;
 use App\Livewire\Client;
+use App\Livewire\Deposit;
 use App\Livewire\Counter;
 use App\Livewire\Employee;
 use App\Livewire\Expense;
@@ -36,6 +37,7 @@ Route::middleware(['auth', 'auth.session'])->group(function () {
     Route::get('/product', Product::class);
     Route::get('/supplier', Supplier::class);
     Route::get('/client', Client::class);
+    Route::get('/deposit', Deposit::class);
     Route::get('/purchase', Purchase::class);
     Route::get('/sale', Sale::class);
     Route::get('/expense', Expense::class);

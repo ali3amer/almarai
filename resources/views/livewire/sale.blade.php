@@ -54,7 +54,7 @@
 
                                 <div class="col-1">
                                     <button class="btn btn-info"
-                                            @if(isset($invoice['paidId'])) wire:click="changePayment({{$invoice['paidId']}})" @endif>
+                                            @if(isset($invoice['id'])) wire:click="changePayment({{$invoice['id']}})" @endif>
                                         <i class="bi bi-bookmark-check"></i></button>
                                 </div>
                             </div>
@@ -102,7 +102,6 @@
                                 <table class="table text-center">
                                     <thead>
                                     <tr>
-                                        <th scope="col" style="width: 10px">#</th>
                                         <th scope="col">إسم المنتج</th>
                                         <th scope="col">سعر الوحده</th>
                                         <th scope="col">الكميه</th>
@@ -112,7 +111,6 @@
                                     <tbody>
                                     @foreach($products as $product)
                                         <tr style="cursor: pointer">
-                                            <td scope="row">{{$loop->index + 1}}</td>
                                             <td>{{$product->productName}}</td>
                                             <td>{{number_format($product->sale_price, 2)}}</td>
                                             <td>{{number_format($product->stock, 2)}}</td>
@@ -168,7 +166,7 @@
                                     <div class="card-title">
                                         <div class="row">
                                             <div class="col-4"><h5>الفاتوره {{$id != 0 ? '#'. $id : ''}}</h5></div>
-                                            <div class="col-4"><input type="date" disabled wire:model.live="sale_date"
+                                            <div class="col-4"><input type="date" disabled wire:model.live="due_date"
                                                                       class="form-control">
                                             </div>
                                             <div class="col-4">
@@ -229,7 +227,7 @@
                                             @endforeach
                                             <tr>
                                                 <td>الجمله</td>
-                                                <td>{{number_format($amount, 2)}}</td>
+                                                <td>{{number_format($cost, 2)}}</td>
                                                 <td>الرصيد الحالي</td>
                                                 <td>{{number_format($currentBalance, 2)}}</td>
                                             </tr>
@@ -243,7 +241,7 @@
                                             </tr>
                                             <tr>
                                                 <td>الصافي</td>
-                                                <td>{{number_format($total_amount, 2)}}</td>
+                                                <td>{{number_format($amount, 2)}}</td>
                                             </tr>
                                             <tr>
                                                 <td>المدفوع</td>
@@ -304,11 +302,11 @@
                                                 wire:click="getSale({{$sale}})" data-bs-toggle="modal"
                                                 data-bs-target="#printModal">
                                                 <td>{{$sale->id}}</td>
-                                                <td>{{$sale->sale_date}}</td>
-                                                <td>{{number_format($sale->total_amount, 2)}}</td>
+                                                <td>{{$sale->due_date}}</td>
+                                                <td>{{number_format($sale->amount, 2)}}</td>
                                                 <td>
-                                                    @if($sale->paid > 0 && $sale->saleDebts->where("type", "pay")->first())
-                                                        {{ $sale->saleDebts->where("type", "pay")->first()->payment == "cash" ? "كاش" : "بنك"}}
+                                                    @if($sale->paid > 0)
+                                                        {{ $sale->payment == "cash" ? "كاش" : "بنك"}}
                                                     @endif
                                                 </td>
                                             </tr>

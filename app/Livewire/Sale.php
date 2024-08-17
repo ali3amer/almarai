@@ -30,7 +30,6 @@ class Sale extends Component
     public int $id = 0;
     public $bank_id = null;
     public int $debtId = 0;
-    public string $sale_date = '';
     public string $due_date = '';
     public bool $print = false;
     public string $buyer = 'client';
@@ -41,11 +40,11 @@ class Sale extends Component
     public string $productSearch = '';
     public string $clientSearch = '';
 
+    public $cost = 0;
     public $amount = 0;
-    public $total_amount = 0;
     public $paid = 0;
     public string $payment = 'cash';
-    public string $bank = '';
+    public $bank = null;
 
     public array $currentClient = [];
     public array $oldQuantities = [];
@@ -55,8 +54,6 @@ class Sale extends Component
     public float $remainder = 0;
     public float $currentBalance = 0;
     public bool $editMode = false;
-    public array $currentSaleDebts = [];
-    public array $currentSale = [];
     public Collection $saleDebts;
     public array $invoice = [];
     public $discount = 0;
@@ -75,9 +72,6 @@ class Sale extends Component
             ]);
         }
 
-
-
-
         if (\App\Models\Client::count() == 0) {
             \App\Models\Client::create(['clientName' => "نقدي", 'phone' => "", 'initialBalance' => 0, 'startingDate' => session("date"), 'blocked' => false, 'cash' => true]);
         }
@@ -87,8 +81,7 @@ class Sale extends Component
             $this->currentClient = \App\Models\Client::first()->toArray();
         }
 
-        $client = SaleDebt::where('client_id', $this->currentClient['id'])->withTrashed()->withTrashed()->get();
-        $this->currentBalance = $client->sum('debt') - $client->sum('paid') + $this->currentClient['initialBalance'];
+        $this->currentBalance = \App\Models\Sale::where("client_id", $this->currentClient['id'])->sum("remainder") + $this->currentClient['initialBalance'];
         $this->banks = Bank::all();
 
         if ($this->banks->count() != 0) {
@@ -101,43 +94,16 @@ class Sale extends Component
         if ($this->id == 0) {
             $sale = \App\Models\Sale::create([
                 $this->buyer . '_id' => $this->currentClient['id'],
+                'payment' => $this->payment,
+                'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
+                'bank' => $this->bank,
                 'paid' => floatval($this->paid),
                 'remainder' => $this->remainder,
                 'discount' => floatval($this->discount),
-                'total_amount' => $this->total_amount,
-                'sale_date' => $this->sale_date,
+                'amount' => $this->amount,
+                'due_date' => $this->due_date,
                 'user_id' => auth()->id(),
             ]);
-
-            \App\Models\SaleDebt::create([
-                $this->buyer . '_id' => $this->currentClient['id'],
-                'paid' => 0,
-                'debt' => $this->total_amount,
-                'type' => 'debt',
-                'bank' => $this->bank,
-                'payment' => $this->payment,
-                'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
-                'due_date' => $this->sale_date,
-                'note' => 'تم البيع بالآجل بفاتورة #' . $sale['id'],
-                'sale_id' => $sale['id'],
-                'user_id' => auth()->id()
-            ]);
-
-            if ($this->paid != 0) {
-                \App\Models\SaleDebt::create([
-                    $this->buyer . '_id' => $this->currentClient['id'],
-                    'paid' => floatval($this->paid),
-                    'debt' => 0,
-                    'type' => 'pay',
-                    'bank' => $this->bank,
-                    'payment' => $this->payment,
-                    'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
-                    'due_date' => $this->sale_date,
-                    'note' => 'تم إستلام مبلغ',
-                    'sale_id' => $sale['id'],
-                    'user_id' => auth()->id()
-                ]);
-            }
 
             $this->currentBalance += $this->remainder;
 
@@ -149,8 +115,6 @@ class Sale extends Component
                     'quantity' => floatval($item['quantity']),
                     'price' => floatval($item['price']),
                 ]);
-
-//                \App\Models\Product::where('id', $item['id'])->decrement('stock', floatval($item['quantity']));
             }
         }
 
@@ -166,14 +130,14 @@ class Sale extends Component
     {
         $this->invoice['id'] = $id;
         $this->invoice['type'] = 'sale';
-        $this->invoice['date'] = $this->sale_date;
+        $this->invoice['date'] = $this->due_date;
         $this->invoice['client'] = $this->currentClient[$this->buyer . 'Name'];
         $this->invoice['cart'] = $this->cart;
         $this->invoice['remainder'] = $this->remainder;
         $this->invoice['discount'] = floatval($this->discount);
         $this->invoice['paid'] = floatval($this->paid);
+        $this->invoice['cost'] = floatval($this->cost);
         $this->invoice['amount'] = floatval($this->amount);
-        $this->invoice['total_amount'] = floatval($this->total_amount);
         $this->invoice['showMode'] = false;
         $this->dispatch('sale_created', $this->invoice);
     }
@@ -192,7 +156,7 @@ class Sale extends Component
         }
 
         if ($this->currentClient['cash']) {
-            $this->paid = $this->total_amount;
+            $this->paid = $this->amount;
         }
 
         $this->currentBalance = $client->sum('debt') - $client->sum('paid') + $this->currentClient['initialBalance'];
@@ -239,18 +203,17 @@ class Sale extends Component
 
                 $this->cart[$this->currentProduct['id']]['amount'] = floatval($this->currentProduct['price']) * floatval($this->currentProduct['quantity']);
 
-                $this->amount += $this->cart[$this->currentProduct['id']]['amount'];
+                $this->cost += $this->cart[$this->currentProduct['id']]['amount'];
                 if ($this->currentClient['id'] == 1 && $this->buyer == "client") {
-                    $this->paid = $this->amount - $this->discount;
+                    $this->paid = $this->cost - $this->discount;
                 }
 
 
-
             } else {
-                $this->amount -= $this->cart[$this->currentProduct['id']]['amount'];
+                $this->cost -= $this->cart[$this->currentProduct['id']]['amount'];
                 $this->cart[$this->currentProduct['id']]['quantity'] += floatval($this->currentProduct['quantity']);
                 $this->cart[$this->currentProduct['id']]['amount'] = floatval($this->cart[$this->currentProduct['id']]['price']) * floatval($this->cart[$this->currentProduct['id']]['quantity']);
-                $this->amount += $this->cart[$this->currentProduct['id']]['amount'];
+                $this->cost += $this->cart[$this->currentProduct['id']]['amount'];
 
             }
             $this->currentProduct = [];
@@ -261,12 +224,7 @@ class Sale extends Component
 
     public function deleteFromCart($id)
     {
-        $this->amount -= $this->cart[$id]['amount'];
-
-
-//        if ($this->paid) {
-//            $this->paid = $this->amount;
-//        }
+        $this->cost -= $this->cart[$id]['amount'];
 
         unset($this->cart[$id]);
         if (empty($this->cart)) {
@@ -289,22 +247,19 @@ class Sale extends Component
         $this->invoice['id'] = $sale['id'];
         $this->invoice['type'] = 'sale';
         $this->invoice['clientType'] = 'العميل';
-        $this->invoice['date'] = $sale['sale_date'];
+        $this->invoice['date'] = $sale['due_date'];
         $this->invoice['client'] = $this->currentClient[$this->buyer . 'Name'];
         $this->invoice['cart'] = SaleDetail::where('sale_id', $sale['id'])->join('products', 'products.id', '=', 'sale_details.product_id')->get()->toArray();
         $this->invoice['remainder'] = floatval($sale['remainder']);
         $this->invoice['paid'] = floatval($sale['paid']);
         $this->invoice['discount'] = floatval($sale['discount']);
-        $this->invoice['amount'] = floatval($sale['total_amount']) + floatval($sale['discount']);
-        $this->invoice['total_amount'] = $sale['total_amount'];
+        $this->invoice['cost'] = floatval($sale['amount']) + floatval($sale['discount']);
+        $this->invoice['amount'] = $sale['amount'];
         $this->invoice['showMode'] = false;
 
-        $paid = SaleDebt::where("sale_id", $sale["id"])->where("type", "pay")->first();
-
-        if ($paid) {
-            $this->payment = $paid['payment'];
-            $this->bank = $paid['bank'];
-            $this->invoice['paidId'] = $paid['id'];
+        if ($this->invoice['paid'] > 0) {
+            $this->payment = $sale['payment'];
+            $this->invoice['paidId'] = $sale['id'];
         }
 
         $this->dispatch('sale_created', $this->invoice);
@@ -312,12 +267,13 @@ class Sale extends Component
 
     public function changePayment($id)
     {
-        SaleDebt::where("id", $id)->update([
+        \App\Models\Sale::where("id", $id)->update([
             'payment' => $this->payment,
-            'bank' => $this->payment == "bank" ? $this->bank : ""
+            'bank_id' => $this->payment == "bank" ? $this->bank_id : null,
+            'bank' => $this->payment == "bank" ? $this->bank : null
         ]);
 
-        $this->bank = $this->payment == "bank" ? $this->bank : "";
+        $this->bank = $this->payment == "bank" ? $this->bank : null;
 
         $this->alert('success', 'تم تعديل وسيلة الدفع بنجاح', ['timerProgressBar' => true]);
 
@@ -342,9 +298,6 @@ class Sale extends Component
     {
         $id = $data['inputAttributes']['id'];
 
-        SaleDetail::where('sale_id', $id)->delete();
-
-
         SaleDetail::where("sale_id", $id)->delete();
         \App\Models\Sale::where('id', $id)->delete();
 
@@ -352,7 +305,7 @@ class Sale extends Component
         $paid = SaleDebt::where("sale_id", $id)->where("type", "pay")->first();
         \App\Models\SaleDebt::create([
             $this->buyer . '_id' => $this->currentClient['id'],
-            'paid' => $this->invoice['total_amount'],
+            'paid' => $this->invoice['amount'],
             'debt' => 0,
             'type' => 'pay',
             'bank' => '',
@@ -374,7 +327,7 @@ class Sale extends Component
                 'bank' => '',
                 'payment' => 'cash',
                 'bank_id' => null,
-                'due_date' => $this->sale_date,
+                'due_date' => $this->due_date,
                 'note' => 'تم إلغاء مدفوعات الفاتوره رقم #' . $this->invoice['id'],
                 'sale_id' => $this->invoice['id'],
                 'user_id' => auth()->id()
@@ -388,17 +341,17 @@ class Sale extends Component
 
     public function calcRemainder()
     {
-        $this->total_amount = $this->amount - floatval($this->discount);
+        $this->amount = $this->cost - floatval($this->discount);
         if ($this->currentClient['cash'] && $this->buyer == "client") {
-            $this->paid = $this->total_amount;
+            $this->paid = $this->amount;
         } else {
-            $this->remainder = floatval($this->total_amount) - floatval($this->paid);
+            $this->remainder = floatval($this->amount) - floatval($this->paid);
         }
     }
 
     public function resetData($item = null)
     {
-        $item == "currentClient" ? $this->reset( 'search', 'clientSearch' , 'id', 'oldQuantities', $item) : $this->reset('currentProduct', 'cart', 'bank', 'payment', 'bank', 'bank_id', 'search', 'clientSearch', 'paid', 'remainder', 'total_amount', 'amount', 'discount', 'id', 'oldQuantities', $item);
+        $item == "currentClient" ? $this->reset('search', 'clientSearch', 'id', 'oldQuantities', $item) : $this->reset('currentProduct', 'cart', 'bank', 'payment', 'bank', 'bank_id', 'search', 'clientSearch', 'paid', 'remainder', 'amount', 'amount', 'discount', 'id', 'oldQuantities', $item);
     }
 
     public function render()
@@ -414,8 +367,8 @@ class Sale extends Component
             $this->sales = \App\Models\Sale::where($this->buyer . '_id', $this->currentClient['id'])
                 ->where('id', 'LIKE', '%' . $this->saleSearch . '%')->latest()->get();
         }
-        if ($this->sale_date == '') {
-            $this->sale_date = session("date");
+        if ($this->due_date == '') {
+            $this->due_date = session("date");
         }
         if ($this->buyer == 'client') {
             $this->clients = \App\Models\Client::where('clientName', 'LIKE', '%' . $this->clientSearch . '%')->get();

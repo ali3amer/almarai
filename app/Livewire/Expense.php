@@ -28,7 +28,7 @@ class Expense extends Component
     public string $bank = '';
     public $bank_id = null;
     public $option_id = null;
-    public string $expense_date = '';
+    public string $due_date = '';
     public string $search = '';
     public Collection $expenses;
     public Collection $options;
@@ -81,7 +81,7 @@ class Expense extends Component
                         'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
                         'option_id' => $this->option_id == 0 ? null : $this->option_id,
                         'bank' => $this->bank,
-                        'expense_date' => $this->expense_date
+                        'due_date' => $this->due_date
                     ]);
 
 
@@ -96,7 +96,7 @@ class Expense extends Component
                     $expense->bank_id = $this->payment == 'bank' ? $this->bank_id : null;
                     $expense->option_id = $this->option_id == 0 ? null : $this->option_id;
                     $expense->bank = $this->bank;
-                    $expense->expense_date = $this->expense_date;
+                    $expense->due_date = $this->due_date;
 
                     $expense->save();
                     $this->alert('success', 'تم التعديل بنجاح', ['timerProgressBar' => true]);
@@ -119,7 +119,7 @@ class Expense extends Component
         $this->bank_id = $expense['bank_id'];
         $this->bank = $expense['bank'];
         $this->option_id = $expense['option_id'] != null ? $expense['option_id'] : 0;
-        $this->expense_date = $expense['expense_date'];
+        $this->due_date = $expense['due_date'];
     }
 
     public function deleteMessage($expense)
@@ -149,7 +149,7 @@ class Expense extends Component
 
     public function resetData()
     {
-        $this->reset('id', 'description', 'amount', 'bank', 'bank_id', 'payment', 'expense_date', 'option_id');
+        $this->reset('id', 'description', 'amount', 'bank', 'bank_id', 'payment', 'due_date', 'option_id');
     }
 
     public function changeMode()
@@ -226,7 +226,7 @@ class Expense extends Component
         }
 
         if ($this->description == '') {
-            $this->expense_date = session("date");
+            $this->due_date = session("date");
         }
 
         if ($this->optionsMode) {

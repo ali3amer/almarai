@@ -14,40 +14,54 @@ class Safe extends Model
     public function getPastBalanceAttribute()
     {
         return $this->initialBalance
-            + SaleDebt::where("type", "pay")->where("due_date", "<", session("date"))->where("payment", "cash")->sum("paid")
-            - SaleDebt::where("type", "debt")->where("due_date", "<", session("date"))->where("payment", "cash")->whereNull("sale_id")->sum("debt")
-            + Transfer::where("transfer_type", "bank_to_cash")->where("transfer_date", "<", session("date"))->sum("transfer_amount")
-            - Transfer::where("transfer_type", "cash_to_bank")->where("transfer_date", "<", session("date"))->sum("transfer_amount")
-            - Expense::where("payment", "cash")->where("expense_date", "<", session("date"))->sum("amount")
-            - EmployeeGift::where("payment", "cash")->where("gift_date", "<", session("date"))->sum("gift_amount")
-            - PurchaseDebt::where("type", "pay")->where("due_date", "<", session("date"))->where("payment", "cash")->sum("paid")
-            + PurchaseDebt::where("type", "debt")->where("due_date", "<", session("date"))->where("payment", "cash")->whereNull("purchase_id")->sum("debt")
-            - Withdraw::where("due_date", session("date"))->sum("amount");
+            + Sale::where("payment", "cash")->where("due_date", "<", session("date"))->sum("paid")
+            - Purchase::where("payment", "cash")->where("due_date", "<", session("date"))->sum("paid")
+            + SaleDebt::where("type", "pay")->where("due_date", "<", session("date"))->where("payment", "cash")->sum("amount")
+            - SaleDebt::where("type", "debt")->where("due_date", "<", session("date"))->where("payment", "cash")->sum("amount")
+            + DepositDebt::where("type", "pay")->where("due_date", "<", session("date"))->where("payment", "cash")->sum("amount")
+            - DepositDebt::where("type", "debt")->where("due_date", "<", session("date"))->where("payment", "cash")->sum("amount")
+            + Transfer::where("transfer_type", "bank_to_cash")->where("due_date", "<", session("date"))->sum("amount")
+            - Transfer::where("transfer_type", "cash_to_bank")->where("due_date", "<", session("date"))->sum("amount")
+            - Expense::where("payment", "cash")->where("due_date", "<", session("date"))->sum("amount")
+            - EmployeeGift::where("payment", "cash")->where("due_date", "<", session("date"))->sum("amount")
+            - PurchaseDebt::where("type", "pay")->where("due_date", "<", session("date"))->where("payment", "cash")->sum("amount")
+            + PurchaseDebt::where("type", "debt")->where("due_date", "<", session("date"))->where("payment", "cash")->sum("amount")
+            - Withdraw::where("due_date", session("date"))->sum("amount") - SaleReturn::where("due_date", "<", session("date"))->sum("amount") + PurchaseReturn::where("due_date", "<", session("date"))->sum("amount");
     }
+
     public function getCurrentBalanceAttribute()
     {
         return $this->initialBalance
-            + SaleDebt::where("type", "pay")->where("payment", "cash")->sum("paid")
-            - SaleDebt::where("type", "debt")->where("payment", "cash")->whereNull("sale_id")->sum("debt")
-            + Transfer::where("transfer_type", "bank_to_cash")->sum("transfer_amount")
-            - Transfer::where("transfer_type", "cash_to_bank")->sum("transfer_amount")
+            + Sale::where("payment", "cash")->sum("paid")
+            - Purchase::where("payment", "cash")->sum("paid")
+            + SaleDebt::where("type", "pay")->where("payment", "cash")->sum("amount")
+            - SaleDebt::where("type", "debt")->where("payment", "cash")->sum("amount")
+            + DepositDebt::where("type", "pay")->where("payment", "cash")->sum("amount")
+            - DepositDebt::where("type", "debt")->where("payment", "cash")->sum("amount")
+            + Transfer::where("transfer_type", "bank_to_cash")->sum("amount")
+            - Transfer::where("transfer_type", "cash_to_bank")->sum("amount")
             - Expense::where("payment", "cash")->sum("amount")
-            - EmployeeGift::where("payment", "cash")->sum("gift_amount")
-            - PurchaseDebt::where("type", "pay")->where("payment", "cash")->sum("paid")
-            + PurchaseDebt::where("type", "debt")->where("payment", "cash")->whereNull("purchase_id")->sum("debt");
+            - EmployeeGift::where("payment", "cash")->sum("amount")
+            - PurchaseDebt::where("type", "pay")->where("payment", "cash")->sum("amount")
+            + PurchaseDebt::where("type", "debt")->where("payment", "cash")->sum("amount") - SaleReturn::sum("amount") + PurchaseReturn::sum("amount");
     }
+
     public function getSafeDayBalanceAttribute()
     {
         $safe = $this->startingDate == session("date") ? $this->initialBalance : 0;
         return $safe
             + Withdraw::where("due_date", session("date"))->sum("amount")
-            + SaleDebt::where("type", "pay")->where("due_date", session("date"))->where("payment", "cash")->sum("paid")
-            - SaleDebt::where("type", "debt")->where("due_date", session("date"))->where("payment", "cash")->whereNull("sale_id")->sum("debt")
-            + Transfer::where("transfer_type", "bank_to_cash")->where("transfer_date", session("date"))->sum("transfer_amount")
-            - Transfer::where("transfer_type", "cash_to_bank")->where("transfer_date", session("date"))->sum("transfer_amount")
-            - Expense::where("payment", "cash")->where("expense_date", session("date"))->sum("amount")
-            - EmployeeGift::where("payment", "cash")->where("gift_date", session("date"))->sum("gift_amount")
-            - PurchaseDebt::where("type", "pay")->where("payment", "cash")->where("due_date", session("date"))->sum("paid")
-            + PurchaseDebt::where("type", "debt")->where("payment", "cash")->where("due_date", session("date"))->whereNull("purchase_id")->sum("debt");
+            + Sale::where("payment", "cash")->where("due_date", session("date"))->sum("paid")
+            - Purchase::where("payment", "cash")->where("due_date", session("date"))->sum("paid")
+            + SaleDebt::where("type", "pay")->where("due_date", session("date"))->where("payment", "cash")->where("type", "pay")->sum("amount")
+            - SaleDebt::where("type", "debt")->where("due_date", session("date"))->where("payment", "cash")->where("type", "debt")->sum("amount")
+            + DepositDebt::where("type", "pay")->where("due_date", session("date"))->where("payment", "cash")->sum("amount")
+            - DepositDebt::where("type", "debt")->where("due_date", session("date"))->where("payment", "cash")->sum("amount")
+            + Transfer::where("transfer_type", "bank_to_cash")->where("due_date", session("date"))->sum("amount")
+            - Transfer::where("transfer_type", "cash_to_bank")->where("due_date", session("date"))->sum("amount")
+            - Expense::where("payment", "cash")->where("due_date", session("date"))->sum("amount")
+            - EmployeeGift::where("payment", "cash")->where("due_date", session("date"))->sum("amount")
+            - PurchaseDebt::where("type", "pay")->where("payment", "cash")->where("due_date", session("date"))->where("type", "pay")->sum("amount")
+            + PurchaseDebt::where("type", "debt")->where("payment", "cash")->where("due_date", session("date"))->where("type", "debt")->sum("amount") - SaleReturn::where("due_date", session("date"))->sum("amount") + PurchaseReturn::where("due_date", session("date"))->sum("amount");
     }
 }

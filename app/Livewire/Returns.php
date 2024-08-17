@@ -30,7 +30,7 @@ class Returns extends Component
     public $quantityReturn = 0;
     public float $priceReturn = 0;
 
-    public string $return_date = '';
+    public string $due_date = '';
     public string $clientSearch = '';
     public Collection $clients;
     public Collection $returns;
@@ -68,7 +68,7 @@ class Returns extends Component
         $this->quantity = $detail['quantity'];
         $this->price = $detail['price'];
 
-        $this->return_date = $detail['return_date'] ?? $this->return_date;
+        $this->due_date = $detail['due_date'] ?? $this->due_date;
         $this->amount = $detail['quantity'] * $detail['price'];
     }
 
@@ -88,7 +88,7 @@ class Returns extends Component
     public function save()
     {
 
-        if (floatval($this->paid) > floatval(session("safeBalance"))) {
+        if (floatval($this->amount) > floatval(session("safeBalance"))) {
             $this->confirm("المبلغ المدفوع أكبر من المبلغ المتوفر", [
                 'toast' => false,
                 'showConfirmButton' => false,
@@ -101,61 +101,58 @@ class Returns extends Component
             ]);
         } else {
             $sale = \App\Models\Sale::where('id', $this->currentDetail['sale_id'])->first();
-
-            \App\Models\SaleDebt::create([
-                $this->buyer . '_id' => $this->currentClient['id'],
-                'paid' => floatval($this->priceReturn),
-                'sale_id' => $this->currentDetail['sale_id'],
-                'debt' => 0,
-                'type' => 'pay',
-                'bank' => '',
-                'payment' => 'cash',
-                'bank_id' => null,
-                'due_date' => $this->return_date,
-                'note' => 'تم خصم قيمة المنتج المرجع من فاتورة #' . $sale['id'],
-                'user_id' => auth()->id()
-            ]);
-
-            if (floatval($sale["paid"]) == 0 || floatval($sale["paid"]) < $this->priceReturn) {
-                $salePaid = 0;
-            } else {
-                $salePaid = floatval($sale["paid"]) - $this->priceReturn;
-            }
-
-            if ($salePaid != 0 || floatval($sale["paid"]) >= $this->priceReturn) {
-                \App\Models\SaleDebt::create([
-                    $this->buyer . '_id' => $this->currentClient['id'],
-                    'paid' => 0,
-                    'sale_id' => $this->currentDetail['sale_id'],
-                    'debt' => floatval($this->priceReturn),
-                    'type' => 'debt',
-                    'bank' => '',
-                    'payment' => 'cash',
-                    'bank_id' => null,
-                    'due_date' => $this->return_date,
-                    'note' => 'تم دفع قيمة المنتج المرجع الى العميل من فاتورة #' . $sale['id'],
-                    'user_id' => auth()->id()
-                ]);
-            }
-
-            $total_amount = $sale['total_amount'] - $this->priceReturn;
-            $remainder = $total_amount - $salePaid - $sale['discount'];
-            $sale->update([
-                'paid' => $salePaid,
-                'remainder' => $remainder,
-                'total_amount' => $total_amount,
-            ]);
-
-            SaleDetail::where("sale_id", $sale['id'])->where("product_id", $this->currentDetail['product_id'])->decrement("quantity", floatval($this->quantityReturn));
-
+//
+//            \App\Models\SaleDebt::create([
+//                $this->buyer . '_id' => $this->currentClient['id'],
+//                'amount' => floatval($this->priceReturn),
+//                'type' => 'pay',
+//                'bank' => '',
+//                'payment' => 'cash',
+//                'bank_id' => null,
+//                'due_date' => $this->due_date,
+//                'note' => 'تم خصم قيمة المنتج المرجع من فاتورة #' . $sale['id'],
+//                'user_id' => auth()->id()
+//            ]);
+//
+//            if (floatval($sale["paid"]) == 0 || floatval($sale["paid"]) < $this->priceReturn) {
+//                $salePaid = 0;
+//            } else {
+//                $salePaid = floatval($sale["paid"]) - $this->priceReturn;
+//            }
+//
+//            if ($salePaid != 0 || floatval($sale["paid"]) >= $this->priceReturn) {
+//                \App\Models\SaleDebt::create([
+//                    $this->buyer . '_id' => $this->currentClient['id'],
+//                    'amount' => floatval($this->priceReturn),
+//                    'type' => 'debt',
+//                    'bank' => '',
+//                    'payment' => 'cash',
+//                    'bank_id' => null,
+//                    'due_date' => $this->due_date,
+//                    'note' => 'تم دفع قيمة المنتج المرجع الى العميل من فاتورة #' . $sale['id'],
+//                    'user_id' => auth()->id()
+//                ]);
+//            }
+//
+//            $total_amount = $sale['amount'] - $this->priceReturn;
+//
+//            $remainder = $total_amount - $salePaid - $sale['discount'];
+//            $sale->update([
+//                'paid' => $salePaid,
+//                'remainder' => $remainder,
+//                'amount' => $total_amount,
+//            ]);
+//
+//            SaleDetail::where("sale_id", $sale['id'])->where("product_id", $this->currentDetail['product_id'])->decrement("quantity", floatval($this->quantityReturn));
+//
 
             SaleReturn::create([
-                'sale_id' => $sale['id'],
+                'sale_id' => $this->currentDetail['sale_id'],
                 'product_id' => $this->currentDetail['product_id'],
                 'quantity' => floatval($this->quantityReturn),
-                'return_date' => $this->return_date,
                 'price' => $this->currentDetail['price'],
-                'paid' => $this->paid
+                'amount' => $this->amount,
+                'due_date' => $this->due_date,
             ]);
 
             $this->getReturns($sale->toArray());
@@ -184,13 +181,13 @@ class Returns extends Component
 
     public function resetData($data = null)
     {
-        $this->reset('productName', 'editMode', 'amount', 'quantity', 'price', 'quantityReturn', 'clientSearch', 'currentDetail', 'saleSearch', 'return_date', $data);
+        $this->reset('productName', 'editMode', 'amount', 'quantity', 'price', 'quantityReturn', 'clientSearch', 'currentDetail', 'saleSearch', 'due_date', 'priceReturn', $data);
     }
 
     public function render()
     {
-        if ($this->return_date == '') {
-            $this->return_date = session("date");
+        if ($this->due_date == '') {
+            $this->due_date = session("date");
         }
         if ($this->buyer == 'client') {
             $this->clients = \App\Models\Client::where('clientName', 'LIKE', '%' . $this->clientSearch . '%')->get();

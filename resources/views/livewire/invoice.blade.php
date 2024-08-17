@@ -45,7 +45,7 @@
         @if(isset($invoice['showMode']) && !$invoice['showMode'])
             <tr>
                 <td colspan="4">المجموع الكلي</td>
-                <td>{{isset($invoice['amount']) ? number_format($invoice['amount'], 2) : ''}}</td>
+                <td>{{isset($invoice['cost']) ? number_format($invoice['cost'], 2) : ''}}</td>
             </tr>
             <tr>
                 <td colspan="4">التخفيض</td>
@@ -54,7 +54,7 @@
         @endif
         <tr>
             <td colspan="4">الصافي</td>
-            <td>{{isset($invoice['total_amount']) ? number_format($invoice['total_amount'], 2) : ''}}</td>
+            <td>{{isset($invoice['cost']) && isset($invoice['discount']) ? number_format(floatval($invoice['cost'] - $invoice['discount']), 2) : ''}}</td>
         </tr>
         @if(isset($invoice['showMode']) && !$invoice['showMode'])
             <tr>
@@ -74,21 +74,21 @@
         <table class="mt-3 printInvoice text-center">
             <thead>
             <tr>
-                <th>#</th>
                 <th>اسم المنتج</th>
                 <th>سعر الوحدة</th>
                 <th>الكمية</th>
                 <th>المجموع</th>
+                <th>المدفوع</th>
             </tr>
             </thead>
             <tbody>
             @foreach($returns as $item)
                 <tr style="cursor: pointer" class="align-items-center">
-                    <td scope="row">{{$loop->index + 1}}</td>
                     <td>{{$item->product->productName}}</td>
                     <td>{{number_format(floatval($item['price']), 2)}}</td>
                     <td>{{number_format(floatval($item['quantity']), 2)}}</td>
                     <td>{{number_format(floatval($item['price']) * floatval($item['quantity']), 2)}}</td>
+                    <td>{{number_format(floatval($item['amount']), 2)}}</td>
                 </tr>
             @endforeach
 

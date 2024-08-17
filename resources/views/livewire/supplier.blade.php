@@ -21,7 +21,7 @@
                                     </tr>
                                     <tr>
                                         <td>البيان</td>
-                                        <td>{{$currentReceipt['note']}}</td>
+                                        <td>{{ $currentReceipt['note'] == null ? 'مبيعات بفاتورة رقم #' . $currentReceipt['invoice_id'] : $currentReceipt['note']  }}</td>
                                     </tr>
                                     <tr>
                                         <td>نوع العملية</td>
@@ -45,10 +45,10 @@
                                     <tr>
                                         <td>المبلغ</td>
                                         <td>
-                                            @if($currentReceipt['type'] == 'pay')
-                                                {{ number_format($currentReceipt['paid'] != 0 ? $currentReceipt['paid'] : $currentReceipt['discount'], 2) }}
+                                            @if(!isset($currentReceipt['transaction_amount']))
+                                                {{ number_format($currentReceipt['amount'], 2) }}
                                             @else
-                                                {{ number_format($currentReceipt['debt'] != 0 ? $currentReceipt['debt'] : $currentReceipt['service'], 2) }}
+                                                {{ number_format($currentReceipt['transaction_amount'] != 0 ? $currentReceipt['transaction_amount'] : $currentReceipt['transaction_discount'], 2) }}
                                             @endif
                                         </td>
                                     </tr>
@@ -68,7 +68,7 @@
 
     <div class="row mt-2">
         @if(empty($currentSupplier))
-            <div class="col-4">
+            <div class="col-3">
                 <div class="card bg-white">
                     <div class="card-body">
                         <form action="" wire:submit="save({{ $id }})">
@@ -122,7 +122,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-8">
+            <div class="col-9">
                 <div class="card">
                     <div class="card-header">
                         <input wire:model.live="search" autocomplete="off" class="form-control w-50"
@@ -140,6 +140,8 @@
                                         <th>الهاتف</th>
                                         <th>الرصيد الافتتاحي</th>
                                         <th>الرصيد الافتتاحي للمبيعات</th>
+                                        <th>الرصيد الحالي</th>
+                                        <th>رصيد المبيعات الحالي</th>
                                         <th class="d-none">نقدي</th>
                                         <th>التحكم</th>
                                     </tr>
@@ -152,6 +154,8 @@
                                             <td>{{ $supplier->phone }}</td>
                                             <td>{{ number_format($supplier->initialBalance, 2) }}</td>
                                             <td>{{ number_format($supplier->initialSalesBalance, 2) }}</td>
+                                            <td>{{ number_format($supplier->currentBalance, 2) }}</td>
+                                            <td>{{ number_format($supplier->currentSalesBalance, 2) }}</td>
                                             <td class="d-none">{{ $supplier->cash ? "نعم" : "لا" }}</td>
                                             <td>
                                                 <button
@@ -227,10 +231,10 @@
                         </div>
                         <div class="row my-2">
                             <div class="col-6">
-                                <label for="debt_amount">المبلغ المدفوع</label>
+                                <label for="amount">المبلغ المدفوع</label>
                                 <input type="text"
-                                       @disabled(floatval($service) != 0 || floatval($discount) != 0) wire:model.live="debt_amount"
-                                       autocomplete="off" id="debt_amount"
+                                       @disabled(floatval($service) != 0 || floatval($discount) != 0) wire:model.live="amount"
+                                       autocomplete="off" id="amount"
                                        class="form-control text-center"
                                        placeholder="المدفوع ....">
                             </div>
@@ -268,7 +272,7 @@
                             @if($type == "pay")
                                 <div class="col-6">
                                     <label for="discount">{{ $debtType == 'purchases' ? "الخصم" : "التخفيض" }}</label>
-                                    <input @disabled($debtId != 0 && $discount == 0) @disabled(floatval($debt_amount) != 0 || floatval($service) != 0) autocomplete="off" type="text"
+                                    <input @disabled($debtId != 0 && $discount == 0) @disabled(floatval($amount) != 0 || floatval($service) != 0) autocomplete="off" type="text"
                                            wire:model.live="discount" id="discount"
                                            class="form-control text-center mb-2"
                                            placeholder="{{ $debtType == 'purchases' ? "خصم" : "تخفيض" }} ....">
@@ -288,7 +292,7 @@
                             @if($type == "pay" && $debtType == 'sales')
                                 <div class="col-6">
                                     <label for="discount">خدمه</label>
-                                    <input @disabled(floatval($debt_amount) != 0 || floatval($discount) != 0) autocomplete="off"
+                                    <input @disabled(floatval($amount) != 0 || floatval($discount) != 0) autocomplete="off"
                                            type="text"
                                            wire:model.live="service" id="service"
                                            class="form-control text-center"
@@ -300,11 +304,11 @@
                                 <div class="col-{{ $type == "pay" && $debtType == 'sales' ? '6' : '12' }} d-flex align-items-end">
                                     @if($debtType == "purchases")
                                         <button data-bs-toggle="modal" data-bs-target="#debtModal"
-                                            @disabled($payment == "bank" && $banks->count() == 0) @disabled($currentSupplier['cash']) @disabled(empty($currentSupplier) || $due_date == '') @disabled($debt_amount == 0 && $discount == 0) class="btn btn-{{$debtId == 0 ? 'primary' : 'success'}} w-100"
+                                            @disabled($payment == "bank" && $banks->count() == 0) @disabled($currentSupplier['cash']) @disabled(empty($currentSupplier) || $due_date == '') @disabled($amount == 0 && $discount == 0) class="btn btn-{{$debtId == 0 ? 'primary' : 'success'}} w-100"
                                             wire:click="savePurchaseDebt()">{{$debtId == 0 ? 'دفــــع' : 'تعــــديل'}}</button>
                                     @else
                                         <button data-bs-toggle="modal" data-bs-target="#debtModal"
-                                            @disabled($payment == "bank" && $banks->count() == 0) @disabled($currentSupplier['cash']) @disabled(empty($currentSupplier) || $due_date == '') @disabled($debt_amount == 0 && $discount == 0 && $service == 0) class="btn btn-{{$debtId == 0 ? 'primary' : 'success'}} w-100"
+                                            @disabled($payment == "bank" && $banks->count() == 0) @disabled($currentSupplier['cash']) @disabled(empty($currentSupplier) || $due_date == '') @disabled($amount == 0 && $discount == 0 && $service == 0) class="btn btn-{{$debtId == 0 ? 'primary' : 'success'}} w-100"
                                             wire:click="saveSaleDebt()">{{$debtId == 0 ? 'دفــــع' : 'تعــــديل'}}</button>
                                     @endif
                                 </div>
@@ -350,31 +354,17 @@
                                 <tbody>
                                 @foreach($debts as $debt)
                                     <tr>
-                                        <td style="cursor: pointer"
-                                            data-bs-toggle="modal" wire:click="showReceipt({{$debt}})"
-                                            data-bs-target="#debtModal">{{$debt->due_date}}</td>
-                                        <td style="cursor: pointer"
-                                            data-bs-toggle="modal" wire:click="showReceipt({{$debt}})"
-                                            data-bs-target="#debtModal">{{$debt->note}}</td>
-                                        <td>
-                                            @if($debt->paid == 0 && $debt->debt == 0)
-                                                {{ $debt->discount != 0 ? number_format($debt->discount, 2) : number_format($debt->service, 2) }}
-                                            @else
-                                                {{$debt->type == 'pay' ? number_format($debt->paid, 2) : number_format($debt->debt, 2)}}
-                                            @endif
+                                        <td style="cursor: pointer" wire:click="showReceipt({{ json_encode($debt) }})" data-bs-toggle="modal" data-bs-target="#debtModal">{{$debt['transaction_date']}}</td>
+                                        <td style="cursor: pointer" wire:click="showReceipt({{ json_encode($debt) }})" data-bs-toggle="modal" data-bs-target="#debtModal">
+                                                {{ $debt['note']  }}
+                                        </td>
+                                        <td style="cursor: pointer" wire:click="showReceipt({{ json_encode($debt) }})" data-bs-toggle="modal" data-bs-target="#debtModal">
+                                            {{$debt['transaction_discount'] != 0 ? number_format($debt['transaction_discount'], 2) : ($debt['transaction_service'] != 0 ? number_format($debt['transaction_service'], 2) : number_format($debt['transaction_amount'], 2))}}
                                         </td>
                                         <td class="d-none">
-                                            @if($debt->sale_id == null && $debt->purchase_id == null && $debt->due_date == session("date"))
-
-                                                <button class="btn btn-sm btn-info"
-                                                        wire:click="chooseDebt({{$debt}})"><i
-                                                        class="bi bi-pen"></i>
-                                                </button>
-
-                                                <button class="btn btn-sm btn-danger"
-                                                        wire:click="deleteDebtMessage({{$debt}})"><i
-                                                        class="bi bi-trash"></i>
-                                                </button>
+                                            @if($debt['invoice_id'] == null && $debt['transaction_date'] == session("date"))
+                                                <button class="btn btn-sm btn-info" wire:click="chooseDebt({{ json_encode($debt) }})"><i class="bi bi-pen"></i></button>
+                                                <button class="btn btn-sm btn-danger" wire:click="deleteDebtMessage({{ json_encode($debt) }})"><i class="bi bi-trash"></i></button>
                                             @endif
                                         </td>
                                     </tr>

@@ -2,17 +2,18 @@
 
 namespace App\Livewire;
 
-use Illuminate\Support\Facades\DB;
+use App\Models\DepositDebt;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
 
 use App\Models\Bank;
 use App\Models\SaleDebt;
+use App\Models\DebtDetail;
 use Illuminate\Database\Eloquent\Collection;
 use Livewire\Attributes\On;
 use Livewire\Attributes\Rule;
 use Livewire\Component;
 
-class Client extends Component
+class Deposit extends Component
 {
     use LivewireAlert;
 
@@ -20,10 +21,10 @@ class Client extends Component
         'delete',
         'deleteDebt'
     ];
-    public string $title = 'العملاء';
+    public string $title = 'العهد والأمانات';
     public int $id = 0;
     public int $debtId = 0;
-    public string $clientName = '';
+    public string $name = '';
     public string $phone = '';
     public string $search = '';
     public string|null $note = '';
@@ -33,18 +34,15 @@ class Client extends Component
     public string $startingDate = '';
     public Collection $banks;
     public null|int $bank_id = null;
-    public Collection $clients;
-    public array $currentClient = [];
-    public array $debts = [];
+    public Collection $deposits;
+    public array $currentDeposit = [];
+    public Collection $debts;
     public string $type = 'pay';
     public string $payment = 'cash';
     public string $due_date = '';
     public bool $blocked = false;
     public float $currentBalance = 0;
     public array $currentDebt = [];
-    public $discount = 0;
-    public $service = 0;
-    public bool $cash = false;
     public bool $create = false;
     public bool $read = false;
     public bool $update = false;
@@ -54,15 +52,15 @@ class Client extends Component
     protected function rules()
     {
         return [
-            'clientName' => 'required|unique:clients,clientName,' . $this->id
+            'name' => 'required|unique:deposits,name,' . $this->id
         ];
     }
 
     protected function messages()
     {
         return [
-            'clientName.required' => 'الرجاء إدخال إسم العميل',
-            'clientName.unique' => 'هذا العميل موجود مسبقاً'
+            'name.required' => 'الرجاء إدخال الإسم',
+            'name.unique' => 'هذا الشخص موجود مسبقاً'
         ];
     }
 
@@ -73,10 +71,10 @@ class Client extends Component
             $this->bank_id = $this->banks->first()->id;
         }
         $user = auth()->user();
-        $this->create = $user->hasPermission('clients-create');
-        $this->read = $user->hasPermission('clients-read');
-        $this->update = $user->hasPermission('clients-update');
-        $this->delete = $user->hasPermission('clients-delete');
+        $this->create = $user->hasPermission('deposits-create');
+        $this->read = $user->hasPermission('deposits-read');
+        $this->update = $user->hasPermission('deposits-update');
+        $this->delete = $user->hasPermission('deposits-delete');
     }
 
     public function save($id)
@@ -84,65 +82,52 @@ class Client extends Component
 
         if ($this->validate()) {
             if ($this->id == 0) {
-                \App\Models\Client::create(['clientName' => $this->clientName, 'phone' => $this->phone, 'initialBalance' => floatval($this->initialBalance), 'startingDate' => $this->startingDate, 'blocked' => $this->blocked, 'cash' => $this->cash]);
+                \App\Models\Deposit::create(['name' => $this->name, 'phone' => $this->phone, 'initialBalance' => floatval($this->initialBalance), 'startingDate' => $this->startingDate, 'blocked' => $this->blocked]);
                 $this->alert('success', 'تم الحفظ بنجاح', ['timerProgressBar' => true]);
             } else {
-                $client = \App\Models\Client::find($id);
-                $client->clientName = $this->clientName;
-                $client->phone = $this->phone;
-                $client->note = $this->note;
-                $client->initialBalance = floatval($this->initialBalance);
-                $client->save();
+                $deposit = \App\Models\Deposit::find($id);
+                $deposit->name = $this->name;
+                $deposit->phone = $this->phone;
+                $deposit->note = $this->note;
+                $deposit->initialBalance = floatval($this->initialBalance);
+                $deposit->save();
                 $this->alert('success', 'تم التعديل بنجاح', ['timerProgressBar' => true]);
             }
             $this->id = 0;
-            $this->clientName = '';
+            $this->name = '';
             $this->phone = '';
             $this->initialBalance = 0;
             $this->note = '';
             $this->blocked = false;
-            $this->cash = false;
         }
 
     }
 
-    public function changeBlocked($client)
+    public function changeBlocked($deposit)
     {
-        $this->blocked = !$client['blocked'];
-        \App\Models\Client::where('id', $client['id'])->update(['blocked' => $this->blocked]);
+        $this->blocked = !$deposit['blocked'];
+        \App\Models\Deposit::where('id', $deposit['id'])->update(['blocked' => $this->blocked]);
         $this->resetData();
-        $this->alert('success', "تم تغيير حالة العميل النقدي", ['timerProgressBar' => true]);
+        $this->alert('success', "تم تغيير حالة الى النقدي", ['timerProgressBar' => true]);
 
     }
 
-    public function changeCash($client)
+    public function edit($deposit)
     {
-        $this->cash = !$client['cash'];
-        if ($this->cash) {
-            \App\Models\Client::where('cash', $this->cash)->update(['cash' => false]);
-        }
-        \App\Models\Client::where('id', $client['id'])->update(['cash' => $this->cash]);
-        $this->resetData();
-        $this->alert('success', "تم تغيير العميل النقدي", ['timerProgressBar' => true]);
-    }
-
-    public function edit($client)
-    {
-        $this->id = $client['id'];
-        $this->clientName = $client['clientName'];
-        $this->phone = $client['phone'];
-        $this->initialBalance = $client['initialBalance'];
-        $this->blocked = $client['blocked'];
-        $this->note = $client['note'];
-        $this->cash = $client['cash'];
-        $this->startingDate = $client['startingDate'];
+        $this->id = $deposit['id'];
+        $this->name = $deposit['name'];
+        $this->phone = $deposit['phone'];
+        $this->initialBalance = $deposit['initialBalance'];
+        $this->blocked = $deposit['blocked'];
+        $this->note = $deposit['note'];
+        $this->startingDate = $deposit['startingDate'];
 
     }
 
-    public function deleteMessage($client)
+    public function deleteMessage($deposit)
     {
-        $this->confirm("  هل توافق على حذف العميل  " . $client['clientName'] . "؟", [
-            'inputAttributes' => ["id" => $client['id']],
+        $this->confirm("  هل توافق على حذف الشخص  " . $deposit['name'] . "؟", [
+            'inputAttributes' => ["id" => $deposit['id']],
             'toast' => false,
             'showConfirmButton' => true,
             'confirmButtonText' => 'موافق',
@@ -156,18 +141,16 @@ class Client extends Component
 
     public function delete($data)
     {
-        $client = \App\Models\Client::find($data['inputAttributes']['id']);
-        $client->delete();
+        $deposit = \App\Models\Deposit::find($data['inputAttributes']['id']);
+        $deposit->delete();
         $this->alert('success', 'تم الحذف بنجاح', ['timerProgressBar' => true]);
     }
 
-    public function showDebts($client)
+    public function showDebts($deposit)
     {
-        $this->currentClient = $client;
-
-        $this->debts = \App\Models\Client::find($client['id'])->getMovements()->toArray();
-
-        $this->currentBalance = \App\Models\Client::find($this->currentClient['id'])->currentBalance;
+        $this->currentDeposit = $deposit;
+        $this->debts = DepositDebt::where("deposit_id", $this->currentDeposit['id'])->get();
+        $this->currentBalance = \App\Models\Deposit::find($this->currentDeposit['id'])->currentBalance;
 
     }
 
@@ -186,18 +169,16 @@ class Client extends Component
             ]);
         } else {
             if ($this->debtId == 0) {
-                if ($this->type == 'debt') {
-                    $note = 'تم إستلاف مبلغ';
+                if ($this->type == 'pay') {
+                    $note = 'تم إيداع مبلغ';
                 } else {
-                    $note = 'تم إستلام مبلغ';
+                    $note = 'تم سحب مبلغ';
                 }
                 if (floatval($this->amount) != 0) {
-                    $debt = SaleDebt::create([
-                        'client_id' => $this->currentClient['id'],
+                    $debt = DepositDebt::create([
+                        'deposit_id' => $this->currentDeposit['id'],
                         'type' => $this->type,
                         'amount' => $this->amount,
-                        'discount' => 0,
-                        'service' => 0,
                         'payment' => $this->payment,
                         'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
                         'bank' => $this->bank,
@@ -206,36 +187,6 @@ class Client extends Component
                         'user_id' => auth()->id(),
                     ]);
                     $this->chooseDebt($debt->toArray());
-                }
-
-                if (floatval($this->discount) != 0) {
-                    $debt = SaleDebt::create([
-                        'client_id' => $this->currentClient['id'],
-                        'type' => "pay",
-                        'amount' => 0,
-                        'discount' => $this->discount,
-                        'payment' => 'cash',
-                        'bank_id' => null,
-                        'bank' => '',
-                        'due_date' => $this->due_date,
-                        'note' => "تم تخفيض مبلغ ",
-                        'user_id' => auth()->id(),
-                    ]);
-                }
-
-                if (floatval($this->service) != 0) {
-                    $debt = SaleDebt::create([
-                        'client_id' => $this->currentClient['id'],
-                        'type' => "debt",
-                        'amount' => 0,
-                        'service' => $this->service,
-                        'payment' => 'cash',
-                        'bank_id' => null,
-                        'bank' => '',
-                        'due_date' => $this->due_date,
-                        'note' => $this->note == "" ? "تمت إضافة خدمه" : $this->note,
-                        'user_id' => auth()->id(),
-                    ]);
                 }
 
                 $this->resetData();
@@ -248,13 +199,12 @@ class Client extends Component
                 $debt = SaleDebt::where('id', $this->debtId)->first();
 
                 $debt->update([
-                    'client_id' => $this->currentClient['id'],
+                    'deposit_id' => $this->currentDeposit['id'],
                     'type' => $this->type,
                     'amount' => $this->amount,
                     'payment' => $this->payment,
                     'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
                     'bank' => $this->bank,
-                    'discount' => $this->discount,
                     'due_date' => $this->due_date,
                     'user_id' => auth()->id(),
                 ]);
@@ -263,25 +213,15 @@ class Client extends Component
                 $this->alert('success', 'تم تعديل الدفعيه بنجاح', ['timerProgressBar' => true]);
 
             }
-            $this->showDebts($this->currentClient);
+            $this->showDebts($this->currentDeposit);
         }
 
     }
 
     public function showReceipt($debt)
     {
-        $this->currentReceipt = (array)$debt;
-        if (!isset($debt['transaction_amount'])) {
-            $debt['invoice_id'] = null;
-            $debt['transaction_amount'] = $debt['amount'];
-            $debt['transaction_paid'] = 0;
-            $debt['transaction_remainder'] = 0;
-            $debt['transaction_discount'] = $debt['discount'];
-            $debt['transaction_service'] = $debt['service'];
-            $debt['transaction_date'] = $debt['due_date'];
-        }
+        $this->currentReceipt = $debt;
     }
-
 
     public function chooseDebt($debt)
     {
@@ -292,8 +232,6 @@ class Client extends Component
         $this->amount = $debt['amount'];
         $this->payment = $debt['payment'];
         $this->bank = $debt['bank'];
-        $this->discount = $debt['discount'];
-        $this->service = $debt['service'];
         $this->due_date = $debt['due_date'];
     }
 
@@ -317,7 +255,7 @@ class Client extends Component
         $debt = $data['inputAttributes']['debt'];
 
         SaleDebt::where('id', $debt['id'])->forceDelete();
-        $this->showDebts($this->currentClient);
+        $this->showDebts($this->currentDeposit);
 
         $this->alert('success', 'تم حذف الدفعيه بنجاح', ['timerProgressBar' => true]);
 
@@ -326,7 +264,7 @@ class Client extends Component
 
     public function resetData($data = null)
     {
-        $this->reset('type', 'amount', 'debtId', 'payment', 'bank', 'bank_id', 'due_date', 'blocked', 'cash', 'discount', 'service', 'note', $data);
+        $this->reset('type', 'amount', 'debtId', 'payment', 'bank', 'bank_id', 'due_date', 'blocked', 'note', $data);
     }
 
     public function render()
@@ -344,7 +282,7 @@ class Client extends Component
         if ($this->startingDate == '') {
             $this->startingDate = session("date");
         }
-        $this->clients = \App\Models\Client::where('clientName', 'like', '%' . $this->search . '%')->orWhere('phone', 'like', '%' . $this->search . '%')->get();
-        return view('livewire.client');
+        $this->deposits = \App\Models\Deposit::where('name', 'like', '%' . $this->search . '%')->orWhere('phone', 'like', '%' . $this->search . '%')->get();
+        return view('livewire.deposit');
     }
 }

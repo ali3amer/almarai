@@ -180,7 +180,7 @@ class Report extends Component
                 $this->purchasesSum = \App\Models\Purchase::where('purchase_date', $this->day)->sum('total_amount');
                 $this->purchasesPaidSum = \App\Models\PurchaseDebt::where('due_date', $this->day)->where('type', 'pay')->sum('paid');
 
-                $this->expensesSum = \App\Models\Expense::where('expense_date', $this->day)->sum('amount');
+                $this->expensesSum = \App\Models\Expense::where('due_date', $this->day)->sum('amount');
                 $this->employeesSum = \App\Models\EmployeeGift::where('gift_date', $this->day)->sum('gift_amount');
 
                 if (\App\Models\Damaged::where('damaged_date', $this->day)->count() > 0) {
@@ -197,7 +197,7 @@ class Report extends Component
                 $this->purchasesSum = \App\Models\Purchase::whereBetween('purchase_date', [$this->from, $this->to])->sum('total_amount');
                 $this->purchasesPaidSum = \App\Models\PurchaseDebt::whereBetween('due_date', [$this->from, $this->to])->where('type', 'pay')->sum('paid');
 
-                $this->expensesSum = \App\Models\Expense::whereBetween('expense_date', [$this->from, $this->to])->sum('amount');
+                $this->expensesSum = \App\Models\Expense::whereBetween('due_date', [$this->from, $this->to])->sum('amount');
                 $this->employeesSum = \App\Models\EmployeeGift::whereBetween('gift_date', [$this->from, $this->to])->sum('gift_amount');
 
                 if (\App\Models\Damaged::whereBetween('damaged_date', [$this->from, $this->to])->count() > 0) {
@@ -306,25 +306,24 @@ class Report extends Component
                 $this->sum += $product->stock * $product->purchase_price;
             }
         } elseif ($this->reportType == 'client') { // client
-            $this->currentClient['initialBalance'] = \App\Models\Client::find($this->currentClient['id'])->initialBalance;
+            $client = \App\Models\Client::find($this->currentClient['id']);
             if ($this->reportDuration == 'day') {
-                $this->currentClient['initialBalance'] += SaleDebt::where('client_id', $this->currentClient['id'])->where('due_date', '<', $this->day)->sum('debt')
-                    - SaleDebt::where('client_id', $this->currentClient['id'])->where('due_date', '<', $this->day)->sum('paid')
-                    - SaleDebt::where('client_id', $this->currentClient['id'])->where('due_date', '<', $this->day)->sum('discount');
+                $this->currentClient['initialBalance'] = $client->getPastBalance($this->day);
 
-                $this->saleDebts = SaleDebt::where('client_id', $this->currentClient['id'])->where('due_date', $this->day)->get();
+                $this->saleDebts = $client->getMovements()->where('transaction_date', $this->day);
 
             } elseif ($this->reportDuration == 'duration') {
-                $this->currentClient['initialBalance'] += SaleDebt::where('client_id', $this->currentClient['id'])->where('due_date', '<', $this->from)->sum('debt')
-                    - SaleDebt::where('client_id', $this->currentClient['id'])->where('due_date', '<', $this->from)->sum('paid')
-                    - SaleDebt::where('client_id', $this->currentClient['id'])->where('due_date', '<', $this->from)->sum('discount');
+                $this->currentClient['initialBalance'] = $client->getPastBalance($this->from);
 
-                $this->saleDebts = SaleDebt::where('client_id', $this->currentClient['id'])->whereBetween('due_date', [$this->from, $this->to])->orderBy('due_date')->get();
+                $this->saleDebts = $client->getMovements()->whereBetween("transaction_date", "<", [$this->from, $this->to]);
 
             } else {
-                $this->saleDebts = SaleDebt::where('client_id', $this->currentClient['id'])->orderBy('due_date')->get();
+                $this->currentClient['initialBalance'] = $client->initialBalance;
+
+                $this->saleDebts = $client->getMovements();
             }
-            $this->salesBalance = $this->currentClient['initialBalance'] + $this->saleDebts->sum('debt') - $this->saleDebts->sum('paid') - $this->saleDebts->sum('discount') + $this->saleDebts->sum('service');
+            //$this->salesBalance = $this->currentClient['initialBalance'] + $this->saleDebts->sum('debt') - $this->saleDebts->sum('paid') - $this->saleDebts->sum('discount') + $this->saleDebts->sum('service');
+            $this->salesBalance = 0;
 
             $this->currentSalesBalance = $this->salesBalance;
         } elseif ($this->reportType == 'supplier') {   // supplier
@@ -395,16 +394,16 @@ class Report extends Component
         } elseif ($this->reportType == 'sales') {  // sale
             if ($this->reportDuration == 'day') {
                 if (!empty($this->currentProduct)) {
-                    $this->sales = SaleDetail::join('sales', 'sales.id', '=', 'sale_details.sale_id')->where('sales.sale_date', $this->day)->where('product_id', $this->currentProduct['id'])->get();
+                    $this->sales = SaleDetail::where('sales.due_date', $this->day)->where('product_id', $this->currentProduct['id'])->get();
                 } else {
-                    $this->sales = SaleDetail::join('sales', 'sales.id', '=', 'sale_details.sale_id')->where('sales.sale_date', $this->day)->get();
+                    $this->sales = SaleDetail::join('sales', 'sales.id', '=', 'sale_details.sale_id')->where('sales.due_date', $this->day)->get();
                 }
             } elseif ($this->reportDuration == 'duration') {
 
                 if (!empty($this->currentProduct)) {
-                    $this->sales = SaleDetail::join('sales', 'sales.id', '=', 'sale_details.sale_id')->whereBetween('sales.sale_date', [$this->from, $this->to])->where('product_id', $this->currentProduct['id'])->get();
+                    $this->sales = SaleDetail::join('sales', 'sales.id', '=', 'sale_details.sale_id')->whereBetween('sales.due_date', [$this->from, $this->to])->where('product_id', $this->currentProduct['id'])->get();
                 } else {
-                    $this->sales = SaleDetail::join('sales', 'sales.id', '=', 'sale_details.sale_id')->whereBetween('sales.sale_date', [$this->from, $this->to])->get();
+                    $this->sales = SaleDetail::join('sales', 'sales.id', '=', 'sale_details.sale_id')->whereBetween('sales.due_date', [$this->from, $this->to])->get();
                 }
             } else {
                 if (!empty($this->currentProduct)) {
@@ -426,16 +425,16 @@ class Report extends Component
         } elseif ($this->reportType == 'purchases') {  // purchase
             if ($this->reportDuration == 'day') {
                 if (!empty($this->currentProduct)) {
-                    $this->purchases = PurchaseDetail::join('purchases', 'purchases.id', '=', 'purchase_details.purchase_id')->where('purchases.purchase_date', $this->day)->where('product_id', $this->currentProduct['id'])->get();
+                    $this->purchases = PurchaseDetail::join('purchases', 'purchases.id', '=', 'purchase_details.purchase_id')->where('purchases.due_date', $this->day)->where('product_id', $this->currentProduct['id'])->get();
                 } else {
-                    $this->purchases = PurchaseDetail::join('purchases', 'purchases.id', '=', 'purchase_details.purchase_id')->where('purchases.purchase_date', $this->day)->get();
+                    $this->purchases = PurchaseDetail::join('purchases', 'purchases.id', '=', 'purchase_details.purchase_id')->where('purchases.due_date', $this->day)->get();
                 }
             } elseif ($this->reportDuration == 'duration') {
 
                 if (!empty($this->currentProduct)) {
-                    $this->purchases = PurchaseDetail::join('purchases', 'purchases.id', '=', 'purchase_details.purchase_id')->whereBetween('purchases.purchase_date', [$this->from, $this->to])->where('product_id', $this->currentProduct['id'])->get();
+                    $this->purchases = PurchaseDetail::join('purchases', 'purchases.id', '=', 'purchase_details.purchase_id')->whereBetween('purchases.due_date', [$this->from, $this->to])->where('product_id', $this->currentProduct['id'])->get();
                 } else {
-                    $this->purchases = PurchaseDetail::join('purchases', 'purchases.id', '=', 'purchase_details.purchase_id')->whereBetween('purchases.purchase_date', [$this->from, $this->to])->get();
+                    $this->purchases = PurchaseDetail::join('purchases', 'purchases.id', '=', 'purchase_details.purchase_id')->whereBetween('purchases.due_date', [$this->from, $this->to])->get();
                 }
             } else {
                 if (!empty($this->currentProduct)) {
@@ -542,9 +541,9 @@ class Report extends Component
 
         } elseif ($this->reportType == "expenses") {
             if ($this->reportDuration == "day") {
-                $this->expenses = \App\Models\Expense::where("expense_date", $this->day)->get();
+                $this->expenses = \App\Models\Expense::where("due_date", $this->day)->get();
             } elseif ($this->reportDuration == "duration") {
-                $this->expenses = \App\Models\Expense::whereBetween("expense_date", [$this->from, $this->to])->get();
+                $this->expenses = \App\Models\Expense::whereBetween("due_date", [$this->from, $this->to])->get();
             } else {
                 $this->expenses = \App\Models\Expense::get();
             }
@@ -569,7 +568,7 @@ class Report extends Component
                 $this->sales = SaleDebt::where("due_date", $this->day)->get();
                 $this->purchases = PurchaseDebt::where("due_date", $this->day)->get();
                 $this->transfers = Transfer::where("transfer_date", $this->day)->get();
-                $this->expenses = \App\Models\Expense::where("expense_date", $this->day)->get();
+                $this->expenses = \App\Models\Expense::where("due_date", $this->day)->get();
                 $this->employeeGifts = \App\Models\EmployeeGift::where("gift_date", $this->day)->get();
                 $this->withdraws = \App\Models\Withdraw::where("due_date", $this->day)->get();
 
@@ -577,7 +576,7 @@ class Report extends Component
                 $this->sales = SaleDebt::whereBetween("due_date", [$this->from, $this->to])->get();
                 $this->purchases = PurchaseDebt::whereBetween("due_date", [$this->from, $this->to])->get();
                 $this->transfers = Transfer::whereBetween("transfer_date", [$this->from, $this->to])->get();
-                $this->expenses = \App\Models\Expense::whereBetween("expense_date", [$this->from, $this->to])->get();
+                $this->expenses = \App\Models\Expense::whereBetween("due_date", [$this->from, $this->to])->get();
                 $this->employeeGifts = \App\Models\EmployeeGift::whereBetween("gift_date", [$this->from, $this->to])->get();
                 $this->withdraws = \App\Models\Withdraw::whereBetween("due_date", [$this->from, $this->to])->get();
             } else {
@@ -726,7 +725,7 @@ class Report extends Component
             }
 
             foreach ($this->expenses as $index => $expense) {
-                $this->array[$expense['created_at'] . $index]['date'] = $expense['expense_date'];
+                $this->array[$expense['created_at'] . $index]['date'] = $expense['due_date'];
                 $this->array[$expense['created_at'] . $index]['note'] = $expense['description'];
                 $this->array[$expense['created_at'] . $index]['account'] = "المصروفات";
                 $this->array[$expense['created_at'] . $index]['payment'] = $expense['payment'];
@@ -794,11 +793,10 @@ class Report extends Component
 
     public function getInvoice($debt)
     {
-        if (isset($debt['sale_id']) || isset($debt['purchase_id'])) {
-            $type = isset($debt['sale_id']) ? 'sale' : 'purchase';
-            $this->invoice['id'] = $debt[$type . '_id'];
+            $type = $debt['type'] == "sale" ? 'sale' : 'purchase';
+            $this->invoice['id'] = $debt['invoice_id'];
             $this->invoice['type'] = $type;
-            $this->invoice['date'] = $debt['due_date'];
+            $this->invoice['date'] = $debt['transaction_date'];
             if (isset($debt['client_id']) && $debt['client_id'] != null) {
                 $this->invoice['client'] = \App\Models\Client::find($debt['client_id'])->clientName;
                 $this->invoice['clientType'] = 'العميل';
@@ -823,7 +821,6 @@ class Report extends Component
             $this->invoice['amount'] = $row['total_amount'] + floatval($row['discount']);
             $this->invoice['showMode'] = false;
             $this->dispatch('sale_created', $this->invoice);
-        }
     }
 
     public function resetData()

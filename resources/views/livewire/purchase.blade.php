@@ -52,7 +52,7 @@
                                 </div>
 
                                 <div class="col-1">
-                                    <button class="btn btn-info" @if(isset($invoice['paidId'])) wire:click="changePayment({{$invoice['paidId']}})" @endif><i class="bi bi-bookmark-check"></i></button>
+                                    <button class="btn btn-info" @if(isset($invoice['id'])) wire:click="changePayment({{$invoice['id']}})" @endif><i class="bi bi-bookmark-check"></i></button>
                                 </div>
                             </div>
                         @endif
@@ -163,7 +163,7 @@
                                         <div class="row">
                                             <div class="col-4"><h5>الفاتوره {{$id != 0 ? '#'. $id : ''}}</h5></div>
                                             <div class="col-4"><input type="date" disabled
-                                                                      wire:model.live="purchase_date"
+                                                                      wire:model.live="due_date"
                                                                       class="form-control">
                                             </div>
                                             <div class="col-4">
@@ -226,7 +226,7 @@
                                             @endforeach
                                             <tr>
                                                 <td>الجمله</td>
-                                                <td>{{number_format($amount, 2)}}</td>
+                                                <td>{{number_format($cost, 2)}}</td>
                                                 <td>الرصيد الحالي</td>
                                                 <td>{{number_format($currentBalance, 2)}}</td>
                                             </tr>
@@ -240,7 +240,7 @@
                                             </tr>
                                             <tr>
                                                 <td>الصافي</td>
-                                                <td>{{number_format($total_amount, 2)}}</td>
+                                                <td>{{number_format($amount, 2)}}</td>
                                             </tr>
                                             <tr>
                                                 <td>المدفوع</td>
@@ -300,11 +300,11 @@
                                                 wire:click="getPurchase({{$purchase}})" data-bs-toggle="modal"
                                                 data-bs-target="#printModal">
                                                 <td>{{$purchase->id}}</td>
-                                                <td>{{$purchase->purchase_date}}</td>
-                                                <td>{{number_format($purchase->total_amount, 2)}}</td>
+                                                <td>{{$purchase->due_date}}</td>
+                                                <td>{{number_format($purchase->amount, 2)}}</td>
                                                 <td>
-                                                    @if($purchase->paid > 0 && $purchase->purchaseDebts->where("type", "pay")->first())
-                                                        {{ $purchase->purchaseDebts->where("type", "pay")->first()->payment == "cash" ? "كاش" : "بنك" }}
+                                                    @if($purchase->paid > 0)
+                                                        {{ $purchase->payment == "cash" ? "كاش" : "بنك" }}
                                                     @endif
                                                 </td>
                                             </tr>

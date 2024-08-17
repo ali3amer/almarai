@@ -29,7 +29,7 @@ class PurchaseReturns extends Component
     public $quantityReturn = 0;
     public float $priceReturn = 0;
 
-    public string $return_date = '';
+    public string $due_date = '';
     public string $supplierSearch = '';
     public Collection $suppliers;
     public Collection $returns;
@@ -67,8 +67,8 @@ class PurchaseReturns extends Component
         $this->quantity = $detail['quantity'];
         $this->price = $detail['price'];
 
-        $this->return_date = $detail['return_date'] ?? $this->return_date;
-        $this->amount = $detail['quantity'] * $detail['price'];
+        $this->due_date = $detail['due_date'] ?? $this->due_date;
+        $this->amount = 0;
     }
 
     public function getReturns($purchase)
@@ -92,74 +92,75 @@ class PurchaseReturns extends Component
         $quantity = \App\Models\Product::where("id", $this->currentDetail['product_id'])->first()->stock;
         if (floatval($this->quantityReturn) < floatval($quantity)) {
 
-            if ($purchase->paid == 0) {
-                \App\Models\PurchaseDebt::create([
-                    'supplier_id' => $this->currentSupplier['id'],
-                    'paid' => 0,
-                    'purchase_id' => $this->currentDetail['purchase_id'],
-                    'debt' => 0,
-                    'discount' => floatval($this->priceReturn),
-                    'type' => 'pay',
-                    'bank' => '',
-                    'payment' => 'cash',
-                    'bank_id' => null,
-                    'due_date' => $this->return_date,
-                    'note' => 'تم خصم قيمة المنتج المرجع من فاتورة #' . $purchase['id'],
-                    'user_id' => auth()->id()
-                ]);
-            } else {
-                \App\Models\PurchaseDebt::create([
-                    'supplier_id' => $this->currentSupplier['id'],
-                    'paid' => 0,
-                    'debt' => floatval($this->priceReturn),
-                    'discount' => 0,
-                    'type' => 'debt',
-                    'bank' => '',
-                    'payment' => 'cash',
-                    'bank_id' => null,
-                    'due_date' => $this->return_date,
-                    'note' => 'تم خصم قيمة المنتج المرجع من فاتورة #' . $purchase['id'],
-                    'user_id' => auth()->id()
-                ]);
-            }
+//            if ($purchase->paid == 0) {
+//                \App\Models\PurchaseDebt::create([
+//                    'supplier_id' => $this->currentSupplier['id'],
+//                    'paid' => 0,
+//                    'purchase_id' => $this->currentDetail['purchase_id'],
+//                    'debt' => 0,
+//                    'discount' => floatval($this->priceReturn),
+//                    'type' => 'pay',
+//                    'bank' => '',
+//                    'payment' => 'cash',
+//                    'bank_id' => null,
+//                    'due_date' => $this->due_date,
+//                    'note' => 'تم خصم قيمة المنتج المرجع من فاتورة #' . $purchase['id'],
+//                    'user_id' => auth()->id()
+//                ]);
+//            } else {
+//                \App\Models\PurchaseDebt::create([
+//                    'supplier_id' => $this->currentSupplier['id'],
+//                    'paid' => 0,
+//                    'debt' => floatval($this->priceReturn),
+//                    'discount' => 0,
+//                    'type' => 'debt',
+//                    'bank' => '',
+//                    'payment' => 'cash',
+//                    'bank_id' => null,
+//                    'due_date' => $this->due_date,
+//                    'note' => 'تم خصم قيمة المنتج المرجع من فاتورة #' . $purchase['id'],
+//                    'user_id' => auth()->id()
+//                ]);
+//            }
 
-            if (floatval($purchase["paid"]) == 0 || floatval($purchase["paid"]) < $this->priceReturn) {
-                $purchasePaid = 0;
-            } else {
-                $purchasePaid = floatval($purchase["paid"]) - $this->priceReturn;
-            }
+//            if (floatval($purchase["paid"]) == 0 || floatval($purchase["paid"]) < $this->priceReturn) {
+//                $purchasePaid = 0;
+//            } else {
+//                $purchasePaid = floatval($purchase["paid"]) - $this->priceReturn;
+//            }
 
-            if ($purchasePaid != 0 || floatval($purchase["paid"]) >= $this->priceReturn) {
-                \App\Models\PurchaseDebt::create([
-                    'supplier_id' => $this->currentSupplier['id'],
-                    'paid' => 0,
-                    'purchase_id' => $this->currentDetail['purchase_id'],
-                    'debt' => floatval($this->priceReturn),
-                    'type' => 'debt',
-                    'bank' => '',
-                    'payment' => 'cash',
-                    'bank_id' => null,
-                    'due_date' => $this->return_date,
-                    'note' => 'تم دفع قيمة المنتج المرجع الى العميل من فاتورة #' . $purchase['id'],
-                    'user_id' => auth()->id()
-                ]);
-            }
-            $total_amount = $purchase['total_amount'] - $this->priceReturn;
-            $remainder = $total_amount - $purchasePaid - $purchase['discount'];
-            $purchase->update([
-                'paid' => $purchasePaid,
-                'remainder' => $remainder,
-                'total_amount' => $total_amount,
-            ]);
+//            if ($purchasePaid != 0 || floatval($purchase["paid"]) >= $this->priceReturn) {
+//                \App\Models\PurchaseDebt::create([
+//                    'supplier_id' => $this->currentSupplier['id'],
+//                    'paid' => 0,
+//                    'purchase_id' => $this->currentDetail['purchase_id'],
+//                    'debt' => floatval($this->priceReturn),
+//                    'type' => 'debt',
+//                    'bank' => '',
+//                    'payment' => 'cash',
+//                    'bank_id' => null,
+//                    'due_date' => $this->due_date,
+//                    'note' => 'تم دفع قيمة المنتج المرجع الى العميل من فاتورة #' . $purchase['id'],
+//                    'user_id' => auth()->id()
+//                ]);
+//            }
+//            $total_amount = $purchase['total_amount'] - $this->priceReturn;
+//            $remainder = $total_amount - $purchasePaid - $purchase['discount'];
+//            $purchase->update([
+//                'paid' => $purchasePaid,
+//                'remainder' => $remainder,
+//                'total_amount' => $total_amount,
+//            ]);
 
-            PurchaseDetail::where("purchase_id", $purchase['id'])->where("product_id", $this->currentDetail['product_id'])->decrement("quantity", floatval($this->quantityReturn));
+//            PurchaseDetail::where("purchase_id", $purchase['id'])->where("product_id", $this->currentDetail['product_id'])->decrement("quantity", floatval($this->quantityReturn));
 
             PurchaseReturn::create([
                 'purchase_id' => $purchase['id'],
                 'product_id' => $this->currentDetail['product_id'],
                 'quantity' => floatval($this->quantityReturn),
-                'return_date' => $this->return_date,
-                'price' => $this->currentDetail['price']
+                'due_date' => $this->due_date,
+                'price' => $this->currentDetail['price'],
+                'amount' => $this->amount
             ]);
 
             $this->getReturns($purchase->toArray());
@@ -199,13 +200,13 @@ class PurchaseReturns extends Component
 
     public function resetData($data = null)
     {
-        $this->reset('productName', 'editMode', 'amount', 'quantity', 'price', 'quantityReturn', 'supplierSearch', 'currentDetail', 'purchaseSearch', 'return_date', $data);
+        $this->reset('productName', 'editMode', 'amount', 'quantity', 'price', 'quantityReturn', 'supplierSearch', 'currentDetail', 'purchaseSearch', 'due_date', $data);
     }
 
     public function render()
     {
-        if ($this->return_date == '') {
-            $this->return_date = session("date");
+        if ($this->due_date == '') {
+            $this->due_date = session("date");
         }
         $this->suppliers = \App\Models\Supplier::where('supplierName', 'LIKE', '%' . $this->supplierSearch . '%')->get();
 
