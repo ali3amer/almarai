@@ -165,7 +165,7 @@ class Client extends Component
     {
         $this->currentClient = $client;
 
-        $this->debts = \App\Models\Client::find($client['id'])->getMovements()->toArray();
+        $this->debts = (new \App\Models\Sale)->getMovements($this->currentClient['id'], 'client')->toArray();
 
         $this->currentBalance = \App\Models\Client::find($this->currentClient['id'])->currentBalance;
 
@@ -271,15 +271,6 @@ class Client extends Component
     public function showReceipt($debt)
     {
         $this->currentReceipt = (array)$debt;
-        if (!isset($debt['transaction_amount'])) {
-            $debt['invoice_id'] = null;
-            $debt['transaction_amount'] = $debt['amount'];
-            $debt['transaction_paid'] = 0;
-            $debt['transaction_remainder'] = 0;
-            $debt['transaction_discount'] = $debt['discount'];
-            $debt['transaction_service'] = $debt['service'];
-            $debt['transaction_date'] = $debt['due_date'];
-        }
     }
 
 

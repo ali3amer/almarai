@@ -191,7 +191,7 @@ class Employee extends Component
         $this->due_date = session("date");
         $this->amount = $this->currentEmployee['salary'];
         $this->gifts = EmployeeGift::where('employee_id', $this->currentEmployee['id'])->get();
-        $this->debts = \App\Models\Employee::find($this->currentEmployee['id'])->getMovements()->toArray();
+        $this->debts = (new \App\Models\Sale)->getMovements($this->currentEmployee['id'], 'employee')->toArray();
         $this->currentEmployee['gifts'] = EmployeeGift::where("employee_id", $this->currentEmployee["id"])->where("due_date", "LIKE", date("Y") . "-%" . $this->month . "-%")->sum("amount");
         $this->currentBalance = \App\Models\Employee::find($this->currentEmployee['id'])->currentBalance;
 

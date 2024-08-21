@@ -73,7 +73,7 @@ class Report extends Component
     public collection $purchases;
     public collection $sales;
     public collection $stores;
-    public collection $saleDebts;
+    public array $saleDebts = [];
     public Collection $purchaseDebts;
     public collection $clients;
     public collection $debts;
@@ -81,6 +81,7 @@ class Report extends Component
     public collection $suppliers;
     public collection $employees;
     public collection $products;
+    public array $trackingProducts = [];
     public string $payment = '';
     public string $clientSearch = '';
     public string $supplierSearch = '';
@@ -310,58 +311,47 @@ class Report extends Component
             if ($this->reportDuration == 'day') {
                 $this->currentClient['initialBalance'] = $client->getPastBalance($this->day);
 
-                $this->saleDebts = $client->getMovements()->where('transaction_date', $this->day);
+                $this->saleDebts =(new \App\Models\Sale)->getMovements($this->currentClient['id'], 'client')->where('due_date', $this->day)->toArray();
 
             } elseif ($this->reportDuration == 'duration') {
                 $this->currentClient['initialBalance'] = $client->getPastBalance($this->from);
 
-                $this->saleDebts = $client->getMovements()->whereBetween("transaction_date", "<", [$this->from, $this->to]);
+                $this->saleDebts = (new \App\Models\Sale)->getMovements($this->currentClient['id'], 'client')->whereBetween("due_date", "<", [$this->from, $this->to])->toArray();
 
             } else {
                 $this->currentClient['initialBalance'] = $client->initialBalance;
 
-                $this->saleDebts = $client->getMovements();
+                $this->saleDebts = (new \App\Models\Sale)->getMovements($this->currentClient['id'], 'client')->toArray();
             }
-            //$this->salesBalance = $this->currentClient['initialBalance'] + $this->saleDebts->sum('debt') - $this->saleDebts->sum('paid') - $this->saleDebts->sum('discount') + $this->saleDebts->sum('service');
             $this->salesBalance = 0;
 
             $this->currentSalesBalance = $this->salesBalance;
         } elseif ($this->reportType == 'supplier') {   // supplier
-            $this->currentSupplier['initialBalance'] = \App\Models\Supplier::find($this->currentSupplier['id'])->initialBalance;
-            $this->currentSupplier['initialSalesBalance'] = \App\Models\Supplier::find($this->currentSupplier['id'])->initialSalesBalance;
-
+            $supplier = \App\Models\Supplier::find($this->currentSupplier['id']);
             if ($this->reportDuration == 'day') {
+                $this->currentSupplier['initialBalance'] = $supplier->getPastBalance($this->day);
+                $this->currentSupplier['initialSalesBalance'] = $supplier->getSalesPastBalance($this->day);
 
-                $this->currentSupplier['initialBalance'] += PurchaseDebt::where('supplier_id', $this->currentSupplier['id'])->where('due_date', '<', $this->day)->sum('debt')
-                    - PurchaseDebt::where('supplier_id', $this->currentSupplier['id'])->where('due_date', '<', $this->day)->sum('paid')
-                    - PurchaseDebt::where('supplier_id', $this->currentSupplier['id'])->where('due_date', '<', $this->day)->sum('discount');
+                $this->saleDebts =(new \App\Models\Sale)->getMovements($this->currentSupplier['id'], 'supplier')->where('due_date', $this->day);
+                $this->purchaseDebts =(new \App\Models\Purchase)->getMovements($this->currentSupplier['id'], 'supplier')->where('due_date', $this->day);
 
-                $this->currentSupplier['initialSalesBalance'] += SaleDebt::where('supplier_id', $this->currentSupplier['id'])->where('due_date', '<', $this->day)->sum('debt')
-                    - SaleDebt::where('supplier_id', $this->currentSupplier['id'])->where('due_date', '<', $this->day)->sum('paid')
-                    - SaleDebt::where('supplier_id', $this->currentSupplier['id'])->where('due_date', '<', $this->day)->sum('discount');
-
-                $this->saleDebts = \App\Models\SaleDebt::where('supplier_id', $this->currentSupplier['id'])->where('due_date', $this->day)->orderBy('due_date')->get();
-                $this->purchaseDebts = \App\Models\PurchaseDebt::where('supplier_id', $this->currentSupplier['id'])->where('due_date', $this->day)->orderBy('due_date')->get();
             } elseif ($this->reportDuration == 'duration') {
+                $this->currentSupplier['initialBalance'] = $supplier->getPastBalance($this->from);
+                $this->currentSupplier['initialSalesBalance'] = $supplier->getSalesPastBalance($this->from);
 
-                $this->currentSupplier['initialBalance'] += PurchaseDebt::where('supplier_id', $this->currentSupplier['id'])->where('due_date', '<', $this->from)->sum('debt')
-                    - PurchaseDebt::where('supplier_id', $this->currentSupplier['id'])->where('due_date', '<', $this->from)->sum('paid')
-                    - PurchaseDebt::where('supplier_id', $this->currentSupplier['id'])->where('due_date', '<', $this->from)->sum('discount');
+                $this->saleDebts = (new \App\Models\Sale)->getMovements($this->currentSupplier['id'], 'supplier')->whereBetween("due_date", "<", [$this->from, $this->to]);
+                $this->purchaseDebts =(new \App\Models\Purchase)->getMovements($this->currentSupplier['id'], 'supplier')->whereBetween("due_date", "<", [$this->from, $this->to]);
 
-                $this->currentSupplier['initialSalesBalance'] += SaleDebt::where('supplier_id', $this->currentSupplier['id'])->where('due_date', '<', $this->from)->sum('debt')
-                    - SaleDebt::where('supplier_id', $this->currentSupplier['id'])->where('due_date', '<', $this->from)->sum('paid')
-                    - SaleDebt::where('supplier_id', $this->currentSupplier['id'])->where('due_date', '<', $this->from)->sum('discount');
-
-                $this->saleDebts = \App\Models\SaleDebt::where('supplier_id', $this->currentSupplier['id'])->whereBetween('due_date', [$this->from, $this->to])->orderBy('due_date')->get();
-                $this->purchaseDebts = \App\Models\PurchaseDebt::where('supplier_id', $this->currentSupplier['id'])->whereBetween('due_date', [$this->from, $this->to])->orderBy('due_date')->get();
             } else {
-                $this->saleDebts = \App\Models\SaleDebt::where('supplier_id', $this->currentSupplier['id'])->orderBy('due_date')->get();
-                $this->purchaseDebts = \App\Models\PurchaseDebt::where('supplier_id', $this->currentSupplier['id'])->orderBy('due_date')->get();
+                $this->currentSupplier['initialBalance'] = $supplier->initialBalance;
+                $this->currentSupplier['initialSalesBalance'] = $supplier->initialSalesBalance;
 
+                $this->saleDebts = (new \App\Models\Sale)->getMovements($this->currentSupplier['id'], 'supplier');
+                $this->purchaseDebts =(new \App\Models\Purchase)->getMovements($this->currentSupplier['id'], 'supplier');
             }
+            $this->salesBalance = 0;
 
-            $this->currentSalesBalance = $this->saleDebts->sum("debt") - $this->saleDebts->sum("paid") - $this->saleDebts->sum("discount") + $this->saleDebts->sum("service");
-            $this->currentPurchasesBalance = $this->purchaseDebts->sum("debt") - $this->purchaseDebts->sum("paid");
+            $this->currentSalesBalance = $this->salesBalance;
 
         } elseif ($this->reportType == 'employee') {   // employee
             $this->currentEmployee['initialBalance'] = \App\Models\Employee::find($this->currentEmployee['id'])->initialBalance;
@@ -453,91 +443,19 @@ class Report extends Component
                 }
             }
         } elseif ($this->reportType == "tracking") {
-            $this->array = [];
-            $this->sale = 0;
-            $this->purchase = 0;
-
-            $this->currentProduct['initialStock'] = \App\Models\Product::find($this->currentProduct['id'])->initialStock;
 
             if ($this->reportDuration == "day") {
-                $this->currentProduct['initialStock'] += PurchaseDetail::join('purchases', 'purchases.id', '=', 'purchase_details.purchase_id')->where('purchases.purchase_date', '<', $this->day)->where('product_id', $this->currentProduct['id'])->sum("quantity")
-                    - SaleDetail::join('sales', 'sales.id', '=', 'sale_details.sale_id')->where('sales.sale_date', '<', $this->day)->where('product_id', $this->currentProduct['id'])->sum('quantity');
-
-                $sales = SaleDetail::join('sales', 'sales.id', '=', 'sale_details.sale_id')->where('sales.sale_date', $this->day)->where('product_id', $this->currentProduct['id'])->get();
-                $saleReturns = SaleReturn::where('return_date', $this->day)->where('product_id', $this->currentProduct['id'])->get();
-                $purchaseReturns = PurchaseReturn::where('return_date', $this->day)->where('product_id', $this->currentProduct['id'])->get();
-                $purchases = PurchaseDetail::join('purchases', 'purchases.id', '=', 'purchase_details.purchase_id')->where('purchases.purchase_date', $this->day)->where('product_id', $this->currentProduct['id'])->get();
+                $this->currentProduct['initialStock'] = \App\Models\Product::find($this->currentProduct['id'])->getStockBeforeDate($this->day);
+                $this->trackingProducts = \App\Models\Product::find($this->currentProduct['id'])->getProductMovements()->where("due_date", $this->day)->toArray();
 
             } elseif ($this->reportDuration == "duration") {
+                $this->currentProduct['initialStock'] = \App\Models\Product::find($this->currentProduct['id'])->getStockBeforeDate($this->from);
+                $this->trackingProducts = \App\Models\Product::find($this->currentProduct['id'])->getProductMovements()->whereBetween("due_date", [$this->from, $this->to])->toArray();
 
-                $this->currentProduct['initialStock'] += PurchaseDetail::join('purchases', 'purchases.id', '=', 'purchase_details.purchase_id')->where('purchases.purchase_date', '<', $this->from)->where('product_id', $this->currentProduct['id'])->sum("quantity")
-                    - SaleDetail::join('sales', 'sales.id', '=', 'sale_details.sale_id')->where('sales.sale_date', '<', $this->from)->where('product_id', $this->currentProduct['id'])->sum('quantity');
-
-
-                $sales = SaleDetail::join('sales', 'sales.id', '=', 'sale_details.sale_id')->whereBetween('sales.sale_date', [$this->from, $this->to])->where('product_id', $this->currentProduct['id'])->get();
-                $saleReturns = SaleReturn::whereBetween('return_date', [$this->from, $this->to])->where('product_id', $this->currentProduct['id'])->get();
-                $purchaseReturns = PurchaseReturn::whereBetween('return_date', [$this->from, $this->to])->where('product_id', $this->currentProduct['id'])->get();
-                $purchases = PurchaseDetail::join('purchases', 'purchases.id', '=', 'purchase_details.purchase_id')->whereBetween('purchases.purchase_date', [$this->from, $this->to])->where('product_id', $this->currentProduct['id'])->get();
             } else {
-                $sales = SaleDetail::join('sales', 'sales.id', '=', 'sale_details.sale_id')->where('product_id', $this->currentProduct['id'])->get();
-                $saleReturns = SaleReturn::where('product_id', $this->currentProduct['id'])->get();
-                $purchaseReturns = PurchaseReturn::where('product_id', $this->currentProduct['id'])->get();
-                $purchases = PurchaseDetail::join('purchases', 'purchases.id', '=', 'purchase_details.purchase_id')->where('product_id', $this->currentProduct['id'])->get();
+                $this->currentProduct['initialStock'] = \App\Models\Product::find($this->currentProduct['id'])->initialStock;
+                $this->trackingProducts = \App\Models\Product::find($this->currentProduct['id'])->getProductMovements()->toArray();
             }
-
-            $this->purchase += $this->currentProduct['initialStock'];
-
-
-            foreach ($sales as $index => $sale) {
-                $this->array[$sale['created_at'] . $index]['invoice'] = $sale->sale->saleDebts->first();
-                $this->array[$sale['created_at'] . $index]['invoice']['sale_id'] = $sale->sale_id;
-
-                $this->array[$sale['created_at'] . $index]['date'] = $sale['sale_date'];
-                $this->array[$sale['created_at'] . $index]['note'] = $sale->client_id == null ? ($sale->supplier_id == null ? $sale->sale->employee->employeeName : $sale->sale->supplier->supplierName) : $sale->sale->client->clientName;
-                $this->array[$sale['created_at'] . $index]['sale'] = $sale['quantity'];
-                $this->array[$sale['created_at'] . $index]['purchase'] = 0;
-                $this->sale += $sale['quantity'];
-            }
-
-            foreach ($saleReturns as $index => $sale) {
-                $this->array[$sale['created_at'] . $index]['invoice'] = $sale->sale->saleDebts->first();
-                $this->array[$sale['created_at'] . $index]['invoice']['sale_id'] = $sale->sale_id;
-
-                $this->array[$sale['created_at'] . $index]['date'] = $sale['sale_date'];
-                $this->array[$sale['created_at'] . $index]['note'] = "مرتجعات فاتورة مبيعات رقم #" . $sale['sale_id'];
-                $this->array[$sale['created_at'] . $index]['sale'] = 0;
-                $this->array[$sale['created_at'] . $index]['purchase'] = $sale['quantity'];
-                $this->purchase += $sale['quantity'];
-            }
-
-            foreach ($purchases as $index => $purchase) {
-
-                $this->array[$purchase['created_at'] . $index]['invoice'] = $purchase->purchase->purchaseDebts->first();
-                $this->array[$purchase['created_at'] . $index]['invoice']['purchase_id'] = $purchase->purchase_id;
-
-                $this->array[$purchase['created_at'] . $index]['date'] = $purchase['purchase_date'];
-                $this->array[$purchase['created_at'] . $index]['note'] = $purchase->purchase->supplier->supplierName;
-                $this->array[$purchase['created_at'] . $index]['sale'] = 0;
-                $this->array[$purchase['created_at'] . $index]['purchase'] = $purchase['quantity'];
-                $this->purchase += $purchase['quantity'];
-
-            }
-
-
-            foreach ($purchaseReturns as $index => $purchase) {
-
-                $this->array[$purchase['created_at'] . $index]['invoice'] = $purchase->purchase->purchaseDebts->first();
-                $this->array[$purchase['created_at'] . $index]['invoice']['sale_id'] = $purchase->purchase_id;
-
-                $this->array[$purchase['created_at'] . $index]['date'] = $purchase['return_date'];
-                $this->array[$purchase['created_at'] . $index]['note'] = "مرتجعات فاتورة مشتريات رقم #" . $purchase['purchase_id'];
-                $this->array[$purchase['created_at'] . $index]['sale'] = $purchase['quantity'];
-                $this->array[$purchase['created_at'] . $index]['purchase'] = 0;
-                $this->sale += $purchase['quantity'];
-
-            }
-            ksort($this->array);
-
 
         } elseif ($this->reportType == "expenses") {
             if ($this->reportDuration == "day") {
@@ -555,7 +473,6 @@ class Report extends Component
             });
 
         } elseif ($this->reportType == "safe" || $this->reportType == "daily") {
-
             $this->paid = 0;
             $this->debt = 0;
             $this->saleFuture = 0;
@@ -791,36 +708,38 @@ class Report extends Component
         $this->array = [];
     }
 
-    public function getInvoice($debt)
+    public function getInvoice($id, $tableName)
     {
-            $type = $debt['type'] == "sale" ? 'sale' : 'purchase';
-            $this->invoice['id'] = $debt['invoice_id'];
-            $this->invoice['type'] = $type;
-            $this->invoice['date'] = $debt['transaction_date'];
-            if (isset($debt['client_id']) && $debt['client_id'] != null) {
-                $this->invoice['client'] = \App\Models\Client::find($debt['client_id'])->clientName;
+        $type = ($tableName == "sales" || $tableName == "sale_returns") ? 'sale' : 'purchase';
+        $this->invoice['id'] = $id;
+        $this->invoice['type'] = $type;
+        if ($type == "sale") {
+            $invoice = \App\Models\Sale::find($id);
+            if ($invoice['client_id'] != null) {
+                $this->invoice['client'] = $invoice->client->clientName;
                 $this->invoice['clientType'] = 'العميل';
-            } elseif (isset($debt['supplier_id']) && $debt['supplier_id'] != null) {
-                $this->invoice['client'] = \App\Models\Supplier::find($debt['supplier_id'])->supplierName;
+            } elseif ($invoice['supplier_id'] != null) {
+                $this->invoice['client'] = $invoice->supplier->supplierName;
                 $this->invoice['clientType'] = 'المورد';
-            } elseif (isset($debt['employee_id']) && $debt['employee_id'] != null) {
-                $this->invoice['client'] = \App\Models\Employee::find($debt['employee_id'])->employeeName;
+            } else {
+                $this->invoice['client'] = $invoice->employee->employeeName;
                 $this->invoice['clientType'] = 'الموظف';
             }
-            if ($type == 'sale') {
-                $this->invoice['cart'] = SaleDetail::where('sale_id', $this->invoice['id'])->join('products', 'products.id', '=', 'sale_details.product_id')->get()->toArray();
-                $row = \App\Models\Sale::where('id', $this->invoice['id'])->first();
-            } else {
-                $this->invoice['cart'] = PurchaseDetail::where('purchase_id', $this->invoice['id'])->join('products', 'products.id', '=', 'purchase_details.product_id')->get()->toArray();
-                $row = \App\Models\Purchase::where('id', $this->invoice['id'])->first();
-            }
-            $this->invoice['paid'] = $row['paid'];
-            $this->invoice['remainder'] = $row['remainder'];
-            $this->invoice['total_amount'] = $row['total_amount'];
-            $this->invoice['discount'] = floatval($row['discount']);
-            $this->invoice['amount'] = $row['total_amount'] + floatval($row['discount']);
-            $this->invoice['showMode'] = false;
-            $this->dispatch('sale_created', $this->invoice);
+            $this->invoice['cart'] = SaleDetail::where('sale_id', $this->invoice['id'])->join('products', 'products.id', '=', 'sale_details.product_id')->get()->toArray();
+            $row = \App\Models\Sale::where('id', $this->invoice['id'])->first();
+        } else {
+            $invoice = \App\Models\Purchase::find($id);
+            $this->invoice['cart'] = PurchaseDetail::where('purchase_id', $this->invoice['id'])->join('products', 'products.id', '=', 'purchase_details.product_id')->get()->toArray();
+            $row = \App\Models\Purchase::where('id', $this->invoice['id'])->first();
+        }
+        $this->invoice['date'] = $invoice['due_date'];
+        $this->invoice['paid'] = $row['paid'];
+        $this->invoice['remainder'] = $row['remainder'];
+        $this->invoice['amount'] = $row['amount'];
+        $this->invoice['discount'] = floatval($row['discount']);
+        $this->invoice['cost'] = $row['amount'] + floatval($row['discount']);
+        $this->invoice['showMode'] = false;
+        $this->dispatch('sale_created', $this->invoice);
     }
 
     public function resetData()

@@ -176,10 +176,10 @@ class Supplier extends Component
         }
         $this->currentSupplier = $supplier;
         if ($this->debtType == 'purchases') {
-            $this->debts = \App\Models\Supplier::find($this->currentSupplier['id'])->getMovements()->toArray();
+            $this->debts = (new \App\Models\Purchase)->getMovements($this->currentSupplier['id'])->toArray();
             $this->currentBalance = \App\Models\Supplier::find($this->currentSupplier['id'])->currentBalance;
         } else {
-            $this->debts = \App\Models\Supplier::find($this->currentSupplier['id'])->getSalesMovements()->toArray();
+            $this->debts = (new \App\Models\Sale)->getMovements($this->currentSupplier['id'], 'supplier')->toArray();
             $this->currentBalance = \App\Models\Supplier::find($this->currentSupplier['id'])->currentSalesBalance;
         }
     }
@@ -213,6 +213,8 @@ class Supplier extends Component
                         'type' => $this->type,
                         'amount' => $this->amount,
                         'payment' => $this->payment,
+                        'discount' => 0,
+                        'service' => 0,
                         'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
                         'bank' => $this->bank,
                         'due_date' => $this->due_date,
@@ -305,6 +307,7 @@ class Supplier extends Component
                         'supplier_id' => $this->currentSupplier['id'],
                         'type' => $this->type,
                         'amount' => $this->amount,
+                        'discount' => 0,
                         'payment' => $this->payment,
                         'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
                         'bank' => $this->bank,
@@ -361,15 +364,6 @@ class Supplier extends Component
     public function showReceipt($debt)
     {
         $this->currentReceipt = (array)$debt;
-        if (!isset($debt['transaction_amount'])) {
-            $debt['invoice_id'] = null;
-            $debt['transaction_amount'] = $debt['amount'];
-            $debt['transaction_paid'] = 0;
-            $debt['transaction_remainder'] = 0;
-            $debt['transaction_discount'] = $debt['discount'] ?? 0;
-            $debt['transaction_service'] = $debt['service'] ?? 0;
-            $debt['transaction_date'] = $debt['due_date'];
-        }
     }
 
     public function chooseDebt($debt)

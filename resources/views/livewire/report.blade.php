@@ -598,18 +598,13 @@
                             </tr>
                             @foreach($saleDebts as $debt)
                                 <tr>
-                                    @php
-                                        $currentBalance += $debt->debt - $debt->paid - $debt->discount + $debt->service;
-                                        $paid += $debt->paid + $debt->discount;
-                                        $debts += $debt->debt + $debt->service;
-                                        @dd($debt)
-                                    @endphp
-                                    <td>{{$debt->transaction_date}}</td>
-                                    <td @if($debt->invoice_id != null) data-bs-toggle="modal"
+                                    <td>{{$debt['due_date']}}</td>
+                                    <td @if($debt['invoice_id'] != null) data-bs-toggle="modal"
                                         data-bs-target="#printModal"
-                                        wire:click="getInvoice({{$debt}})" @endif >{{ $debt->note }}</td>
-                                    <td>{{$debt->debt != 0 ? number_format($debt->debt, 2) : number_format($debt->service, 2)}}</td>
-                                    <td>{{$debt->paid != 0 ? number_format($debt->paid, 2) : number_format($debt->discount, 2)}}</td>
+                                        wire:click="getInvoice({{$debt['invoice_id']}}, '{{$debt['tableName']}}')"
+                                        @endif>{{ $debt['note'] }}</td>
+                                    <td></td>
+                                    <td></td>
                                     <td>{{number_format($currentBalance, 2)}}</td>
                                 </tr>
                             @endforeach
@@ -662,15 +657,15 @@
                                     @endphp
                                     <td>{{$debt->due_date}}</td>
                                     <td colspan="3"
-                                        @if($debt->sale_id != null || $debt->purchase_id != null) data-bs-toggle="modal"
+                                        @if($debt->invoice_id != null) data-bs-toggle="modal"
                                         data-bs-target="#printModal"
                                         wire:click="getInvoice({{$debt}})" @endif>{{ $debt->note }}</td>
                                     <td>{{$debt->type == "debt" ? number_format($debt->debt != 0 ? $debt->debt : $debt->service, 2) : number_format($debt->paid != 0 ? $debt->paid : $debt->discount, 2)}}</td>
                                 </tr>
-                                @if($debt->type == 'debt' && $debt->sale_id != null)
-                                    @foreach($debt->sale->saleDetails as $product)
+                                @if($debt->invoice_id != null)
+                                    @foreach(\App\Models\Sale::find($debt->invoice_id)->saleDetails as $product)
                                         <tr>
-                                            <td>{{ $debt->sale->due_date }}</td>
+                                            <td>{{ $debt->due_date }}</td>
                                             <td>{{ $product->product->productName }}</td>
                                             <td>{{ number_format($product->price,2) }}</td>
                                             <td>{{ number_format($product->quantity,2) }}</td>
@@ -743,7 +738,7 @@
                                         $debts += $debt->debt;
                                     @endphp
                                     <td>{{$debt->due_date}}</td>
-                                    <td @if($debt->purchase_id != null) data-bs-toggle="modal"
+                                    <td @if($debt->invoice_id != null) data-bs-toggle="modal"
                                         data-bs-target="#printModal"
                                         wire:click="getInvoice({{$debt}})" @endif >{{ $debt->note }}</td>
                                     <td>{{number_format($debt->debt, 2)}}</td>
@@ -802,10 +797,10 @@
                                         wire:click="getInvoice({{$debt}})" @endif>{{ $debt->note }}</td>
                                     <td>{{$debt->type == "debt" ? number_format($debt->debt, 2) : number_format($debt->paid, 2)}}</td>
                                 </tr>
-                                @if($debt->type == 'debt' && $debt->purchase_id != null)
-                                    @foreach($debt->purchase->purchaseDetails as $product)
+                                @if($debt->invoice_id != null)
+                                    @foreach(\App\Models\Purchase::find($debt->invoice_id)->purchaseDetails as $product)
                                         <tr>
-                                            <td>{{ $debt->purchase->due_date }}</td>
+                                            <td>{{ $debt->due_date }}</td>
                                             <td>{{ $product->product->productName }}</td>
                                             <td>{{ number_format($product->price,2) }}</td>
                                             <td>{{ number_format($product->quantity,2) }}</td>
@@ -863,7 +858,7 @@
                                         $debts += $debt->debt + $debt->service;
                                     @endphp
                                     <td>{{$debt->due_date}}</td>
-                                    <td @if($debt->sale_id != null) data-bs-toggle="modal"
+                                    <td @if($debt->invoice_id != null) data-bs-toggle="modal"
                                         data-bs-target="#printModal"
                                         wire:click="getInvoice({{$debt}})" @endif >{{ $debt->note }}</td>
                                     <td>{{$debt->debt != 0 ? number_format($debt->debt, 2): number_format($debt->service, 2)}}</td>
@@ -921,10 +916,10 @@
                                         wire:click="getInvoice({{$debt}})" @endif>{{ $debt->note }}</td>
                                     <td>{{$debt->type == "debt" ? number_format($debt->debt != 0 ? $debt->debt : $debt->service, 2) : number_format($debt->paid != 0 ? $debt->paid : $debt->discount, 2)}}</td>
                                 </tr>
-                                @if($debt->type == 'debt' && $debt->sale_id != null)
-                                    @foreach($debt->sale->saleDetails as $product)
+                                @if($debt->invoice_id != null)
+                                    @foreach(\App\Models\Sale::find($debt->invoice_id)->saleDetails as $product)
                                         <tr>
-                                            <td>{{ $debt->sale->due_date }}</td>
+                                            <td>{{ $debt->due_date }}</td>
                                             <td>{{ $product->product->productName }}</td>
                                             <td>{{ number_format($product->price,2) }}</td>
                                             <td>{{ number_format($product->quantity,2) }}</td>
@@ -1229,70 +1224,80 @@
             </div>
         </div>
     @elseif($reportType == 'tracking' && !empty($currentProduct))
-        <div class="card mt-2">
-            <div class="card-body invoice">
-                <div class="card-title" dir="rtl">
-                    <div class="row">
-                        <div class="col-4">
-                            <h3>{{ $currentProduct['productName'] }}</h3>
-                        </div>
-                        <div class="col-4">
-                            <h3>الكمية الافتتاحيه : {{number_format($currentProduct['initialStock'], 2)}}</h3>
-                        </div>
-                        <div class="col-4">
-                            <h3>الكمية الحالية : {{number_format($currentProduct['stock'], 2)}}</h3>
 
+        @if(!empty($trackingProducts))
+            <div class="card mt-2">
+                <div class="card-body invoice">
+                    <div class="card-title" dir="rtl">
+                        <div class="row">
+                            <div class="col-4">
+                                <h3>{{ $currentProduct['productName'] }}</h3>
+                            </div>
+                            <div class="col-4">
+                                <h3>الكمية الافتتاحيه : {{number_format($currentProduct['initialStock'], 2)}}</h3>
+                            </div>
+                            <div class="col-4">
+                                <h3>الكمية الحالية : {{number_format($currentProduct['stock'], 2)}}</h3>
+
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="scroll">
-                    <table class="text-center printInvoice">
-                        <thead>
-                        <tr>
-                            <th>التاريخ</th>
-                            <th>البيان</th>
-                            <th>الوارد</th>
-                            <th>الصادر</th>
-                            <th>الرصيد</th>
-                        </tr>
-                        </thead>
-                        <tbody>
+                    <div class="scroll">
+                        <table class="text-center printInvoice">
+                            <thead>
+                            <tr>
+                                <th>التاريخ</th>
+                                <th>البيان</th>
+                                <th>الوارد</th>
+                                <th>الصادر</th>
+                                <th>الرصيد</th>
+                            </tr>
+                            </thead>
+                            <tbody>
 
-                        @php $currentStock = $currentProduct['initialStock']; @endphp
-                        @if($currentProduct['initialStock'] != 0)
+                            @php
+                                $currentStock = $currentProduct['initialStock'];
+                                $income = $currentProduct['initialStock'];
+                                $expense = 0;
+                            @endphp
+                            @if($currentProduct['initialStock'] != 0)
+                                <tr>
+                                    <td></td>
+                                    <td style="cursor:pointer;">الكمية السابقه</td>
+                                    <td>{{ number_format($currentProduct['initialStock'], 2) }}</td>
+                                    <td>0</td>
+                                    <td>{{ number_format($currentProduct['initialStock'], 2) }}</td>
+                                </tr>
+                            @endif
+                            @foreach($trackingProducts as $item)
+                                <tr data-bs-toggle="modal" data-bs-target="#printModal"
+                                    wire:click="getInvoice({{$item['invoice_id']}}, '{{$item['tableName']}}')">
+                                    @php
+                                        $currentStock += floatval($item['income']) - floatval($item['expense']);
+                                        $income += floatval($item['income']);
+                                        $expense += floatval($item['expense']);
+                                    @endphp
+                                    <td>{{ $item['due_date'] }}</td>
+                                    <td>{{ $item['note'] }}</td>
+                                    <td>{{ number_format($item['income'], 2) }}</td>
+                                    <td>{{ number_format($item['expense'], 2) }}</td>
+                                    <td>{{ number_format($currentStock, 2) }}</td>
+                                </tr>
+                            @endforeach
+                            </tbody>
+                            <tfoot>
                             <tr>
-                                <td></td>
-                                <td style="cursor:pointer;">الكمية السابقه</td>
-                                <td>{{ number_format($currentProduct['initialStock'], 2) }}</td>
-                                <td>0</td>
-                                <td>{{ number_format($currentProduct['initialStock'], 2) }}</td>
+                                <th colspan="2">الجمـــــــــــــــلة</th>
+                                <th>{{ number_format($income, 2) }}</th>
+                                <th>{{ number_format($expense, 2) }}</th>
+                                <th>{{ number_format($currentStock, 2) }}</th>
                             </tr>
-                        @endif
-                        @foreach($array as $item)
-                            <tr>
-                                @php $currentStock += $item['purchase'] - $item['sale'] @endphp
-                                <td>{{ $item['date'] }}</td>
-                                <td data-bs-toggle="modal" data-bs-target="#printModal"
-                                    wire:click="getInvoice({{$item['invoice']}})"
-                                    style="cursor:pointer;">{{ $item['note'] }}</td>
-                                <td>{{ number_format($item['purchase'], 2) }}</td>
-                                <td>{{ number_format($item['sale'], 2) }}</td>
-                                <td>{{ number_format($currentStock, 2) }}</td>
-                            </tr>
-                        @endforeach
-                        </tbody>
-                        <tfoot>
-                        <tr>
-                            <th colspan="2">الجمـــــــــــــــلة</th>
-                            <th>{{ number_format($purchase, 2) }}</th>
-                            <th>{{ number_format($sale, 2) }}</th>
-                            <th>{{ number_format($currentStock, 2) }}</th>
-                        </tr>
-                        </tfoot>
-                    </table>
+                            </tfoot>
+                        </table>
+                    </div>
                 </div>
             </div>
-        </div>
+        @endif
     @elseif($reportType == 'expenses' && !empty($expenses))
 
         <div class="card mt-2">
