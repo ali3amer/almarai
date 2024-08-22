@@ -37,7 +37,7 @@ class Employee extends Component
     public $bank = '';
     public string $payment = 'cash';
     public string $processType = 'cash';
-    public string $note = '';
+    public $note = null;
     public $amount = 0;
     public $initialBalance = 0;
 
@@ -316,15 +316,6 @@ class Employee extends Component
     public function showReceipt($debt)
     {
         $this->currentReceipt = (array)$debt;
-        if (!isset($debt['transaction_amount'])) {
-            $debt['invoice_id'] = null;
-            $debt['transaction_amount'] = $debt['amount'];
-            $debt['transaction_paid'] = 0;
-            $debt['transaction_remainder'] = 0;
-            $debt['transaction_discount'] = $debt['discount'];
-            $debt['transaction_service'] = $debt['service'];
-            $debt['transaction_date'] = $debt['due_date'];
-        }
     }
 
     public function editDebt($debt)

@@ -21,7 +21,7 @@
                                     </tr>
                                     <tr>
                                         <td>البيان</td>
-                                        <td>{{ $currentReceipt['note'] == null ? 'مبيعات بفاتورة رقم #' . $currentReceipt['invoice_id'] : $currentReceipt['note']  }}</td>
+                                        <td>{{ $currentReceipt['note']  }}</td>
                                     </tr>
                                     <tr>
                                         <td>نوع العملية</td>
@@ -45,8 +45,8 @@
                                     <tr>
                                         <td>المبلغ</td>
                                         <td>
-                                            @if(isset($currentReceipt['futureDebt']))
-                                                {{$currentReceipt['futureDebt'] != 0 ? number_format($currentReceipt['futureDebt'], 2) : ($currentReceipt['futurePaid'] != 0 ? number_format($currentReceipt['futurePaid'], 2) : ($currentReceipt['debt'] != 0 ? number_format($currentReceipt['debt'], 2) : number_format($currentReceipt['paid'], 2)))}}
+                                            @if(isset($currentReceipt['futureExpense']))
+                                                {{$currentReceipt['futureExpense'] != 0 ? number_format($currentReceipt['futureExpense'], 2) : ($currentReceipt['futureIncome'] != 0 ? number_format($currentReceipt['futureIncome'], 2) : ($currentReceipt['expense'] != 0 ? number_format($currentReceipt['expense'], 2) : number_format($currentReceipt['income'], 2)))}}
                                             @elseif(isset($currentReceipt['service']) && $currentReceipt['service'] != 0)
                                                 {{ $currentReceipt['service'] }}
                                             @else
@@ -332,7 +332,7 @@
                                         </td>
                                         <td style="cursor: pointer" wire:click="showReceipt({{ json_encode($debt) }})"
                                             data-bs-toggle="modal" data-bs-target="#debtModal">
-                                            {{$debt['futureDebt'] != 0 ? number_format($debt['futureDebt'], 2) : ($debt['futurePaid'] != 0 ? number_format($debt['futurePaid'], 2) : ($debt['debt'] != 0 ? number_format($debt['debt'], 2) : number_format($debt['paid'], 2)))}}
+                                            {{$debt['futureExpense'] != 0 ? number_format($debt['futureExpense'], 2) : ($debt['futureIncome'] != 0 ? number_format($debt['futureIncome'], 2) : ($debt['expense'] != 0 ? number_format($debt['expense'], 2) : number_format($debt['income'], 2)))}}
                                         </td>
                                         <td class="d-none">
                                             @if($debt['invoice_id'] == null && $debt['due_date'] == session("date"))

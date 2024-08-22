@@ -53,7 +53,7 @@ class Supplier extends Model
     {
         $creditReturnsTotal = $this->saleReturns()->sum(DB::raw('quantity * price')) - $this->saleReturns->sum('amount');
 
-        return $this->initialSaleBalance + $this->sales()->sum("remainder") + $this->saleDebts()->where("type", "debt")->sum("amount") - $this->saleDebts()->where("type", "pay")->sum("amount") - $creditReturnsTotal;
+        return $this->initialSaleBalance + $this->sales()->sum("remainder") + $this->saleDebts()->where("type", "debt")->sum("amount") - $this->saleDebts()->sum("service") - $this->saleDebts()->where("type", "pay")->sum("amount") - $creditReturnsTotal;
     }
 
     public function getPastBalance($date)
@@ -67,6 +67,6 @@ class Supplier extends Model
     {
         $creditReturnsTotal = $this->saleReturns()->where("sale_returns.due_date", "<", $date)->sum(DB::raw('quantity * price')) - $this->saleReturns->where("sale_returns.due_date", "<", $date)->sum('amount');
 
-        return $this->initialBalance + $this->sales()->where("due_date", "<", $date)->sum("remainder") + $this->saleDebts()->where("type", "debt")->where("due_date", "<", $date)->sum("amount") - $this->saleDebts()->where("due_date", "<", $date)->where("type", "pay")->sum("amount") - $creditReturnsTotal;
+        return $this->initialBalance + $this->sales()->where("due_date", "<", $date)->sum("remainder") + $this->saleDebts()->where("type", "debt")->where("due_date", "<", $date)->sum("amount") + $this->saleDebts()->where("due_date", "<", $date)->sum("service") - $this->saleDebts()->where("due_date", "<", $date)->where("type", "pay")->sum("amount") - $creditReturnsTotal;
     }
 }

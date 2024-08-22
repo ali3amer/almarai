@@ -4,15 +4,49 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class Deposit extends Model
 {
     use HasFactory;
+
     protected $guarded = [];
 
     public function depositDebts()
     {
         return $this->hasMany(DepositDebt::class);
+    }
+
+    public function getMovements()
+    {
+
+        $deposits = DepositDebt::select(
+            DB::raw("'deposits' as tableName"),
+            DB::raw("null as clientType"),
+            'type',
+            DB::raw('null as invoice_id'),
+            DB::raw("CASE
+        WHEN type = 'debt' THEN amount
+        ELSE 0
+     END as income"),
+            DB::raw("CASE
+        WHEN type = 'pay' THEN amount
+        ELSE 0
+     END as expense"),
+            DB::raw('0 as futureExpense'),
+            DB::raw('0 as futureIncome'),
+            'due_date',
+            'payment',
+            'bank',
+            DB::raw('deposit_debts.note as note'),
+            DB::raw('deposit_id as owner_id'),
+            DB::raw("deposits.name as ownerName"),
+            'deposit_debts.created_at',
+            'deposit_debts.updated_at'
+        )
+            ->leftJoin('deposits', 'deposits.id', '=', 'deposit_debts.deposit_id')->orderBy('due_date', 'asc')->get();
+
+        return $deposits;
     }
 
     public function getCurrentBalanceAttribute()

@@ -21,7 +21,7 @@
                                     </tr>
                                     <tr>
                                         <td>البيان</td>
-                                        <td>{{ $currentReceipt['note'] == null ? 'مبيعات بفاتورة رقم #' . $currentReceipt['invoice_id'] : $currentReceipt['note']  }}</td>
+                                        <td>{{ $currentReceipt['note']  }}</td>
                                     </tr>
                                     <tr>
                                         <td>نوع العملية</td>
@@ -45,10 +45,12 @@
                                     <tr>
                                         <td>المبلغ</td>
                                         <td>
-                                            @if(!isset($currentReceipt['transaction_amount']))
-                                                {{ number_format($currentReceipt['amount'], 2) }}
+                                            @if(isset($currentReceipt['futureExpense']))
+                                                {{$currentReceipt['futureExpense'] != 0 ? number_format($currentReceipt['futureExpense'], 2) : ($currentReceipt['futureIncome'] != 0 ? number_format($currentReceipt['futureIncome'], 2) : ($currentReceipt['expense'] != 0 ? number_format($currentReceipt['expense'], 2) : number_format($currentReceipt['income'], 2)))}}
+                                            @elseif(isset($currentReceipt['service']) && $currentReceipt['service'] != 0)
+                                                {{ $currentReceipt['service'] }}
                                             @else
-                                                {{ number_format($currentReceipt['transaction_amount'] != 0 ? $currentReceipt['transaction_amount'] : $currentReceipt['transaction_discount'], 2) }}
+                                                {{ $currentReceipt['discount'] != 0 ? number_format($currentReceipt['discount'] ,2) : number_format($currentReceipt['amount'], 2) }}
                                             @endif
                                         </td>
                                     </tr>
@@ -358,17 +360,17 @@
                                     <tr>
                                         <td style="cursor: pointer" wire:click="showReceipt({{ json_encode($debt) }})"
                                             data-bs-toggle="modal"
-                                            data-bs-target="#debtModal">{{$debt['transaction_date']}}</td>
+                                            data-bs-target="#debtModal">{{$debt['due_date']}}</td>
                                         <td style="cursor: pointer" wire:click="showReceipt({{ json_encode($debt) }})"
                                             data-bs-toggle="modal" data-bs-target="#debtModal">
                                                 {{ $debt['note'] }}
                                         </td>
                                         <td style="cursor: pointer" wire:click="showReceipt({{ json_encode($debt) }})"
                                             data-bs-toggle="modal" data-bs-target="#debtModal">
-                                            {{$debt['transaction_discount'] != 0 ? number_format($debt['transaction_discount'], 2) : ($debt['transaction_service'] != 0 ? number_format($debt['transaction_service'], 2) : number_format($debt['transaction_amount'], 2))}}
+                                            {{$debt['futureExpense'] != 0 ? number_format($debt['futureExpense'], 2) : ($debt['futureIncome'] != 0 ? number_format($debt['futureIncome'], 2) : ($debt['expense'] != 0 ? number_format($debt['expense'], 2) : number_format($debt['income'], 2)))}}
                                         </td>
                                         <td class="d-none">
-                                            @if($debt['invoice_id'] == null && $debt['transaction_date'] == session("date"))
+                                            @if($debt['invoice_id'] == null && $debt['due_date'] == session("date"))
                                                 <button class="btn btn-sm btn-info"
                                                         wire:click="chooseDebt({{ json_encode($debt) }})"><i
                                                         class="bi bi-pen"></i></button>
@@ -384,7 +386,7 @@
                                             <td style="cursor: pointer"
                                                 wire:click="showReceipt({{ json_encode($debt) }})"
                                                 data-bs-toggle="modal"
-                                                data-bs-target="#debtModal">{{$debt['transaction_date']}}</td>
+                                                data-bs-target="#debtModal">{{$debt['due_date']}}</td>
                                             <td style="cursor: pointer"
                                                 wire:click="showReceipt({{ json_encode($debt) }})"
                                                 data-bs-toggle="modal" data-bs-target="#debtModal">
@@ -396,7 +398,7 @@
                                                 {{number_format($debt['transaction_paid'], 2)}}
                                             </td>
                                             <td class="d-none">
-                                                @if($debt['invoice_id'] == null && $debt['transaction_date'] == session("date"))
+                                                @if($debt['invoice_id'] == null && $debt['due_date'] == session("date"))
                                                     <button class="btn btn-sm btn-info"
                                                             wire:click="chooseDebt({{ json_encode($debt) }})"><i
                                                             class="bi bi-pen"></i></button>

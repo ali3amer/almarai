@@ -74,7 +74,7 @@ class Report extends Component
     public collection $sales;
     public collection $stores;
     public array $saleDebts = [];
-    public Collection $purchaseDebts;
+    public array $purchaseDebts = [];
     public collection $clients;
     public collection $debts;
     public collection $pays;
@@ -93,39 +93,12 @@ class Report extends Component
     public float $saleFuture = 0;
     public float $purchaseFuture = 0;
     public float $safeBalance = 0;
-    public float $salesSum = 0;
-    public float $debtsSum = 0;
-    public float $paysSum = 0;
-    public float $purchasesSum = 0;
-    public float $expensesSum = 0;
-    public float $employeesSum = 0;
-    public float $damagedsSum = 0;
     public $percent = 0;
     public string $productSearch = '';
     public array $invoice = [];
-    public Collection $clientDebts;
-    public Collection $supplierDebts;
-    public Collection $employeeDebts;
-    public float $clientSaleSum = 0;
-    public float $employeeSaleSum = 0;
-    public float $supplierSaleSum = 0;
-    public float $totalSales = 0;
-    public float $totalPurchases = 0;
-    public float $salesDebts = 0;
+    public Collection $deposits;
     public float $salesBalance = 0;
-    public float $purchasesBalance = 0;
-    public float $purchasesDebts = 0;
     public float $total = 0;
-    public float $deposits = 0;
-    public float $creditors = 0;
-    public float $owe = 0;
-    public float $salesPaidSum = 0;
-    public float $purchasesPaidSum = 0;
-    /**
-     * @var float|mixed
-     */
-    public float $currentSalesBalance = 0;
-    public float $currentPurchasesBalance = 0;
     public array $merged = [];
     public Collection $transfers;
     public Collection $expenses;
@@ -144,6 +117,14 @@ class Report extends Component
     public $assets = 0;
     public $adversaries = 0;
     public \Illuminate\Support\Collection $expensesByOptions;
+    public $purcasesBalance = 0;
+    public $totalClientsBalance = 0;
+    public $totalSuppliersBalance = 0;
+    public $totalSafeBalance = 0;
+    public $totalBanksBalance = 0;
+    public $totalProductsStock = 0;
+    public $totalDepositsBalance = 0;
+    public array $statements = [];
 
     public function chooseClient($client)
     {
@@ -174,127 +155,37 @@ class Report extends Component
     {
         if ($this->reportType == 'general') {
             if ($this->reportDuration == 'day') {
-
-                $this->salesSum = \App\Models\Sale::where('sale_date', $this->day)->sum('total_amount');
-                $this->salesPaidSum = \App\Models\SaleDebt::where('due_date', $this->day)->where('type', 'pay')->sum('paid');
-
-                $this->purchasesSum = \App\Models\Purchase::where('purchase_date', $this->day)->sum('total_amount');
-                $this->purchasesPaidSum = \App\Models\PurchaseDebt::where('due_date', $this->day)->where('type', 'pay')->sum('paid');
-
-                $this->expensesSum = \App\Models\Expense::where('due_date', $this->day)->sum('amount');
-                $this->employeesSum = \App\Models\EmployeeGift::where('gift_date', $this->day)->sum('gift_amount');
-
-                if (\App\Models\Damaged::where('damaged_date', $this->day)->count() > 0) {
-                    $this->damagedsSum = \App\Models\Damaged::where('damaged_date', $this->day)->join('products', 'damageds.product_id', '=', 'products.id')
-                        ->select(DB::raw('SUM(damageds.quantity * products.purchase_price) AS total_damage_cost'))
-                        ->groupBy('damageds.product_id')->first()->total_damage_cost;
-                }
-
+                dd("day");
             } elseif ($this->reportDuration == 'duration') {
-
-                $this->salesSum = \App\Models\Sale::whereBetween('sale_date', [$this->from, $this->to])->sum('total_amount');
-                $this->salesPaidSum = \App\Models\SaleDebt::whereBetween('due_date', [$this->from, $this->to])->where('type', 'pay')->sum('paid');
-
-                $this->purchasesSum = \App\Models\Purchase::whereBetween('purchase_date', [$this->from, $this->to])->sum('total_amount');
-                $this->purchasesPaidSum = \App\Models\PurchaseDebt::whereBetween('due_date', [$this->from, $this->to])->where('type', 'pay')->sum('paid');
-
-                $this->expensesSum = \App\Models\Expense::whereBetween('due_date', [$this->from, $this->to])->sum('amount');
-                $this->employeesSum = \App\Models\EmployeeGift::whereBetween('gift_date', [$this->from, $this->to])->sum('gift_amount');
-
-                if (\App\Models\Damaged::whereBetween('damaged_date', [$this->from, $this->to])->count() > 0) {
-                    $this->damagedsSum = \App\Models\Damaged::whereBetween('damaged_date', [$this->from, $this->to])->join('products', 'damageds.product_id', '=', 'products.id')
-                        ->select(DB::raw('SUM(damageds.quantity * products.purchase_price) AS total_damage_cost'))
-                        ->groupBy('damageds.product_id')->first()->total_damage_cost;
-                }
+                dd('duration');
             } else {
-                $this->salesSum = \App\Models\Sale::sum('total_amount');
-                $this->salesPaidSum = \App\Models\SaleDebt::where('type', 'pay')->sum('paid');
+                $this->totalProductsStock = \App\Models\Product::all()->sum(function ($product) {
+                    return $product->stock * $product->purchase_price;
+                });
+                $this->totalBanksBalance = (new \App\Models\Bank)->getCurrentTotalBalance();
+                $this->totalSafeBalance = Safe::first()->currentBalance;
+                $this->totalClientsBalance = \App\Models\Client::all()->sum(function ($client) {
+                    return $client->currentBalance;
+                });
+                $this->totalExpenses = EmployeeGift::sum("amount") + Expense::sum("amount");
 
-                $this->purchasesSum = \App\Models\Purchase::sum('total_amount');
-                $this->purchasesPaidSum = \App\Models\PurchaseDebt::where('type', 'pay')->sum('paid');
+                $this->totalSuppliersBalance = \App\Models\Supplier::all()->sum(function ($supplier) {
+                    return $supplier->currentBalance;
+                });
+                $this->totalDepositsBalance = \App\Models\Deposit::all()->sum(function ($deposit) {
+                    return $deposit->currentBalance;
+                });
+                $this->capital = Safe::first()->capital;
 
-                $this->expensesSum = \App\Models\Expense::sum('amount');
-                $this->employeesSum = \App\Models\EmployeeGift::sum('gift_amount');
+                $this->assets = $this->totalProductsStock + $this->totalBanksBalance + $this->totalSafeBalance + $this->totalClientsBalance + $this->totalExpenses;
+                $this->adversaries = $this->totalSuppliersBalance + $this->totalDepositsBalance + $this->capital;
 
-                if (\App\Models\Damaged::count() > 0) {
-                    $this->damagedsSum = \App\Models\Damaged::join('products', 'damageds.product_id', '=', 'products.id')
-                        ->select(DB::raw('SUM(damageds.quantity * products.purchase_price) AS total_damage_cost'))
-                        ->groupBy('damageds.product_id')->first()->total_damage_cost;
-                }
-            }
+                $this->clients = \App\Models\Client::all();
+                $this->suppliers = \App\Models\Supplier::all();
+                $this->deposits = \App\Models\Deposit::all();
 
-            $this->stock = 0;
-
-            $products = \App\Models\Product::all();
-            foreach ($products as $product) {
-                $this->stock += $product->stock * $product->purchase_price;
-            }
-
-            $this->capital = Safe::first()->capital ?? 0;
-
-            $this->bankBalance = session('bankBalance');
-
-            $this->balance = Safe::first()->currentBalance ?? 0;
-            $this->totalExpenses = Expense::sum("amount") + EmployeeGift::sum("gift_amount");
-            $this->clients = \App\Models\Client::get();
-
-            $sum = 0;
-            $this->deposits = 0;
-            $this->owe = 0;
-            foreach ($this->clients as $client) {
-                $sum = $client->initialBalance + $client->debts->sum("debt") - $client->debts->sum("paid");
-                if ($sum < 0) {
-                    $this->deposits += -1 * $sum;
-                } else {
-                    $this->owe += $sum;
-                }
-            }
-
-            $this->suppliers = \App\Models\Supplier::get();
-
-            $sum = 0;
-            $purchaseSum = 0;
-            $this->creditors = 0;
-            foreach ($this->suppliers as $supplier) {
-                $purchaseSum += $supplier->initialBalance + $supplier->purchaseDebts->sum("debt") - $supplier->purchaseDebts->sum("paid");
-                $sum -= $supplier->initialSalesBalance + $supplier->saleDebts->sum("debt") - $supplier->saleDebts->sum("paid");
-
-                if ($purchaseSum > 0) {
-                    $this->creditors += $purchaseSum;
-                } else {
-                    $this->deposits += -1 * $purchaseSum;
-                }
-
-                if ($sum > 0) {
-                    $this->owe += $sum;
-                } else {
-                    $this->deposits += -1 * $sum;
-                }
 
             }
-
-            $this->employees = \App\Models\Employee::get();
-
-            foreach ($this->employees as $employee) {
-                $sum = $employee->initialBalance + $employee->debts->sum("debt") - $employee->debts->sum("paid");
-                if ($sum < 0) {
-                    $this->deposits += -1 * $sum;
-                } else {
-                    $this->owe += $sum;
-                }
-            }
-
-            $this->assets = $this->stock + $this->bankBalance + $this->balance + $this->totalSales + $this->owe;
-            $this->adversaries = $this->capital + $this->deposits + $this->creditors;
-
-            $this->salesDebts = $this->salesSum - $this->salesPaidSum;
-
-            $this->purchasesDebts = $this->purchasesSum - $this->purchasesPaidSum;
-
-
-            $this->safeBalance = Safe::sum("initialBalance") + $this->salesPaidSum - $this->purchasesPaidSum - $this->expensesSum - $this->employeesSum - $this->damagedsSum;
-
-            $this->total = $this->safeBalance + $this->salesDebts - $this->purchasesDebts;
 
         } elseif ($this->reportType == 'inventory') {
             if ($this->store_id == 0) {
@@ -311,76 +202,75 @@ class Report extends Component
             if ($this->reportDuration == 'day') {
                 $this->currentClient['initialBalance'] = $client->getPastBalance($this->day);
 
-                $this->saleDebts =(new \App\Models\Sale)->getMovements($this->currentClient['id'], 'client')->where('due_date', $this->day)->toArray();
+                $saleDebts = (new \App\Models\Sale)->getMovements($this->currentClient['id'], 'client')->where('due_date', $this->day);
 
             } elseif ($this->reportDuration == 'duration') {
                 $this->currentClient['initialBalance'] = $client->getPastBalance($this->from);
 
-                $this->saleDebts = (new \App\Models\Sale)->getMovements($this->currentClient['id'], 'client')->whereBetween("due_date", "<", [$this->from, $this->to])->toArray();
+                $saleDebts = (new \App\Models\Sale)->getMovements($this->currentClient['id'], 'client')->whereBetween("due_date", "<", [$this->from, $this->to]);
 
             } else {
                 $this->currentClient['initialBalance'] = $client->initialBalance;
 
-                $this->saleDebts = (new \App\Models\Sale)->getMovements($this->currentClient['id'], 'client')->toArray();
+                $saleDebts = (new \App\Models\Sale)->getMovements($this->currentClient['id'], 'client');
             }
-            $this->salesBalance = 0;
 
-            $this->currentSalesBalance = $this->salesBalance;
+            $this->saleDebts = $saleDebts->toArray();
+            $this->salesBalance = $this->currentClient['initialBalance'] + $saleDebts->sum("expense") + $saleDebts->sum("futureIncome") - $saleDebts->sum("income") - $saleDebts->sum("futureExpense");
         } elseif ($this->reportType == 'supplier') {   // supplier
             $supplier = \App\Models\Supplier::find($this->currentSupplier['id']);
             if ($this->reportDuration == 'day') {
                 $this->currentSupplier['initialBalance'] = $supplier->getPastBalance($this->day);
                 $this->currentSupplier['initialSalesBalance'] = $supplier->getSalesPastBalance($this->day);
 
-                $this->saleDebts =(new \App\Models\Sale)->getMovements($this->currentSupplier['id'], 'supplier')->where('due_date', $this->day);
-                $this->purchaseDebts =(new \App\Models\Purchase)->getMovements($this->currentSupplier['id'], 'supplier')->where('due_date', $this->day);
+                $saleDebts = (new \App\Models\Sale)->getMovements($this->currentSupplier['id'], 'supplier')->where('due_date', $this->day);
+                $purchaseDebts = (new \App\Models\Purchase)->getMovements($this->currentSupplier['id'], 'supplier')->where('due_date', $this->day);
 
             } elseif ($this->reportDuration == 'duration') {
                 $this->currentSupplier['initialBalance'] = $supplier->getPastBalance($this->from);
                 $this->currentSupplier['initialSalesBalance'] = $supplier->getSalesPastBalance($this->from);
 
-                $this->saleDebts = (new \App\Models\Sale)->getMovements($this->currentSupplier['id'], 'supplier')->whereBetween("due_date", "<", [$this->from, $this->to]);
-                $this->purchaseDebts =(new \App\Models\Purchase)->getMovements($this->currentSupplier['id'], 'supplier')->whereBetween("due_date", "<", [$this->from, $this->to]);
+                $saleDebts = (new \App\Models\Sale)->getMovements($this->currentSupplier['id'], 'supplier')->whereBetween("due_date", "<", [$this->from, $this->to]);
+                $purchaseDebts = (new \App\Models\Purchase)->getMovements($this->currentSupplier['id'], 'supplier')->whereBetween("due_date", "<", [$this->from, $this->to]);
 
             } else {
                 $this->currentSupplier['initialBalance'] = $supplier->initialBalance;
                 $this->currentSupplier['initialSalesBalance'] = $supplier->initialSalesBalance;
 
-                $this->saleDebts = (new \App\Models\Sale)->getMovements($this->currentSupplier['id'], 'supplier');
-                $this->purchaseDebts =(new \App\Models\Purchase)->getMovements($this->currentSupplier['id'], 'supplier');
+                $saleDebts = (new \App\Models\Sale)->getMovements($this->currentSupplier['id'], 'supplier');
+                $purchaseDebts = (new \App\Models\Purchase)->getMovements($this->currentSupplier['id'], 'supplier');
             }
-            $this->salesBalance = 0;
 
-            $this->currentSalesBalance = $this->salesBalance;
+            $this->saleDebts = $saleDebts->toArray();
+            $this->purchaseDebts = $purchaseDebts->toArray();
+            $this->salesBalance = $this->currentSupplier['initialSalesBalance'] + $saleDebts->sum("expense") + $saleDebts->sum("futureIncome") - $saleDebts->sum("income") - $saleDebts->sum("futureExpense");
+            $this->purcasesBalance = $this->currentSupplier['initialBalance'] + $purchaseDebts->sum("expense") + $purchaseDebts->sum("futureIncome") - $purchaseDebts->sum("income") - $purchaseDebts->sum("futureExpense");
 
         } elseif ($this->reportType == 'employee') {   // employee
-            $this->currentEmployee['initialBalance'] = \App\Models\Employee::find($this->currentEmployee['id'])->initialBalance;
+            $employee = \App\Models\Employee::find($this->currentEmployee['id']);
 
             if ($this->reportDuration == 'day') {
 
-                $this->currentEmployee['initialBalance'] += SaleDebt::where('employee_id', $this->currentEmployee['id'])->where('due_date', '<', $this->day)->sum('debt')
-                    - SaleDebt::where('employee_id', $this->currentEmployee['id'])->where('due_date', '<', $this->day)->sum('paid')
-                    - SaleDebt::where('employee_id', $this->currentEmployee['id'])->where('due_date', '<', $this->day)->sum('discount');
+                $this->currentEmployee['initialBalance'] += $employee->getPastBalance($this->day);
 
-                $this->saleDebts = \App\Models\SaleDebt::where('employee_id', $this->currentEmployee['id'])->where('due_date', $this->day)->get();
+                $saleDebts = (new \App\Models\Sale)->getMovements($this->currentEmployee['id'], 'employee');
                 $this->employeeGifts = \App\Models\EmployeeGift::where('employee_id', $this->currentEmployee['id'])->where('gift_date', $this->day)->get();
             } elseif ($this->reportDuration == 'duration') {
 
-                $this->currentEmployee['initialBalance'] += SaleDebt::where('employee_id', $this->currentEmployee['id'])->where('due_date', '<', $this->from)->sum('debt')
-                    - SaleDebt::where('employee_id', $this->currentEmployee['id'])->where('due_date', '<', $this->from)->sum('paid')
-                    - SaleDebt::where('employee_id', $this->currentEmployee['id'])->where('due_date', '<', $this->from)->sum('discount');
+                $this->currentEmployee['initialBalance'] += $employee->getPastBalance($this->from);
 
-                $this->saleDebts = \App\Models\SaleDebt::where('employee_id', $this->currentEmployee['id'])->whereBetween('due_date', [$this->from, $this->to])->get();
+                $saleDebts = (new \App\Models\Sale)->getMovements($this->currentEmployee['id'], 'employee');
                 $this->employeeGifts = \App\Models\EmployeeGift::where('employee_id', $this->currentEmployee['id'])->whereBetween('gift_date', [$this->from, $this->to])->get();
 
             } else {
-                $this->saleDebts = \App\Models\SaleDebt::where('employee_id', $this->currentEmployee['id'])->get();
+                $this->currentEmployee['initialBalance'] += $employee->initialBalance;
+
+                $saleDebts = (new \App\Models\Sale)->getMovements($this->currentEmployee['id'], 'employee');
                 $this->employeeGifts = \App\Models\EmployeeGift::where('employee_id', $this->currentEmployee['id'])->get();
             }
-            $this->salesBalance = $this->currentEmployee['initialBalance'] + $this->saleDebts->sum('debt') - $this->saleDebts->sum('paid') - $this->saleDebts->sum('discount');
+            $this->salesBalance = $this->currentEmployee['initialBalance'] + $saleDebts->sum("expense") + $saleDebts->sum("futureIncome") - $saleDebts->sum("income") - $saleDebts->sum("futureExpense");
 
-            $this->currentSalesBalance = $this->salesBalance;
-
+            $this->saleDebts = $saleDebts->toArray();
         } elseif ($this->reportType == 'sales') {  // sale
             if ($this->reportDuration == 'day') {
                 if (!empty($this->currentProduct)) {
@@ -482,230 +372,48 @@ class Report extends Component
             $this->array = [];
 
             if ($this->reportDuration == "day") {
-                $this->sales = SaleDebt::where("due_date", $this->day)->get();
-                $this->purchases = PurchaseDebt::where("due_date", $this->day)->get();
+                $sales = (new \App\Models\Sale)->getMovements()->where("due_date", $this->day)->toArray();
+                $purchases = (new \App\Models\Purchase)->getMovements()->where("due_date", $this->day)->toArray();
+                $deposits = (new \App\Models\Deposit)->getMovements()->where("due_date", $this->day)->toArray();
+                $expenses = (new \App\Models\Expense)->getMovements()->where("due_date", $this->day)->toArray();
+                $gifts = (new \App\Models\Employee)->getMovements()->where("due_date", $this->day)->toArray();
+                $withdraws = (new \App\Models\Withdraw)->getMovements()->where("due_date", $this->day)->toArray();
+
                 $this->transfers = Transfer::where("transfer_date", $this->day)->get();
-                $this->expenses = \App\Models\Expense::where("due_date", $this->day)->get();
-                $this->employeeGifts = \App\Models\EmployeeGift::where("gift_date", $this->day)->get();
-                $this->withdraws = \App\Models\Withdraw::where("due_date", $this->day)->get();
 
             } elseif ($this->reportDuration == "duration") {
-                $this->sales = SaleDebt::whereBetween("due_date", [$this->from, $this->to])->get();
-                $this->purchases = PurchaseDebt::whereBetween("due_date", [$this->from, $this->to])->get();
+                $sales = (new \App\Models\Sale)->getMovements()->whereBetween("due_date", [$this->from, $this->to])->toArray();
+                $purchases = (new \App\Models\Purchase)->getMovements()->whereBetween("due_date", [$this->from, $this->to])->toArray();
+                $deposits = (new \App\Models\Deposit)->getMovements()->whereBetween("due_date", [$this->from, $this->to])->toArray();
+                $expenses = (new \App\Models\Expense)->getMovements()->whereBetween("due_date", [$this->from, $this->to])->toArray();
+                $gifts = (new \App\Models\Employee)->getMovements()->whereBetween("due_date", [$this->from, $this->to])->toArray();
+                $withdraws = (new \App\Models\Withdraw)->getMovements()->whereBetween("due_date", [$this->from, $this->to])->toArray();
+
                 $this->transfers = Transfer::whereBetween("transfer_date", [$this->from, $this->to])->get();
-                $this->expenses = \App\Models\Expense::whereBetween("due_date", [$this->from, $this->to])->get();
-                $this->employeeGifts = \App\Models\EmployeeGift::whereBetween("gift_date", [$this->from, $this->to])->get();
-                $this->withdraws = \App\Models\Withdraw::whereBetween("due_date", [$this->from, $this->to])->get();
             } else {
-                $this->sales = SaleDebt::get();
-                $this->purchases = PurchaseDebt::get();
-                $this->transfers = Transfer::get();
-                $this->expenses = \App\Models\Expense::get();
-                $this->employeeGifts = \App\Models\EmployeeGift::get();
-                $this->withdraws = \App\Models\Withdraw::get();
+                $sales = (new \App\Models\Sale)->getMovements()->toArray();
+                $purchases = (new \App\Models\Purchase)->getMovements()->toArray();
+                $deposits = (new \App\Models\Deposit)->getMovements()->toArray();
+                $expenses = (new \App\Models\Expense)->getMovements()->toArray();
+                $gifts = (new \App\Models\Employee)->getMovements()->toArray();
+                $withdraws = (new \App\Models\Withdraw)->getMovements()->toArray();
             }
 
-            if ($this->payment != "") {
-                $this->sales = $this->sales->where("payment", $this->payment);
-                $this->purchases = $this->purchases->where("payment", $this->payment);
-                $this->expenses = $this->expenses->where("payment", $this->payment);
-                $this->employeeGifts = $this->employeeGifts->where("payment", $this->payment);
-                $this->withdraws = $this->withdraws->where("payment", $this->payment);
-            }
+            $allMovements = collect($sales)
+                ->merge($purchases)
+                ->merge($deposits)
+                ->merge($expenses)
+                ->merge($gifts)
+                ->merge($withdraws);
 
-            if (($this->reportDuration == "" || ($this->reportDuration == "duration" && Safe::first()->startingDate >= $this->from) || ($this->reportDuration == "day" && Safe::first()->startingDate == $this->day)) && ($this->payment == "" || $this->payment == "cash")) {
-                $safe = Safe::first();
+            $this->statements = $allMovements->sortBy('due_date')->toArray();
 
-                if ($safe) {
-                    $this->array[$safe['created_at'] . $safe['id']]['date'] = $safe['startingDate'];
-                    $this->array[$safe['created_at'] . $safe['id']]['note'] = "الرصيد الافتتاحي";
-                    $this->array[$safe['created_at'] . $safe['id']]['account'] = "الرصيد الافتتاحي";
-                    $this->array[$safe['created_at'] . $safe['id']]['payment'] = "cash";
-                    $this->array[$safe['created_at'] . $safe['id']]['name'] = "الخزنه";
-                    $this->array[$safe['created_at'] . $safe['id']]['paid'] = $safe['initialBalance'];
-                    $this->array[$safe['created_at'] . $safe['id']]['debt'] = 0;
-                    $this->array[$safe['created_at'] . $safe['id']]['saleFuture'] = 0;
-                    $this->array[$safe['created_at'] . $safe['id']]['purchaseFuture'] = 0;
-                }
-            }
-
-
-            foreach ($this->sales as $index => $sale) {
-                $this->array[$sale['created_at'] . $index]['date'] = $sale['due_date'];
-                if ($sale['client_id'] != null) {
-                    $note = $sale['note'];
-                    $name = $sale->client->clientName;
-                } elseif ($sale['supplier_id'] != null) {
-                    $note = $sale['note'];
-                    $name = $sale->supplier->supplierName;
-                } else {
-                    $note = $sale['note'];
-                    $name = $sale->employee->employeeName;
-                }
-                $this->array[$sale['created_at'] . $index]['note'] = $note;
-                $this->array[$sale['created_at'] . $index]['sale_id'] = $sale['sale_id'];
-                if ($sale["sale_id"] != null) {
-                    $this->array[$sale['created_at'] . $index]['invoice'] = $sale;
-                }
-                $this->array[$sale['created_at'] . $index]['name'] = $name;
-                $this->array[$sale['created_at'] . $index]['account'] = "العملاء";
-                $this->array[$sale['created_at'] . $index]['payment'] = $sale["payment"];
-                if ($sale["sale_id"] != null && $sale["type"] == "debt") {
-                    $this->array[$sale['created_at'] . $index]['paid'] = 0;
-                    $this->array[$sale['created_at'] . $index]['saleFuture'] = $sale["debt"];
-                    $this->array[$sale['created_at'] . $index]['debt'] = 0;
-                } else {
-                    $this->array[$sale['created_at'] . $index]['paid'] = $sale["paid"];
-                    $this->array[$sale['created_at'] . $index]['debt'] = $sale["debt"];
-                    $this->array[$sale['created_at'] . $index]['saleFuture'] = $sale['service'];
-                }
-                $this->array[$sale['created_at'] . $index]['purchaseFuture'] = 0;
-
-            }
-
-
-            foreach ($this->purchases as $index => $purchase) {
-                $this->array[$purchase['created_at'] . $index]['date'] = $purchase['due_date'];
-                $this->array[$purchase['created_at'] . $index]['purchase_id'] = $purchase['purchase_id'];
-                if ($purchase["purchase_id"] != null) {
-                    $this->array[$purchase['created_at'] . $index]['invoice'] = $purchase;
-                }
-                $this->array[$purchase['created_at'] . $index]['note'] = $purchase['note'];
-                $this->array[$purchase['created_at'] . $index]['name'] = $purchase->supplier->supplierName;
-                $this->array[$purchase['created_at'] . $index]['account'] = "الموردين";
-                $this->array[$purchase['created_at'] . $index]['payment'] = $purchase["payment"];
-                if ($purchase["purchase_id"] != null && $purchase["type"] == "debt") {
-                    $this->array[$purchase['created_at'] . $index]['paid'] = 0;
-                    $this->array[$purchase['created_at'] . $index]['purchaseFuture'] = $purchase["debt"];
-                    $this->array[$purchase['created_at'] . $index]['debt'] = 0;
-                } else {
-                    $this->array[$purchase['created_at'] . $index]['purchaseFuture'] = 0;
-                    $this->array[$purchase['created_at'] . $index]['paid'] = $purchase["debt"];
-                    $this->array[$purchase['created_at'] . $index]['debt'] = $purchase["paid"];
-                }
-                $this->array[$purchase['created_at'] . $index]['saleFuture'] = 0;
-
-            }
-
-            foreach ($this->transfers as $index => $transfer) {
-                if ($transfer['transfer_type'] == "cash_to_bank") {
-                    if ($this->payment == "" || $this->payment == "cash") {
-                        $this->array[$transfer['created_at'] . $index . 1]['date'] = $transfer['transfer_date'];
-                        $this->array[$transfer['created_at'] . $index . 1]['note'] = "صادر كاش";
-                        $this->array[$transfer['created_at'] . $index . 1]['account'] = "تحويلات";
-                        $this->array[$transfer['created_at'] . $index . 1]['payment'] = "cash";
-                        $this->array[$transfer['created_at'] . $index . 1]['name'] = $transfer->note;
-                        $this->array[$transfer['created_at'] . $index . 1]['paid'] = 0;
-                        $this->array[$transfer['created_at'] . $index . 1]['debt'] = $transfer['transfer_amount'];
-                        $this->array[$transfer['created_at'] . $index . 1]['saleFuture'] = 0;
-                        $this->array[$transfer['created_at'] . $index . 1]['purchaseFuture'] = 0;
-                    }
-
-                    if ($this->payment == "" || $this->payment == "bank") {
-                        $this->array[$transfer['created_at'] . $index . 2]['date'] = $transfer['transfer_date'];
-                        $this->array[$transfer['created_at'] . $index . 2]['note'] = "وارد بنك";
-                        $this->array[$transfer['created_at'] . $index . 2]['account'] = "تحويلات";
-                        $this->array[$transfer['created_at'] . $index . 2]['payment'] = "bank";
-                        $this->array[$transfer['created_at'] . $index . 2]['name'] = $transfer->note;
-                        $this->array[$transfer['created_at'] . $index . 2]['paid'] = $transfer['transfer_amount'];
-                        $this->array[$transfer['created_at'] . $index . 2]['debt'] = 0;
-                        $this->array[$transfer['created_at'] . $index . 2]['saleFuture'] = 0;
-                        $this->array[$transfer['created_at'] . $index . 2]['purchaseFuture'] = 0;
-                    }
-
-                } else {
-                    if ($this->payment == "" || $this->payment == "bank") {
-                        $this->array[$transfer['created_at'] . $index . 1]['date'] = $transfer['transfer_date'];
-                        $this->array[$transfer['created_at'] . $index . 1]['note'] = "صادر بنك";
-                        $this->array[$transfer['created_at'] . $index . 1]['account'] = "تحويلات";
-                        $this->array[$transfer['created_at'] . $index . 1]['payment'] = "bank";
-                        $this->array[$transfer['created_at'] . $index . 1]['name'] = $transfer->note;
-                        $this->array[$transfer['created_at'] . $index . 1]['paid'] = 0;
-                        $this->array[$transfer['created_at'] . $index . 1]['debt'] = $transfer['transfer_amount'];
-                        $this->array[$transfer['created_at'] . $index . 1]['saleFuture'] = 0;
-                        $this->array[$transfer['created_at'] . $index . 1]['purchaseFuture'] = 0;
-                    }
-
-                    if ($this->payment == "" || $this->payment == "cash") {
-                        $this->array[$transfer['created_at'] . $index . 2]['date'] = $transfer['transfer_date'];
-                        $this->array[$transfer['created_at'] . $index . 2]['note'] = "وارد كاش";
-                        $this->array[$transfer['created_at'] . $index . 2]['account'] = "تحويلات";
-                        $this->array[$transfer['created_at'] . $index . 2]['payment'] = "cash";
-                        $this->array[$transfer['created_at'] . $index . 2]['name'] = $transfer->note;
-                        $this->array[$transfer['created_at'] . $index . 2]['paid'] = $transfer['transfer_amount'];
-                        $this->array[$transfer['created_at'] . $index . 2]['debt'] = 0;
-                        $this->array[$transfer['created_at'] . $index . 2]['saleFuture'] = 0;
-                        $this->array[$transfer['created_at'] . $index . 2]['purchaseFuture'] = 0;
-                    }
-                }
-
-            }
-
-            foreach ($this->expenses as $index => $expense) {
-                $this->array[$expense['created_at'] . $index]['date'] = $expense['due_date'];
-                $this->array[$expense['created_at'] . $index]['note'] = $expense['description'];
-                $this->array[$expense['created_at'] . $index]['account'] = "المصروفات";
-                $this->array[$expense['created_at'] . $index]['payment'] = $expense['payment'];
-                $this->array[$expense['created_at'] . $index]['name'] = $expense->option_id != null ? $expense->option->optionName : "";
-                $this->array[$expense['created_at'] . $index]['paid'] = 0;
-                $this->array[$expense['created_at'] . $index]['debt'] = $expense['amount'];
-                $this->array[$expense['created_at'] . $index]['saleFuture'] = 0;
-                $this->array[$expense['created_at'] . $index]['purchaseFuture'] = 0;
-            }
-
-            foreach ($this->employeeGifts as $index => $gift) {
-                $this->array[$gift['created_at'] . $index]['date'] = $gift['gift_date'];
-                $this->array[$gift['created_at'] . $index]['note'] = $gift['note'] == "" ? "تم دفع مبلغ الى الموظف " : $gift['note'];
-                $this->array[$gift['created_at'] . $index]['name'] = $gift->employee->employeeName;
-                $this->array[$gift['created_at'] . $index]['account'] = "الموظفين";
-                $this->array[$gift['created_at'] . $index]['payment'] = $gift['payment'];
-                $this->array[$gift['created_at'] . $index]['paid'] = 0;
-                $this->array[$gift['created_at'] . $index]['debt'] = $gift['gift_amount'];
-                $this->array[$gift['created_at'] . $index]['saleFuture'] = 0;
-                $this->array[$gift['created_at'] . $index]['purchaseFuture'] = 0;
-            }
-
-
-            foreach ($this->withdraws as $index => $withdraw) {
-                $this->array[$withdraw['created_at'] . $index]['date'] = $withdraw['due_date'];
-                $this->array[$withdraw['created_at'] . $index]['note'] = "تم السحب من الخزنة";
-                $this->array[$withdraw['created_at'] . $index]['name'] = "اليوميه";
-                $this->array[$withdraw['created_at'] . $index]['account'] = "الخزنه";
-                $this->array[$withdraw['created_at'] . $index]['payment'] = $withdraw['payment'];
-                $this->array[$withdraw['created_at'] . $index]['paid'] = $withdraw['amount'];
-                $this->array[$withdraw['created_at'] . $index]['debt'] = 0;
-                $this->array[$withdraw['created_at'] . $index]['saleFuture'] = 0;
-                $this->array[$withdraw['created_at'] . $index]['purchaseFuture'] = 0;
-            }
-
-            ksort($this->array);
-
-            foreach ($this->array as $item) {
-                $this->paid += $item['paid'];
-                $this->debt += $item['debt'];
-
-                if (isset($item['sale_id'])) {
-                    $this->saleFuture += $item['saleFuture'];
-                }
-
-                if (isset($item['purchase_id'])) {
-                    $this->purchaseFuture += $item['purchaseFuture'];
-                }
-
-                if ($item['payment'] == "cash" && $item['saleFuture'] == 0 && $item['purchaseFuture'] == 0) {
-                    $this->safeBalance += $item['paid'];
-                    $this->safeBalance -= $item['debt'];
-                } elseif ($item['payment'] == "bank" && $item['saleFuture'] == 0 && $item['purchaseFuture'] == 0) {
-                    $this->bankBalance += $item['paid'];
-                    $this->bankBalance -= $item['debt'];
-                }
-            }
         }
     }
 
     public function clearArray()
     {
-        $this->array = [];
+        $this->statements = [];
     }
 
     public function getInvoice($id, $tableName)

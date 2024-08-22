@@ -38,7 +38,7 @@ class Client extends Model
     {
         $creditReturnsTotal = $this->saleReturns()->where("sale_returns.due_date", "<", $date)->sum(DB::raw('quantity * price')) - $this->saleReturns->where("sale_returns.due_date", "<", $date)->sum('amount');
 
-        return $this->initialBalance + $this->sales()->where("due_date", "<", $date)->sum("remainder") + $this->debts()->where("due_date", "<", $date)->where("type", "debt")->sum("amount") - $this->debts()->where("due_date", "<", $date)->where("type", "pay")->sum("amount") - $creditReturnsTotal;
+        return $this->initialBalance + $this->sales()->where("due_date", "<", $date)->sum("remainder") + $this->debts()->where("due_date", "<", $date)->where("type", "debt")->sum("amount") + $this->debts()->where("due_date", "<", $date)->sum("service") - $this->debts()->where("due_date", "<", $date)->where("type", "pay")->sum("amount") - $creditReturnsTotal;
     }
 
 }
