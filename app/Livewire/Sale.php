@@ -104,7 +104,7 @@ class Sale extends Component
                 'due_date' => $this->due_date,
                 'user_id' => auth()->id(),
             ]);
-
+            $this->id = $sale['id'];
             $this->currentBalance += $this->remainder;
 
 
@@ -116,9 +116,34 @@ class Sale extends Component
                     'price' => floatval($item['price']),
                 ]);
             }
+        } else {
+            \App\Models\Sale::where("id", $this->id)->update([
+                "client_id" => $this->invoice['buyer'] . "_id" == "client_id" ? $this->currentClient['id'] : null,
+                "supplier_id" => $this->invoice['buyer'] . "_id" == "supplier_id" ? $this->currentClient['id'] : null,
+                "employee_id" => $this->invoice['buyer'] . "_id" == "employee_id" ? $this->currentClient['id'] : null,
+                'payment' => $this->payment,
+                'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
+                'bank' => $this->bank,
+                'paid' => floatval($this->paid),
+                'remainder' => $this->remainder,
+                'discount' => floatval($this->discount),
+                'amount' => $this->amount,
+                'due_date' => $this->due_date,
+                'user_id' => auth()->id(),
+            ]);
+
+            $this->currentBalance -= $this->invoice['remainder'];
+            $this->currentBalance += $this->remainder;
+
+            foreach ($this->cart as $item) {
+                SaleDetail::where("sale_id", $this->id)->where("product_id", $item['product_id'])->update([
+                    'quantity' => floatval($item['quantity']),
+                    'price' => floatval($item['price']),
+                ]);
+            }
         }
 
-        $this->showInvoice($sale['id']);
+        $this->showInvoice($this->id);
 
         $this->alert('success', 'تم الحفظ بنجاح', ['timerProgressBar' => true]);
 
@@ -181,7 +206,6 @@ class Sale extends Component
         $this->currentProduct['amount'] = floatval($this->currentProduct['price']) * floatval($this->currentProduct['quantity']);
     }
 
-
     public function addToCart()
     {
         $stock = $this->currentProduct['quantity'];
@@ -202,6 +226,7 @@ class Sale extends Component
                 $this->cart[$this->currentProduct['id']] = $this->currentProduct;
 
                 $this->cart[$this->currentProduct['id']]['amount'] = floatval($this->currentProduct['price']) * floatval($this->currentProduct['quantity']);
+                $this->cart[$this->currentProduct['id']]['product_id'] = floatval($this->currentProduct['id']);
 
                 $this->cost += $this->cart[$this->currentProduct['id']]['amount'];
                 if ($this->currentClient['id'] == 1 && $this->buyer == "client") {
@@ -228,6 +253,8 @@ class Sale extends Component
 
         unset($this->cart[$id]);
         if (empty($this->cart)) {
+            $this->amount = 0;
+            $this->cost = 0;
             $this->remainder = 0;
             $this->paid = 0;
             $this->discount = 0;
@@ -239,30 +266,51 @@ class Sale extends Component
     public function showSales()
     {
         $this->editMode = !$this->editMode;
-        $this->id = !$this->editMode ? 0 : $this->id;
     }
 
     public function getSale($sale)
     {
         $this->invoice['id'] = $sale['id'];
         $this->invoice['type'] = 'sale';
+        $this->invoice['buyer'] = $this->buyer;
         $this->invoice['clientType'] = 'العميل';
         $this->invoice['date'] = $sale['due_date'];
+        $this->invoice['payment'] = $sale['payment'];
+        $this->invoice['bank'] = $sale['bank'];
+        $this->invoice['bank_id'] = $sale['bank_id'];
         $this->invoice['client'] = $this->currentClient[$this->buyer . 'Name'];
-        $this->invoice['cart'] = SaleDetail::where('sale_id', $sale['id'])->join('products', 'products.id', '=', 'sale_details.product_id')->get()->toArray();
+        $this->invoice['cart'] = SaleDetail::where('sale_id', $sale['id'])->join('products', 'products.id', '=', 'sale_details.product_id')->get()->keyBy("product_id")->toArray();
         $this->invoice['remainder'] = floatval($sale['remainder']);
         $this->invoice['paid'] = floatval($sale['paid']);
         $this->invoice['discount'] = floatval($sale['discount']);
         $this->invoice['cost'] = floatval($sale['amount']) + floatval($sale['discount']);
         $this->invoice['amount'] = $sale['amount'];
         $this->invoice['showMode'] = false;
-
         if ($this->invoice['paid'] > 0) {
             $this->payment = $sale['payment'];
             $this->invoice['paidId'] = $sale['id'];
         }
 
         $this->dispatch('sale_created', $this->invoice);
+    }
+
+    public function chooseSale($id)
+    {
+        $this->id = $this->invoice['id'];
+        $this->payment = $this->invoice['payment'];
+        $this->bank = $this->invoice['bank'];
+        $this->bank_id = $this->invoice['bank_id'];
+        $this->paid = floatval($this->invoice['paid']);
+        $this->remainder = floatval($this->invoice['remainder']);
+        $this->discount = floatval($this->invoice['discount']);
+        $this->amount = floatval($this->invoice['amount']);
+        $this->cost = floatval($this->invoice['amount']) + floatval($this->invoice['discount']);
+        $this->due_date = $this->invoice['date'];
+        $this->cart = $this->invoice['cart'];
+        foreach ($this->cart as $item) {
+            $this->cart[$item['product_id']]['amount'] = floatval($item['price']) * floatval($item['quantity']);
+        }
+        $this->editMode = false;
     }
 
     public function changePayment($id)
@@ -351,7 +399,7 @@ class Sale extends Component
 
     public function resetData($item = null)
     {
-        $item == "currentClient" ? $this->reset('search', 'clientSearch', 'id', 'oldQuantities', $item) : $this->reset('currentProduct', 'cart', 'bank', 'payment', 'bank', 'bank_id', 'search', 'clientSearch', 'paid', 'remainder', 'amount', 'amount', 'discount', 'id', 'oldQuantities', $item);
+        $item == "currentClient" ? $this->reset('search', 'clientSearch', 'id', 'oldQuantities', $item) : $this->reset('currentProduct', 'cart', 'bank', 'payment', 'bank', 'bank_id', 'search', 'clientSearch', 'paid', 'remainder', 'amount', 'cost', 'discount', 'id', 'oldQuantities', $item);
     }
 
     public function render()

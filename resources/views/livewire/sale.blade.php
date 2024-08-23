@@ -15,6 +15,10 @@
                             <button data-bs-dismiss="modal" class="btn btn-danger"
                                     wire:click="deleteMessage({{$invoice['id']}})"><i class="bi bi-trash"></i>
                             </button>
+
+                            <button class="btn btn-warning"
+                                    wire:click="chooseSale({{$invoice['id']}})"><i class="bi bi-pen"></i>
+                            </button>
                         @endif
                         @if(!$editMode && !isset($invoice['id']))
                             <button class="btn btn-primary" wire:click="save()"><i class="bi bi-bookmark-check"></i>
@@ -218,7 +222,7 @@
                                                     <td>{{number_format($item['amount'], 2)}}</td>
                                                     <td>
                                                         <button wire:loading.attr="disabled"
-                                                                wire:click="deleteFromCart({{$item['id']}})"
+                                                                wire:click="deleteFromCart({{$item['product_id']}})"
                                                                 class="btn btn-primary btn-sm btn-danger"><i
                                                                 class="bi bi-trash-fill"></i>
                                                         </button>
