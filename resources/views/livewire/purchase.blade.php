@@ -11,13 +11,17 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"
                             aria-label="Close"></button>
                     <h1 class="modal-title fs-5" id="exampleModalLabel">
-                        @if($editMode && isset($invoice['id']))
+                        @if(!empty($invoice) && $editMode && isset($invoice['id']) && !session("closed") && $invoice['date'] == session("date"))
                             <button data-bs-dismiss="modal" class="btn btn-danger"
                                     wire:click="deleteMessage({{$invoice['id']}})"><i class="bi bi-trash"></i>
                             </button>
+
+                            <button class="btn btn-warning" data-bs-dismiss="modal" aria-label="Close"
+                                    wire:click="choosePurchase({{$invoice['id']}})"><i class="bi bi-pen"></i>
+                            </button>
                         @endif
-                        @if(!$editMode && !isset($invoice['id']))
-                            <button class="btn btn-primary" wire:click="save()"><i class="bi bi-bookmark-check"></i>
+                        @if(!empty($invoice) && !$editMode && !isset($invoice['id']) && !session("closed") && $invoice['date'] == session("date"))
+                            <button class="btn btn-success" @if($id == 0) wire:click="save()" @else wire:click="editMessage()" @endif><i class="bi bi-bookmark-check"></i>
                             </button>
                         @endif
                         <button class="btn btn-info" id="print"><i class="bi bi-printer"></i></button>
@@ -25,37 +29,6 @@
                 </div>
                 <div class="modal-body">
                     <div class="scroll">
-                        @if($editMode && isset($invoice['id']) && !session("closed") && $invoice['date'] == session("date") && $invoice['paid'] > 0)
-                            <div class="row mb-1">
-                                <div class="col-4">
-                                    <select @disabled($banks->count() == 0) wire:model.live="payment"
-                                            class="form-select">
-                                        <option value="cash">كاش</option>
-                                        <option value="bank">بنك</option>
-                                    </select>
-                                </div>
-
-                                <div class="col-3">
-                                    <input autocomplete="off" type="text"
-                                           placeholder="رقم الاشعار ....."
-                                           @disabled($payment == 'cash') wire:model.live="bank"
-                                           class="form-control">
-                                </div>
-
-                                <div class="col-3">
-                                    <select wire:model.live="bank_id"
-                                            @disabled($payment == 'cash') class="form-select">
-                                        @foreach($banks as $bank)
-                                            <option value="{{$bank->id}}">{{$bank->bankName}}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-
-                                <div class="col-1">
-                                    <button class="btn btn-info" @if(isset($invoice['id'])) wire:click="changePayment({{$invoice['id']}})" @endif><i class="bi bi-bookmark-check"></i></button>
-                                </div>
-                            </div>
-                        @endif
                         <livewire:invoice/>
                     </div>
                 </div>
@@ -191,6 +164,13 @@
                                                     @endforeach
                                                 </select>
                                             </div>
+
+                                            <div class="col-4">
+                                                <input autocomplete="off" type="text"
+                                                       placeholder="ملاحظه  ....."
+                                                       wire:model.live="note"
+                                                       class="form-control">
+                                            </div>
                                         </div>
 
                                     </div>
@@ -217,7 +197,7 @@
                                                     <td>{{number_format($item['amount'], 2)}}</td>
                                                     <td>
                                                         <button wire:loading.attr="disabled"
-                                                                wire:click="deleteFromCart({{$item['id']}})"
+                                                                wire:click="deleteFromCart({{$item['product_id']}})"
                                                                 class="btn btn-primary btn-sm btn-danger"><i
                                                                 class="bi bi-trash-fill"></i>
                                                         </button>

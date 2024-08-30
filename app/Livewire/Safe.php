@@ -35,9 +35,9 @@ class Safe extends Component
     public string $accountName = '';
     public $number = 0;
     public $amount = 0;
-    public string $transfer_date = '';
-    public string $note = '';
-    public $transfer_number = '';
+    public string $due_date = '';
+    public $note = null;
+    public $bank = null;
     public string $day_date = '';
     public $transfer_amount = 0;
     public $initialBalance = 0;
@@ -191,9 +191,9 @@ class Safe extends Component
                 Transfer::create([
                     'bank_id' => $this->bank_id,
                     'transfer_type' => $this->transfer_type,
-                    'transfer_amount' => $this->transfer_amount,
-                    'transfer_number' => $this->transfer_number,
-                    'transfer_date' => $this->transfer_date,
+                    'amount' => $this->transfer_amount,
+                    'bank' => $this->bank,
+                    'due_date' => $this->due_date,
                     'note' => $this->note,
                 ]);
 
@@ -203,9 +203,9 @@ class Safe extends Component
                 Transfer::where('id', $this->transferId)->update([
                     'bank_id' => $this->bank_id,
                     'transfer_type' => $this->transfer_type,
-                    'transfer_amount' => $this->transfer_amount,
-                    'transfer_number' => $this->transfer_number,
-                    'transfer_date' => $this->transfer_date,
+                    'amount' => $this->transfer_amount,
+                    'bank' => $this->bank,
+                    'due_date' => $this->due_date,
                     'note' => $this->note,
                 ]);
 
@@ -235,9 +235,9 @@ class Safe extends Component
     {
         $this->transferId = $transfer['id'];
         $this->transfer_type = $transfer['transfer_type'];
-        $this->transfer_amount = $transfer['transfer_amount'];
-        $this->transfer_number = $transfer['transfer_number'];
-        $this->transfer_date = $transfer['transfer_date'];
+        $this->transfer_amount = $transfer['amount'];
+        $this->bank = $transfer['bank'];
+        $this->due_date = $transfer['due_date'];
         $this->note = $transfer['note'];
     }
 
@@ -297,7 +297,7 @@ class Safe extends Component
 
     public function resetData()
     {
-        $this->reset('transfer_type', 'transfer_number', 'note', 'transfer_amount', 'transferId', 'transfer_date');
+        $this->reset('transfer_type', 'bank', 'note', 'amount', 'transferId', 'due_date');
     }
 
     public function resetBankData()
@@ -315,8 +315,8 @@ class Safe extends Component
             }
         }
 
-        if ($this->transfer_date == '') {
-            $this->transfer_date = session("date");
+        if ($this->due_date == '') {
+            $this->due_date = session("date");
         }
 
         if ($this->day_date == '') {

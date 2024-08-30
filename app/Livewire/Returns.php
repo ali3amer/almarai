@@ -21,6 +21,9 @@ class Returns extends Component
     public string $title = 'المرتجعات';
 
     public string $productName = '';
+    public $payment = 'cash';
+    public $bank_id = null;
+    public $bank = null;
     public bool $editMode = false;
     public int $id = 0;
     public float $price = 0;
@@ -51,6 +54,9 @@ class Returns extends Component
     {
         $this->currentClient = [];
         $this->currentClient = $client;
+        if (!isset($this->currentClient['cash'])) {
+            $this->currentClient['cash'] = false;
+        }
     }
 
     public function chooseSale($sale)
@@ -101,50 +107,6 @@ class Returns extends Component
             ]);
         } else {
             $sale = \App\Models\Sale::where('id', $this->currentDetail['sale_id'])->first();
-//
-//            \App\Models\SaleDebt::create([
-//                $this->buyer . '_id' => $this->currentClient['id'],
-//                'amount' => floatval($this->priceReturn),
-//                'type' => 'pay',
-//                'bank' => '',
-//                'payment' => 'cash',
-//                'bank_id' => null,
-//                'due_date' => $this->due_date,
-//                'note' => 'تم خصم قيمة المنتج المرجع من فاتورة #' . $sale['id'],
-//                'user_id' => auth()->id()
-//            ]);
-//
-//            if (floatval($sale["paid"]) == 0 || floatval($sale["paid"]) < $this->priceReturn) {
-//                $salePaid = 0;
-//            } else {
-//                $salePaid = floatval($sale["paid"]) - $this->priceReturn;
-//            }
-//
-//            if ($salePaid != 0 || floatval($sale["paid"]) >= $this->priceReturn) {
-//                \App\Models\SaleDebt::create([
-//                    $this->buyer . '_id' => $this->currentClient['id'],
-//                    'amount' => floatval($this->priceReturn),
-//                    'type' => 'debt',
-//                    'bank' => '',
-//                    'payment' => 'cash',
-//                    'bank_id' => null,
-//                    'due_date' => $this->due_date,
-//                    'note' => 'تم دفع قيمة المنتج المرجع الى العميل من فاتورة #' . $sale['id'],
-//                    'user_id' => auth()->id()
-//                ]);
-//            }
-//
-//            $total_amount = $sale['amount'] - $this->priceReturn;
-//
-//            $remainder = $total_amount - $salePaid - $sale['discount'];
-//            $sale->update([
-//                'paid' => $salePaid,
-//                'remainder' => $remainder,
-//                'amount' => $total_amount,
-//            ]);
-//
-//            SaleDetail::where("sale_id", $sale['id'])->where("product_id", $this->currentDetail['product_id'])->decrement("quantity", floatval($this->quantityReturn));
-//
 
             SaleReturn::create([
                 'sale_id' => $this->currentDetail['sale_id'],
@@ -198,7 +160,12 @@ class Returns extends Component
         }
         if (!empty($this->currentClient)) {
             $this->sales = \App\Models\Sale::where($this->buyer . '_id', $this->currentClient['id'])->where('id', 'LIKE', '%' . $this->saleSearch . '%')->get();
+
+            if ($this->currentClient['cash'] && !empty($this->currentDetail)) {
+                $this->amount = floatval($this->price) * floatval($this->quantityReturn);
+            }
         }
+
         return view('livewire.returns');
     }
 }

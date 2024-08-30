@@ -6,7 +6,6 @@ use App\Models\DepositDebt;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
 
 use App\Models\Bank;
-use App\Models\SaleDebt;
 use App\Models\DebtDetail;
 use Illuminate\Database\Eloquent\Collection;
 use Livewire\Attributes\On;
@@ -193,10 +192,10 @@ class Deposit extends Component
 
                 $this->showReceipt($debt->toArray());
 
-                $this->alert('success', 'تم السداد بنجاح', ['timerProgressBar' => true]);
+                $this->alert('success', $note, ['timerProgressBar' => true]);
 
             } else {
-                $debt = SaleDebt::where('id', $this->debtId)->first();
+                $debt = DepositDebt::where('id', $this->debtId)->first();
 
                 $debt->update([
                     'deposit_id' => $this->currentDeposit['id'],
@@ -254,7 +253,7 @@ class Deposit extends Component
     {
         $debt = $data['inputAttributes']['debt'];
 
-        SaleDebt::where('id', $debt['id'])->forceDelete();
+        DepositDebt::where('id', $debt['id'])->forceDelete();
         $this->showDebts($this->currentDeposit);
 
         $this->alert('success', 'تم حذف الدفعيه بنجاح', ['timerProgressBar' => true]);

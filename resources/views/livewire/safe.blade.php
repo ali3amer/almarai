@@ -245,16 +245,16 @@
                                 </div>
 
                                 <div class="col-4">
-                                    <label for="transfer_number">رقم الاشعار</label>
-                                    <input autocomplete="off" type="text" wire:model.live="transfer_number"
-                                           id="transfer_amount"
+                                    <label for="bank">رقم الاشعار</label>
+                                    <input autocomplete="off" type="text" wire:model.live="bank"
+                                           id="bank"
                                            class="form-control text-center" placeholder="رقم الاشعار ....">
                                 </div>
                             </div>
                             <div class="row mt-2">
                                 <div class="col-3">
-                                    <label for="transfer_date">تاريخ التحويل</label>
-                                    <input type="date" disabled wire:model="transfer_date" id="transfer_date"
+                                    <label for="due_date">تاريخ التحويل</label>
+                                    <input type="date" disabled wire:model="due_date" id="due_date"
                                            class="form-control text-center" placeholder="رقم الاشعار ....">
                                 </div>
 
@@ -304,11 +304,11 @@
                                     <tbody>
                                     @foreach($transfers as $transfer)
                                         <tr>
-                                            <td>{{$transfer->transfer_date}}</td>
+                                            <td>{{$transfer->due_date}}</td>
                                             <td>{{$transfer->bank->bankName ?? ""}}</td>
                                             <td>{{$transfer->transfer_type == 'cash_to_bank' ? 'تم إستلام مبلغ في البنك' : 'تم إستلام مبلغ كاش'}}</td>
-                                            <td>{{number_format($transfer->transfer_amount, 2)}}</td>
-                                            <td>{{$transfer->transfer_number}}</td>
+                                            <td>{{number_format($transfer->amount, 2)}}</td>
+                                            <td>{{$transfer->bank}}</td>
                                             <td>{{$transfer->note}}</td>
                                             <td>
                                                 <button class="btn btn-sm btn-danger"

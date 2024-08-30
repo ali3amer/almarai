@@ -26,11 +26,11 @@ class Deposit extends Model
             'type',
             DB::raw('null as invoice_id'),
             DB::raw("CASE
-        WHEN type = 'debt' THEN amount
+        WHEN type = 'pay' THEN amount
         ELSE 0
      END as income"),
             DB::raw("CASE
-        WHEN type = 'pay' THEN amount
+        WHEN type = 'debt' THEN amount
         ELSE 0
      END as expense"),
             DB::raw('0 as futureExpense'),
@@ -52,5 +52,22 @@ class Deposit extends Model
     public function getCurrentBalanceAttribute()
     {
         return $this->initialBalance + $this->depositDebts()->where("type", "pay")->sum("amount") - $this->depositDebts()->where("type", "debt")->sum("amount");
+    }
+
+    public function getPastBalance($date)
+    {
+        return $this->initialBalance + $this->depositDebts()->where("type", "pay")->where("due_date", "<", $date)->sum("amount") - $this->depositDebts()->where("type", "debt")->where("due_date", "<", $date)->sum("amount");
+    }
+
+    public function getDayBalance($date)
+    {
+        $initial = $this->startingDate == $date ? $this->initialBalance : 0;
+        return $initial + $this->depositDebts()->where("type", "pay")->where("due_date", $date)->sum("amount") - $this->depositDebts()->where("type", "debt")->where("due_date", $date)->sum("amount");
+    }
+
+    public function getBetweenBalance($from, $to)
+    {
+        $initial = ($this->startingDate >= $from && $this->startingDate <= $to) ? $this->initialBalance : 0;
+        return $initial + $this->depositDebts()->where("type", "pay")->whereBetween("due_date", [$from, $to])->sum("amount") - $this->depositDebts()->where("type", "debt")->whereBetween("due_date", [$from, $to])->sum("amount");
     }
 }

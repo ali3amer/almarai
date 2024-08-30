@@ -19,4 +19,6 @@ class PurchaseReturn extends Model
     {
         return $this->belongsTo(Purchase::class);
     }
+
+
 }

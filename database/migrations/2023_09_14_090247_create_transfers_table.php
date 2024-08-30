@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreign('bank_id')->references('id')->on('banks')->onDelete('cascade')->onUpdate('cascade');
             $table->enum('transfer_type', ['cash_to_bank', 'bank_to_cash']);
             $table->decimal('amount', 10, 2);
-            $table->string('transfer_number')->nullable();
+            $table->string('bank')->nullable();
             $table->date('due_date');
             $table->string('note')->nullable();
             $table->timestamps();

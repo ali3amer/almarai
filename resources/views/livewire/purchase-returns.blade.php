@@ -187,7 +187,7 @@
                         <div class="col">
                             <label for="amount">الجمله</label>
 
-                            <input type="text" autocomplete="off" id="amount" disabled wire:model="amount"
+                            <input type="text" autocomplete="off" id="amount" disabled value="{{ $price * $quantity }}"
                                    class="form-control text-center"
                                    placeholder="الجمله">
                         </div>
@@ -214,7 +214,7 @@
                         <div class="col">
                             <label for="amount">المبلغ المدفوع</label>
 
-                            <input type="text" autocomplete="off" @disabled(empty($currentDetail)) @disabled(empty($currentPurchase) || $currentPurchase['amount'] == 0) id="amount" wire:model="amount"
+                            <input type="text" autocomplete="off" @disabled(empty($currentDetail) || (!empty($currentSupplier) && $currentSupplier['cash'])) @disabled(empty($currentPurchase) || $currentPurchase['amount'] == 0) id="amount" wire:model="amount"
                                    class="form-control text-center"
                                    placeholder="المبلغ المدفوع">
                         </div>

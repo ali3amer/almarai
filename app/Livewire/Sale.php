@@ -24,11 +24,13 @@ class Sale extends Component
 
     protected $listeners = [
         'cancelSale',
+        'save'
     ];
 
     public string $title = 'المبيعات';
     public int $id = 0;
     public $bank_id = null;
+    public $note = null;
     public int $debtId = 0;
     public string $due_date = '';
     public bool $print = false;
@@ -101,6 +103,7 @@ class Sale extends Component
                 'remainder' => $this->remainder,
                 'discount' => floatval($this->discount),
                 'amount' => $this->amount,
+                'note' => $this->note,
                 'due_date' => $this->due_date,
                 'user_id' => auth()->id(),
             ]);
@@ -128,6 +131,7 @@ class Sale extends Component
                 'remainder' => $this->remainder,
                 'discount' => floatval($this->discount),
                 'amount' => $this->amount,
+                'note' => $this->note,
                 'due_date' => $this->due_date,
                 'user_id' => auth()->id(),
             ]);
@@ -173,19 +177,19 @@ class Sale extends Component
         $this->currentClient['blocked'] = $this->buyer != 'employee' ? $this->currentClient['blocked'] : false;
         $this->currentClient['cash'] = $this->buyer == "client" ? $this->currentClient['cash'] : false;
         if ($this->buyer == 'client') {
-            $client = SaleDebt::where('client_id', $this->currentClient['id'])->get();
+            $client = \App\Models\Client::find($client['id']);
+            $this->currentBalance = $client->currentBalance;
         } elseif ($this->buyer == 'supplier') {
-            $client = SaleDebt::where('supplier_id', $this->currentClient['id'])->get();
+            $client = \App\Models\Supplier::find($client['id']);
+            $this->currentBalance = $client->currentSalesBalance;
         } elseif ($this->buyer == 'employee') {
-            $client = SaleDebt::where('employee_id', $this->currentClient['id'])->get();
+            $client = \App\Models\Employee::find($client['id']);
+            $this->currentBalance = $client->currentBalance;
         }
 
         if ($this->currentClient['cash']) {
             $this->paid = $this->amount;
         }
-
-        $this->currentBalance = $client->sum('debt') - $client->sum('paid') + $this->currentClient['initialBalance'];
-
     }
 
     public function chooseProduct(\App\Models\Product $product)
@@ -313,18 +317,19 @@ class Sale extends Component
         $this->editMode = false;
     }
 
-    public function changePayment($id)
+    public function editMessage()
     {
-        \App\Models\Sale::where("id", $id)->update([
-            'payment' => $this->payment,
-            'bank_id' => $this->payment == "bank" ? $this->bank_id : null,
-            'bank' => $this->payment == "bank" ? $this->bank : null
+        $this->confirm("  هل توافق على تعديل الفاتورة ؟", [
+            'inputAttributes' => [],
+            'toast' => false,
+            'showConfirmButton' => true,
+            'confirmButtonText' => 'موافق',
+            'onConfirmed' => "save",
+            'showCancelButton' => true,
+            'cancelButtonText' => 'إلغاء',
+            'confirmButtonColor' => '#dc2626',
+            'cancelButtonColor' => '#4b5563'
         ]);
-
-        $this->bank = $this->payment == "bank" ? $this->bank : null;
-
-        $this->alert('success', 'تم تعديل وسيلة الدفع بنجاح', ['timerProgressBar' => true]);
-
     }
 
     public function deleteMessage($id)

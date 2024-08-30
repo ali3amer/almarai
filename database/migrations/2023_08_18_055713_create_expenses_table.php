@@ -20,7 +20,7 @@ return new class extends Migration
             $table->string('description');
             $table->decimal('amount', 10, 2);
             $table->string('bank')->nullable();
-            $table->enum('payment', ['cash', 'bank']);
+            $table->enum('payment', ['cash', 'bank'])->default("cash");
             $table->date('due_date');
             $table->timestamps();
         });

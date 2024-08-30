@@ -395,49 +395,49 @@
                     <tbody>
                     <tr>
                         <td>المبيعات</td>
-                        <td>{{number_format($salesSum, 2)}}</td>
+                        <td>0</td>
                     </tr>
                     <tr>
                         <td>مدفوعات المبيعات</td>
-                        <td>{{number_format($salesPaidSum, 2)}}</td>
+                        <td>0</td>
                     </tr>
                     <tr>
                         <td>المشتريات</td>
-                        <td>{{number_format($purchasesSum, 2)}}</td>
+                        <td>0</td>
                     </tr>
                     <tr>
                         <td>مدفوعات المشتريات</td>
-                        <td>{{number_format($purchasesPaidSum, 2)}}</td>
+                        <td>0</td>
                     </tr>
                     <tr>
                         <td>المصروفات</td>
-                        <td>{{number_format($expensesSum, 2)}}</td>
+                        <td>0</td>
                     </tr>
                     <tr>
                         <td>مصروفات الموظفين</td>
-                        <td>{{number_format($employeesSum, 2)}}</td>
+                        <td>0</td>
                     </tr>
                     <tr>
                         <td>التالف</td>
-                        <td>{{number_format($damagedsSum, 2)}}</td>
+                        <td>0</td>
                     </tr>
                     <tr>
                         <th>الخزنة</th>
-                        <th>{{number_format($safeBalance, 2)}}</th>
+                        <th>0</th>
                     </tr>
                     <tr>
                         <td>ديون مبيعات</td>
-                        <td>{{number_format($salesDebts, 2)}}</td>
+                        <td>0</td>
                     </tr>
                     <tr>
                         <td>ديون مشتريات</td>
-                        <td>{{number_format($purchasesDebts, 2)}}</td>
+                        <td>0</td>
                     </tr>
                     </tbody>
                     <tfoot>
                     <tr>
                         <th>الجمله</th>
-                        <th>{{ number_format($total, 2) }}</th>
+                        <th>0</th>
                     </tr>
                     </tfoot>
                 </table>
@@ -1138,21 +1138,16 @@
                         </thead>
                         <tbody>
                         @foreach($sales as $sale)
-                            <tr>
-                                <td>{{$sale->due_date}}</td>
-                                <td>{{$sale->sale_id}}</td>
-                                @if(!empty($sale->sale->client))
-                                    <td>{{$sale->sale->client->clientName}}</td>
-                                @elseif(!empty($sale->sale->employee))
-                                    <td>الموظف : {{$sale->sale->employee->employeeName}}</td>
-                                @elseif(!empty($sale->sale->supplier))
-                                    <td>المورد : {{$sale->sale->supplier->supplierName}}</td>
-                                @endif
+                            <tr data-bs-toggle="modal" data-bs-target="#printModal"
+                                wire:click="getInvoice({{$sale['sale_id']}}, 'sales')">
+                                <td>{{$sale['due_date']}}</td>
+                                <td>{{$sale['sale_id']}}</td>
+                                <td>{{$sale['ownerName']}}</td>
 
-                                <td>{{ $sale->product->productName ?? "" }}</td>
-                                <td>{{number_format($sale->price, 2)}}</td>
-                                <td>{{number_format($sale->quantity, 2)}}</td>
-                                <td>{{number_format($sale->quantity * $sale->price, 2)}}</td>
+                                <td>{{ $sale['productName'] }}</td>
+                                <td>{{number_format($sale['price'], 2)}}</td>
+                                <td>{{number_format($sale['quantity'], 2)}}</td>
+                                <td>{{number_format($sale['quantity'] * $sale['price'], 2)}}</td>
                             </tr>
                         @endforeach
                         </tbody>
@@ -1199,14 +1194,15 @@
                         </thead>
                         <tbody>
                         @foreach($purchases as $purchase)
-                            <tr>
-                                <td>{{$purchase->due_date}}</td>
-                                <td>{{$purchase->purchase_id}}</td>
-                                <td>{{$purchase->purchase->supplier->supplierName}}</td>
-                                <td>{{ $purchase->product->productName ?? "" }}</td>
-                                <td>{{number_format($purchase->price, 2)}}</td>
-                                <td>{{number_format($purchase->quantity, 2)}}</td>
-                                <td>{{number_format($purchase->quantity * $purchase->price, 2)}}</td>
+                            <tr data-bs-toggle="modal" data-bs-target="#printModal"
+                                wire:click="getInvoice({{$purchase['purchase_id']}}, 'purchases')">
+                                <td>{{$purchase['due_date']}}</td>
+                                <td>{{$purchase['purchase_id']}}</td>
+                                <td>{{$purchase['ownerName']}}</td>
+                                <td>{{ $purchase['productName'] }}</td>
+                                <td>{{number_format($purchase['price'], 2)}}</td>
+                                <td>{{number_format($purchase['quantity'], 2)}}</td>
+                                <td>{{number_format($purchase['quantity'] * $purchase['price'], 2)}}</td>
                             </tr>
                         @endforeach
                         </tbody>
@@ -1412,13 +1408,21 @@
                         </tr>
                         </thead>
                         <tbody>
-
+                        @php $incomes = $expenses = $futureIncomes = $futureExpenses = 0 @endphp
                         @foreach($statements as $statement)
+                            @php
+                                $incomes += floatval($statement['income']);
+                                $expenses += floatval($statement['expense']);
+                                $futureIncomes += floatval($statement['futureIncome']);
+                                $futureExpenses += floatval($statement['futureExpense']);
+                            @endphp
+
                             <tr>
                                 <td>{{ $statement['due_date'] }}</td>
+                                <td>{{ $accounts[$statement['tableName']] }}</td>
                                 <td>{{ $statement['ownerName'] }}</td>
-                                <td>{{ $statement['ownerName'] }}</td>
-                                <td @if($statement['invoice_id'] != null) data-bs-toggle="modal" data-bs-target="#printModal"
+                                <td @if($statement['invoice_id'] != null) data-bs-toggle="modal"
+                                    data-bs-target="#printModal"
                                     wire:click="getInvoice({{$statement['invoice_id']}}, '{{$statement['tableName']}}')"
                                     style="cursor:pointer;" @endif >{{ $statement['note'] }}</td>
                                 <td>{{ number_format($statement['income'], 2) }}</td>
@@ -1431,10 +1435,10 @@
                         <tfoot>
                         <tr>
                             <th colspan="4">الجمـــــــــــــــلة</th>
-                            <th>{{ number_format($paid, 2) }}</th>
-                            <th>{{ number_format($debt, 2) }}</th>
-                            <th>{{ number_format($saleFuture, 2) }}</th>
-                            <th>{{ number_format($purchaseFuture, 2) }}</th>
+                            <th>{{ number_format($incomes, 2) }}</th>
+                            <th>{{ number_format($expenses, 2) }}</th>
+                            <th>{{ number_format($futureIncomes, 2) }}</th>
+                            <th>{{ number_format($futureExpenses, 2) }}</th>
                         </tr>
                         </tfoot>
                     </table>
@@ -1478,14 +1482,19 @@
                         </tr>
                         </thead>
                         <tbody>
-
+                        @php $incomes = $expenses = 0 @endphp
                         @foreach($statements as $statement)
+                            @php
+                                $incomes += floatval($statement['income']);
+                                $expenses += floatval($statement['expense']);
+                            @endphp
                             @if(floatval($statement['futureExpense']) == 0 && floatval($statement['futureIncome']) == 0)
                                 <tr>
                                     <td>{{ $statement['due_date'] }}</td>
+                                    <td>{{ $accounts[$statement['tableName']] }}</td>
                                     <td>{{ $statement['ownerName'] }}</td>
-                                    <td>{{ $statement['ownerName'] }}</td>
-                                    <td @if($statement['invoice_id'] != null) data-bs-toggle="modal" data-bs-target="#printModal"
+                                    <td @if($statement['invoice_id'] != null) data-bs-toggle="modal"
+                                        data-bs-target="#printModal"
                                         wire:click="getInvoice({{$statement['invoice_id']}}, '{{$statement['tableName']}}')"
                                         style="cursor:pointer;" @endif >{{ $statement['note'] }}</td>
                                     <td>{{ number_format($statement['income'], 2) }}</td>

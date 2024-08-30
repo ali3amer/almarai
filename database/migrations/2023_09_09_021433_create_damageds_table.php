@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('damageds', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('product_id');
+            $table->string('note')->nullable();
             $table->foreign('product_id')->references('id')->on('products')->onDelete('cascade')->onUpdate('cascade');
             $table->decimal('quantity', 10, 2);
             $table->date('due_date');

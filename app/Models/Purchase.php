@@ -30,6 +30,11 @@ class Purchase extends Model
         return $this->hasMany(PurchaseDebt::class);
     }
 
+    public function purchaseReturns()
+    {
+        return $this->hasMany(PurchaseReturn::class);
+    }
+
     public function getMovements($id = null, $clientType = 'supplier')
     {
         $purchases = Purchase::select(
@@ -104,10 +109,10 @@ class Purchase extends Model
             'purchase_id as invoice_id',
             DB::raw('0 as income'),
             DB::raw('0 as expense'),
-            DB::raw('0 as futureIncome'),
-            DB::raw("quantity * price as futureExpense"),
+            DB::raw('quantity * price as futureIncome'),
+            DB::raw("0 as futureExpense"),
             'purchase_returns.due_date',
-            DB::raw('null as payment'),
+            DB::raw("'cash' as payment"),
             DB::raw('null as bank'),
             DB::raw('CONCAT("مرتجعات مشتريات لفاتوره #", purchase_id) as note'),
             DB::raw('purchases.supplier_id as owner_id'),
@@ -128,7 +133,7 @@ class Purchase extends Model
             DB::raw('0 as futureIncome'),
             DB::raw("0 as futureExpense"),
             'purchase_returns.due_date',
-            DB::raw('null as payment'),
+            DB::raw("'cash' as payment"),
             DB::raw('null as bank'),
             DB::raw('CONCAT("مدفوعات مرتجع لفاتوره #", purchase_id) as note'),
             DB::raw('purchases.supplier_id as owner_id'),

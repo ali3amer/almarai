@@ -21,11 +21,13 @@ class Purchase extends Component
 
     protected $listeners = [
         'cancelPurchase',
+        'save'
     ];
 
     public string $title = 'المشتريات';
     public int $id = 0;
-    public int $bank_id = 0;
+    public $bank_id = null;
+    public $note = null;
     public int $debtId = 0;
     public string $due_date = '';
     public bool $print = false;
@@ -103,10 +105,11 @@ class Purchase extends Component
                     'discount' => floatval($this->discount),
                     'remainder' => $this->remainder,
                     'amount' => $this->amount,
+                    'note' => $this->note,
                     'due_date' => $this->due_date,
                     'user_id' => auth()->id(),
                 ]);
-
+                $this->id = $purchase['id'];
                 $this->currentBalance += $this->remainder;
 
                 foreach ($this->cart as $item) {
@@ -118,9 +121,33 @@ class Purchase extends Component
                     ]);
 
                 }
+            } else {
+                \App\Models\Purchase::where("id", $this->id)->update([
+                    "supplier_id" => $this->currentSupplier['id'],
+                    'payment' => $this->payment,
+                    'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
+                    'bank' => $this->bank,
+                    'paid' => floatval($this->paid),
+                    'remainder' => $this->remainder,
+                    'discount' => floatval($this->discount),
+                    'amount' => $this->amount,
+                    'note' => $this->note,
+                    'due_date' => $this->due_date,
+                    'user_id' => auth()->id(),
+                ]);
+
+                $this->currentBalance -= $this->invoice['remainder'];
+                $this->currentBalance += $this->remainder;
+
+                foreach ($this->cart as $item) {
+                    PurchaseDetail::where("purchase_id", $this->id)->where("product_id", $item['product_id'])->update([
+                        'quantity' => floatval($item['quantity']),
+                        'price' => floatval($item['price']),
+                    ]);
+                }
             }
 
-            $this->showInvoice($purchase['id']);
+            $this->showInvoice($this->id);
 
             $this->alert('success', 'تم الحفظ بنجاح', ['timerProgressBar' => true]);
 
@@ -162,8 +189,7 @@ class Purchase extends Component
         if ($this->currentSupplier['cash']) {
             $this->paid = $this->amount;
         }
-        $supplier = PurchaseDebt::where('supplier_id', $this->currentSupplier['id'])->withTrashed()->get();
-        $this->currentBalance = $supplier->sum('debt') - $supplier->sum('paid') + $this->currentSupplier['initialBalance'];
+        $this->currentBalance = \App\Models\Supplier::find($supplier['id'])->currentBalance;
     }
 
     public function chooseProduct(\App\Models\Product $product)
@@ -187,6 +213,7 @@ class Purchase extends Component
         if (!isset($this->cart[$this->currentProduct['id']])) {
             $this->cart[$this->currentProduct['id']] = $this->currentProduct;
             $this->cart[$this->currentProduct['id']]['amount'] = floatval($this->currentProduct['price']) * floatval($this->currentProduct['quantity']);
+            $this->cart[$this->currentProduct['id']]['product_id'] = floatval($this->currentProduct['id']);
             $this->cost += $this->cart[$this->currentProduct['id']]['amount'];
 
         } else {
@@ -210,9 +237,11 @@ class Purchase extends Component
 
         unset($this->cart[$id]);
         if (empty($this->cart)) {
+            $this->amount = 0;
             $this->remainder = 0;
             $this->paid = 0;
             $this->discount = 0;
+            $this->cost = 0;
         }
         $this->calcRemainder();
 
@@ -221,11 +250,6 @@ class Purchase extends Component
     public function showPurchases()
     {
         $this->editMode = !$this->editMode;
-        if (!$this->editMode) {
-            $this->id = 0;
-            $this->bank = "";
-            $this->payment = "cash";
-        }
     }
 
     public function getPurchase($purchase)
@@ -234,16 +258,18 @@ class Purchase extends Component
         $this->invoice['id'] = $purchase['id'];
         $this->invoice['type'] = 'purchase';
         $this->invoice['clientType'] = 'المورد';
+        $this->invoice['payment'] = $purchase['payment'];
+        $this->invoice['bank'] = $purchase['bank'];
+        $this->invoice['bank_id'] = $purchase['bank_id'];
         $this->invoice['date'] = $purchase['due_date'];
         $this->invoice['client'] = $this->currentSupplier[$this->buyer . 'Name'];
-        $this->invoice['cart'] = PurchaseDetail::where('purchase_id', $purchase['id'])->join('products', 'products.id', '=', 'purchase_details.product_id')->get()->toArray();
+        $this->invoice['cart'] = PurchaseDetail::where('purchase_id', $purchase['id'])->join('products', 'products.id', '=', 'purchase_details.product_id')->get()->keyBy("product_id")->toArray();
         $this->invoice['remainder'] = floatval($purchase['remainder']);
         $this->invoice['paid'] = floatval($purchase['paid']);
         $this->invoice['discount'] = floatval($purchase['discount']);
         $this->invoice['cost'] = floatval($purchase['amount']) + floatval($purchase['discount']);
         $this->invoice['amount'] = $purchase['amount'];
         $this->invoice['showMode'] = false;
-
 
         if ($this->invoice['paid'] > 0) {
             $this->payment = $purchase['payment'];
@@ -253,18 +279,38 @@ class Purchase extends Component
         $this->dispatch('sale_created', $this->invoice);
     }
 
-    public function changePayment($id)
+    public function choosePurchase($id)
     {
-        \App\Models\Purchase::where("id", $id)->update([
-            'payment' => $this->payment,
-            'bank_id' => $this->payment == "bank" ? $this->bank_id : null,
-            'bank' => $this->payment == "bank" ? $this->bank : null
+        $this->id = $this->invoice['id'];
+        $this->payment = $this->invoice['payment'];
+        $this->bank = $this->invoice['bank'];
+        $this->bank_id = $this->invoice['bank_id'];
+        $this->paid = floatval($this->invoice['paid']);
+        $this->remainder = floatval($this->invoice['remainder']);
+        $this->discount = floatval($this->invoice['discount']);
+        $this->amount = floatval($this->invoice['amount']);
+        $this->cost = floatval($this->invoice['amount']) + floatval($this->invoice['discount']);
+        $this->due_date = $this->invoice['date'];
+        $this->cart = $this->invoice['cart'];
+        foreach ($this->cart as $item) {
+            $this->cart[$item['product_id']]['amount'] = floatval($item['price']) * floatval($item['quantity']);
+        }
+        $this->editMode = false;
+    }
+
+    public function editMessage()
+    {
+        $this->confirm("  هل توافق على تعديل الفاتورة ؟", [
+            'inputAttributes' => [],
+            'toast' => false,
+            'showConfirmButton' => true,
+            'confirmButtonText' => 'موافق',
+            'onConfirmed' => "save",
+            'showCancelButton' => true,
+            'cancelButtonText' => 'إلغاء',
+            'confirmButtonColor' => '#dc2626',
+            'cancelButtonColor' => '#4b5563'
         ]);
-
-        $this->bank = $this->payment == "bank" ? $this->bank : null;
-
-        $this->alert('success', 'تم تعديل وسيلة الدفع بنجاح', ['timerProgressBar' => true]);
-
     }
 
     public function deleteMessage($id)
@@ -343,7 +389,7 @@ class Purchase extends Component
     public function resetData($item = null)
     {
 
-        $item == "currentSupplier" ? $this->reset('search', 'supplierSearch', 'id', 'oldQuantities', $item) : $this->reset('currentProduct', 'cart', 'bank', 'payment', 'bank', 'bank_id', 'search', 'supplierSearch', 'discount', 'amount', 'paid', 'remainder', 'amount', 'id', 'oldQuantities', $item);
+        $item == "currentSupplier" ? $this->reset('search', 'supplierSearch', 'id', 'oldQuantities', $item) : $this->reset('currentProduct', 'cart', 'bank', 'payment', 'bank', 'bank_id', 'search', 'supplierSearch', 'discount', 'cost', 'paid', 'remainder', 'amount', 'id', 'oldQuantities', $item);
     }
 
     public function render()

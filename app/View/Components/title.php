@@ -39,11 +39,7 @@ class title extends Component
         $safeBalance = Safe::first()->safeDayBalance ?? 0;
 
 
-        $banks = Bank::all();
-        $bankBalance = 0;
-        foreach ($banks as $bank) {
-            $bankBalance += $bank->currentBalance;
-        }
+        $bankBalance = (new \App\Models\Bank)->getCurrentTotalBalance();
 
         $count = Day::where("due_date", session('date'))->count();
 

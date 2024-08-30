@@ -82,14 +82,12 @@ class Product extends Model
             ->sum('quantity');
 
         // حساب المخزون قبل التاريخ
-        $stockBeforeDate = $initialStock
+        return $initialStock
             + $purchasesBeforeDate
             - $salesBeforeDate
             + $saleReturnsBeforeDate
             - $purchaseReturnsBeforeDate
             - $damagedBeforeDate;
-
-        return $stockBeforeDate;
     }
 
     public function getProductMovements()

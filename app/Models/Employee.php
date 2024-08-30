@@ -70,5 +70,21 @@ class Employee extends Model
         return $gifts;
     }
 
+    public function getDayBalance($date)
+    {
+        $initial = $this->startingDate == $date ? $this->initialBalance : 0;
+        $creditReturnsTotal = $this->saleReturns()->where("sale_returns.due_date", $date)->sum(DB::raw('quantity * price')) - $this->saleReturns->where("sale_returns.due_date", $date)->sum('amount');
+
+        return $initial + $this->sales()->where("due_date", "<", $date)->sum("remainder") + $this->debts()->where("due_date", $date)->where("type", "debt")->sum("amount") + $this->debts()->where("due_date", $date)->sum("service") - $this->debts()->where("due_date", $date)->where("type", "pay")->sum("amount") - $creditReturnsTotal;
+    }
+
+    public function getBetweenBalance($from, $to)
+    {
+        $initial = ($this->startingDate >= $from && $this->startingDate <= $to) ? $this->initialBalance : 0;
+        $creditReturnsTotal = $this->saleReturns()->whereBetween("due_date", [$from, $to])->sum(DB::raw('quantity * price')) - $this->saleReturns->whereBetween("due_date", [$from, $to])->sum('amount');
+
+        return $initial + $this->sales()->whereBetween("due_date", [$from, $to])->sum("remainder") + $this->debts()->whereBetween("due_date", [$from, $to])->where("type", "debt")->sum("amount") + $this->debts()->whereBetween("due_date", [$from, $to])->sum("service") - $this->debts()->whereBetween("due_date", [$from, $to])->where("type", "pay")->sum("amount") - $creditReturnsTotal;
+    }
+
 }
 
