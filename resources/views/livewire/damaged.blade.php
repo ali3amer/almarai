@@ -50,7 +50,7 @@
                     <input type="text" id="quantity" wire:model.live="quantity" autocomplete="off" class="form-control text-center"
                            placeholder="الكمية التالفه">
                     <label for="quantity">التاريخ</label>
-                    <input type="date" disabled id="damaged_date" wire:model.live="damaged_date" class="form-control text-center">
+                    <input type="date" disabled id="due_date" wire:model.live="due_date" class="form-control text-center">
 
 
                     <button @disabled(empty($currentProduct) || ($quantity == 0)) class="btn {{ $id == 0 ? 'btn-primary' : 'btn-success' }} w-100 mt-2" wire:click="save()">{{$id == 0 ? 'حفـــــــــــــــظ' : 'تعـــــــــــــديل'}}</button>
@@ -77,7 +77,7 @@
                                 <tr>
                                     <td>{{$damaged->product->productName}}</td>
                                     <td>{{$damaged->quantity}}</td>
-                                    <td>{{$damaged->damaged_date}}</td>
+                                    <td>{{$damaged->due_date}}</td>
                                     <td>
                                         <button class="btn btn-sm btn-primary" wire:click="edit({{$damaged}})"><i class="bi bi-pen"></i></button> /
                                         <button class="btn btn-sm btn-danger" wire:click="deleteMessage({{$damaged}})"><i class="bi bi-trash"></i></button>

@@ -168,7 +168,7 @@ class Report extends Component
             if ($this->reportDuration == 'day') {
 
                 $this->totalProductsStock = \App\Models\Product::all()->sum(function ($product) {
-                    return $product->stock * $product->purchase_price;
+                    return $product->stock * $product->getPrice($this->day);
                 });
                 $this->totalBanksBalance = (new \App\Models\Bank)->getCurrentTotalBalance();
                 $this->totalSafeBalance = Safe::first()->currentBalance;
@@ -190,17 +190,34 @@ class Report extends Component
                     return $supplier->getDayBalance($this->day);
                 });
                 $this->totalDepositsBalance = \App\Models\Deposit::all()->sum(function ($deposit) {
-                    return $deposit->currentBalance;
+                    return $deposit->getDayBalance($this->day);
                 });
 
-                $this->clients = \App\Models\Client::all();
-                $this->suppliers = \App\Models\Supplier::all();
-                $this->deposits = \App\Models\Deposit::all();
+                $this->clients = \App\Models\Client::all()->map(function ($client) {
+                    $client->salesBalance = $client->getDayBalance($this->day);
+                    return $client;
+                });
+
+                $this->suppliers = \App\Models\Supplier::all()->map(function ($supplier) {
+                    $supplier->purchasesBalance = $supplier->getDayBalance($this->day);
+                    $supplier->salesBalance = $supplier->getSalesDayBalance($this->day);
+                    return $supplier;
+                });
+
+                $this->employees = \App\Models\Employee::all()->map(function ($employee) {
+                    $employee->salesBalance = $employee->getDayBalance($this->day);
+                    return $employee;
+                });
+
+                $this->deposits = \App\Models\Deposit::all()->map(function ($deposit) {
+                    $deposit->salesBalance = $deposit->getDayBalance($this->day);
+                    return $deposit;
+                });
 
             } elseif ($this->reportDuration == 'duration') {
 
                 $this->totalProductsStock = \App\Models\Product::all()->sum(function ($product) {
-                    return $product->stock * $product->purchase_price;
+                    return $product->stock * $product->getPrice($this->to);
                 });
                 $this->totalBanksBalance = (new \App\Models\Bank)->getCurrentTotalBalance();
                 $this->totalSafeBalance = Safe::first()->currentBalance;
@@ -222,12 +239,29 @@ class Report extends Component
                     return $supplier->getBetweenBalance($this->from, $this->to);
                 });
                 $this->totalDepositsBalance = \App\Models\Deposit::all()->sum(function ($deposit) {
-                    return $deposit->currentBalance;
+                    return $deposit->getBetweenBalance($this->from, $this->to);
                 });
 
-                $this->clients = \App\Models\Client::all();
-                $this->suppliers = \App\Models\Supplier::all();
-                $this->deposits = \App\Models\Deposit::all();
+                $this->clients = \App\Models\Client::all()->map(function ($client) {
+                    $client->salesBalance = $client->getBetweenBalance($this->from, $this->to);
+                    return $client;
+                });
+
+                $this->suppliers = \App\Models\Supplier::all()->map(function ($supplier) {
+                    $supplier->purchasesBalance = $supplier->getBetweenBalance($this->from, $this->to);
+                    $supplier->salesBalance = $supplier->getSalesBetweenBalance($this->from, $this->to);
+                    return $supplier;
+                });
+
+                $this->employees = \App\Models\Employee::all()->map(function ($employee) {
+                    $employee->salesBalance = $employee->getBetweenBalance($this->from, $this->to);
+                    return $employee;
+                });
+
+                $this->deposits = \App\Models\Deposit::all()->map(function ($deposit) {
+                    $deposit->salesBalance = $deposit->getBetweenBalance($this->from, $this->to);
+                    return $deposit;
+                });
 
             } else {
                 $this->totalProductsStock = \App\Models\Product::all()->sum(function ($product) {
@@ -235,6 +269,7 @@ class Report extends Component
                 });
                 $this->totalBanksBalance = (new \App\Models\Bank)->getCurrentTotalBalance();
                 $this->totalSafeBalance = Safe::first()->currentBalance;
+
                 $clientsSales = \App\Models\Client::all()->sum(function ($client) {
                     return $client->currentBalance;
                 });
@@ -256,9 +291,26 @@ class Report extends Component
                     return $deposit->currentBalance;
                 });
 
-                $this->clients = \App\Models\Client::all();
-                $this->suppliers = \App\Models\Supplier::all();
-                $this->deposits = \App\Models\Deposit::all();
+                $this->clients = \App\Models\Client::all()->map(function ($client) {
+                    $client->salesBalance = $client->currentBalance;
+                    return $client;
+                });
+
+                $this->suppliers = \App\Models\Supplier::all()->map(function ($supplier) {
+                    $supplier->purchasesBalance = $supplier->currentBalance;
+                    $supplier->salesBalance = $supplier->currentSalesBalance;
+                    return $supplier;
+                });
+
+                $this->employees = \App\Models\Employee::all()->map(function ($employee) {
+                    $employee->salesBalance = $employee->currentBalance;
+                    return $employee;
+                });
+
+                $this->deposits = \App\Models\Deposit::all()->map(function ($deposit) {
+                    $deposit->salesBalance = $deposit->currentBalance;
+                    return $deposit;
+                });
 
             }
 
@@ -267,7 +319,6 @@ class Report extends Component
 
             $this->assets = $this->totalProductsStock + $this->totalBanksBalance + $this->totalSafeBalance + $this->totalClientsBalance + $this->totalExpenses;
             $this->adversaries = $this->totalSuppliersBalance + $this->totalDepositsBalance + $this->capital;
-
         } elseif ($this->reportType == 'inventory') {
             if ($this->store_id == 0) {
                 $this->products = \App\Models\Product::all();

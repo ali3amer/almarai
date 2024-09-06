@@ -51,7 +51,7 @@ $links = [
                 @endif
             @endforeach
             <li class="nav-item">
-                <form method="POST" action="{{ route('logout') }}">
+                <form id="logout-form" method="POST" action="{{ route('logout') }}">
                     @csrf
                     <button class="btn btn-danger">
                         <i class="bi bi-door-closed"></i> {{$username}}

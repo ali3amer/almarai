@@ -86,7 +86,7 @@ class Supplier extends Model
         return $initial + $this->purchases()->whereBetween("due_date", [$from, $to])->sum("remainder") + $this->purchaseDebts()->whereBetween("due_date", [$from, $to])->where("type", "debt")->sum("amount") - $this->purchaseDebts()->whereBetween("due_date", [$from, $to])->where("type", "pay")->sum("amount") - $creditReturnsTotal;
     }
 
-    public function getSlesDayBalance($date)
+    public function getSalesDayBalance($date)
     {
         $initial = $this->startingDate == $date ? $this->initialSalesBalance : 0;
         $creditReturnsTotal = $this->saleReturns()->where("sale_returns.due_date", $date)->sum(DB::raw('quantity * price')) - $this->saleReturns->where("sale_returns.due_date", $date)->sum('amount');

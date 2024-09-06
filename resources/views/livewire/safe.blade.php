@@ -306,7 +306,7 @@
                                         <tr>
                                             <td>{{$transfer->due_date}}</td>
                                             <td>{{$transfer->bank->bankName ?? ""}}</td>
-                                            <td>{{$transfer->transfer_type == 'cash_to_bank' ? 'تم إستلام مبلغ في البنك' : 'تم إستلام مبلغ كاش'}}</td>
+                                            <td>{{$transfer->transfer_type == 'cash_to_bank' ? 'من الخزنه الى البنك' : 'من البنك الى الخزنه'}}</td>
                                             <td>{{number_format($transfer->amount, 2)}}</td>
                                             <td>{{$transfer->bank}}</td>
                                             <td>{{$transfer->note}}</td>

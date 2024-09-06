@@ -47,6 +47,11 @@ class Product extends Model
         return $this->hasMany(Damaged::class);
     }
 
+    public function prices()
+    {
+        return $this->hasMany(Price::class);
+    }
+
 
     public function getStockBeforeDate($date)
     {
@@ -55,30 +60,30 @@ class Product extends Model
         // جلب مجموع الكميات من المشتريات قبل التاريخ
         $purchasesBeforeDate = $this->purchaseDetails()
             ->whereHas('purchase', function ($query) use ($date) {
-                $query->where('due_date', '<', $date);
+                $query->where('due_date', '<=', $date);
             })->sum('quantity');
 
         // جلب مجموع الكميات من المبيعات قبل التاريخ
         $salesBeforeDate = $this->saleDetails()
             ->whereHas('sale', function ($query) use ($date) {
-                $query->where('due_date', '<', $date);
+                $query->where('due_date', '<=', $date);
             })->sum('quantity');
 
         // جلب مجموع الكميات من مرتجعات المبيعات قبل التاريخ
         $saleReturnsBeforeDate = $this->saleReturns()
             ->whereHas('sale', function ($query) use ($date) {
-                $query->where('due_date', '<', $date);
+                $query->where('due_date', '<=', $date);
             })->sum('quantity');
 
         // جلب مجموع الكميات من مرتجعات المشتريات قبل التاريخ
         $purchaseReturnsBeforeDate = $this->purchaseReturns()
             ->whereHas('purchase', function ($query) use ($date) {
-                $query->where('due_date', '<', $date);
+                $query->where('due_date', '<=', $date);
             })->sum('quantity');
 
         // جلب مجموع الكميات من المنتجات التالفة قبل التاريخ
         $damagedBeforeDate = $this->damageds()
-            ->where('due_date', '<', $date)
+            ->where('due_date', '<=', $date)
             ->sum('quantity');
 
         // حساب المخزون قبل التاريخ
@@ -140,13 +145,34 @@ class Product extends Model
             ->join('purchases', 'purchases.id', '=', 'purchase_returns.purchase_id')
             ->where('purchase_returns.product_id', $this->id);
 
+
+        $damageds = Damaged::select(
+            DB::raw("'damaged' as tableName"),
+            DB::raw('quantity as expense'),
+            DB::raw('0 as income'),
+            DB::raw('null as invoice_id'),
+            'damageds.due_date as due_date',
+            DB::raw(" 'كمية تالفه' as note")
+        )
+            ->where('damageds.product_id', $this->id);
+
+
         // استخدام union مع ترتيب الحركات حسب التاريخ
         return $salesDetails
             ->union($purchaseDetails)
             ->union($saleReturns)
             ->union($purchaseReturns)
+            ->union($damageds)
             ->orderBy('due_date', 'asc')
             ->get();
+    }
+
+    public function getPrice($date = null)
+    {
+        return $this->prices()
+            ->where("due_date", "<=", $date)
+            ->orderBy('due_date', 'desc')
+            ->first()->purchase_price;
     }
 
     public function getStockAttribute()

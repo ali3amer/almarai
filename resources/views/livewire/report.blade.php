@@ -383,7 +383,7 @@
             </div>
         </div>
 
-        <div class="card mt-2">
+        <div class="card mt-2 visually-hidden">
             <div class="card-body invoice">
                 <table class="text-center printInvoice" dir="rtl">
                     <thead>
@@ -461,18 +461,46 @@
                         @if(!empty($clients))
                             @php $total = 0; @endphp
                             @foreach($clients as $client)
-                                @php $total += $client->currentBalance; @endphp
+                                @php $total += $client->salesBalance; @endphp
                                 <tr>
                                     <td>{{ $client->clientName }}</td>
                                     <td>{{ number_format($client->currentBalance , 2) }}</td>
                                 </tr>
                             @endforeach
                         @endif
+
+                        <tr>
+                            <th colspan="2" class="text-center">مبيعات الموردين</th>
+                        </tr>
+                        @if(!empty($suppliers))
+                            @foreach($suppliers as $supplier)
+                                @if($supplier->salesBalance != 0)
+                                    <tr>
+                                        <td>{{ $supplier->supplierName }}</td>
+                                        <td>{{ number_format($supplier->currentBalance , 2) }}</td>
+                                    </tr>
+                                @endif
+                            @endforeach
+                        @endif
+
+                        <tr>
+                            <th colspan="2" class="text-center">مبيعات الموظفين</th>
+                        </tr>
+                        @if(!empty($employees))
+                            @foreach($employees as $employee)
+                                @if($employee->salesBalance != 0)
+                                    <tr>
+                                        <td>{{ $employee->employeeName }}</td>
+                                        <td>{{ number_format($supplier->currentBalance , 2) }}</td>
+                                    </tr>
+                                @endif
+                            @endforeach
+                        @endif
                         </tbody>
                         <tfoot>
                         <tr>
                             <th>الجمله</th>
-                            <th>{{ number_format($total , 2) }}</th>
+                            <th>{{ number_format($totalClientsBalance , 2) }}</th>
                         </tr>
                         </tfoot>
                     </table>
@@ -495,12 +523,10 @@
                         </thead>
                         <tbody>
                         @if(!empty($suppliers))
-                            @php $total = 0; @endphp
                             @foreach($suppliers as $supplier)
-                                @php $total += $supplier->currentBalance; @endphp
                                 <tr>
                                     <td>{{ $supplier->supplierName }}</td>
-                                    <td>{{ number_format($supplier->currentBalance , 2) }}</td>
+                                    <td>{{ number_format($supplier->purchasesBalance , 2) }}</td>
                                 </tr>
                             @endforeach
                         @endif
@@ -508,7 +534,7 @@
                         <tfoot>
                         <tr>
                             <th>الجمله</th>
-                            <th>{{ number_format($total , 2) }}</th>
+                            <th>{{ number_format($totalSuppliersBalance , 2) }}</th>
                         </tr>
                         </tfoot>
                     </table>

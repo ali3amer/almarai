@@ -32,7 +32,7 @@ class Transfer extends Model
             'due_date',
             DB::raw("'cash' as payment"),
             'bank',
-            DB::raw("IF(note IS NULL OR note = '', 'تحويل من كاش إلى بنك', note) as note"),
+            DB::raw("IF(note IS NULL OR note = '', 'تحويل من الخزنة إلى بنك', note) as note"),
             DB::raw('null as owner_id'),
             DB::raw("null as ownerName"),
             'created_at',

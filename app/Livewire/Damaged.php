@@ -16,7 +16,7 @@ class Damaged extends Component
     ];
     public string $title = 'المنتجات التالفه';
     public string $productsSearch = '';
-    public string $damaged_date = '';
+    public string $due_date = '';
     public int $id = 0;
     #[Rule('required|min:1')]
     public float $quantity = 0;
@@ -36,7 +36,7 @@ class Damaged extends Component
             \App\Models\Damaged::create([
                 'product_id' => $this->currentProduct['id'],
                 'quantity' => $this->quantity,
-                'damaged_date' => $this->damaged_date,
+                'due_date' => $this->due_date,
             ]);
 
 //            \App\Models\Product::where('id', $this->currentProduct['id'])->decrement('stock', $this->quantity);
@@ -45,7 +45,7 @@ class Damaged extends Component
             \App\Models\Damaged::where('id', $this->id)->update([
                 'product_id' => $this->currentProduct['id'],
                 'quantity' => $this->quantity,
-                'damaged_date' => $this->damaged_date,
+                'due_date' => $this->due_date,
             ]);
 
 //            \App\Models\Product::where('id', $this->currentProduct['id'])->increment('stock', $this->currentDamaged['quantity']);
@@ -62,7 +62,7 @@ class Damaged extends Component
         $this->currentDamaged = $damaged;
         $this->quantity = $damaged['quantity'];
         $this->currentProduct = $damaged['product'];
-        $this->damaged_date = $damaged['damaged_date'];
+        $this->due_date = $damaged['due_date'];
     }
 
     public function deleteMessage($damaged)
@@ -90,13 +90,13 @@ class Damaged extends Component
 
     public function resetData()
     {
-        $this->reset('productsSearch', 'id', 'quantity', 'currentProduct', 'currentDamaged', 'damaged_date');
+        $this->reset('productsSearch', 'id', 'quantity', 'currentProduct', 'currentDamaged', 'due_date');
     }
 
     public function render()
     {
-        if ($this->damaged_date == '') {
-            $this->damaged_date = session("date");
+        if ($this->due_date == '') {
+            $this->due_date = session("date");
         }
         $this->damageds = \App\Models\Damaged::with('product')->get();
         $this->products = \App\Models\Product::where('productName', 'LIKE', '%' . $this->productsSearch . '%')->get();
