@@ -383,7 +383,7 @@ class Supplier extends Component
     public function deleteDebtMessage($debt)
     {
         $this->confirm("  هل توافق على الحذف؟", [
-            'inputAttributes' => ["debt" => $debt],
+            'inputAttributes' => ["id" => $debt],
             'toast' => false,
             'showConfirmButton' => true,
             'confirmButtonText' => 'موافق',
@@ -397,12 +397,12 @@ class Supplier extends Component
 
     public function deleteDebt($data)
     {
-        $debt = $data['inputAttributes']['debt'];
+        $id = $data['inputAttributes']['id'];
 
         if ($this->debtType == 'purchases') {
-            PurchaseDebt::where('id', $debt['id'])->forceDelete();
+            PurchaseDebt::where('id', $id)->forceDelete();
         } else {
-            SaleDebt::where('id', $debt['id'])->forceDelete();
+            SaleDebt::where('id', $id)->forceDelete();
         }
         $this->showDebts($this->currentSupplier);
         $this->alert('success', 'تم حذف الدفعيه بنجاح', ['timerProgressBar' => true]);

@@ -31,6 +31,7 @@ class Withdraw extends Model
             'due_date',
             'payment',
             DB::raw('null as bank'),
+            DB::raw('null as bank_id'),
             DB::raw('"تم السحب من الخزنه" as note'),
             DB::raw('null as owner_id'),
             DB::raw("'الخزنه' as ownerName"),

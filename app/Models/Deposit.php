@@ -38,6 +38,7 @@ class Deposit extends Model
             'due_date',
             'payment',
             'bank',
+            'bank_id',
             DB::raw('deposit_debts.note as note'),
             DB::raw('deposit_id as owner_id'),
             DB::raw("deposits.name as ownerName"),

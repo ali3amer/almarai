@@ -49,6 +49,7 @@ class Purchase extends Model
             'due_date',
             'payment',
             'bank',
+            'bank_id',
             DB::raw('CONCAT("مشتريات للفاتوره رقم #", purchases.id) as note'),
             DB::raw('purchases.supplier_id as owner_id'),
             DB::raw("suppliers.supplierName as ownerName"),
@@ -68,6 +69,7 @@ class Purchase extends Model
             'due_date',
             'payment',
             'bank',
+            'bank_id',
             DB::raw('CONCAT("مدفوعات مشتريات لفاتوره #", purchases.id) as note'),
             DB::raw('purchases.supplier_id as owner_id'),
             DB::raw("suppliers.supplierName as ownerName"),
@@ -80,7 +82,7 @@ class Purchase extends Model
             DB::raw("'purchase_debts' as tableName"),
             DB::raw("'supplier' as clientType"),
             'type',
-            DB::raw('null as invoice_id'),
+            DB::raw('purchase_debts.id as invoice_id'),
             DB::raw("CASE
         WHEN type = 'debt' THEN amount
         ELSE 0
@@ -94,6 +96,7 @@ class Purchase extends Model
             'due_date',
             'payment',
             'bank',
+            'bank_id',
             'purchase_debts.note',
             DB::raw('supplier_id as owner_id'),
             DB::raw("suppliers.supplierName as ownerName"),
@@ -114,6 +117,7 @@ class Purchase extends Model
             'purchase_returns.due_date',
             DB::raw("'cash' as payment"),
             DB::raw('null as bank'),
+            DB::raw('null as bank_id'),
             DB::raw('CONCAT("مرتجعات مشتريات لفاتوره #", purchase_id) as note'),
             DB::raw('purchases.supplier_id as owner_id'),
             DB::raw("suppliers.supplierName as ownerName"),
@@ -135,6 +139,7 @@ class Purchase extends Model
             'purchase_returns.due_date',
             DB::raw("'cash' as payment"),
             DB::raw('null as bank'),
+            DB::raw('null as bank_id'),
             DB::raw('CONCAT("مدفوعات مرتجع لفاتوره #", purchase_id) as note'),
             DB::raw('purchases.supplier_id as owner_id'),
             DB::raw("suppliers.supplierName as ownerName"),  // إضافة اسم المالك

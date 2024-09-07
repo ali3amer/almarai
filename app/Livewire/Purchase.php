@@ -331,49 +331,10 @@ class Purchase extends Component
     public function cancelPurchase($data)
     {
         $id = $data['inputAttributes']['id'];
-        PurchaseDetail::where('purchase_id', $id)->delete();
 
-        \App\Models\Purchase::where('id', $id)->delete();
-
-        PurchaseDebt::where("purchase_id", $id)->where("type", "debt")->delete();
-
-        $paid = PurchaseDebt::where("purchase_id", $id)->where("type", "pay")->first();
-
-
-        \App\Models\PurchaseDebt::create([
-            'supplier_id' => $this->currentSupplier['id'],
-            'paid' => $this->invoice['amount'],
-            'debt' => 0,
-            'type' => 'pay',
-            'bank' => '',
-            'payment' => 'cash',
-            'bank_id' => null,
-            'due_date' => $this->due_date,
-            'note' => 'تم إلغاء فاتوره مشتريات رقم #' . $this->invoice['id'],
-            'purchase_id' => $this->invoice['id'],
-            'user_id' => auth()->id()
-        ])->delete();
-
-        if ($paid) {
-            \App\Models\SaleDebt::create([
-                'supplier_id' => $this->currentSupplier['id'],
-                'paid' => 0,
-                'debt' => $paid->paid,
-                'type' => 'debt',
-                'bank' => '',
-                'payment' => 'cash',
-                'bank_id' => null,
-                'due_date' => $this->due_date,
-                'note' => 'تم إلغاء  مدفوعات فاتوره مشتريات رقم #' . $this->invoice['id'],
-                'sale_id' => $this->invoice['id'],
-                'user_id' => auth()->id()
-            ])->delete();
-            $paid->delete();
-        }
+        \App\Models\Purchase::where('id', $id)->forceDelete();
 
         $this->alert('success', 'تم الحفظ بنجاح', ['timerProgressBar' => true]);
-
-
     }
 
     public function calcRemainder()

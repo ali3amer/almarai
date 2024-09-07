@@ -57,6 +57,7 @@ class Sale extends Model
             'due_date',
             'payment',
             'bank',
+            'bank_id',
             DB::raw('CONCAT("مبيعات للفاتوره رقم #", sales.id) as note'),
             DB::raw('COALESCE(client_id, supplier_id, employee_id) as owner_id'),
             DB::raw("COALESCE(clients.clientName, suppliers.supplierName, employees.employeeName) as ownerName"),
@@ -83,6 +84,7 @@ class Sale extends Model
             'due_date',
             'payment',
             'bank',
+            'bank_id',
             DB::raw('CONCAT("مدفوعات مبيعات لفاتوره #", sales.id) as note'),
             DB::raw('COALESCE(sales.client_id, sales.supplier_id, sales.employee_id) as owner_id'),
             DB::raw("COALESCE(clients.clientName, suppliers.supplierName, employees.employeeName) as ownerName"),
@@ -102,7 +104,7 @@ class Sale extends Model
             WHEN employee_id IS NOT NULL THEN 'employee'
          END as clientType"),
             'type',
-            DB::raw('null as invoice_id'),
+            DB::raw('sale_debts.id as invoice_id'),
             DB::raw("CASE
             WHEN type = 'debt' THEN amount
             ELSE 0
@@ -116,6 +118,7 @@ class Sale extends Model
             'due_date',
             'payment',
             'bank',
+            'bank_id',
             'sale_debts.note',
             DB::raw('COALESCE(client_id, supplier_id, employee_id) as owner_id'),
             DB::raw("COALESCE(clients.clientName, suppliers.supplierName, employees.employeeName) as ownerName"),
@@ -143,6 +146,7 @@ class Sale extends Model
             'sale_returns.due_date',
             DB::raw("'cash' as payment"),
             DB::raw('null as bank'),
+            DB::raw('null as bank_id'),
             DB::raw('CONCAT("مرتجعات مبيعات لفاتوره #", sale_id) as note'),
             DB::raw('COALESCE(sales.client_id, sales.supplier_id, sales.employee_id) as owner_id'),
             DB::raw("COALESCE(clients.clientName, suppliers.supplierName, employees.employeeName) as ownerName"),
@@ -171,6 +175,7 @@ class Sale extends Model
             'sale_returns.due_date',
             DB::raw("'cash' as payment"),
             DB::raw('null as bank'),
+            DB::raw('null as bank_id'),
             DB::raw('CONCAT("مدفوعات مرتجع لفاتوره #", sale_id) as note'),
             DB::raw('COALESCE(sales.client_id, sales.supplier_id, sales.employee_id) as owner_id'),
             DB::raw("COALESCE(clients.clientName, suppliers.supplierName, employees.employeeName) as ownerName"),

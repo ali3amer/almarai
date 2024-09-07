@@ -58,6 +58,7 @@ class Employee extends Model
             'due_date',
             'payment',
             'bank',
+            'bank_id',
             'note',
             DB::raw('null as owner_id'),
             DB::raw("employees.employeeName as ownerName"),

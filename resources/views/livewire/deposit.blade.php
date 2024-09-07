@@ -142,9 +142,9 @@
                                                 <button
                                                     @disabled(!$update) class="btn btn-sm btn-info text-white"
                                                     wire:click="edit({{$deposit}})"><i class="bi bi-pen"></i></button>
-                                                /
+
                                                 <button
-                                                    @disabled(!$delete) class="btn btn-sm btn-danger"
+                                                    @disabled(!$delete) class="btn btn-sm btn-danger d-none"
                                                     wire:click="deleteMessage({{$deposit}})"><i class="bi bi-trash"></i>
                                                 </button>
                                                 /
@@ -282,7 +282,7 @@
                                     <th>التاريخ</th>
                                     <th>البيان</th>
                                     <th>المبلغ</th>
-                                    <th class="d-none">التحكم</th>
+                                    <th>التحكم</th>
                                 </tr>
                                 </thead>
                                 <tbody>
@@ -296,14 +296,14 @@
                                             data-bs-toggle="modal" data-bs-target="#debtModal">
                                             {{number_format($debt->amount, 2)}}
                                         </td>
-                                        <td class="d-none">
+                                        <td>
                                             @if($debt->due_date == session("date"))
-                                                <button class="btn btn-sm btn-info"
+                                                <button @disabled(!$update) class="btn btn-sm btn-info"
                                                         wire:click="chooseDebt({{$debt}})"><i
                                                         class="bi bi-pen"></i>
                                                 </button>
 
-                                                <button class="btn btn-sm btn-danger"
+                                                <button @disabled(!$delete) class="btn btn-sm btn-danger"
                                                         wire:click="deleteDebtMessage({{$debt}})"><i
                                                         class="bi bi-trash"></i>
                                                 </button>

@@ -351,42 +351,7 @@ class Sale extends Component
     {
         $id = $data['inputAttributes']['id'];
 
-        SaleDetail::where("sale_id", $id)->delete();
-        \App\Models\Sale::where('id', $id)->delete();
-
-        SaleDebt::where("sale_id", $id)->where("type", "debt")->delete();
-        $paid = SaleDebt::where("sale_id", $id)->where("type", "pay")->first();
-        \App\Models\SaleDebt::create([
-            $this->buyer . '_id' => $this->currentClient['id'],
-            'paid' => $this->invoice['amount'],
-            'debt' => 0,
-            'type' => 'pay',
-            'bank' => '',
-            'payment' => 'cash',
-            'bank_id' => null,
-            'due_date' => session("date"),
-            'note' => 'تم إلغاء الفاتوره رقم #' . $this->invoice['id'],
-            'sale_id' => $this->invoice['id'],
-            'user_id' => auth()->id()
-        ])->delete();
-
-
-        if ($paid) {
-            \App\Models\SaleDebt::create([
-                $this->buyer . '_id' => $this->currentClient['id'],
-                'paid' => 0,
-                'debt' => $paid->paid,
-                'type' => 'debt',
-                'bank' => '',
-                'payment' => 'cash',
-                'bank_id' => null,
-                'due_date' => $this->due_date,
-                'note' => 'تم إلغاء مدفوعات الفاتوره رقم #' . $this->invoice['id'],
-                'sale_id' => $this->invoice['id'],
-                'user_id' => auth()->id()
-            ])->delete();
-            $paid->delete();
-        }
+        \App\Models\Sale::where('id', $id)->forceDelete();
 
         $this->alert('success', 'تم الإلغاء بنجاح', ['timerProgressBar' => true]);
 

@@ -163,9 +163,9 @@
                                                 <button
                                                     @disabled(!$update) class="btn btn-sm btn-info text-white"
                                                     wire:click="edit({{$supplier}})"><i class="bi bi-pen"></i></button>
-                                                /
+
                                                 <button
-                                                    @disabled(!$delete || count($supplier->sales) > 0) class="btn btn-sm btn-danger"
+                                                    @disabled(!$delete || count($supplier->sales) > 0) class="btn btn-sm btn-danger d-none"
                                                     wire:click="deleteMessage({{$supplier}})"><i
                                                         class="bi bi-trash"></i>
                                                 </button>
@@ -354,7 +354,7 @@
                                     <th>التاريخ</th>
                                     <th>البيان</th>
                                     <th>المبلغ</th>
-                                    <th class="d-none">التحكم</th>
+                                    <th>التحكم</th>
                                 </tr>
                                 </thead>
                                 <tbody>
@@ -371,13 +371,13 @@
                                             data-bs-toggle="modal" data-bs-target="#debtModal">
                                             {{$debt['futureExpense'] != 0 ? number_format($debt['futureExpense'], 2) : ($debt['futureIncome'] != 0 ? number_format($debt['futureIncome'], 2) : ($debt['expense'] != 0 ? number_format($debt['expense'], 2) : number_format($debt['income'], 2)))}}
                                         </td>
-                                        <td class="d-none">
-                                            @if($debt['invoice_id'] == null && $debt['due_date'] == session("date"))
-                                                <button class="btn btn-sm btn-info"
+                                        <td>
+                                            @if($debt['due_date'] == session("date"))
+                                                <button @disabled(!$update) class="btn btn-sm btn-info"
                                                         wire:click="chooseDebt({{ json_encode($debt) }})"><i
                                                         class="bi bi-pen"></i></button>
-                                                <button class="btn btn-sm btn-danger"
-                                                        wire:click="deleteDebtMessage({{ json_encode($debt) }})"><i
+                                                <button @disabled(!$delete) class="btn btn-sm btn-danger"
+                                                        wire:click="deleteDebtMessage({{ json_encode($debt['invoice_id']) }})"><i
                                                         class="bi bi-trash"></i></button>
                                             @endif
                                         </td>

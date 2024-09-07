@@ -239,6 +239,7 @@ class Client extends Component
                 }
 
                 $this->resetData();
+                $this->chooseDebt($debt->toArray());
 
                 $this->showReceipt($debt->toArray());
 
@@ -277,21 +278,21 @@ class Client extends Component
     public function chooseDebt($debt)
     {
         $this->currentDebt = $debt;
-        $this->debtId = $debt['id'];
+        $this->debtId = $debt['invoice_id'] ?? $debt['id'];
         $this->bank_id = $debt['bank_id'];
         $this->type = $debt['type'];
-        $this->amount = $debt['amount'];
+        $this->amount =  $debt['amount'] ?? ($debt['type'] == "pay" ? $debt['income'] : $debt['expense']);
         $this->payment = $debt['payment'];
         $this->bank = $debt['bank'];
-        $this->discount = $debt['discount'];
-        $this->service = $debt['service'];
+        $this->discount = $debt['futureIncome'] ?? $debt['discount'];
+        $this->service = $debt['futureExpense'] ?? $debt['service'];
         $this->due_date = $debt['due_date'];
     }
 
-    public function deleteDebtMessage($debt)
+    public function deleteDebtMessage($id)
     {
         $this->confirm("  هل توافق على الحذف؟", [
-            'inputAttributes' => ["debt" => $debt],
+            'inputAttributes' => ["id" => $id],
             'toast' => false,
             'showConfirmButton' => true,
             'confirmButtonText' => 'موافق',
@@ -305,9 +306,9 @@ class Client extends Component
 
     public function deleteDebt($data)
     {
-        $debt = $data['inputAttributes']['debt'];
+        $id = $data['inputAttributes']['id'];
 
-        SaleDebt::where('id', $debt['id'])->forceDelete();
+        SaleDebt::where('id', $id)->forceDelete();
         $this->showDebts($this->currentClient);
 
         $this->alert('success', 'تم حذف الدفعيه بنجاح', ['timerProgressBar' => true]);

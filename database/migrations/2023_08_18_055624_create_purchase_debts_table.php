@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('supplier_id');
             $table->foreign('supplier_id')->references('id')->on('suppliers')->onDelete('cascade')->onUpdate('cascade');
-            $table->enum('type', ['dept', 'pay']);
+            $table->enum('type', ['debt', 'pay']);
             $table->decimal('amount', 10, 2);
             $table->decimal('discount', 10, 2)->default(0);
             $table->decimal('service', 10, 2)->default(0);

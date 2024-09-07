@@ -213,6 +213,8 @@ class Deposit extends Component
 
             }
             $this->showDebts($this->currentDeposit);
+            $this->showReceipt($debt->toArray());
+
         }
 
     }
@@ -234,10 +236,10 @@ class Deposit extends Component
         $this->due_date = $debt['due_date'];
     }
 
-    public function deleteDebtMessage($debt)
+    public function deleteDebtMessage($id)
     {
         $this->confirm("  هل توافق على الحذف؟", [
-            'inputAttributes' => ["debt" => $debt],
+            'inputAttributes' => ["id" => $id],
             'toast' => false,
             'showConfirmButton' => true,
             'confirmButtonText' => 'موافق',
@@ -251,9 +253,9 @@ class Deposit extends Component
 
     public function deleteDebt($data)
     {
-        $debt = $data['inputAttributes']['debt'];
+        $id = $data['inputAttributes']['id'];
 
-        DepositDebt::where('id', $debt['id'])->forceDelete();
+        DepositDebt::where('id', $id)->forceDelete();
         $this->showDebts($this->currentDeposit);
 
         $this->alert('success', 'تم حذف الدفعيه بنجاح', ['timerProgressBar' => true]);

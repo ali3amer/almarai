@@ -43,8 +43,8 @@
                                         <td>{{ $loop->index + 1 }}</td>
                                         <td>{{ $category->categoryName }}</td>
                                         <td>
-                                            <button class="btn btn-sm btn-info text-white" @disabled(!$update) wire:click="edit({{$category}})"><i class="bi bi-pen"></i></button> /
-                                            <button class="btn btn-sm btn-danger" @disabled(!$delete || count($category->products) > 0) wire:click="deleteMessage({{$category}})"><i class="bi bi-trash"></i></button>
+                                            <button class="btn btn-sm btn-info text-white" @disabled(!$update) wire:click="edit({{$category}})"><i class="bi bi-pen"></i></button>
+                                            <button class="btn btn-sm btn-danger d-none" @disabled(!$delete || count($category->products) > 0) wire:click="deleteMessage({{$category}})"><i class="bi bi-trash"></i></button>
                                         </td>
                                     </tr>
                                 @endforeach

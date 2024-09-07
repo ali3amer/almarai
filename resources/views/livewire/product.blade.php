@@ -218,9 +218,9 @@
                                                 wire:click="edit({{$product->id}})">
                                                 <i class="bi bi-pen"></i>
                                             </button>
-                                            /
+
                                             <button
-                                                @disabled((!$delete)) class="btn btn-sm btn-danger"
+                                                @disabled((!$delete)) class="btn btn-sm btn-danger d-none"
                                                 wire:click="deleteMessage({{$product}})">
                                                 <i class="bi bi-trash"></i>
                                             </button>

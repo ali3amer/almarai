@@ -32,6 +32,7 @@ class Expense extends Model
             'due_date',
             'payment',
             'bank',
+            'bank_id',
             'description as note',
             DB::raw('null as owner_id'),
             DB::raw("expense_options.optionName as ownerName"),
