@@ -318,32 +318,34 @@ class Employee extends Component
         $this->currentReceipt = (array)$debt;
     }
 
-    public function editDebt($debt)
+    public function chooseDebt($debt)
     {
         $this->editDebtMode = true;
+        $this->currentDebt = $debt;
         $this->debtId = $debt['id'];
-        $this->type = "pay";
-        $this->amount = $debt['amount'];
-        $this->discount = $debt['discount'];
+        $this->bank_id = $debt['bank_id'];
+        $this->type = $debt['type'];
+        $this->note = $debt['note'];
+        $this->amount = $debt['amount'] ?? $debt['income'];
         $this->payment = $debt['payment'];
         $this->bank = $debt['bank'];
-        $this->bank_id = $debt['bank_id'];
+        $this->discount = $debt['futureIncome'] ?? $debt['discount'];
         $this->due_date = $debt['due_date'];
     }
 
     public function updateDebt()
     {
-        SaleDebt::where('id', $this->debtId)->update([
-            'type' => "pay",
-            'amount' => floatval($this->amount),
-            'discount' => floatval($this->discount),
-            'payment' => $this->payment,
-            'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
-            'bank' => $this->bank,
-            'due_date' => $this->due_date,
-            'note' => $this->note,
-            'user_id' => auth()->id(),
-        ]);
+        $debt = SaleDebt::where('id', $this->debtId)->first();
+            $debt->amount = floatval($this->amount);
+            $debt->discount = floatval($this->discount);
+            $debt->payment = $this->payment;
+            $debt->bank_id = $this->payment == 'bank' ? $this->bank_id : null;
+            $debt->bank = $this->bank;
+            $debt->due_date = $this->due_date;
+            $debt->note = $this->note;
+            $debt->user_id = auth()->id();
+
+            $debt->save();
 
         $this->getGifts($this->currentEmployee);
 

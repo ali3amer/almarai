@@ -25,6 +25,7 @@ class Expense extends Model
             DB::raw("null as clientType"),
             DB::raw('null as type'),
             DB::raw('null as invoice_id'),
+            'expenses.id',
             DB::raw('0 as income'),
             DB::raw('amount as expense'),
             DB::raw('0 as futureIncome'),

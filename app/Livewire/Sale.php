@@ -138,9 +138,11 @@ class Sale extends Component
 
             $this->currentBalance -= $this->invoice['remainder'];
             $this->currentBalance += $this->remainder;
-
+            SaleDetail::where("sale_id", $this->id)->forceDelete();
             foreach ($this->cart as $item) {
-                SaleDetail::where("sale_id", $this->id)->where("product_id", $item['product_id'])->update([
+                SaleDetail::create([
+                    'sale_id' => $this->id,
+                    'product_id' => floatval($item['product_id']),
                     'quantity' => floatval($item['quantity']),
                     'price' => floatval($item['price']),
                 ]);

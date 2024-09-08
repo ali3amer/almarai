@@ -45,6 +45,7 @@ class title extends Component
 
         if ($count != 0) {
             $closed = Day::where("due_date", session('date'))->first()->closed;
+            $closed = $closed == 1 ? true : false;
         } else {
             Day::create([
                 "due_date" => session("date"),

@@ -146,7 +146,7 @@
                             <div class="card-body">
                                 <div class="card-title"><h5>إغلاق اليومية</h5></div>
 
-                                <p>هل أنت متأكد من إغلاق اليومية بمبلغ {{ number_format(session("safeBalance")) }}؟</p>
+                                <p>هل أنت متأكد من إغلاق اليومية بمبلغ {{ number_format(session("safeBalance"), 2) }}؟</p>
 
                                 <button type="submit" class="btn btn-primary w-100 mt-1">حفــــــــــــــــــظ
                                 </button>
@@ -232,8 +232,8 @@
                                 <div class="col-4">
                                     <label for="type">نوع التحويل</label>
                                     <select id="type" class="form-select text-center" wire:model.live="transfer_type">
-                                        <option value="cash_to_bank">إستلام بنك</option>
-                                        <option value="bank_to_cash">إستلام كاش</option>
+                                        <option value="cash_to_bank">من الخزنه الى البنك</option>
+                                        <option value="bank_to_cash">من البنك الى الخزنه</option>
                                     </select>
                                 </div>
 

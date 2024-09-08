@@ -42,6 +42,7 @@ class Purchase extends Model
             DB::raw("'supplier' as clientType"),
             DB::raw('null as type'),
             'purchases.id as invoice_id',
+            'purchases.id',
             DB::raw('0 as expense'),
             DB::raw('0 as income'),
             DB::raw('0 as futureIncome'),
@@ -62,6 +63,7 @@ class Purchase extends Model
             DB::raw("'supplier' as clientType"),
             DB::raw('null as type'),
             'purchases.id as invoice_id',
+            'purchases.id',
             DB::raw('0 as income'),
             DB::raw('paid as expense'),
             DB::raw('0 as futureExpense'),
@@ -82,7 +84,8 @@ class Purchase extends Model
             DB::raw("'purchase_debts' as tableName"),
             DB::raw("'supplier' as clientType"),
             'type',
-            DB::raw('purchase_debts.id as invoice_id'),
+            DB::raw('null as invoice_id'),
+            'purchase_debts.id',
             DB::raw("CASE
         WHEN type = 'debt' THEN amount
         ELSE 0
@@ -102,7 +105,29 @@ class Purchase extends Model
             DB::raw("suppliers.supplierName as ownerName"),
             'purchase_debts.created_at',
             'purchase_debts.updated_at'
-        )
+        )->where("discount", 0)
+            ->leftJoin('suppliers', 'suppliers.id', '=', 'purchase_debts.supplier_id');
+
+        $discounts = PurchaseDebt::select(
+            DB::raw("'purchase_debts' as tableName"),
+            DB::raw("'supplier' as clientType"),
+            'type',
+            DB::raw('null as invoice_id'),
+            'purchase_debts.id',
+            DB::raw("0 as income"),
+            DB::raw("0 as expense"),
+            DB::raw('0 as futureExpense'),
+            DB::raw('discount as futureIncome'),
+            'due_date',
+            'payment',
+            'bank',
+            'bank_id',
+            'purchase_debts.note',
+            DB::raw('supplier_id as owner_id'),
+            DB::raw("suppliers.supplierName as ownerName"),
+            'purchase_debts.created_at',
+            'purchase_debts.updated_at'
+        )->where("discount","!=", 0)
             ->leftJoin('suppliers', 'suppliers.id', '=', 'purchase_debts.supplier_id');
 
         $returnPurchase = PurchaseReturn::select(
@@ -110,6 +135,7 @@ class Purchase extends Model
             DB::raw("'supplier' as clientType"),
             DB::raw('null as type'),
             'purchase_id as invoice_id',
+            'purchase_returns.id',
             DB::raw('0 as income'),
             DB::raw('0 as expense'),
             DB::raw('quantity * price as futureIncome'),
@@ -132,6 +158,7 @@ class Purchase extends Model
             DB::raw("'supplier' as clientType"),
             DB::raw('null as type'),
             'purchase_id as invoice_id',
+            'purchase_returns.id',
             DB::raw('purchase_returns.amount as income'),
             DB::raw('0 as expense'),
             DB::raw('0 as futureIncome'),

@@ -138,9 +138,11 @@ class Purchase extends Component
 
                 $this->currentBalance -= $this->invoice['remainder'];
                 $this->currentBalance += $this->remainder;
-
+                PurchaseDetail::where("purchase_id", $this->id)->forceDelete();
                 foreach ($this->cart as $item) {
-                    PurchaseDetail::where("purchase_id", $this->id)->where("product_id", $item['product_id'])->update([
+                    PurchaseDetail::create([
+                        'purchase_id' => $this->id,
+                        'product_id' => floatval($item['product_id']),
                         'quantity' => floatval($item['quantity']),
                         'price' => floatval($item['price']),
                     ]);

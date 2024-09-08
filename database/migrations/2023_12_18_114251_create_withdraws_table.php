@@ -19,7 +19,7 @@ return new class extends Migration
             $table->enum("payment", ['cash', 'bank']);
             $table->unsignedBigInteger('bank_id')->nullable();
             $table->foreign('bank_id')->references('id')->on('banks')->onDelete('cascade')->onUpdate('cascade');
-            $table->decimal('amount', 10, 2);
+            $table->decimal('amount', 12, 2);
             $table->date('due_date');
             $table->timestamps();
         });

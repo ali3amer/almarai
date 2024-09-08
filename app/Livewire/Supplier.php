@@ -253,28 +253,27 @@ class Supplier extends Component
                         'user_id' => auth()->id(),
                     ]);
                 }
-                $this->resetData();
-                $this->showReceipt($debt->toArray());
                 $this->alert('success', 'تم السداد بنجاح', ['timerProgressBar' => true]);
             } else {
                 $debt = SaleDebt::where('id', $this->debtId)->first();
 
-                $debt->update([
-                    'supplier_id' => $this->currentSupplier['id'],
-                    'type' => $this->type,
-                    'paid' => $this->amount,
-                    'payment' => $this->payment,
-                    'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
-                    'bank' => $this->bank,
-                    'discount' => $this->discount,
-                    'due_date' => $this->due_date,
-                    'user_id' => auth()->id(),
-                ]);
+                $debt->type = $this->type;
+                $debt->amount = $this->amount;
+                $debt->payment = $this->payment;
+                $debt->bank_id = $this->payment == 'bank' ? $this->bank_id : null;
+                $debt->bank = $this->bank;
+                $debt->discount = $this->discount;
+                $debt->service = $this->service;
+                $debt->due_date = $this->due_date;
+                $debt->user_id = auth()->id();
+                $debt->save();
                 $this->alert('success', 'تم تعديل الدفعيه بنجاح', ['timerProgressBar' => true]);
 
             }
+            $this->showReceipt($debt->toArray());
 
         }
+        $this->resetData();
         $this->showDebts($this->currentSupplier);
 
     }
@@ -333,27 +332,26 @@ class Supplier extends Component
                 }
 
                 $this->resetData();
-                $this->showReceipt($debt->toArray());
                 $this->alert('success', 'تم السداد بنجاح', ['timerProgressBar' => true]);
 
             } else {
 
                 $debt = PurchaseDebt::where('id', $this->debtId)->first();
 
-                $debt->update([
-                    'supplier_id' => $this->currentSupplier['id'],
-                    'type' => $this->type,
-                    'amount' => $this->amount,
-                    'payment' => $this->payment,
-                    'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
-                    'bank' => $this->bank,
-                    'discount' => $this->discount,
-                    'due_date' => $this->due_date,
-                    'user_id' => auth()->id(),
-                ]);
+                    $debt->type = $this->type;
+                    $debt->amount = $this->amount;
+                    $debt->payment = $this->payment;
+                    $debt->bank_id = $this->payment == 'bank' ? $this->bank_id : null;
+                    $debt->bank = $this->bank;
+                    $debt->discount = $this->discount;
+                    $debt->due_date = $this->due_date;
+                    $debt->user_id = auth()->id();
+                    $debt->save();
+
                 $this->alert('success', 'تم تعديل الدفعيه بنجاح', ['timerProgressBar' => true]);
 
             }
+            $this->showReceipt($debt->toArray());
         }
 
         $this->resetData();
@@ -372,11 +370,11 @@ class Supplier extends Component
         $this->debtId = $debt['id'];
         $this->bank_id = $debt['bank_id'];
         $this->type = $debt['type'];
-        $this->amount = $debt['amount'];
+        $this->amount = $debt['amount'] ?? ($debt['type'] == "pay" ? $debt['income'] : $debt['expense']);
         $this->payment = $debt['payment'];
         $this->bank = $debt['bank'];
-        $this->discount = $debt['discount'];
-        $this->service = $debt['service'];
+        $this->discount = $debt['futureIncome'] ?? $debt['discount'];
+        $this->service = $debt['futureExpense'] ?? $debt['service'];
         $this->due_date = $debt['due_date'];
     }
 

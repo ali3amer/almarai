@@ -25,6 +25,7 @@ class Deposit extends Model
             DB::raw("null as clientType"),
             'type',
             DB::raw('null as invoice_id'),
+            'deposit_debts.id',
             DB::raw("CASE
         WHEN type = 'pay' THEN amount
         ELSE 0

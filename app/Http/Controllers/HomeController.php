@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Day;
 use Illuminate\Http\Request;
+use function Laravel\Prompts\search;
 
 class HomeController extends Controller
 {
@@ -33,17 +34,15 @@ class HomeController extends Controller
         return back();
 
     }
+
     public function closeDay(Request $request)
     {
-        $count = Day::where("due_date", session("date"))->count();
+        $day = Day::where("due_date", session("date"))->first();
 
-        if ($count == 0) {
-            Day::create([
-                "due_date" => session("date"),
-                "closed" => true,
-                "balance" => session("safeBalance"),
-                'user_id' => auth()->id()
-        ]);
+        if (!$day->closed) {
+            $day->closed = true;
+            $day->balance = session("safeBalance");
+            $day->save();
         }
         session(["closed" => true]);
         return back();

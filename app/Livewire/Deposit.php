@@ -185,33 +185,28 @@ class Deposit extends Component
                         'note' => $this->note == '' ? $note : $this->note,
                         'user_id' => auth()->id(),
                     ]);
-                    $this->chooseDebt($debt->toArray());
                 }
-
-                $this->resetData();
-
-                $this->showReceipt($debt->toArray());
 
                 $this->alert('success', $note, ['timerProgressBar' => true]);
 
             } else {
                 $debt = DepositDebt::where('id', $this->debtId)->first();
 
-                $debt->update([
-                    'deposit_id' => $this->currentDeposit['id'],
-                    'type' => $this->type,
-                    'amount' => $this->amount,
-                    'payment' => $this->payment,
-                    'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
-                    'bank' => $this->bank,
-                    'due_date' => $this->due_date,
-                    'user_id' => auth()->id(),
-                ]);
+                $debt->type = $this->type;
+                $debt->amount = $this->amount;
+                $debt->payment = $this->payment;
+                $debt->bank_id = $this->payment == 'bank' ? $this->bank_id : null;
+                $debt->bank = $this->bank;
+                $debt->due_date = $this->due_date;
+                $debt->user_id = auth()->id();
 
-                $this->resetData();
+                $debt->save();
+
                 $this->alert('success', 'تم تعديل الدفعيه بنجاح', ['timerProgressBar' => true]);
 
             }
+            $this->resetData();
+
             $this->showDebts($this->currentDeposit);
             $this->showReceipt($debt->toArray());
 

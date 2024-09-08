@@ -17,7 +17,7 @@ return new class extends Migration
             $table->boolean("closed")->default(false);
             $table->unsignedBigInteger('user_id')->nullable();
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade')->onUpdate('cascade');
-            $table->decimal("balance", 10, 2)->default(0);
+            $table->decimal("balance", 12, 2)->default(0);
             $table->timestamps();
         });
     }

@@ -372,12 +372,12 @@
                                             {{$debt['futureExpense'] != 0 ? number_format($debt['futureExpense'], 2) : ($debt['futureIncome'] != 0 ? number_format($debt['futureIncome'], 2) : ($debt['expense'] != 0 ? number_format($debt['expense'], 2) : number_format($debt['income'], 2)))}}
                                         </td>
                                         <td>
-                                            @if($debt['due_date'] == session("date"))
+                                            @if($debt['due_date'] == session("date") && !session("closed") && $debt['invoice_id'] == null)
                                                 <button @disabled(!$update) class="btn btn-sm btn-info"
                                                         wire:click="chooseDebt({{ json_encode($debt) }})"><i
                                                         class="bi bi-pen"></i></button>
                                                 <button @disabled(!$delete) class="btn btn-sm btn-danger"
-                                                        wire:click="deleteDebtMessage({{ json_encode($debt['invoice_id']) }})"><i
+                                                        wire:click="deleteDebtMessage({{ json_encode($debt['id']) }})"><i
                                                         class="bi bi-trash"></i></button>
                                             @endif
                                         </td>

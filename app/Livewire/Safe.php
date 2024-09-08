@@ -77,10 +77,10 @@ class Safe extends Component
 
     public function getAllDueDates()
     {
-        $dates = \App\Models\Sale::select('sale_date')->distinct()->get()->sortBy('sale_date');
+        $dates = \App\Models\Sale::select('due_date')->distinct()->get()->sortBy('due_date');
         $toDay = session("date");
         foreach ($dates as $date) {
-            session(["date" => $date->sale_date]);
+            session(["date" => $date->due_date]);
             $day = Day::updateOrCreate(
                 ['due_date' => session('date')],
                 [

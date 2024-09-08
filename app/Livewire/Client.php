@@ -238,32 +238,31 @@ class Client extends Component
                     ]);
                 }
 
-                $this->resetData();
-                $this->chooseDebt($debt->toArray());
-
-                $this->showReceipt($debt->toArray());
 
                 $this->alert('success', 'تم السداد بنجاح', ['timerProgressBar' => true]);
 
             } else {
                 $debt = SaleDebt::where('id', $this->debtId)->first();
 
-                $debt->update([
-                    'client_id' => $this->currentClient['id'],
-                    'type' => $this->type,
-                    'amount' => $this->amount,
-                    'payment' => $this->payment,
-                    'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
-                    'bank' => $this->bank,
-                    'discount' => $this->discount,
-                    'due_date' => $this->due_date,
-                    'user_id' => auth()->id(),
-                ]);
 
-                $this->resetData();
+                    $debt->type = $this->type;
+                    $debt->amount = $this->amount;
+                    $debt->payment = $this->payment;
+                    $debt->bank_id = $this->payment == 'bank' ? $this->bank_id : null;
+                    $debt->bank = $this->bank;
+                    $debt->discount = $this->discount;
+                    $debt->due_date = $this->due_date;
+                    $debt->user_id = auth()->id();
+
+                    $debt->save();
+
                 $this->alert('success', 'تم تعديل الدفعيه بنجاح', ['timerProgressBar' => true]);
 
             }
+            $this->resetData();
+
+            $this->showReceipt($debt->toArray());
+
             $this->showDebts($this->currentClient);
         }
 

@@ -7,6 +7,8 @@ use App\Models\PurchaseDebt;
 use App\Models\PurchaseDetail;
 use App\Models\PurchaseReturn;
 use App\Models\SaleDetail;
+use App\Models\SaleReturn;
+use App\Models\Setting;
 use Illuminate\Database\Eloquent\Collection;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
 use Livewire\Component;
@@ -25,6 +27,10 @@ class PurchaseReturns extends Component
     public $bank_id = null;
     public $bank = null;
     public bool $editMode = false;
+    public bool $create = false;
+    public bool $read = false;
+    public bool $update = false;
+    public bool $delete = false;
     public int $id = 0;
     public float $price = 0;
     public float $quantity = 0;
@@ -49,6 +55,16 @@ class PurchaseReturns extends Component
     public $reminderQuantity = 0;
     public $reminderAmount = 0;
 
+
+    public function mount()
+    {
+        $this->settings = Setting::first();
+        $user = auth()->user();
+        $this->create = $user->hasPermission('returns-create');
+        $this->read = $user->hasPermission('returns-read');
+        $this->update = $user->hasPermission('returns-update');
+        $this->delete = $user->hasPermission('returns-delete');
+    }
     public function chooseSupplier($supplier)
     {
         $this->currentSupplier = [];
@@ -94,14 +110,23 @@ class PurchaseReturns extends Component
         $quantity = \App\Models\Product::where("id", $this->currentDetail['product_id'])->first()->stock;
         if (floatval($this->quantityReturn) < floatval($quantity)) {
 
-            PurchaseReturn::create([
-                'purchase_id' => $purchase['id'],
-                'product_id' => $this->currentDetail['product_id'],
-                'quantity' => floatval($this->quantityReturn),
-                'due_date' => $this->due_date,
-                'price' => $this->currentDetail['price'],
-                'amount' => $this->amount
-            ]);
+            if (!$this->editMode) {
+                PurchaseReturn::create([
+                    'purchase_id' => $purchase['id'],
+                    'product_id' => $this->currentDetail['product_id'],
+                    'quantity' => floatval($this->quantityReturn),
+                    'due_date' => $this->due_date,
+                    'price' => $this->currentDetail['price'],
+                    'amount' => $this->amount
+                ]);
+            } else {
+                PurchaseReturn::where("id", $this->id)->update([
+                    'quantity' => floatval($this->quantityReturn),
+                    'price' => $this->currentDetail['price'],
+                    'amount' => $this->amount
+                ]);
+
+            }
 
             $this->getReturns($purchase->toArray());
 
@@ -123,10 +148,27 @@ class PurchaseReturns extends Component
 
     }
 
-    public function deleteMessage($return)
+
+    public function edit($id)
+    {
+        $this->editMode = true;
+        $this->id = $id;
+        $return = PurchaseReturn::find($id);
+        $purchaseDetail = PurchaseDetail::where("purchase_id", $return['purchase_id'])->where('product_id', $return['product_id'])->first();
+        $this->currentDetail = $purchaseDetail->toArray();
+        $this->productName = $purchaseDetail->product->productName;
+        $this->price = $return['price'];
+        $this->quantity = $purchaseDetail->quantity;
+        $this->quantityReturn = $return['quantity'];
+        $this->priceReturn = $return['quantity'] * $return['price'];
+        $this->amount = $return['amount'];
+        $this->due_date = $return['due_date'];
+    }
+
+    public function deleteMessage($id)
     {
         $this->confirm("  هل توافق على الحذف ؟", [
-            'inputAttributes' => ["return" => $return],
+            'inputAttributes' => ["id" => $id],
             'toast' => false,
             'showConfirmButton' => true,
             'confirmButtonText' => 'موافق',
@@ -138,9 +180,16 @@ class PurchaseReturns extends Component
         ]);
     }
 
+    public function delete($data)
+    {
+        $id = $data['inputAttributes']['id'];
+        PurchaseReturn::where("id", $id)->delete();
+        $this->alert('success', 'تم الحذف بنجاح', ['timerProgressBar' => true]);
+        $this->getReturns($this->currentPurchase);
+    }
     public function resetData($data = null)
     {
-        $this->reset('productName', 'editMode', 'amount', 'quantity', 'price', 'quantityReturn', 'supplierSearch', 'currentDetail', 'purchaseSearch', 'due_date', $data);
+        $this->reset('productName', 'editMode', 'amount', 'quantity', 'price', 'quantityReturn', 'priceReturn', 'supplierSearch', 'currentDetail', 'purchaseSearch', 'id', 'due_date', $data);
     }
 
     public function render()

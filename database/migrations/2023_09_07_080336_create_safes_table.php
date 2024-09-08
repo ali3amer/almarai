@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('safes', function (Blueprint $table) {
             $table->id();
-            $table->decimal('initialBalance', 10, 2)->default(0);
-            $table->decimal('capital', 10, 2)->default(0);
+            $table->decimal('initialBalance', 12, 2)->default(0);
+            $table->decimal('capital', 12, 2)->default(0);
             $table->date('startingDate');
             $table->timestamps();
         });

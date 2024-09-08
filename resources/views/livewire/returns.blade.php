@@ -154,8 +154,8 @@
                                         <td>{{number_format($sale['amount'], 2)}}</td>
                                         <td>{{$sale['due_date']}}</td>
                                         <td>
-                                            <button class="btn btn-sm text-white btn-warning" wire:click="getReturns({{$sale}})"><i class="bi bi-eye"></i></button> /
-                                            <button  data-bs-toggle="modal" data-bs-target="#saleModal" wire:click="chooseSale({{$sale}}, false)" class="btn btn-sm btn-danger"><i class="bi bi-arrow-return-left"></i></button>
+                                            <button @disabled(!$read) class="btn btn-sm text-white btn-warning" wire:click="getReturns({{$sale}})"><i class="bi bi-eye"></i></button> /
+                                            <button @disabled(!$read)  data-bs-toggle="modal" data-bs-target="#saleModal" wire:click="chooseSale({{$sale}}, false)" class="btn btn-sm btn-danger"><i class="bi bi-arrow-return-left"></i></button>
                                         </td>
                                     </tr>
                                 @endforeach
@@ -227,7 +227,7 @@
                                 <input type="date" disabled @disabled(empty($currentDetail)) wire:model="due_date" class="form-control text-center">
                             </div>
 
-                            @if(!session("closed"))
+                            @if(!session("closed") && $update)
                                 <div class="col d-flex align-items-end">
                                     <button @disabled(empty($currentDetail) || ($quantityReturn == 0) || ($quantityReturn == null) || ($quantityReturn > $quantity)) class="btn {{ $editMode ? 'btn-success' : 'btn-primary' }} " wire:click="save()">{{ $editMode ? 'تعـــــــــــــــديل' : 'حــــــــــــــفظ' }}</button>
                                 </div>
@@ -254,6 +254,7 @@
                                         <th> الكمية</th>
                                         <th>الجمله</th>
                                         <th>التاريخ</th>
+                                        <th>التحكم</th>
                                     </tr>
                                     </thead>
                                     <tbody>
@@ -265,6 +266,17 @@
                                             <td>{{number_format($return['quantity'], 2)}}</td>
                                             <td>{{number_format($return['quantity'] * $return['price'], 2)}}</td>
                                             <td>{{$return['due_date']}}</td>
+                                            <td>
+                                                @if($return['due_date'] == session("date") && !session("closed"))
+                                                    <button @disabled(!$update) class="btn btn-sm btn-info"
+                                                            wire:click="edit({{ $return['id'] }})"><i
+                                                            class="bi bi-pen"></i></button>
+                                                    <button @disabled(!$delete) class="btn btn-sm btn-danger"
+                                                            wire:click="deleteMessage({{ json_encode($return['id']) }})">
+                                                        <i
+                                                            class="bi bi-trash"></i></button>
+                                                @endif
+                                            </td>
                                         </tr>
                                     @endforeach
                                     </tbody>
