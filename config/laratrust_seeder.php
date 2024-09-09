@@ -20,6 +20,7 @@ return [
             'banks' => 'c,r,u,d',
             'employees' => 'c,r,u,d',
             'reports' => 'c,r,u,d',
+            'days' => 'c,r,u,d',
         ],
         'user' => []
     ],

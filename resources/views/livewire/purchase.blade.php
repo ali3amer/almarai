@@ -21,7 +21,7 @@
                             </button>
                         @endif
                         @if(!empty($invoice) && !$editMode && !isset($invoice['id']) && !session("closed") && $invoice['date'] == session("date"))
-                            <button class="btn btn-success" @if($id == 0) wire:click="save()" @else wire:click="editMessage()" @endif><i class="bi bi-bookmark-check"></i>
+                            <button class="btn btn-success" wire:loading.class="visually-hidden" @if($id == 0) wire:click="save()" @else wire:click="editMessage()" @endif><i class="bi bi-bookmark-check"></i>
                             </button>
                         @endif
                         <button class="btn btn-info" id="print"><i class="bi bi-printer"></i></button>

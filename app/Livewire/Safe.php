@@ -60,6 +60,10 @@ class Safe extends Component
     public bool $read = false;
     public bool $update = false;
     public bool $delete = false;
+    public bool $createDay = false;
+    public bool $readDay = false;
+    public bool $updateDay = false;
+    public bool $deleteDay = false;
 
     public function mount()
     {
@@ -68,6 +72,10 @@ class Safe extends Component
         $this->read = $user->hasPermission('employees-read');
         $this->update = $user->hasPermission('employees-update');
         $this->delete = $user->hasPermission('employees-delete');
+        $this->createDay = $user->hasPermission('days-delete');
+        $this->readDay = $user->hasPermission('days-delete');
+        $this->updateDay = $user->hasPermission('days-delete');
+        $this->deleteDay = $user->hasPermission('days-delete');
 
         $this->startingDate = session("date");
         $this->withdraws = Withdraw::all();
