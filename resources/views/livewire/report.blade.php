@@ -1532,8 +1532,8 @@
                         <tfoot>
                         <tr>
                             <th colspan="4">الجمـــــــــــــــلة</th>
-                            <th>{{ number_format($paid, 2) }}</th>
-                            <th>{{ number_format($debt, 2) }}</th>
+                            <th>{{ number_format($incomes, 2) }}</th>
+                            <th>{{ number_format($expenses, 2) }}</th>
                         </tr>
                         </tfoot>
                     </table>

@@ -1,4 +1,4 @@
-<div>
+<div wire:keydown.escape.window="resetData()">
     <!-- Bank Modal -->
     <div wire:ignore.self class="modal fade" id="bankModal" tabindex="-1" aria-labelledby="bankModalLabel"
          aria-hidden="true">
@@ -246,7 +246,7 @@
 
                                 <div class="col-4">
                                     <label for="bank">رقم الاشعار</label>
-                                    <input autocomplete="off" type="text" wire:model.live="bank"
+                                    <input autocomplete="off" type="text" wire:model.live="bank" required
                                            id="bank"
                                            class="form-control text-center" placeholder="رقم الاشعار ....">
                                 </div>
@@ -305,16 +305,22 @@
                                     @foreach($transfers as $transfer)
                                         <tr>
                                             <td>{{$transfer->due_date}}</td>
-                                            <td>{{$transfer->bank->bankName ?? ""}}</td>
+                                            <td>{{$transfer->bankName}}</td>
                                             <td>{{$transfer->transfer_type == 'cash_to_bank' ? 'من الخزنه الى البنك' : 'من البنك الى الخزنه'}}</td>
                                             <td>{{number_format($transfer->amount, 2)}}</td>
                                             <td>{{$transfer->bank}}</td>
                                             <td>{{$transfer->note}}</td>
                                             <td>
-                                                <button class="btn btn-sm btn-danger"
-                                                        wire:click="deleteMessage({{$transfer}})"><i
-                                                        class="bi bi-trash"></i>
-                                                </button>
+                                                @if(!session("closed"))
+                                                    <button @disabled(!$update) class="btn btn-sm btn-info"
+                                                            wire:click="editTransfer({{$transfer}})"><i
+                                                            class="bi bi-pen text-white"></i>
+                                                    </button> /
+                                                    <button @disabled(!$delete) class="btn btn-sm btn-danger"
+                                                            wire:click="deleteMessage({{$transfer}})"><i
+                                                            class="bi bi-trash"></i>
+                                                    </button>
+                                                @endif
                                             </td>
                                         </tr>
                                     @endforeach

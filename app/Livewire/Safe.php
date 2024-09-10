@@ -305,7 +305,7 @@ class Safe extends Component
 
     public function resetData()
     {
-        $this->reset('transfer_type', 'bank', 'note', 'amount', 'transferId', 'due_date');
+        $this->reset('transfer_type', 'bank', 'note', 'transfer_amount', 'transferId', 'due_date');
     }
 
     public function resetBankData()
@@ -334,7 +334,7 @@ class Safe extends Component
         $this->days = Day::get()->sortBy("due_date");
         $this->getbanksBalance();
         return view('livewire.safe', [
-            "transfers" => Transfer::all()
+            "transfers" => Transfer::where("due_date", session("date"))->join("banks", "banks.id", "=", "transfers.bank_id")->select("transfers.*", "banks.bankName")->get()
         ]);
     }
 }

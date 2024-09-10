@@ -15,7 +15,7 @@ class Transfer extends Model
 
     public function bank()
     {
-        return $this->belongsTo(Bank::class);
+        return $this->belongsTo(Bank::class, 'bank_id');
     }
 
     public function getMovements()

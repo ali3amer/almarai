@@ -386,13 +386,13 @@ class Report extends Component
                 $this->currentEmployee['initialBalance'] += $employee->getPastBalance($this->day);
 
                 $saleDebts = (new \App\Models\Sale)->getMovements($this->currentEmployee['id'], 'employee');
-                $this->employeeGifts = \App\Models\EmployeeGift::where('employee_id', $this->currentEmployee['id'])->where('gift_date', $this->day)->get();
+                $this->employeeGifts = \App\Models\EmployeeGift::where('employee_id', $this->currentEmployee['id'])->where('due_date', $this->day)->get();
             } elseif ($this->reportDuration == 'duration') {
 
                 $this->currentEmployee['initialBalance'] += $employee->getPastBalance($this->from);
 
                 $saleDebts = (new \App\Models\Sale)->getMovements($this->currentEmployee['id'], 'employee');
-                $this->employeeGifts = \App\Models\EmployeeGift::where('employee_id', $this->currentEmployee['id'])->whereBetween('gift_date', [$this->from, $this->to])->get();
+                $this->employeeGifts = \App\Models\EmployeeGift::where('employee_id', $this->currentEmployee['id'])->whereBetween('due_date', [$this->from, $this->to])->get();
 
             } else {
                 $this->currentEmployee['initialBalance'] += $employee->initialBalance;
