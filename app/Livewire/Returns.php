@@ -194,15 +194,9 @@ class Returns extends Component
         if ($this->due_date == '') {
             $this->due_date = session("date");
         }
-        if ($this->buyer == 'client') {
-            $this->clients = \App\Models\Client::where('clientName', 'LIKE', '%' . $this->clientSearch . '%')->get();
-        } elseif ($this->buyer == 'supplier') {
-            $this->clients = \App\Models\Supplier::where('supplierName', 'LIKE', '%' . $this->clientSearch . '%')->get();
-        } elseif ($this->buyer == 'employee') {
-            $this->clients = \App\Models\Employee::where('employeeName', 'LIKE', '%' . $this->clientSearch . '%')->get();
-        }
+            $this->clients = \App\Models\People::where("type", $this->buyer)->where('name', 'LIKE', '%' . $this->clientSearch . '%')->get();
         if (!empty($this->currentClient)) {
-            $this->sales = \App\Models\Sale::where($this->buyer . '_id', $this->currentClient['id'])->where('id', 'LIKE', '%' . $this->saleSearch . '%')->get();
+            $this->sales = \App\Models\Sale::where('people_id', $this->currentClient['id'])->where('id', 'LIKE', '%' . $this->saleSearch . '%')->get();
 
             if ($this->currentClient['cash'] && !empty($this->currentDetail)) {
                 $this->amount = floatval($this->price) * floatval($this->quantityReturn);

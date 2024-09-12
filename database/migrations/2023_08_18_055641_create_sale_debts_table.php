@@ -13,16 +13,9 @@ return new class extends Migration
     {
         Schema::create('sale_debts', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('client_id')->nullable();
-            $table->foreign('client_id')->references('id')->on('clients')->onDelete('cascade')->onUpdate('cascade');
-            $table->unsignedBigInteger('employee_id')->nullable();
-            $table->foreign('employee_id')->references('id')->on('employees')->onDelete('cascade')->onUpdate('cascade');
-            $table->unsignedBigInteger('supplier_id')->nullable();
-            $table->foreign('supplier_id')->references('id')->on('suppliers')->onDelete('cascade')->onUpdate('cascade');
-            $table->enum('type', ['debt', 'pay']);
+            $table->unsignedBigInteger('people_id')->nullable();
+            $table->foreign('people_id')->references('id')->on('people')->onDelete('cascade')->onUpdate('cascade');$table->enum('type', ['debt', 'pay', 'discount']);
             $table->decimal('amount', 12, 2);
-            $table->decimal('discount', 10, 2)->default(0);
-            $table->decimal('service', 10, 2)->default(0);
             $table->enum('payment', ['cash', 'bank'])->default("cash");
             $table->unsignedBigInteger('bank_id')->nullable();
             $table->foreign('bank_id')->references('id')->on('banks')->onDelete('cascade')->onUpdate('cascade');

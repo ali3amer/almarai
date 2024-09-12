@@ -12,14 +12,14 @@ class PurchaseDebt extends Model
     use HasFactory, SoftDeletes;
     protected $guarded = [];
 
+    public function people()
+    {
+        return $this->belongsTo(People::class);
+    }
+
     public function purchase()
     {
         return $this->belongsTo(Purchase::class);
-    }
-
-    public function supplier()
-    {
-        return $this->belongsTo(Supplier::class);
     }
 
     public function getCreatedAtAttribute($value)

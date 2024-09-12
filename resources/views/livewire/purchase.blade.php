@@ -55,7 +55,7 @@
                                 <i
                                     class="bi bi-x"></i></button>
 
-                            {{$currentSupplier[$buyer.'Name']}}
+                            {{$currentSupplier['name']}}
                             <div class="card-title mt-2">
                                 <div class="row">
                                     <div class="col-4 align-self-center"><h5>المنتجات</h5></div>
@@ -208,7 +208,7 @@
                                                 <td>الجمله</td>
                                                 <td>{{number_format($cost, 2)}}</td>
                                                 <td>الرصيد الحالي</td>
-                                                <td>{{number_format($currentBalance, 2)}}</td>
+                                                <td>{{number_format($currentPurchasesBalance, 2)}}</td>
                                             </tr>
                                             <tr>
                                                 <td>التخفيض</td>
@@ -301,18 +301,30 @@
                     <div class="card">
                         <div class="card-body">
                             <div class="card-title">
-                                @if(count($suppliers) > 0)
-                                    <input autocomplete="off" type="text" placeholder="بحث ..." class="form-control"
-                                           wire:keydown.enter="chooseSupplier({{$suppliers[0]}})"
-                                           wire:model.live="supplierSearch">
-                                @endif
+                                <div class="row">
+                                    <div class="col-4 align-self-center">
+                                        <select class="form-select" wire:model.live="buyer">
+                                            <option value="client">العملاء</option>
+                                            <option value="employee">الموظفين</option>
+                                            <option value="supplier">الموردين</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-8">
+                                        @if(count($suppliers) > 0)
+                                            <input autocomplete="off" type="text" placeholder="بحث ..."
+                                                   class="form-control"
+                                                   wire:keydown.enter="chooseSupplier({{$suppliers[0]}})"
+                                                   wire:model.live="clientSearch">
+                                        @endif
+                                    </div>
+                                </div>
                             </div>
                             <div class="scroll">
                                 <table class="table table-responsive">
                                     <thead>
                                     <tr>
                                         <th scope="col">#</th>
-                                        <th scope="col">إسم المورد</th>
+                                        <th scope="col">إسم العميل</th>
                                     </tr>
                                     </thead>
                                     <tbody>
@@ -322,7 +334,7 @@
                                                 data-bs-dismiss="modal"
                                                 aria-label="Close">
                                                 <td scope="row">{{$loop->index + 1}}</td>
-                                                <td>{{$supplier[$buyer.'Name']}}</td>
+                                                <td>{{$supplier['name']}}</td>
                                             </tr>
                                         @endforeach
                                     @endif

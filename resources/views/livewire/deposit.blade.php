@@ -136,7 +136,7 @@
                                         <tr>
                                             <td>{{ $deposit->name }}</td>
                                             <td>{{ $deposit->phone }}</td>
-                                            <td>{{ number_format($deposit->initialBalance, 2) }}</td>
+                                            <td>{{ number_format($deposit->initialSalesBalance, 2) }}</td>
                                             <td>{{ number_format($deposit->currentBalance, 2) }}</td>
                                             <td>
                                                 <button

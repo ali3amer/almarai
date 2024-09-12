@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('deposit_debts', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('deposit_id')->nullable();
-            $table->foreign('deposit_id')->references('id')->on('deposits')->onDelete('cascade')->onUpdate('cascade');
+            $table->unsignedBigInteger('people_id')->nullable();
+            $table->foreign('people_id')->references('id')->on('people')->onDelete('cascade')->onUpdate('cascade');
             $table->enum('type', ['debt', 'pay']);
             $table->decimal('amount', 12, 2);
             $table->enum('payment', ['cash', 'bank'])->default("cash");

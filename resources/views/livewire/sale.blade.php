@@ -56,7 +56,7 @@
                                     wire:click="resetData('currentClient')" @disabled(empty($currentClient)) ><i
                                     class="bi bi-x"></i></button>
 
-                            {{$currentClient[$buyer.'Name']}}
+                            {{$currentClient['name']}}
                             <div class="card-title mt-2">
                                 <div class="row">
                                     <div class="col-4 align-self-center"><h5>المنتجات</h5></div>
@@ -206,7 +206,7 @@
                                                 <td>الجمله</td>
                                                 <td>{{number_format($cost, 2)}}</td>
                                                 <td>الرصيد الحالي</td>
-                                                <td>{{number_format($currentBalance, 2)}}</td>
+                                                <td>{{number_format($currentSalesBalance, 2)}}</td>
                                             </tr>
                                             <tr>
                                                 <td>التخفيض</td>
@@ -333,7 +333,7 @@
                                                 data-bs-dismiss="modal"
                                                 aria-label="Close">
                                                 <td scope="row">{{$loop->index + 1}}</td>
-                                                <td>{{$client[$buyer.'Name']}}</td>
+                                                <td>{{$client['name']}}</td>
                                             </tr>
                                         @endforeach
                                     @endif

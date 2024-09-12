@@ -22,7 +22,7 @@ class Deposit extends Model
 
         $deposits = DepositDebt::select(
             DB::raw("'deposits' as tableName"),
-            DB::raw("null as clientType"),
+            DB::raw("people.type as clientType"),
             'type',
             DB::raw('null as invoice_id'),
             'deposit_debts.id',
@@ -42,11 +42,11 @@ class Deposit extends Model
             'bank_id',
             DB::raw('deposit_debts.note as note'),
             DB::raw('deposit_id as owner_id'),
-            DB::raw("deposits.name as ownerName"),
+            DB::raw("people.name as ownerName"),
             'deposit_debts.created_at',
             'deposit_debts.updated_at'
         )
-            ->leftJoin('deposits', 'deposits.id', '=', 'deposit_debts.deposit_id')->orderBy('due_date', 'asc')->get();
+            ->leftJoin('people', 'people.id', '=', 'deposit_debts.people_id')->orderBy('due_date', 'asc')->get();
 
         return $deposits;
     }

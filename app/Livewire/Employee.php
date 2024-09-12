@@ -25,7 +25,7 @@ class Employee extends Component
     public string $title = 'الموظفين';
     public int $id = 0;
     public $bank_id = null;
-    public string $employeeName = '';
+    public string $name = '';
     public $salary = 0;
     public $paid = 0;
     public $startingDate = '';
@@ -39,7 +39,9 @@ class Employee extends Component
     public string $processType = 'cash';
     public $note = null;
     public $amount = 0;
-    public $initialBalance = 0;
+    public $initialSalesBalance = 0;
+    public $initialPurchasesBalance = 0;
+    public $initialDepositBalance = 0;
 
     public array $currentEmployee = [];
     public bool $editMode = false;
@@ -63,15 +65,15 @@ class Employee extends Component
     protected function rules()
     {
         return [
-            'employeeName' => 'required|unique:employees,employeeName,' . $this->id
+            'name' => 'required|unique:people,name,' . $this->id
         ];
     }
 
     protected function messages()
     {
         return [
-            'employeeName.required' => 'الرجاء إدخال إسم الموظف',
-            'employeeName.unique' => 'هذا المورد موجود مسبقاً'
+            'name.required' => 'الرجاء إدخال إسم الموظف',
+            'name.unique' => 'هذا المورد موجود مسبقاً'
         ];
     }
 
@@ -101,21 +103,20 @@ class Employee extends Component
 
         if ($this->validate()) {
             if ($this->id == 0) {
-                \App\Models\Employee::create(['employeeName' => $this->employeeName, 'salary' => $this->salary, "startingDate" => $this->startingDate]);
+                \App\Models\People::create(['name' => $this->name, 'initialSalesBalance' => $this->initialSalesBalance, 'initialPurchasesBalance' => $this->initialPurchasesBalance, 'initialDepositsBalance' => $this->initialDepositsBalance, "startingDate" => $this->startingDate]);
                 $this->alert('success', 'تم الحفظ بنجاح', ['timerProgressBar' => true]);
 
             } else {
-                $employee = \App\Models\Employee::find($id);
-                $employee->employeeName = $this->employeeName;
-                $employee->salary = $this->salary;
+                $employee = \App\Models\People::find($id);
+                $employee->name = $this->name;
                 $employee->startingDate = $this->startingDate;
-                $employee->initialBalance = $this->initialBalance;
+                $employee->initialSalesBalance = $this->initialSalesBalance;
+                $employee->initialPurchasesBalance = $this->initialPurchasesBalance;
+                $employee->initialDepositBalance = $this->initialDepositBalance;
                 $employee->save();
                 $this->alert('success', 'تم التعديل بنجاح', ['timerProgressBar' => true]);
             }
-            $this->id = 0;
-            $this->employeeName = '';
-            $this->salary = 0;
+
             $this->resetData();
         }
 
@@ -125,15 +126,16 @@ class Employee extends Component
     {
         $this->editMode = true;
         $this->id = $employee['id'];
-        $this->employeeName = $employee['employeeName'];
-        $this->salary = $employee['salary'];
-        $this->initialBalance = $employee['initialBalance'];
+        $this->name = $employee['name'];
+        $this->initialSalesBalance = $employee['initialSalesBalance'];
+        $this->initialPurchasesBalance = $employee['initialPurchasesBalance'];
+        $this->initialDepositBalance = $employee['initialDepositBalance'];
         $this->startingDate = $employee['startingDate'];
     }
 
     public function deleteMessage($employee)
     {
-        $this->confirm("  هل توافق على حذف الموظف  " . $employee['employeeName'] . "؟", [
+        $this->confirm("  هل توافق على حذف الموظف  " . $employee['name'] . "؟", [
             'inputAttributes' => ["id" => $employee['id']],
             'toast' => false,
             'showConfirmButton' => true,
@@ -179,7 +181,7 @@ class Employee extends Component
 
     public function delete($data)
     {
-        $employee = \App\Models\Employee::find($data['inputAttributes']['id']);
+        $employee = \App\Models\People::find($data['inputAttributes']['id']);
         $employee->delete();
         $this->alert('success', 'تم الحذف بنجاح', ['timerProgressBar' => true]);
 
@@ -189,11 +191,10 @@ class Employee extends Component
     {
         $this->currentEmployee = $employee;
         $this->due_date = session("date");
-        $this->amount = $this->currentEmployee['salary'];
-        $this->gifts = EmployeeGift::where('employee_id', $this->currentEmployee['id'])->get();
+        $this->gifts = EmployeeGift::where('people_id', $this->currentEmployee['id'])->get();
         $this->debts = (new \App\Models\Sale)->getMovements($this->currentEmployee['id'], 'employee')->toArray();
-        $this->currentEmployee['gifts'] = EmployeeGift::where("employee_id", $this->currentEmployee["id"])->where("due_date", "LIKE", date("Y") . "-%" . $this->month . "-%")->sum("amount");
-        $this->currentBalance = \App\Models\Employee::find($this->currentEmployee['id'])->currentBalance;
+        $this->currentEmployee['gifts'] = EmployeeGift::where("people_id", $this->currentEmployee["id"])->where("due_date", "LIKE", date("Y") . "-%" . $this->month . "-%")->sum("amount");
+        $this->currentBalance = \App\Models\People::find($this->currentEmployee['id'])->currentSalesBalance;
 
     }
 
@@ -212,7 +213,7 @@ class Employee extends Component
             ]);
         } else {
             EmployeeGift::create([
-                'employee_id' => $this->currentEmployee['id'],
+                'people_id' => $this->currentEmployee['id'],
                 'payment' => $this->payment,
                 'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
                 'bank' => $this->bank,
@@ -279,7 +280,7 @@ class Employee extends Component
         $note = 'تم إستلام مبلغ';
 
         $debt = SaleDebt::create([
-            'Employee_id' => $this->currentEmployee['id'],
+            'people_id' => $this->currentEmployee['id'],
             'type' => "pay",
             'amount' => floatval($this->amount),
             'payment' => $this->payment,
@@ -290,18 +291,6 @@ class Employee extends Component
             'user_id' => auth()->id(),
         ]);
 
-        if (floatval($this->discount) > 0) {
-            $debt = SaleDebt::create([
-                'Employee_id' => $this->currentEmployee['id'],
-                'type' => "pay",
-                'amount' => 0,
-                'discount' => floatval($this->discount),
-                'payment' => "cash",
-                'due_date' => $this->due_date,
-                'note' => "تم تخفيض مبلغ",
-                'user_id' => auth()->id(),
-            ]);
-        }
 
         $this->showReceipt($debt->toArray());
 
@@ -329,7 +318,6 @@ class Employee extends Component
         $this->amount = $debt['amount'] ?? $debt['income'];
         $this->payment = $debt['payment'];
         $this->bank = $debt['bank'];
-        $this->discount = $debt['futureIncome'] ?? $debt['discount'];
         $this->due_date = $debt['due_date'];
     }
 
@@ -337,7 +325,6 @@ class Employee extends Component
     {
         $debt = SaleDebt::where('id', $this->debtId)->first();
             $debt->amount = floatval($this->amount);
-            $debt->discount = floatval($this->discount);
             $debt->payment = $this->payment;
             $debt->bank_id = $this->payment == 'bank' ? $this->bank_id : null;
             $debt->bank = $this->bank;
@@ -369,7 +356,7 @@ class Employee extends Component
     #[On('reset-employee')]
     public function resetData($data = null)
     {
-        $this->reset('id', 'employeeName', 'gift_id', "type", 'debtId', 'editMode', 'currentDebt', 'payment', 'bank', 'bank_id', 'note', 'editGiftMode', 'editDebtMode', 'initialBalance', 'discount', $data);
+        $this->reset('id', 'name', 'gift_id', "type", 'debtId', 'editMode', 'currentDebt', 'payment', 'bank', 'bank_id', 'note', 'amount', 'editGiftMode', 'editDebtMode', 'initialSalesBalance', 'initialPurchasesBalance', 'initialDepositsBalance', 'discount', $data);
     }
 
     public function render()
@@ -381,7 +368,7 @@ class Employee extends Component
         }
 
         if (empty($this->currentEmployee)) {
-            $this->employees = \App\Models\Employee::where('employeeName', 'like', '%' . $this->search . '%')->get();
+            $this->employees = \App\Models\People::where("type", "employee")->where('name', 'like', '%' . $this->search . '%')->get();
         }
 
         return view('livewire.employee');

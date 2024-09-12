@@ -50,7 +50,7 @@ class Purchase extends Component
     public array $cart = [];
     public string $purchaseSearch = '';
     public float $remainder = 0;
-    public float $currentBalance = 0;
+    public float $currentPurchasesBalance = 0;
     public bool $editMode = false;
     public array $currentPurchaseDebts = [];
     public array $currentPurchase = [];
@@ -74,16 +74,16 @@ class Purchase extends Component
             ]);
         }
 
-        if (\App\Models\Supplier::count() == 0) {
-            \App\Models\Supplier::create(['supplierName' => "نقدي", 'phone' => "", 'initialBalance' => 0, 'startingDate' => session("date"), 'initialSalesBalance' => 0, 'blocked' => false, 'cash' => true]);
+        if (\App\Models\People::where("type", "supplier")->count() == 0) {
+            \App\Models\People::create(['name' => "نقدي", 'phone' => "", 'initialSalesBalance' => 0,'initialPurchasesBalance' => 0,'initialDepositsBalance' => 0, 'startingDate' => session("date"), 'type' => "supplier", 'blocked' => false, 'cash' => true]);
         }
-        if (\App\Models\Supplier::where("cash", true)->first() != null) {
-            $this->currentSupplier = \App\Models\Supplier::where("cash", true)->first()->toArray();
+        if (\App\Models\People::where("type", "supplier")->where("cash", true)->first() != null) {
+            $this->currentSupplier = \App\Models\People::where("type", "supplier")->where("cash", true)->first()->toArray();
         } else {
-            $this->currentSupplier = \App\Models\Supplier::first()->toArray();
+            $this->currentSupplier = \App\Models\People::where("type", "supplier")->first()->toArray();
         }
 
-        $this->currentBalance = \App\Models\Purchase::where("supplier_id", $this->currentSupplier['id'])->sum("remainder") + $this->currentSupplier['initialBalance'];
+        $this->currentPurchasesBalance = \App\Models\Purchase::where("people_id", $this->currentSupplier['id'])->sum("remainder") + $this->currentSupplier['initialPurchasesBalance'];
 
         $this->banks = Bank::all();
         if ($this->banks->count() != 0) {
@@ -97,7 +97,7 @@ class Purchase extends Component
         if (floatval($this->paid) >= 0 && floatval($this->paid) <= floatval(session($this->payment == "cash" ? "safeBalance" : "bankBalance"))) {
             if ($this->id == 0) {
                 $purchase = \App\Models\Purchase::create([
-                    'supplier_id' => $this->currentSupplier['id'],
+                    'people_id' => $this->currentSupplier['id'],
                     'payment' => $this->payment,
                     'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
                     'bank' => $this->bank,
@@ -110,7 +110,7 @@ class Purchase extends Component
                     'user_id' => auth()->id(),
                 ]);
                 $this->id = $purchase['id'];
-                $this->currentBalance += $this->remainder;
+                $this->currentPurchasesBalance += $this->remainder;
 
                 foreach ($this->cart as $item) {
                     PurchaseDetail::create([
@@ -123,7 +123,7 @@ class Purchase extends Component
                 }
             } else {
                 \App\Models\Purchase::where("id", $this->id)->update([
-                    "supplier_id" => $this->currentSupplier['id'],
+                    "people_id" => $this->currentSupplier['id'],
                     'payment' => $this->payment,
                     'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
                     'bank' => $this->bank,
@@ -136,8 +136,8 @@ class Purchase extends Component
                     'user_id' => auth()->id(),
                 ]);
 
-                $this->currentBalance -= $this->invoice['remainder'];
-                $this->currentBalance += $this->remainder;
+                $this->currentPurchasesBalance -= $this->invoice['remainder'];
+                $this->currentPurchasesBalance += $this->remainder;
                 PurchaseDetail::where("purchase_id", $this->id)->forceDelete();
                 foreach ($this->cart as $item) {
                     PurchaseDetail::create([
@@ -174,7 +174,7 @@ class Purchase extends Component
         $this->invoice['id'] = $id;
         $this->invoice['type'] = 'purchase';
         $this->invoice['date'] = $this->due_date;
-        $this->invoice['client'] = $this->currentSupplier[$this->buyer . 'Name'];
+        $this->invoice['client'] = $this->currentSupplier['name'];
         $this->invoice['cart'] = $this->cart;
         $this->invoice['remainder'] = $this->remainder;
         $this->invoice['discount'] = floatval($this->discount);
@@ -188,10 +188,16 @@ class Purchase extends Component
     public function chooseSupplier($supplier)
     {
         $this->currentSupplier = $supplier;
+        $this->currentSupplier['blocked'] = $this->buyer != 'employee' ? $this->currentSupplier['blocked'] : false;
+        $this->currentSupplier['cash'] = $this->buyer == "client" ? $this->currentSupplier['cash'] : false;
+
+            $supplier = \App\Models\People::where("type", $this->buyer)->find($supplier['id']);
+            $this->currentPurchasesBalance = $supplier->currentPurchasesBalance;
+
+
         if ($this->currentSupplier['cash']) {
             $this->paid = $this->amount;
         }
-        $this->currentBalance = \App\Models\Supplier::find($supplier['id'])->currentBalance;
     }
 
     public function chooseProduct(\App\Models\Product $product)
@@ -264,7 +270,7 @@ class Purchase extends Component
         $this->invoice['bank'] = $purchase['bank'];
         $this->invoice['bank_id'] = $purchase['bank_id'];
         $this->invoice['date'] = $purchase['due_date'];
-        $this->invoice['client'] = $this->currentSupplier[$this->buyer . 'Name'];
+        $this->invoice['client'] = $this->currentSupplier['name'];
         $this->invoice['cart'] = PurchaseDetail::where('purchase_id', $purchase['id'])->join('products', 'products.id', '=', 'purchase_details.product_id')->get()->keyBy("product_id")->toArray();
         $this->invoice['remainder'] = floatval($purchase['remainder']);
         $this->invoice['paid'] = floatval($purchase['paid']);
@@ -365,13 +371,13 @@ class Purchase extends Component
         }
 
         if (!empty($this->currentSupplier)) {
-            $this->purchases = \App\Models\Purchase::where('supplier_id', $this->currentSupplier['id'])
+            $this->purchases = \App\Models\Purchase::where('people_id', $this->currentSupplier['id'])
                 ->where('id', 'LIKE', '%' . $this->purchaseSearch . '%')->latest()->get();
         }
         if ($this->due_date == '') {
             $this->due_date = session("date");
         }
-        $this->suppliers = \App\Models\Supplier::where('supplierName', 'LIKE', '%' . $this->supplierSearch . '%')->get();
+            $this->suppliers = \App\Models\People::where("type", $this->buyer)->where('name', 'LIKE', '%' . $this->supplierSearch . '%')->get();
 
         if ($this->settings->barcode) {
             $barcode = \App\Models\Product::where("barcode", $this->productSearch)->first();

@@ -24,11 +24,13 @@ class Supplier extends Component
     public string $title = 'الموردين';
     public int $id = 0;
     public int $debtId = 0;
-    public string $supplierName = '';
+    public string $name = '';
     public string $phone = '';
     public string $search = '';
     public string|null $note = '';
-    public $initialBalance = 0;
+    public $initialSalesBalance = 0;
+    public $initialPurchasesBalance = 0;
+    public $initialDepositsBalance = 0;
     public $discount = 0;
     public $service = 0;
     public bool $cash = false;
@@ -47,7 +49,6 @@ class Supplier extends Component
     public string $startingDate = '';
     public float $currentBalance = 0;
     public array $currentDebt = [];
-    public $initialSalesBalance = 0;
     public bool $create = false;
     public bool $read = false;
     public bool $update = false;
@@ -57,15 +58,15 @@ class Supplier extends Component
     protected function rules()
     {
         return [
-            'supplierName' => 'required|unique:suppliers,supplierName,' . $this->id
+            'name' => 'required|unique:people,name,' . $this->id
         ];
     }
 
     protected function messages()
     {
         return [
-            'supplierName.required' => 'الرجاء إدخال إسم المورد',
-            'supplierName.unique' => 'هذا المورد موجود مسبقاً'
+            'name.required' => 'الرجاء إدخال إسم المورد',
+            'name.unique' => 'هذا المورد موجود مسبقاً'
         ];
     }
 
@@ -88,26 +89,20 @@ class Supplier extends Component
 
         if ($this->validate()) {
             if ($this->id == 0) {
-                \App\Models\Supplier::create(['supplierName' => $this->supplierName, 'phone' => $this->phone, 'initialBalance' => floatval($this->initialBalance), 'startingDate' => $this->startingDate, 'initialSalesBalance' => floatval($this->initialSalesBalance), 'blocked' => $this->blocked, 'cash' => $this->cash]);
+                \App\Models\People::create(['name' => $this->name, 'phone' => $this->phone, 'initialSalesBalance' => floatval($this->initialSalesBalance), 'initialPurchasesBalance' => floatval($this->initialPurchasesBalance), 'initialDepositsBalance' => floatval($this->initialDepositsBalance), 'startingDate' => $this->startingDate, 'type' => 'supplier', 'blocked' => $this->blocked, 'cash' => $this->cash]);
                 $this->alert('success', 'تم الحفظ بنجاح', ['timerProgressBar' => true]);
             } else {
-                $supplier = \App\Models\Supplier::find($id);
-                $supplier->supplierName = $this->supplierName;
+                $supplier = \App\Models\People::find($id);
+                $supplier->name = $this->name;
                 $supplier->phone = $this->phone;
                 $supplier->note = $this->note;
-                $supplier->initialBalance = floatval($this->initialBalance);
+                $supplier->initialPurchasesBalance = floatval($this->initialPurchasesBalance);
                 $supplier->initialSalesBalance = floatval($this->initialSalesBalance);
+                $supplier->initialDepositsBalance = floatval($this->initialDepositsBalance);
                 $supplier->save();
                 $this->alert('success', 'تم التعديل بنجاح', ['timerProgressBar' => true]);
             }
-            $this->id = 0;
-            $this->supplierName = '';
-            $this->phone = '';
-            $this->initialBalance = 0;
-            $this->initialSalesBalance = 0;
-            $this->note = '';
-            $this->blocked = false;
-            $this->cash = false;
+
         }
 
     }
@@ -115,7 +110,7 @@ class Supplier extends Component
     public function changeBlocked($supplier)
     {
         $this->blocked = !$supplier['blocked'];
-        \App\Models\Supplier::where('id', $supplier['id'])->update(['blocked' => $this->blocked]);
+        \App\Models\People::where('id', $supplier['id'])->update(['blocked' => $this->blocked]);
         $this->resetData();
         $this->alert('success', "تم تغيير حالة المورد النقدي", ['timerProgressBar' => true]);
 
@@ -125,9 +120,9 @@ class Supplier extends Component
     {
         $this->cash = !$supplier['cash'];
         if ($this->cash) {
-            \App\Models\Supplier::where('cash', $this->cash)->update(['cash' => false]);
+            \App\Models\People::where('cash', $this->cash)->where("type", "supplier")->update(['cash' => false]);
         }
-        \App\Models\Supplier::where('id', $supplier['id'])->update(['cash' => $this->cash]);
+        \App\Models\People::where('id', $supplier['id'])->update(['cash' => $this->cash]);
         $this->resetData();
         $this->alert('success', "تم تغيير المورد النقدي", ['timerProgressBar' => true]);
 
@@ -136,10 +131,11 @@ class Supplier extends Component
     public function edit($supplier)
     {
         $this->id = $supplier['id'];
-        $this->supplierName = $supplier['supplierName'];
+        $this->name = $supplier['name'];
         $this->phone = $supplier['phone'];
-        $this->initialBalance = $supplier['initialBalance'];
         $this->initialSalesBalance = $supplier['initialSalesBalance'];
+        $this->initialPurchasesBalance = $supplier['initialPurchasesBalance'];
+        $this->initialDepositsBalance = $supplier['initialDepositsBalance'];
         $this->blocked = $supplier['blocked'];
         $this->note = $supplier['note'];
         $this->cash = $supplier['cash'];
@@ -149,7 +145,7 @@ class Supplier extends Component
 
     public function deleteMessage($supplier)
     {
-        $this->confirm("  هل توافق على حذف المورد  " . $supplier['supplierName'] . "؟", [
+        $this->confirm("  هل توافق على حذف المورد  " . $supplier['name'] . "؟", [
             'inputAttributes' => ["id" => $supplier['id']],
             'toast' => false,
             'showConfirmButton' => true,
@@ -164,7 +160,7 @@ class Supplier extends Component
 
     public function delete($data)
     {
-        $supplier = \App\Models\Supplier::find($data['inputAttributes']['id']);
+        $supplier = \App\Models\People::find($data['inputAttributes']['id']);
         $supplier->delete();
         $this->alert('success', 'تم الحذف بنجاح', ['timerProgressBar' => true]);
     }
@@ -177,10 +173,10 @@ class Supplier extends Component
         $this->currentSupplier = $supplier;
         if ($this->debtType == 'purchases') {
             $this->debts = (new \App\Models\Purchase)->getMovements($this->currentSupplier['id'])->toArray();
-            $this->currentBalance = \App\Models\Supplier::find($this->currentSupplier['id'])->currentBalance;
+            $this->currentBalance = \App\Models\People::find($this->currentSupplier['id'])->currentPurchasesBalance;
         } else {
             $this->debts = (new \App\Models\Sale)->getMovements($this->currentSupplier['id'], 'supplier')->toArray();
-            $this->currentBalance = \App\Models\Supplier::find($this->currentSupplier['id'])->currentSalesBalance;
+            $this->currentBalance = \App\Models\People::find($this->currentSupplier['id'])->currentSalesBalance;
         }
     }
 
@@ -189,6 +185,8 @@ class Supplier extends Component
 
         if ($this->type == 'debt') {
             $note = 'تم إستلاف مبلغ';
+        } elseif ($this->type == "discount") {
+            $note = 'تم خصم مبلغ';
         } else {
             $note = 'تم إستلام مبلغ';
         }
@@ -209,12 +207,10 @@ class Supplier extends Component
 
                 if (floatval($this->amount) != 0) {
                     $debt = SaleDebt::create([
-                        'supplier_id' => $this->currentSupplier['id'],
+                        'people_id' => $this->currentSupplier['id'],
                         'type' => $this->type,
                         'amount' => $this->amount,
                         'payment' => $this->payment,
-                        'discount' => 0,
-                        'service' => 0,
                         'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
                         'bank' => $this->bank,
                         'due_date' => $this->due_date,
@@ -223,36 +219,6 @@ class Supplier extends Component
                     ]);
                 }
 
-                if (floatval($this->discount) != 0) {
-                    $debt = SaleDebt::create([
-                        'supplier_id' => $this->currentSupplier['id'],
-                        'type' => "pay",
-                        'amount' => 0,
-                        'discount' => $this->discount,
-                        'service' => 0,
-                        'payment' => 'cash',
-                        'bank_id' => null,
-                        'bank' => '',
-                        'due_date' => $this->due_date,
-                        'note' => "تم تخفيض مبلغ ",
-                        'user_id' => auth()->id(),
-                    ]);
-                }
-
-                if (floatval($this->service) != 0) {
-                    $debt = SaleDebt::create([
-                        'supplier_id' => $this->currentSupplier['id'],
-                        'type' => "debt",
-                        'amount' => 0,
-                        'service' => $this->service,
-                        'payment' => 'cash',
-                        'bank_id' => null,
-                        'bank' => '',
-                        'due_date' => $this->due_date,
-                        'note' => $this->note == "" ? "تم إضافة خدمة" : $note,
-                        'user_id' => auth()->id(),
-                    ]);
-                }
                 $this->alert('success', 'تم السداد بنجاح', ['timerProgressBar' => true]);
             } else {
                 $debt = SaleDebt::where('id', $this->debtId)->first();
@@ -262,8 +228,6 @@ class Supplier extends Component
                 $debt->payment = $this->payment;
                 $debt->bank_id = $this->payment == 'bank' ? $this->bank_id : null;
                 $debt->bank = $this->bank;
-                $debt->discount = $this->discount;
-                $debt->service = $this->service;
                 $debt->due_date = $this->due_date;
                 $debt->user_id = auth()->id();
                 $debt->save();
@@ -282,6 +246,8 @@ class Supplier extends Component
     {
         if ($this->type == 'debt') {
             $note = 'تم إستلاف مبلغ';
+        } elseif ($this->type == "discount") {
+            $note = 'تم خصم مبلغ';
         } else {
             $note = 'تم دفع مبلغ';
         }
@@ -303,10 +269,9 @@ class Supplier extends Component
 
                 if (floatval($this->amount) != 0) {
                     $debt = PurchaseDebt::create([
-                        'supplier_id' => $this->currentSupplier['id'],
+                        'people_id' => $this->currentSupplier['id'],
                         'type' => $this->type,
                         'amount' => $this->amount,
-                        'discount' => 0,
                         'payment' => $this->payment,
                         'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
                         'bank' => $this->bank,
@@ -316,37 +281,20 @@ class Supplier extends Component
                     ]);
                 }
 
-                if (floatval($this->discount) != 0) {
-                    $debt = PurchaseDebt::create([
-                        'supplier_id' => $this->currentSupplier['id'],
-                        'type' => "pay",
-                        'amount' => 0,
-                        'discount' => $this->discount,
-                        'payment' => 'cash',
-                        'bank_id' => null,
-                        'bank' => '',
-                        'due_date' => $this->due_date,
-                        'note' => "تم تخفيض مبلغ ",
-                        'user_id' => auth()->id(),
-                    ]);
-                }
-
-                $this->resetData();
                 $this->alert('success', 'تم السداد بنجاح', ['timerProgressBar' => true]);
 
             } else {
 
                 $debt = PurchaseDebt::where('id', $this->debtId)->first();
 
-                    $debt->type = $this->type;
-                    $debt->amount = $this->amount;
-                    $debt->payment = $this->payment;
-                    $debt->bank_id = $this->payment == 'bank' ? $this->bank_id : null;
-                    $debt->bank = $this->bank;
-                    $debt->discount = $this->discount;
-                    $debt->due_date = $this->due_date;
-                    $debt->user_id = auth()->id();
-                    $debt->save();
+                $debt->type = $this->type;
+                $debt->amount = $this->amount;
+                $debt->payment = $this->payment;
+                $debt->bank_id = $this->payment == 'bank' ? $this->bank_id : null;
+                $debt->bank = $this->bank;
+                $debt->due_date = $this->due_date;
+                $debt->user_id = auth()->id();
+                $debt->save();
 
                 $this->alert('success', 'تم تعديل الدفعيه بنجاح', ['timerProgressBar' => true]);
 
@@ -373,8 +321,6 @@ class Supplier extends Component
         $this->amount = $debt['amount'] ?? ($debt['type'] == "pay" ? $debt['income'] : $debt['expense']);
         $this->payment = $debt['payment'];
         $this->bank = $debt['bank'];
-        $this->discount = $debt['futureIncome'] ?? $debt['discount'];
-        $this->service = $debt['futureExpense'] ?? $debt['service'];
         $this->due_date = $debt['due_date'];
     }
 
@@ -408,7 +354,7 @@ class Supplier extends Component
 
     public function resetData($data = null)
     {
-        $this->reset('type', 'amount', 'debtId', 'payment', 'bank', 'bank_id', 'cash', 'due_date', 'blocked', 'discount', 'service', 'note', $data);
+        $this->reset('type', 'amount', 'debtId', 'payment', 'bank', 'bank_id', 'cash', 'due_date', 'blocked', 'initialSalesBalance', 'initialPurchasesBalance', 'initialDepositsBalance', 'discount', 'service', 'note', $data);
     }
 
     public function render()
@@ -426,7 +372,7 @@ class Supplier extends Component
             $this->startingDate = session("date");
         }
 
-        $this->suppliers = \App\Models\Supplier::where('supplierName', 'like', '%' . $this->search . '%')->orWhere('phone', 'like', '%' . $this->search . '%')->get();
+        $this->suppliers = \App\Models\People::where("type", "supplier")->where('name', 'like', '%' . $this->search . '%')->get();
         return view('livewire.supplier');
     }
 }

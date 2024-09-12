@@ -27,7 +27,7 @@
                                     @foreach($suppliers as $supplier)
                                         <tr style="cursor: pointer" wire:click="chooseSupplier({{$supplier}})"
                                             data-bs-dismiss="modal">
-                                            <td>{{$supplier[$buyer.'Name']}}</td>
+                                            <td>{{$supplier['name']}}</td>
                                         </tr>
                                     @endforeach
                                     </tbody>
@@ -105,7 +105,7 @@
             <div class="card mb-2">
                 <div class="card-body">
                     <input type="text" autocomplete="off" class="form-control text-center" style="cursor: pointer"
-                           wire:model.live="currentSupplier.{{$buyer.'Name'}}" readonly placeholder="اسم المورد ...."
+                           wire:model.live="currentSupplier.{{'name'}}" readonly placeholder="اسم المورد ...."
                            data-bs-toggle="modal"
                            data-bs-target="#suppliersModal">
                 </div>
@@ -116,7 +116,7 @@
                     <div class="card-body">
                         <div class="card-title">
                             <div class="row">
-                                <div class="col-3"><h6>فواتير {{$currentSupplier[$buyer.'Name']}}</h6></div>
+                                <div class="col-3"><h6>فواتير {{$currentSupplier['name']}}</h6></div>
                                 <div class="col-9"><input type="text" autocomplete="off" placeholder="رقم الفاتوره ...."
                                                           class="form-control text-center"
                                                           wire:model.live="purchaseSearch"></div>

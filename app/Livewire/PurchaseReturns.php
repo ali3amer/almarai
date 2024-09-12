@@ -197,7 +197,7 @@ class PurchaseReturns extends Component
         if ($this->due_date == '') {
             $this->due_date = session("date");
         }
-        $this->suppliers = \App\Models\Supplier::where('supplierName', 'LIKE', '%' . $this->supplierSearch . '%')->get();
+        $this->suppliers = \App\Models\People::where('name', 'LIKE', '%' . $this->supplierSearch . '%')->get();
 
         if (!empty($this->currentSupplier)) {
             $this->purchases = \App\Models\Purchase::where('supplier_id', $this->currentSupplier['id'])->where('id', 'LIKE', '%' . $this->purchaseSearch . '%')->get();

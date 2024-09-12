@@ -13,6 +13,11 @@ class Sale extends Model
 
     protected $guarded = [];
 
+    public function people()
+    {
+        return $this->belongsTo(People::class);
+    }
+
     public function client()
     {
         return $this->belongsTo(Client::class);
@@ -38,16 +43,17 @@ class Sale extends Model
         return $this->hasMany(SaleReturn::class);
     }
 
+    public function services()
+    {
+        return $this->hasMany(Service::class);
+    }
+
     public function getMovements($id = null, $clientType = 'client')
     {
         // استعلام المبيعات
         $sales = Sale::select(
             DB::raw("'sales' as tableName"),
-            DB::raw("CASE
-            WHEN client_id IS NOT NULL THEN 'client'
-            WHEN supplier_id IS NOT NULL THEN 'supplier'
-            WHEN employee_id IS NOT NULL THEN 'employee'
-         END as clientType"),
+            DB::raw("people.type as clientType"),
             DB::raw('null as type'),
             'sales.id as invoice_id',
             'sales.id',
@@ -60,22 +66,16 @@ class Sale extends Model
             'bank',
             'bank_id',
             DB::raw('CONCAT("مبيعات للفاتوره رقم #", sales.id) as note'),
-            DB::raw('COALESCE(client_id, supplier_id, employee_id) as owner_id'),
-            DB::raw("COALESCE(clients.clientName, suppliers.supplierName, employees.employeeName) as ownerName"),
+            DB::raw('people_id as owner_id'),
+            DB::raw("people.name as ownerName"),
             'sales.created_at',
             'sales.updated_at'
-        )->leftJoin('clients', 'clients.id', '=', 'sales.client_id')
-            ->leftJoin('suppliers', 'suppliers.id', '=', 'sales.supplier_id')
-            ->leftJoin('employees', 'employees.id', '=', 'sales.employee_id');
+        )->leftJoin('people', 'people.id', '=', 'sales.people_id');
 
         // استعلام المبيعات المدفوعة
         $paidSales = Sale::select(
             DB::raw("'sales' as tableName"),
-            DB::raw("CASE
-            WHEN sales.client_id IS NOT NULL THEN 'client'
-            WHEN sales.supplier_id IS NOT NULL THEN 'supplier'
-            WHEN sales.employee_id IS NOT NULL THEN 'employee'
-         END as clientType"),
+            DB::raw("people.type as clientType"),
             DB::raw('null as type'),
             'sales.id as invoice_id',
             'sales.id',
@@ -88,114 +88,49 @@ class Sale extends Model
             'bank',
             'bank_id',
             DB::raw('CONCAT("مدفوعات مبيعات لفاتوره #", sales.id) as note'),
-            DB::raw('COALESCE(sales.client_id, sales.supplier_id, sales.employee_id) as owner_id'),
-            DB::raw("COALESCE(clients.clientName, suppliers.supplierName, employees.employeeName) as ownerName"),
+            DB::raw('people_id as owner_id'),
+            DB::raw("people.name as ownerName"),
             'sales.created_at',
             'sales.updated_at'
         )->where('paid', '!=', 0)
-            ->leftJoin('clients', 'clients.id', '=', 'sales.client_id')
-            ->leftJoin('suppliers', 'suppliers.id', '=', 'sales.supplier_id')
-            ->leftJoin('employees', 'employees.id', '=', 'sales.employee_id');
+            ->leftJoin('people', 'people.id', '=', 'sales.people_id');
 
         // استعلام الديون والمدفوعات
         $saleDebts = SaleDebt::select(
             DB::raw("'sale_debts' as tableName"),
-            DB::raw("CASE
-            WHEN client_id IS NOT NULL THEN 'client'
-            WHEN supplier_id IS NOT NULL THEN 'supplier'
-            WHEN employee_id IS NOT NULL THEN 'employee'
-         END as clientType"),
-            'type',
+            DB::raw("people.type as clientType"),
+            'sale_debts.type',
             DB::raw('null as invoice_id'),
             'sale_debts.id',
             DB::raw("CASE
-            WHEN type = 'debt' THEN amount
+            WHEN sale_debts.type = 'debt' THEN amount
             ELSE 0
          END as expense"),
             DB::raw("CASE
-            WHEN type = 'pay' THEN amount
+            WHEN sale_debts.type = 'pay' THEN amount
             ELSE 0
          END as income"),
             DB::raw('0 as futureExpense'),
-            DB::raw('0 as futureIncome'),
-            'due_date',
-            'payment',
-            'bank',
-            'bank_id',
-            'sale_debts.note',
-            DB::raw('COALESCE(client_id, supplier_id, employee_id) as owner_id'),
-            DB::raw("COALESCE(clients.clientName, suppliers.supplierName, employees.employeeName) as ownerName"),
-            'sale_debts.created_at',
-            'sale_debts.updated_at'
-        )->where("discount", 0)->where("service", 0)
-            ->leftJoin('clients', 'clients.id', '=', 'sale_debts.client_id')
-            ->leftJoin('suppliers', 'suppliers.id', '=', 'sale_debts.supplier_id')
-            ->leftJoin('employees', 'employees.id', '=', 'sale_debts.employee_id');
-
-        $discounts = SaleDebt::select(
-            DB::raw("'sale_debts' as tableName"),
             DB::raw("CASE
-            WHEN client_id IS NOT NULL THEN 'client'
-            WHEN supplier_id IS NOT NULL THEN 'supplier'
-            WHEN employee_id IS NOT NULL THEN 'employee'
-         END as clientType"),
-            'type',
-            DB::raw('null as invoice_id'),
-            'sale_debts.id',
-            DB::raw("0 as expense"),
-            DB::raw("0 as income"),
-            DB::raw('discount as futureExpense'),
-            DB::raw('0 as futureIncome'),
+            WHEN sale_debts.type = 'discount' THEN amount
+            ELSE 0
+         END as futureIncome"),
             'due_date',
             'payment',
             'bank',
             'bank_id',
             'sale_debts.note',
-            DB::raw('COALESCE(client_id, supplier_id, employee_id) as owner_id'),
-            DB::raw("COALESCE(clients.clientName, suppliers.supplierName, employees.employeeName) as ownerName"),
+            DB::raw('people_id as owner_id'),
+            DB::raw("people.name as ownerName"),
             'sale_debts.created_at',
             'sale_debts.updated_at'
-        )->where("discount", "!=", 0)
-            ->leftJoin('clients', 'clients.id', '=', 'sale_debts.client_id')
-            ->leftJoin('suppliers', 'suppliers.id', '=', 'sale_debts.supplier_id')
-            ->leftJoin('employees', 'employees.id', '=', 'sale_debts.employee_id');
-
-        $services = SaleDebt::select(
-            DB::raw("'sale_debts' as tableName"),
-            DB::raw("CASE
-            WHEN client_id IS NOT NULL THEN 'client'
-            WHEN supplier_id IS NOT NULL THEN 'supplier'
-            WHEN employee_id IS NOT NULL THEN 'employee'
-         END as clientType"),
-            'type',
-            DB::raw('null as invoice_id'),
-            'sale_debts.id',
-            DB::raw("0 as expense"),
-            DB::raw("0 as income"),
-            DB::raw('0 as futureExpense'),
-            DB::raw('service as futureIncome'),
-            'due_date',
-            'payment',
-            'bank',
-            'bank_id',
-            'sale_debts.note',
-            DB::raw('COALESCE(client_id, supplier_id, employee_id) as owner_id'),
-            DB::raw("COALESCE(clients.clientName, suppliers.supplierName, employees.employeeName) as ownerName"),
-            'sale_debts.created_at',
-            'sale_debts.updated_at'
-        )->where("service", "!=", 0)
-            ->leftJoin('clients', 'clients.id', '=', 'sale_debts.client_id')
-            ->leftJoin('suppliers', 'suppliers.id', '=', 'sale_debts.supplier_id')
-            ->leftJoin('employees', 'employees.id', '=', 'sale_debts.employee_id');
+        )
+            ->leftJoin('people', 'people.id', '=', 'sale_debts.people_id');
 
         // استعلام مرتجعات المبيعات
         $returnSale = SaleReturn::select(
             DB::raw("'sale_returns' as tableName"),
-            DB::raw("CASE
-            WHEN sales.client_id IS NOT NULL THEN 'client'
-            WHEN sales.supplier_id IS NOT NULL THEN 'supplier'
-            WHEN sales.employee_id IS NOT NULL THEN 'employee'
-         END as clientType"),
+            DB::raw("people.type as clientType"),
             DB::raw('null as type'),
             'sale_id as invoice_id',
             'sale_returns.id',
@@ -208,24 +143,18 @@ class Sale extends Model
             DB::raw('null as bank'),
             DB::raw('null as bank_id'),
             DB::raw('CONCAT("مرتجعات مبيعات لفاتوره #", sale_id) as note'),
-            DB::raw('COALESCE(sales.client_id, sales.supplier_id, sales.employee_id) as owner_id'),
-            DB::raw("COALESCE(clients.clientName, suppliers.supplierName, employees.employeeName) as ownerName"),
+            DB::raw('people_id as owner_id'),
+            DB::raw("people.name as ownerName"),
             'sale_returns.created_at',
             'sale_returns.updated_at'
         )
             ->join('sales', 'sales.id', '=', 'sale_returns.sale_id')
-            ->leftJoin('clients', 'clients.id', '=', 'sales.client_id')
-            ->leftJoin('suppliers', 'suppliers.id', '=', 'sales.supplier_id')
-            ->leftJoin('employees', 'employees.id', '=', 'sales.employee_id');
+            ->leftJoin('people', 'people.id', '=', 'sales.people_id');
 
         // استعلام المدفوعات المتعلقة بمرتجعات المبيعات
         $paidReturnSale = SaleReturn::select(
             DB::raw("'sale_returns' as tableName"),
-            DB::raw("CASE
-            WHEN sales.client_id IS NOT NULL THEN 'client'
-            WHEN sales.supplier_id IS NOT NULL THEN 'supplier'
-            WHEN sales.employee_id IS NOT NULL THEN 'employee'
-         END as clientType"),
+            DB::raw("people.type as clientType"),
             DB::raw('null as type'),
             'sale_id as invoice_id',
             'sale_returns.id',
@@ -238,36 +167,30 @@ class Sale extends Model
             DB::raw('null as bank'),
             DB::raw('null as bank_id'),
             DB::raw('CONCAT("مدفوعات مرتجع لفاتوره #", sale_id) as note'),
-            DB::raw('COALESCE(sales.client_id, sales.supplier_id, sales.employee_id) as owner_id'),
-            DB::raw("COALESCE(clients.clientName, suppliers.supplierName, employees.employeeName) as ownerName"),
+            DB::raw('people_id as owner_id'),
+            DB::raw("people.name as ownerName"),
             'sale_returns.created_at',
             'sale_returns.updated_at'
         )->where("sale_returns.amount", "!=", 0)
             ->join('sales', 'sales.id', '=', 'sale_returns.sale_id')
-            ->leftJoin('clients', 'clients.id', '=', 'sales.client_id')
-            ->leftJoin('suppliers', 'suppliers.id', '=', 'sales.supplier_id')
-            ->leftJoin('employees', 'employees.id', '=', 'sales.employee_id');
+            ->leftJoin('people', 'people.id', '=', 'sales.people_id');
 
         // تطبيق الفلترة عند الحاجة
         if ($id != null) {
-            $sales = $sales->where($clientType . "_id", $id);
-            $paidSales = $paidSales->where($clientType . "_id", $id);
-            $saleDebts = $saleDebts->where($clientType . "_id", $id);
-            $discounts = $discounts->where($clientType . "_id", $id);
-            $services = $services->where($clientType . "_id", $id);
-            $returnSale = $returnSale->whereHas('sale', function ($query) use ($clientType, $id) {
-                $query->where($clientType . "_id", $id);
+            $sales = $sales->where("people_id", $id);
+            $paidSales = $paidSales->where("people_id", $id);
+            $saleDebts = $saleDebts->where("people_id", $id);
+            $returnSale = $returnSale->whereHas('sale', function ($query) use ($id) {
+                $query->where("people_id", $id);
             });
-            $paidReturnSale = $paidReturnSale->whereHas('sale', function ($query) use ($clientType, $id) {
-                $query->where($clientType . "_id", $id);
+            $paidReturnSale = $paidReturnSale->whereHas('sale', function ($query) use ($id) {
+                $query->where("people_id", $id);
             });
         }
 
         // دمج النتائج
         return $sales->union($paidSales)
             ->union($saleDebts)
-            ->union($discounts)
-            ->union($services)
             ->union($returnSale)
             ->union($paidReturnSale)
             ->orderBy('due_date', 'asc')

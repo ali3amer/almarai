@@ -37,7 +37,7 @@
                                     @foreach($clients as $client)
                                         <tr style="cursor: pointer" wire:click="chooseClient({{$client}})"
                                             data-bs-dismiss="modal">
-                                            <td>{{$client[$buyer.'Name']}}</td>
+                                            <td>{{$client['name']}}</td>
                                         </tr>
                                     @endforeach
                                     </tbody>
@@ -122,7 +122,7 @@
             <div class="card mb-2">
                 <div class="card-body">
                     <input type="text" autocomplete="off"  class="form-control text-center" style="cursor: pointer"
-                           wire:model.live="currentClient.{{$buyer.'Name'}}" readonly placeholder="اسم العميل ...."
+                           wire:model.live="currentClient.{{'name'}}" readonly placeholder="اسم العميل ...."
                            data-bs-toggle="modal"
                            data-bs-target="#clientsModal">
                 </div>
@@ -133,7 +133,7 @@
                     <div class="card-body">
                         <div class="card-title">
                             <div class="row">
-                                <div class="col-3"><h6>فواتير {{$currentClient[$buyer.'Name'] ?? ''}}</h6></div>
+                                <div class="col-3"><h6>فواتير {{$currentClient['name'] ?? ''}}</h6></div>
                                 <div class="col-9"><input type="text" autocomplete="off"  placeholder="رقم الفاتوره ...." class="form-control text-center" wire:model.live="saleSearch"></div>
                             </div>
                         </div>

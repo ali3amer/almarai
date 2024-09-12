@@ -27,7 +27,9 @@ class Deposit extends Component
     public string $phone = '';
     public string $search = '';
     public string|null $note = '';
-    public $initialBalance = 0;
+    public $initialSalesBalance = 0;
+    public $initialPurchasesBalance = 0;
+    public $initialDepositsBalance = 0;
     public $amount = 0;
     public string $bank = '';
     public string $startingDate = '';
@@ -51,7 +53,7 @@ class Deposit extends Component
     protected function rules()
     {
         return [
-            'name' => 'required|unique:deposits,name,' . $this->id
+            'name' => 'required|unique:people,name,' . $this->id
         ];
     }
 
@@ -81,23 +83,22 @@ class Deposit extends Component
 
         if ($this->validate()) {
             if ($this->id == 0) {
-                \App\Models\Deposit::create(['name' => $this->name, 'phone' => $this->phone, 'initialBalance' => floatval($this->initialBalance), 'startingDate' => $this->startingDate, 'blocked' => $this->blocked]);
+                \App\Models\People::create(['name' => $this->name, 'phone' => $this->phone, 'initialSalesBalance' => floatval($this->initialSalesBalance), 'initialDepositsBalance' => floatval($this->initialDepositsBalance), 'initialPurchasesBalance' => floatval($this->initialPurchasesBalance), 'type' => "deposit", 'startingDate' => $this->startingDate, 'blocked' => $this->blocked]);
                 $this->alert('success', 'تم الحفظ بنجاح', ['timerProgressBar' => true]);
             } else {
-                $deposit = \App\Models\Deposit::find($id);
+                $deposit = \App\Models\People::find($id);
                 $deposit->name = $this->name;
                 $deposit->phone = $this->phone;
                 $deposit->note = $this->note;
-                $deposit->initialBalance = floatval($this->initialBalance);
+                $deposit->initialSalesBalance = floatval($this->initialSalesBalance);
+                $deposit->initialPurchasesBalance = floatval($this->initialPurchasesBalance);
+                $deposit->initialDepositsBalance = floatval($this->initialDepositsBalance);
+                $deposit->blocked = $this->blocked;
+
                 $deposit->save();
                 $this->alert('success', 'تم التعديل بنجاح', ['timerProgressBar' => true]);
             }
-            $this->id = 0;
-            $this->name = '';
-            $this->phone = '';
-            $this->initialBalance = 0;
-            $this->note = '';
-            $this->blocked = false;
+            $this->resetData();
         }
 
     }
@@ -105,7 +106,7 @@ class Deposit extends Component
     public function changeBlocked($deposit)
     {
         $this->blocked = !$deposit['blocked'];
-        \App\Models\Deposit::where('id', $deposit['id'])->update(['blocked' => $this->blocked]);
+        \App\Models\People::where('id', $deposit['id'])->update(['blocked' => $this->blocked]);
         $this->resetData();
         $this->alert('success', "تم تغيير حالة الى النقدي", ['timerProgressBar' => true]);
 
@@ -116,7 +117,9 @@ class Deposit extends Component
         $this->id = $deposit['id'];
         $this->name = $deposit['name'];
         $this->phone = $deposit['phone'];
-        $this->initialBalance = $deposit['initialBalance'];
+        $this->initialSalesBalance = $deposit['initialSalesBalance'];
+        $this->initialPurchasesBalance = $deposit['initialPurchasesBalance'];
+        $this->initialDepositsBalance = $deposit['initialDepositsBalance'];
         $this->blocked = $deposit['blocked'];
         $this->note = $deposit['note'];
         $this->startingDate = $deposit['startingDate'];
@@ -148,8 +151,8 @@ class Deposit extends Component
     public function showDebts($deposit)
     {
         $this->currentDeposit = $deposit;
-        $this->debts = DepositDebt::where("deposit_id", $this->currentDeposit['id'])->get();
-        $this->currentBalance = \App\Models\Deposit::find($this->currentDeposit['id'])->currentBalance;
+        $this->debts = DepositDebt::where("people_id", $this->currentDeposit['id'])->get();
+        $this->currentBalance = \App\Models\People::find($this->currentDeposit['id'])->currentDepositsBalance;
 
     }
 
@@ -175,7 +178,7 @@ class Deposit extends Component
                 }
                 if (floatval($this->amount) != 0) {
                     $debt = DepositDebt::create([
-                        'deposit_id' => $this->currentDeposit['id'],
+                        'people_id' => $this->currentDeposit['id'],
                         'type' => $this->type,
                         'amount' => $this->amount,
                         'payment' => $this->payment,
@@ -260,7 +263,7 @@ class Deposit extends Component
 
     public function resetData($data = null)
     {
-        $this->reset('type', 'amount', 'debtId', 'payment', 'bank', 'bank_id', 'due_date', 'blocked', 'note', $data);
+        $this->reset('type', 'name', 'initialSalesBalance', 'initialPurchasesBalance', 'initialDepositsBalance', 'amount', 'debtId', 'payment', 'bank', 'bank_id', 'due_date', 'blocked', 'note', $data);
     }
 
     public function render()
@@ -278,7 +281,7 @@ class Deposit extends Component
         if ($this->startingDate == '') {
             $this->startingDate = session("date");
         }
-        $this->deposits = \App\Models\Deposit::where('name', 'like', '%' . $this->search . '%')->orWhere('phone', 'like', '%' . $this->search . '%')->get();
+        $this->deposits = \App\Models\People::where("type", "deposit")->where('name', 'like', '%' . $this->search . '%')->get();
         return view('livewire.deposit');
     }
 }

@@ -17,7 +17,7 @@
                                     <tbody>
                                     <tr>
                                         <td>السيد</td>
-                                        <td>{{$currentEmployee['employeeName']}}</td>
+                                        <td>{{$currentEmployee['name']}}</td>
                                     </tr>
                                     <tr>
                                         <td>البيان</td>
@@ -47,10 +47,9 @@
                                         <td>
                                             @if(isset($currentReceipt['futureExpense']))
                                                 {{$currentReceipt['futureExpense'] != 0 ? number_format($currentReceipt['futureExpense'], 2) : ($currentReceipt['futureIncome'] != 0 ? number_format($currentReceipt['futureIncome'], 2) : ($currentReceipt['expense'] != 0 ? number_format($currentReceipt['expense'], 2) : number_format($currentReceipt['income'], 2)))}}
-                                            @elseif(isset($currentReceipt['service']) && $currentReceipt['service'] != 0)
-                                                {{ $currentReceipt['service'] }}
+
                                             @else
-                                                {{ isset($currentReceipt['discount']) && $currentReceipt['discount'] != 0 ? number_format($currentReceipt['discount'] ,2) : number_format($currentReceipt['amount'], 2) }}
+                                                {{ number_format($currentReceipt['amount'], 2) }}
                                             @endif
                                         </td>
                                     </tr>
@@ -74,27 +73,21 @@
                 <div class="card">
                     <div class="card-body">
                         <form action="" wire:submit="save({{ $id }})">
-                            <label for="employeeName" class="form-label">إسم الموظف</label>
-                            <input type="text" autocomplete="off" wire:model="employeeName" class="form-control"
-                                   placeholder="إسم الموظف ..." id="employeeName">
+                            <label for="name" class="form-label">إسم الموظف</label>
+                            <input type="text" autocomplete="off" wire:model="name" class="form-control"
+                                   placeholder="إسم الموظف ..." id="name">
                             <div>
-                                @error('employeeName') <span
+                                @error('name') <span
                                     class="error text-danger">{{ $message }}</span> @enderror
                             </div>
-                            <label for="employeeName" class="form-label">المرتب</label>
-                            <input type="text" autocomplete="off" wire:model.live="salary" class="form-control"
-                                   placeholder="المرتب"
-                                   id="salary">
-                            <div>
-                                @error('salary') <span class="error text-danger">{{ $message }}</span> @enderror
-                            </div>
 
-                            <label for="initialBalance" class="form-label">الرصيد الإفتتاحي</label>
-                            <input type="text" autocomplete="off" wire:model="initialBalance" class="form-control"
+
+                            <label for="initialSalesBalance" class="form-label">الرصيد الإفتتاحي</label>
+                            <input type="text" autocomplete="off" wire:model="initialSalesBalance" class="form-control"
                                    placeholder="الرصيد الإفتتاحي"
-                                   id="initialBalance">
+                                   id="initialSalesBalance">
                             <div>
-                                @error('initialBalance') <span class="error text-danger">{{ $message }}</span> @enderror
+                                @error('initialSalesBalance') <span class="error text-danger">{{ $message }}</span> @enderror
                             </div>
 
                             <label for="startingDate">تاريخ الإضافه</label>
@@ -104,7 +97,7 @@
 
                             <div class="d-grid mt-2">
                                 <button type="submit"
-                                        @disabled($employeeName == '' || $salary <= 0) @disabled(!$create)  data-bs-dismiss="modal"
+                                        @disabled($name == '') @disabled(!$create)  data-bs-dismiss="modal"
                                         aria-label="Close"
                                         class="btn btn- btn-{{ $editMode ? 'success' : 'primary' }}">{{ $editMode ? 'تعـــــــــــــــديل' : 'حفـــــــــــــــــــظ' }}</button>
                             </div>
@@ -127,7 +120,6 @@
                                     <tr>
                                         <th>#</th>
                                         <th>إسم الموظف</th>
-                                        <th>المرتب</th>
                                         <th>الرصيد الإفتتاحي</th>
                                         <th>الرصيد الحالي</th>
                                         <th>التحكم</th>
@@ -137,9 +129,8 @@
                                     @foreach($employees as $employee)
                                         <tr>
                                             <td>{{ $loop->index + 1 }}</td>
-                                            <td>{{ $employee->employeeName }}</td>
-                                            <td>{{ number_format($employee->salary, 2) }}</td>
-                                            <td>{{ number_format($employee->initialBalance, 2) }}</td>
+                                            <td>{{ $employee->name }}</td>
+                                            <td>{{ number_format($employee->initialSalesBalance, 2) }}</td>
                                             <td>{{ number_format($employee->currentBalance, 2) }}</td>
                                             <td>
                                                 <button
@@ -176,13 +167,13 @@
                 <div class="card">
                     <div class="card-body">
 
-                        <label for="employeeName">إسم الموظف</label>
-                        <input id="employeeName"
+                        <label for="name">إسم الموظف</label>
+                        <input id="name"
                                @click="$dispatch('reset-employee', { data: 'currentEmployee' })" type="text"
                                readonly
                                style="cursor:pointer;"
                                class="form-control text-center border-danger"
-                               wire:model.live="currentEmployee.employeeName">
+                               wire:model.live="currentEmployee.name">
 
                         <div class="row">
                             <div class="col-6">
@@ -192,6 +183,7 @@
                                         wire:model.live="type">
                                     <option value="gift">حافز او مرتب او سلفيه</option>
                                     <option value="pay">سداد</option>
+                                    <option value="discount">خصم</option>
                                 </select>
                             </div>
 
@@ -207,7 +199,7 @@
                                 <label for="amount">المدفوع</label>
                                 <input type="text" id="amount" autocomplete="off"
                                        class="form-control text-center"
-                                       @disabled($type == "pay" && $editDebtMode && floatval($discount) > 0)
+                                       @disabled($type == "pay" && $editDebtMode)
                                        placeholder="المبلغ ...."
                                        wire:model.live="amount">
 
@@ -216,7 +208,7 @@
                             <div class="col-6">
                                 <label for="payment">طريقة الدفع</label>
                                 <select id="payment"
-                                        @disabled($type == "pay" && $editDebtMode && floatval($discount) > 0) @disabled($banks->count() == 0) class="form-select text-center"
+                                        @disabled($type == "pay" && $editDebtMode) @disabled($banks->count() == 0) class="form-select text-center"
                                         wire:model.live="payment">
                                     <option value="cash">كاش</option>
                                     <option value="bank">بنك</option>
@@ -228,7 +220,7 @@
                             <div class="col-6">
                                 <label for="bank_id">البنك</label>
                                 <select id="bank_id"
-                                        @disabled($type == "pay" && $editDebtMode && floatval($discount) > 0) @disabled($banks->count() == 0) @disabled($payment == 'cash') class="form-select text-center"
+                                        @disabled($type == "pay" && $editDebtMode) @disabled($banks->count() == 0) @disabled($payment == 'cash') class="form-select text-center"
                                         wire:model="bank_id">
                                     @foreach($banks as $bank)
                                         <option value="{{$bank->id}}">{{$bank->bankName}}</option>
@@ -242,24 +234,13 @@
                             <div class="col-6">
                                 <label for="bank">رقم الايصال</label>
                                 <input type="text" id="bank" autocomplete="off" class="form-control text-center"
-                                       @disabled($type == "pay" && $editDebtMode && floatval($discount) > 0) @disabled($payment == 'cash') placeholder="رقم الإيصال ...."
+                                       @disabled($type == "pay" && $editDebtMode) @disabled($payment == 'cash') placeholder="رقم الإيصال ...."
                                        wire:model.live="bank">
                             </div>
                         </div>
 
                         <div class="row">
-                            @if($type == "pay")
-                                <div class="col-6">
-                                    <label for="discount">التخفيض</label>
-
-                                    <input type="text" id="discount" autocomplete="off" class="form-control text-center"
-                                           @disabled($type == "pay" && $editDebtMode && floatval($amount) > 0) placeholder="التخفيض ...."
-                                           wire:model.live="discount">
-
-                                </div>
-                            @endif
-
-                            <div class="col-{{ $type == "pay" ? "6" : "12" }}">
+                            <div class="col-12">
 
                                 <label for="note">ملاحظات</label>
 
@@ -271,12 +252,12 @@
 
                         @if(!session("closed") || $payment == "bank")
                             @if($editGiftMode || $editDebtMode)
-                                <button class="btn btn-success w-100"
+                                <button @disabled(floatval($amount) == 0) class="btn btn-success w-100"
                                         @if($type == "gift") wire:click="updateGift()"
                                         @else wire:click="updateDebt()" @endif>تعديل
                                 </button>
                             @else
-                                <button class="btn btn-primary w-100"
+                                <button class="btn btn-primary w-100" @disabled(floatval($amount) == 0)
                                         @disabled($payment == "bank" && $bank_id == null) @if($type == "gift") wire:click="payGift()"
                                         @else wire:click="payDebt()" @endif>{{ $type == "gift" ? "دفع" : "سداد" }}
                                 </button>

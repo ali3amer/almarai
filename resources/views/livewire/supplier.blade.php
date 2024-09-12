@@ -17,7 +17,7 @@
                                     <tbody>
                                     <tr>
                                         <td>السيد</td>
-                                        <td>{{$currentSupplier['supplierName']}}</td>
+                                        <td>{{$currentSupplier['name']}}</td>
                                     </tr>
                                     <tr>
                                         <td>البيان</td>
@@ -47,10 +47,8 @@
                                         <td>
                                             @if(isset($currentReceipt['futureExpense']))
                                                 {{$currentReceipt['futureExpense'] != 0 ? number_format($currentReceipt['futureExpense'], 2) : ($currentReceipt['futureIncome'] != 0 ? number_format($currentReceipt['futureIncome'], 2) : ($currentReceipt['expense'] != 0 ? number_format($currentReceipt['expense'], 2) : number_format($currentReceipt['income'], 2)))}}
-                                            @elseif(isset($currentReceipt['service']) && $currentReceipt['service'] != 0)
-                                                {{ $currentReceipt['service'] }}
                                             @else
-                                                {{ $currentReceipt['discount'] != 0 ? number_format($currentReceipt['discount'] ,2) : number_format($currentReceipt['amount'], 2) }}
+                                                {{ number_format($currentReceipt['amount'], 2) }}
                                             @endif
                                         </td>
                                     </tr>
@@ -74,12 +72,12 @@
                 <div class="card bg-white">
                     <div class="card-body">
                         <form action="" wire:submit="save({{ $id }})">
-                            <label for="supplierName" class="form-label">إسم المورد</label>
-                            <input type="text" wire:model="supplierName" autocomplete="off" class="form-control"
+                            <label for="name" class="form-label">إسم المورد</label>
+                            <input type="text" wire:model="name" autocomplete="off" class="form-control"
                                    placeholder="إسم المورد ..."
-                                   id="supplierName">
+                                   id="name">
                             <div>
-                                @error('supplierName') <span class="error text-danger">{{ $message }}</span> @enderror
+                                @error('name') <span class="error text-danger">{{ $message }}</span> @enderror
                             </div>
                             <label for="phone" class="form-label">الهاتف</label>
                             <input type="text" wire:model="phone" class="form-control" autocomplete="off"
@@ -88,11 +86,13 @@
                             <div>
                                 @error('phone') <span class="error text-danger">{{ $message }}</span> @enderror
                             </div>
-                            <label for="initialBalance" class="form-label">الرصيد الافتتاحي</label>
-                            <input type="text" wire:model="initialBalance" autocomplete="off" class="form-control"
-                                   placeholder="الرصيد الافتتاحي ..." id="initialBalance">
+                            <label for="initialPurchasesBalance" class="form-label">الرصيد الافتتاحي للمشتريات</label>
+                            <input type="text" wire:model="initialPurchasesBalance" autocomplete="off"
+                                   class="form-control"
+                                   placeholder="الرصيد الافتتاحي للمشتريات ..." id="initialPurchasesBalance">
                             <div>
-                                @error('initialBalance') <span class="error text-danger">{{ $message }}</span> @enderror
+                                @error('initialPurchasesBalance') <span
+                                    class="error text-danger">{{ $message }}</span> @enderror
                             </div>
 
                             <label for="initialSalesBalance" class="form-label">الرصيد الافتتاحي للمبيعات</label>
@@ -100,6 +100,15 @@
                                    placeholder="الرصيد الافتتاحي للمبيعات ..." id="initialSalesBalance">
                             <div>
                                 @error('initialSalesBalance') <span
+                                    class="error text-danger">{{ $message }}</span> @enderror
+                            </div>
+
+                            <label for="initialDepositsBalance" class="form-label">الرصيد الافتتاحي للأمانات</label>
+                            <input type="text" wire:model="initialDepositsBalance" autocomplete="off"
+                                   class="form-control"
+                                   placeholder="الرصيد الافتتاحي للأمانات ..." id="initialPurchasesBalance">
+                            <div>
+                                @error('initialDepositsBalance') <span
                                     class="error text-danger">{{ $message }}</span> @enderror
                             </div>
 
@@ -140,10 +149,9 @@
                                         <th>#</th>
                                         <th>إسم المورد</th>
                                         <th>الهاتف</th>
-                                        <th>الرصيد الافتتاحي</th>
+                                        <th>الرصيد الافتتاحي للمشتريات</th>
                                         <th>الرصيد الافتتاحي للمبيعات</th>
-                                        <th>الرصيد الحالي</th>
-                                        <th>رصيد المبيعات الحالي</th>
+                                        <th>الرصيد الافتتاحي للأمانات</th>
                                         <th class="d-none">نقدي</th>
                                         <th>التحكم</th>
                                     </tr>
@@ -152,12 +160,11 @@
                                     @foreach($suppliers as $supplier)
                                         <tr>
                                             <td>{{ $loop->index + 1 }}</td>
-                                            <td>{{ $supplier->supplierName }}</td>
+                                            <td>{{ $supplier->name }}</td>
                                             <td>{{ $supplier->phone }}</td>
-                                            <td>{{ number_format($supplier->initialBalance, 2) }}</td>
+                                            <td>{{ number_format($supplier->initialPurchasesBalance, 2) }}</td>
                                             <td>{{ number_format($supplier->initialSalesBalance, 2) }}</td>
-                                            <td>{{ number_format($supplier->currentBalance, 2) }}</td>
-                                            <td>{{ number_format($supplier->currentSalesBalance, 2) }}</td>
+                                            <td>{{ number_format($supplier->initialDepositsBalance, 2) }}</td>
                                             <td class="d-none">{{ $supplier->cash ? "نعم" : "لا" }}</td>
                                             <td>
                                                 <button
@@ -211,7 +218,7 @@
                                 </div>
                                 <div class="col-9">
                                     <input type="text" style="cursor:pointer;" wire:click="resetData('currentSupplier')"
-                                           readonly value="{{$currentSupplier['supplierName']}}"
+                                           readonly value="{{$currentSupplier['name']}}"
                                            class="border-danger form-control text-center" placeholder="إسم العيل">
                                 </div>
                             </div>
@@ -223,6 +230,7 @@
                                 <select class="form-select text-center" wire:model.live="type">
                                     <option value="debt">دين</option>
                                     <option value="pay">توريد</option>
+                                    <option value="discount">خصم</option>
                                 </select>
                             </div>
                             <div class="col-6">
@@ -235,7 +243,7 @@
                             <div class="col-6">
                                 <label for="amount">المبلغ المدفوع</label>
                                 <input type="text"
-                                       @disabled(floatval($service) != 0 || floatval($discount) != 0) wire:model.live="amount"
+                                       wire:model.live="amount"
                                        autocomplete="off" id="amount"
                                        class="form-control text-center"
                                        placeholder="المدفوع ....">
@@ -243,7 +251,7 @@
                             <div class="col-6">
                                 <label for="payment">طريقة الدفع</label>
                                 <select
-                                    @disabled($banks->count() == 0) @disabled($debtId != 0 && $discount != 0) class="form-select text-center"
+                                    @disabled($banks->count() == 0) @disabled($debtId != 0 && $type == "discount") class="form-select text-center"
                                     wire:model.live="payment">
                                     <option value="cash">كاش</option>
                                     <option value="bank">بنك</option>
@@ -271,19 +279,7 @@
 
                             </div>
 
-                            @if($type == "pay")
-                                <div class="col-6">
-                                    <label for="discount">{{ $debtType == 'purchases' ? "الخصم" : "التخفيض" }}</label>
-                                    <input
-                                        @disabled($debtId != 0 && $discount == 0) @disabled(floatval($amount) != 0 || floatval($service) != 0) autocomplete="off"
-                                        type="text"
-                                        wire:model.live="discount" id="discount"
-                                        class="form-control text-center mb-2"
-                                        placeholder="{{ $debtType == 'purchases' ? "خصم" : "تخفيض" }} ....">
-                                </div>
-                            @endif
-
-                            <div class="col-{{ $type == "pay" ? '6' : '12' }}">
+                            <div class="col-12">
                                 <label for="note">ملاحظات</label>
                                 <input autocomplete="off" type="text"
                                        wire:model="note" id="note"
@@ -293,28 +289,17 @@
                         </div>
 
                         <div class="row">
-                            @if($type == "pay" && $debtType == 'sales')
-                                <div class="col-6">
-                                    <label for="discount">خدمه</label>
-                                    <input
-                                        @disabled(floatval($amount) != 0 || floatval($discount) != 0) autocomplete="off"
-                                        type="text"
-                                        wire:model.live="service" id="service"
-                                        class="form-control text-center"
-                                        placeholder="خدمه ....">
-                                </div>
-                            @endif
 
                             @if(!session("closed") || $payment == "bank")
                                 <div
-                                    class="col-{{ $type == "pay" && $debtType == 'sales' ? '6' : '12' }} d-flex align-items-end">
+                                    class="col-12 d-flex align-items-end">
                                     @if($debtType == "purchases")
                                         <button data-bs-toggle="modal" data-bs-target="#debtModal"
-                                                @disabled($payment == "bank" && $banks->count() == 0) @disabled($currentSupplier['cash']) @disabled(empty($currentSupplier) || $due_date == '') @disabled($amount == 0 && $discount == 0) class="btn btn-{{$debtId == 0 ? 'primary' : 'success'}} w-100"
+                                                @disabled($payment == "bank" && $banks->count() == 0) @disabled($currentSupplier['cash']) @disabled(empty($currentSupplier) || $due_date == '') @disabled($amount == 0) class="btn btn-{{$debtId == 0 ? 'primary' : 'success'}} w-100"
                                                 wire:click="savePurchaseDebt()">{{$debtId == 0 ? 'دفــــع' : 'تعــــديل'}}</button>
                                     @else
                                         <button data-bs-toggle="modal" data-bs-target="#debtModal"
-                                                @disabled($payment == "bank" && $banks->count() == 0)  @disabled(empty($currentSupplier) || $due_date == '') @disabled($amount == 0 && $discount == 0 && $service == 0) class="btn btn-{{$debtId == 0 ? 'primary' : 'success'}} w-100"
+                                                @disabled($payment == "bank" && $banks->count() == 0)  @disabled(empty($currentSupplier) || $due_date == '') @disabled($amount == 0) class="btn btn-{{$debtId == 0 ? 'primary' : 'success'}} w-100"
                                                 wire:click="saveSaleDebt()">{{$debtId == 0 ? 'دفــــع' : 'تعــــديل'}}</button>
                                     @endif
                                 </div>
@@ -377,7 +362,8 @@
                                                         wire:click="chooseDebt({{ json_encode($debt) }})"><i
                                                         class="bi bi-pen"></i></button>
                                                 <button @disabled(!$delete) class="btn btn-sm btn-danger"
-                                                        wire:click="deleteDebtMessage({{ json_encode($debt['id']) }})"><i
+                                                        wire:click="deleteDebtMessage({{ json_encode($debt['id']) }})">
+                                                    <i
                                                         class="bi bi-trash"></i></button>
                                             @endif
                                         </td>

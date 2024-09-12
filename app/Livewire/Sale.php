@@ -6,6 +6,7 @@ use App\Models\ClientDebt;
 use App\Models\EmployeeDebt;
 use App\Models\Setting;
 use App\Models\SupplierDebt;
+use Illuminate\Support\Facades\DB;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
 
 use App\Models\Bank;
@@ -54,7 +55,7 @@ class Sale extends Component
     public array $cart = [];
     public string $saleSearch = '';
     public float $remainder = 0;
-    public float $currentBalance = 0;
+    public float $currentSalesBalance = 0;
     public bool $editMode = false;
     public Collection $saleDebts;
     public array $invoice = [];
@@ -74,16 +75,16 @@ class Sale extends Component
             ]);
         }
 
-        if (\App\Models\Client::count() == 0) {
-            \App\Models\Client::create(['clientName' => "نقدي", 'phone' => "", 'initialBalance' => 0, 'startingDate' => session("date"), 'blocked' => false, 'cash' => true]);
+        if (\App\Models\People::where("type", "client")->count() == 0) {
+            \App\Models\People::create(['name' => "نقدي", 'phone' => "", 'initialSalesBalance' => 0,'initialPurchasesBalance' => 0,'initialDepositsBalance' => 0, 'startingDate' => session("date"), 'type' => "client", 'blocked' => false, 'cash' => true]);
         }
-        if (\App\Models\Client::where("cash", true)->first() != null) {
-            $this->currentClient = \App\Models\Client::where("cash", true)->first()->toArray();
+        if (\App\Models\People::where("type", "client")->where("cash", true)->first() != null) {
+            $this->currentClient = \App\Models\People::where("type", "client")->where("cash", true)->first()->toArray();
         } else {
-            $this->currentClient = \App\Models\Client::first()->toArray();
+            $this->currentClient = \App\Models\People::where("type", "client")->first()->toArray();
         }
 
-        $this->currentBalance = \App\Models\Sale::where("client_id", $this->currentClient['id'])->sum("remainder") + $this->currentClient['initialBalance'];
+        $this->currentSalesBalance = \App\Models\Sale::where("people_id", $this->currentClient['id'])->sum("remainder") + $this->currentClient['initialSalesBalance'];
         $this->banks = Bank::all();
 
         if ($this->banks->count() != 0) {
@@ -95,7 +96,7 @@ class Sale extends Component
     {
         if ($this->id == 0) {
             $sale = \App\Models\Sale::create([
-                $this->buyer . '_id' => $this->currentClient['id'],
+                'people_id' => $this->currentClient['id'],
                 'payment' => $this->payment,
                 'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
                 'bank' => $this->bank,
@@ -108,7 +109,7 @@ class Sale extends Component
                 'user_id' => auth()->id(),
             ]);
             $this->id = $sale['id'];
-            $this->currentBalance += $this->remainder;
+            $this->currentSalesBalance += $this->remainder;
 
 
             foreach ($this->cart as $item) {
@@ -121,9 +122,7 @@ class Sale extends Component
             }
         } else {
             \App\Models\Sale::where("id", $this->id)->update([
-                "client_id" => $this->invoice['buyer'] . "_id" == "client_id" ? $this->currentClient['id'] : null,
-                "supplier_id" => $this->invoice['buyer'] . "_id" == "supplier_id" ? $this->currentClient['id'] : null,
-                "employee_id" => $this->invoice['buyer'] . "_id" == "employee_id" ? $this->currentClient['id'] : null,
+                "people_id" => $this->currentClient['id'],
                 'payment' => $this->payment,
                 'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
                 'bank' => $this->bank,
@@ -136,8 +135,8 @@ class Sale extends Component
                 'user_id' => auth()->id(),
             ]);
 
-            $this->currentBalance -= $this->invoice['remainder'];
-            $this->currentBalance += $this->remainder;
+            $this->currentSalesBalance -= $this->invoice['remainder'];
+            $this->currentSalesBalance += $this->remainder;
             SaleDetail::where("sale_id", $this->id)->forceDelete();
             foreach ($this->cart as $item) {
                 SaleDetail::create([
@@ -162,7 +161,7 @@ class Sale extends Component
         $this->invoice['id'] = $id;
         $this->invoice['type'] = 'sale';
         $this->invoice['date'] = $this->due_date;
-        $this->invoice['client'] = $this->currentClient[$this->buyer . 'Name'];
+        $this->invoice['client'] = $this->currentClient['name'];
         $this->invoice['cart'] = $this->cart;
         $this->invoice['remainder'] = $this->remainder;
         $this->invoice['discount'] = floatval($this->discount);
@@ -178,16 +177,9 @@ class Sale extends Component
         $this->currentClient = $client;
         $this->currentClient['blocked'] = $this->buyer != 'employee' ? $this->currentClient['blocked'] : false;
         $this->currentClient['cash'] = $this->buyer == "client" ? $this->currentClient['cash'] : false;
-        if ($this->buyer == 'client') {
-            $client = \App\Models\Client::find($client['id']);
-            $this->currentBalance = $client->currentBalance;
-        } elseif ($this->buyer == 'supplier') {
-            $client = \App\Models\Supplier::find($client['id']);
-            $this->currentBalance = $client->currentSalesBalance;
-        } elseif ($this->buyer == 'employee') {
-            $client = \App\Models\Employee::find($client['id']);
-            $this->currentBalance = $client->currentBalance;
-        }
+        $client = \App\Models\People::find($client['id']);
+        $this->currentSalesBalance = $client->currentSalesBalance;
+
 
         if ($this->currentClient['cash']) {
             $this->paid = $this->amount;
@@ -284,7 +276,7 @@ class Sale extends Component
         $this->invoice['payment'] = $sale['payment'];
         $this->invoice['bank'] = $sale['bank'];
         $this->invoice['bank_id'] = $sale['bank_id'];
-        $this->invoice['client'] = $this->currentClient[$this->buyer . 'Name'];
+        $this->invoice['client'] = $this->currentClient['name'];
         $this->invoice['cart'] = SaleDetail::where('sale_id', $sale['id'])->join('products', 'products.id', '=', 'sale_details.product_id')->get()->keyBy("product_id")->toArray();
         $this->invoice['remainder'] = floatval($sale['remainder']);
         $this->invoice['paid'] = floatval($sale['paid']);
@@ -384,19 +376,13 @@ class Sale extends Component
         }
 
         if (!empty($this->currentClient)) {
-            $this->sales = \App\Models\Sale::where($this->buyer . '_id', $this->currentClient['id'])
+            $this->sales = \App\Models\Sale::where('people_id', $this->currentClient['id'])
                 ->where('id', 'LIKE', '%' . $this->saleSearch . '%')->latest()->get();
         }
         if ($this->due_date == '') {
             $this->due_date = session("date");
         }
-        if ($this->buyer == 'client') {
-            $this->clients = \App\Models\Client::where('clientName', 'LIKE', '%' . $this->clientSearch . '%')->get();
-        } elseif ($this->buyer == 'employee') {
-            $this->clients = \App\Models\Employee::where('employeeName', 'LIKE', '%' . $this->clientSearch . '%')->get();
-        } elseif ($this->buyer == 'supplier') {
-            $this->clients = \App\Models\Supplier::where('supplierName', 'LIKE', '%' . $this->clientSearch . '%')->get();
-        }
+        $this->clients = \App\Models\People::where("type", $this->buyer)->where('name', 'LIKE', '%' . $this->clientSearch . '%')->get();
 
 
         if ($this->settings->barcode) {
