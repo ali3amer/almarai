@@ -41,7 +41,7 @@ class Employee extends Component
     public $amount = 0;
     public $initialSalesBalance = 0;
     public $initialPurchasesBalance = 0;
-    public $initialDepositBalance = 0;
+    public $initialDepositsBalance = 0;
 
     public array $currentEmployee = [];
     public bool $editMode = false;
@@ -112,7 +112,7 @@ class Employee extends Component
                 $employee->startingDate = $this->startingDate;
                 $employee->initialSalesBalance = $this->initialSalesBalance;
                 $employee->initialPurchasesBalance = $this->initialPurchasesBalance;
-                $employee->initialDepositBalance = $this->initialDepositBalance;
+                $employee->initialDepositsBalance = $this->initialDepositsBalance;
                 $employee->save();
                 $this->alert('success', 'تم التعديل بنجاح', ['timerProgressBar' => true]);
             }
@@ -129,7 +129,7 @@ class Employee extends Component
         $this->name = $employee['name'];
         $this->initialSalesBalance = $employee['initialSalesBalance'];
         $this->initialPurchasesBalance = $employee['initialPurchasesBalance'];
-        $this->initialDepositBalance = $employee['initialDepositBalance'];
+        $this->initialDepositsBalance = $employee['initialDepositsBalance'];
         $this->startingDate = $employee['startingDate'];
     }
 
@@ -277,11 +277,15 @@ class Employee extends Component
     public function payDebt()
     {
 
-        $note = 'تم إستلام مبلغ';
+        if ($this->type == "pay") {
+            $note = 'تم إستلام مبلغ';
+        } elseif ($this->type == "discount") {
+            $note = 'تم تخفيض مبلغ';
+        }
 
         $debt = SaleDebt::create([
             'people_id' => $this->currentEmployee['id'],
-            'type' => "pay",
+            'type' => $this->type,
             'amount' => floatval($this->amount),
             'payment' => $this->payment,
             'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,

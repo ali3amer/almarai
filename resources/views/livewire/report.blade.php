@@ -6,7 +6,7 @@
         </div>
     </div>
     <!-- Choose Client Modal -->
-    <div wire:ignore.self class="modal fade" id="clientModal" tabindex="-1" aria-labelledby="exampleModalLabel"
+    <div wire:ignore.self class="modal fade" id="peopleModal" tabindex="-1" aria-labelledby="exampleModalLabel"
          aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -35,11 +35,11 @@
                                     <tbody>
                                     @if(!empty($clients))
                                         @foreach($clients as $client)
-                                            <tr style="cursor: pointer" wire:click="chooseClient({{$client}})"
+                                            <tr style="cursor: pointer" wire:click="choosePeople({{$client}})"
                                                 data-bs-dismiss="modal"
                                                 aria-label="Close">
                                                 <td scope="row">{{$loop->index + 1}}</td>
-                                                <td>{{$client->clientName}}</td>
+                                                <td>{{$client->name}}</td>
                                             </tr>
                                         @endforeach
                                     @endif
@@ -53,101 +53,6 @@
         </div>
     </div>
 
-    <!-- Choose Supplier Modal -->
-    <div wire:ignore.self class="modal fade" id="supplierModal" tabindex="-1" aria-labelledby="supplierModalLabel"
-         aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    <h1 class="modal-title fs-5" id="supplierModalLabel">الموردين</h1>
-                </div>
-                <div class="modal-body">
-                    <div class="card">
-                        <div class="card-body">
-                            <div class="card-title">
-                                <div class="row">
-                                    <div class="col-4 align-self-center"><h5>الموردين</h5></div>
-                                    <div class="col-6"><input type="text" placeholder="بحث ..." class="form-control"
-                                                              wire:model.live="supplierSearch"></div>
-                                </div>
-                            </div>
-                            <div class="scroll">
-                                <table class="table table-responsive">
-                                    <thead>
-                                    <tr>
-                                        <th scope="col">#</th>
-                                        <th scope="col">إسم المورد</th>
-                                    </tr>
-                                    </thead>
-                                    <tbody>
-                                    @if(!empty($suppliers))
-                                        @foreach($suppliers as $supplier)
-                                            <tr style="cursor: pointer" wire:click="chooseSupplier({{$supplier}})"
-                                                data-bs-dismiss="modal"
-                                                aria-label="Close">
-                                                <td scope="row">{{$loop->index + 1}}</td>
-                                                <td>{{$supplier->supplierName}}</td>
-                                            </tr>
-                                        @endforeach
-                                    @endif
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Choose Employee Modal -->
-    <div wire:ignore.self class="modal fade" id="employeeModal" tabindex="-1" aria-labelledby="employeeModalLabel"
-         aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    <h1 class="modal-title fs-5" id="employeeModalLabel">الموظفين</h1>
-                </div>
-                <div class="modal-body">
-                    <div class="card">
-                        <div class="card-body">
-                            <div class="card-title">
-                                <div class="row">
-                                    <div class="col-4 align-self-center"><h5>الموظفين</h5></div>
-                                    <div class="col-6"><input type="text" placeholder="بحث ..." class="form-control"
-                                                              wire:model.live="employeeSearch"></div>
-                                </div>
-                            </div>
-                            <div class="scroll">
-                                <table class="table table-responsive">
-                                    <thead>
-                                    <tr>
-                                        <th scope="col">#</th>
-                                        <th scope="col">إسم الموظف</th>
-                                    </tr>
-                                    </thead>
-                                    <tbody>
-                                    @if(!empty($employees))
-                                        @foreach($employees as $employee)
-                                            <tr style="cursor: pointer" wire:click="chooseEmployee({{$employee}})"
-                                                data-bs-dismiss="modal"
-                                                aria-label="Close">
-                                                <td scope="row">{{$loop->index + 1}}</td>
-                                                <td>{{$employee->employeeName}}</td>
-                                            </tr>
-                                        @endforeach
-                                    @endif
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <!-- Choose Product Modal -->
     <div wire:ignore.self class="modal fade" id="productModal" tabindex="-1" aria-labelledby="productModalLabel"
@@ -272,18 +177,10 @@
                         </select>
                     @endif
 
-                    @if($reportType == 'client')
-                        <label for="client">العميل</label>
-                        <input data-bs-toggle="modal" wire:model="currentClient.clientName" readonly
-                               placeholder="إسم العميل ...." class="form-control" data-bs-target="#clientModal">
-                    @elseif($reportType == 'supplier')
-                        <label for="client">المورد</label>
-                        <input data-bs-toggle="modal" wire:model="currentSupplier.supplierName" readonly
-                               placeholder="إسم المورد ...." class="form-control" data-bs-target="#supplierModal">
-                    @elseif($reportType == 'employee')
-                        <label for="client">الموظف</label>
-                        <input data-bs-toggle="modal" wire:model="currentEmployee.employeeName" readonly
-                               placeholder="إسم الموظف ...." class="form-control" data-bs-target="#employeeModal">
+                    @if($reportType == 'client' || $reportType == 'supplier' || $reportType == 'employee')
+                        <label for="client">الإسم</label>
+                        <input data-bs-toggle="modal" wire:model="currentPeople.name" readonly
+                               placeholder="الإسم ...." class="form-control" data-bs-target="#peopleModal">
                     @endif
                     @if($reportType =='inventory' || $reportType =='sales' || $reportType =='purchases' || $reportType =='tracking')
                         <label for="store_id">المخزن</label>
@@ -317,7 +214,7 @@
                         @endif
                     @endif
                     <button
-                        @disabled($reportType == "employee" && empty($currentEmployee)) @disabled($reportType == "tracking" && empty($currentProduct)) @disabled($reportType == 'supplier' && empty($currentSupplier))  @disabled($reportType == 'client' && empty($currentClient)) @disabled($reportDuration == 'day' && $day == '') @disabled($reportDuration == 'duration' && $from == '') @disabled($reportDuration == 'duration' && $to == '') class="btn btn-primary w-100 mt-2"
+                        @disabled(($reportType == "employee" || $reportType == "supplier" || $reportType == "client") && empty($currentPeople)) @disabled($reportType == "tracking" && empty($currentProduct)) @disabled($reportDuration == 'day' && $day == '') @disabled($reportDuration == 'duration' && $from == '') @disabled($reportDuration == 'duration' && $to == '') class="btn btn-primary w-100 mt-2"
                         wire:click="chooseReport()">جلب التقرير
                     </button>
                 </div>
@@ -458,26 +355,26 @@
                         </tr>
                         </thead>
                         <tbody>
-                        @if(!empty($clients))
-                            @php $total = 0; @endphp
-                            @foreach($clients as $client)
-                                @php $total += $client->salesBalance; @endphp
-                                <tr>
-                                    <td>{{ $client->clientName }}</td>
-                                    <td>{{ number_format($client->currentBalance , 2) }}</td>
-                                </tr>
+                        @if(!empty($people))
+                            @foreach($people as $client)
+                                @if($client->type == "client")
+                                    <tr>
+                                        <td>{{ $client->name }}</td>
+                                        <td>{{ number_format($client->salesBalance , 2) }}</td>
+                                    </tr>
+                                @endif
                             @endforeach
                         @endif
 
                         <tr>
                             <th colspan="2" class="text-center">مبيعات الموردين</th>
                         </tr>
-                        @if(!empty($suppliers))
-                            @foreach($suppliers as $supplier)
-                                @if($supplier->salesBalance != 0)
+                        @if(!empty($people))
+                            @foreach($people as $supplier)
+                                @if($supplier->salesBalance != 0 && $supplier->type == "supplier")
                                     <tr>
-                                        <td>{{ $supplier->supplierName }}</td>
-                                        <td>{{ number_format($supplier->currentBalance , 2) }}</td>
+                                        <td>{{ $supplier->name }}</td>
+                                        <td>{{ number_format($supplier->salesBalance , 2) }}</td>
                                     </tr>
                                 @endif
                             @endforeach
@@ -486,12 +383,12 @@
                         <tr>
                             <th colspan="2" class="text-center">مبيعات الموظفين</th>
                         </tr>
-                        @if(!empty($employees))
-                            @foreach($employees as $employee)
-                                @if($employee->salesBalance != 0)
+                        @if(!empty($people))
+                            @foreach($people as $employee)
+                                @if($employee->salesBalance != 0 && $employee->type == "employee")
                                     <tr>
-                                        <td>{{ $employee->employeeName }}</td>
-                                        <td>{{ number_format($supplier->currentBalance , 2) }}</td>
+                                        <td>{{ $employee->name }}</td>
+                                        <td>{{ number_format($employee->salesBalance , 2) }}</td>
                                     </tr>
                                 @endif
                             @endforeach
@@ -522,14 +419,50 @@
                         </tr>
                         </thead>
                         <tbody>
-                        @if(!empty($suppliers))
-                            @foreach($suppliers as $supplier)
-                                <tr>
-                                    <td>{{ $supplier->supplierName }}</td>
-                                    <td>{{ number_format($supplier->purchasesBalance , 2) }}</td>
-                                </tr>
+                        <tr>
+                            <th colspan="2" class="text-center">مشتريات الموردين</th>
+                        </tr>
+                        @if(!empty($people))
+                            @foreach($people as $supplier)
+                                @if($supplier->type == "supplier")
+                                    <tr>
+                                        <td>{{ $supplier->name }}</td>
+                                        <td>{{ number_format($supplier->purchasesBalance , 2) }}</td>
+                                    </tr>
+                                @endif
                             @endforeach
                         @endif
+
+                        <tr>
+                            <th colspan="2" class="text-center">مشتريات العملاء</th>
+                        </tr>
+
+                        @if(!empty($people))
+                            @foreach($people as $client)
+                                @if($client->purchasesBalance != 0 && $client->type == "client")
+                                    <tr>
+                                        <td>{{ $client->name }}</td>
+                                        <td>{{ number_format($client->purchasesBalance , 2) }}</td>
+                                    </tr>
+                                @endif
+                            @endforeach
+                        @endif
+
+                        <tr>
+                            <th colspan="2" class="text-center">مشتريات الموظفيين</th>
+                        </tr>
+
+                        @if(!empty($people))
+                            @foreach($people as $employee)
+                                @if($employee->purchasesBalance != 0 && $employee->type == "employee")
+                                    <tr>
+                                        <td>{{ $employee->name }}</td>
+                                        <td>{{ number_format($employee->purchasesBalance , 2) }}</td>
+                                    </tr>
+                                @endif
+                            @endforeach
+                        @endif
+
                         </tbody>
                         <tfoot>
                         <tr>
@@ -556,21 +489,21 @@
                         </tr>
                         </thead>
                         <tbody>
-                        @if(!empty($deposits))
-                            @php $total = 0; @endphp
-                            @foreach($deposits as $deposit)
-                                @php $total += $deposit->currentBalance; @endphp
-                                <tr>
-                                    <td>{{ $deposit->name }}</td>
-                                    <td>{{ number_format($deposit->currentBalance , 2) }}</td>
-                                </tr>
+                        @if(!empty($people))
+                            @foreach($people as $deposit)
+                                @if($deposit->type == "deposit")
+                                    <tr>
+                                        <td>{{ $deposit->name }}</td>
+                                        <td>{{ number_format($deposit->depositsBalance , 2) }}</td>
+                                    </tr>
+                                @endif
                             @endforeach
                         @endif
                         </tbody>
                         <tfoot>
                         <tr>
                             <th>الجمله</th>
-                            <th>{{ number_format($total , 2) }}</th>
+                            <th>{{ number_format($totalDepositsBalance , 2) }}</th>
                         </tr>
                         </tfoot>
                     </table>
@@ -615,7 +548,7 @@
             </div>
         </div>
 
-    @elseif($reportType == 'client' && !empty($currentClient))
+    @elseif(($reportType == 'client' || $reportType == 'employee' || $reportType == 'supplier') && !empty($currentPeople))
 
         @if(!empty($saleDebts))
             <div class="card mt-2">
@@ -623,7 +556,7 @@
                     <div class="card-title">
                         <div class="row">
                             <div class="col-4"><h5>مبيعات
-                                    : {{$currentClient['clientName'] ?? ''}}</h5>
+                                    : {{$currentPeople['name'] ?? ''}}</h5>
                             </div>
                             <div class="col-4"><h5>الرصيد : {{number_format($salesBalance, 2)}}</h5></div>
 
@@ -642,14 +575,14 @@
                             </thead>
                             <tbody>
                             @php
-                                $currentBalance = $currentClient['initialBalance'];
+                                $currentBalance = $currentPeople['initialSalesBalance'];
                                 $incomes = 0;
-                                $expenses = $currentClient['initialBalance'];
+                                $expenses = $currentPeople['initialSalesBalance'];
                             @endphp
                             <tr>
                                 <td></td>
                                 <td>الرصيد السابق</td>
-                                <td>{{ number_format($currentClient['initialBalance'], 2) }}</td>
+                                <td>{{ number_format($currentPeople['initialSalesBalance'], 2) }}</td>
                                 <td>0</td>
                                 <td>{{ number_format($currentBalance, 2) }}</td>
                             </tr>
@@ -689,10 +622,11 @@
                     <div class="card-title">
                         <div class="row">
                             <div class="col-4"><h5>مبيعات
-                                    : {{$currentClient['clientName'] ?? ''}} بالتفصيل</h5>
+                                    : {{$currentPeople['name'] ?? ''}} بالتفصيل</h5>
                             </div>
                             <div class="col-4">
-                                <h5>الرصيد الافتتاحي : {{number_format($currentClient['initialBalance'] ?? 0, 2)}}</h5>
+                                <h5>الرصيد الافتتاحي
+                                    : {{number_format($currentPeople['initialSalesBalance'] ?? 0, 2)}}</h5>
                             </div>
                             <div class="col-4"><h5>الرصيد : {{number_format($salesBalance, 2)}}</h5></div>
                         </div>
@@ -734,8 +668,6 @@
             </div>
         @endif
 
-    @elseif($reportType == 'supplier' && !empty($currentSupplier))
-
         @if(!empty($purchaseDebts))
             <div class="card mt-2">
                 <div class="card-body invoice" dir="rtl">
@@ -755,7 +687,7 @@
 
                         <div class="row">
                             <div class="col-4"><h5>مشتريات
-                                    : {{$currentSupplier['supplierName'] ?? ''}}</h5>
+                                    : {{$currentPeople['name'] ?? ''}}</h5>
                             </div>
                         </div>
                     </div>
@@ -772,14 +704,14 @@
                             </thead>
                             <tbody>
                             @php
-                                $currentBalance = $currentSupplier['initialBalance'];
+                                $currentBalance = $currentPeople['initialPurchasesBalance'];
                                 $incomes = 0;
-                                $expenses = $currentSupplier['initialBalance'];
+                                $expenses = $currentPeople['initialPurchasesBalance'];
                             @endphp
                             <tr>
                                 <td></td>
                                 <td>الرصيد السابق</td>
-                                <td>{{ number_format($currentSupplier['initialBalance'], 2) }}</td>
+                                <td>{{ number_format($currentPeople['initialPurchasesBalance'], 2) }}</td>
                                 <td>0</td>
                                 <td>{{ number_format($currentBalance, 2) }}</td>
                             </tr>
@@ -814,7 +746,7 @@
                     <div class="card-title">
                         <div class="row">
                             <div class="col-4"><h5>مشتريات
-                                    : {{$currentSupplier['supplierName'] ?? ''}} بالتفصيل</h5>
+                                    : {{$currentPeople['name'] ?? ''}} بالتفصيل</h5>
                             </div>
 
                         </div>
@@ -856,249 +788,13 @@
             </div>
         @endif
 
-        @if(!empty($saleDebts))
-            <div class="card mt-2">
-                <div class="card-body invoice" dir="rtl">
-                    <div class="card-title">
-                        <div class="row">
-                            <div class="col-4"><h5>مبيعات
-                                    : {{$currentSupplier['supplierName'] ?? ''}}</h5>
-                            </div>
-                            <div class="col-4"><h5>الرصيد : {{number_format($salesBalance, 2)}}</h5></div>
-
-                        </div>
-                    </div>
-                    <div class="scroll">
-                        <table class="text-center printInvoice">
-                            <thead>
-                            <tr>
-                                <th>التاريخ</th>
-                                <th>البيان</th>
-                                <th>عليه</th>
-                                <th>له</th>
-                                <th>الرصيد</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            @php
-                                $currentBalance = $currentSupplier['initialSalesBalance'];
-                                $incomes = 0;
-                                $expenses = $currentSupplier['initialSalesBalance'];
-                            @endphp
-                            <tr>
-                                <td></td>
-                                <td>الرصيد السابق</td>
-                                <td>{{ number_format($currentSupplier['initialBalance'], 2) }}</td>
-                                <td>0</td>
-                                <td>{{ number_format($currentBalance, 2) }}</td>
-                            </tr>
-                            @foreach($saleDebts as $debt)
-                                @php
-                                    $incomes += floatval($debt['income']) + floatval($debt['futureExpense']);
-                                    $expenses += floatval($debt['expense']) + floatval($debt['futureIncome']);
-                                    $currentBalance += floatval($debt['expense']) + floatval($debt['futureIncome']) - floatval($debt['income']) - floatval($debt['futureExpense']);
-                                @endphp
-                                <tr>
-                                    <td>{{$debt['due_date']}}</td>
-                                    <td @if($debt['invoice_id'] != null) data-bs-toggle="modal"
-                                        data-bs-target="#printModal"
-                                        wire:click="getInvoice({{$debt['invoice_id']}}, '{{$debt['tableName']}}')"
-                                        @endif>{{ $debt['note'] }}</td>
-                                    <td>{{ floatval($debt['expense']) != 0 ? floatval($debt['expense']) : floatval($debt['futureIncome']) }}</td>
-                                    <td>{{ floatval($debt['income']) != 0 ? floatval($debt['income']) : floatval($debt['futureExpense']) }}</td>
-                                    <td>{{number_format($currentBalance, 2)}}</td>
-                                </tr>
-                            @endforeach
-                            </tbody>
-                            <tfoot>
-                            <tr>
-                                <th colspan="2">الجــــــــــــــــمله</th>
-                                <th>{{ number_format($expenses, 2) }}</th>
-                                <th>{{ number_format($incomes, 2) }}</th>
-                                <th>{{ number_format($currentBalance, 2) }}</th>
-                            </tr>
-                            </tfoot>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card mt-2">
-                <div class="card-body invoice" dir="rtl">
-                    <div class="card-title">
-                        <div class="row">
-                            <div class="col-4"><h5>مبيعات
-                                    : {{$currentClient['clientName'] ?? ''}} بالتفصيل</h5>
-                            </div>
-                            <div class="col-4">
-                                <h5>الرصيد الافتتاحي : {{number_format($currentClient['initialBalance'] ?? 0, 2)}}</h5>
-                            </div>
-                            <div class="col-4"><h5>الرصيد : {{number_format($salesBalance, 2)}}</h5></div>
-                        </div>
-                    </div>
-                    <div class="scroll">
-                        <table class="text-center printInvoice">
-                            <thead>
-                            <tr>
-                                <th>التاريخ</th>
-                                <th>البيان</th>
-                                <th>سعر الوحده</th>
-                                <th>الكمية</th>
-                                <th>الجمله</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            @foreach($saleDebts as $debt)
-                                <tr>
-                                    <td>{{$debt['due_date']}}</td>
-                                    <td colspan="3">{{ $debt['note'] }}</td>
-                                    <td>{{ $debt['income'] != 0 ? number_format($debt['income'], 2) : ($debt['expense'] != 0 ? number_format($debt['expense'], 2) : ($debt['futureExpense'] != 0 ? number_format($debt['futureExpense'], 2) : number_format($debt['futureIncome'], 2))) }}</td>
-                                </tr>
-                                @if($debt['invoice_id'] != null)
-                                    @foreach(\App\Models\Sale::find($debt['invoice_id'])->saleDetails as $product)
-                                        <tr>
-                                            <td>{{ $debt['due_date'] }}</td>
-                                            <td>{{ $product->product->productName }}</td>
-                                            <td>{{ number_format($product->price,2) }}</td>
-                                            <td>{{ number_format($product->quantity,2) }}</td>
-                                            <td>{{ number_format($product->quantity * $product->price,2) }}</td>
-                                        </tr>
-                                    @endforeach
-                                @endif
-                            @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        @endif
-
-    @elseif($reportType == 'employee' && !empty($currentEmployee))
-
-        @if(!empty($saleDebts))
-            <div class="card mt-2">
-                <div class="card-body invoice" dir="rtl">
-                    <div class="card-title">
-                        <div class="row">
-                            <div class="col-4"><h5>مبيعات
-                                    : {{$currentEmployee['employeeName'] ?? ''}}</h5>
-                            </div>
-                            <div class="col-4"><h5>الرصيد : {{number_format($salesBalance, 2)}}</h5></div>
-
-                        </div>
-                    </div>
-                    <div class="scroll">
-                        <table class="text-center printInvoice">
-                            <thead>
-                            <tr>
-                                <th>التاريخ</th>
-                                <th>البيان</th>
-                                <th>عليه</th>
-                                <th>له</th>
-                                <th>الرصيد</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            @php
-                                $currentBalance = $currentEmployee['initialBalance'];
-                                $incomes = 0;
-                                $expenses = $currentEmployee['initialBalance'];
-                            @endphp
-                            <tr>
-                                <td></td>
-                                <td>الرصيد السابق</td>
-                                <td>{{ number_format($currentEmployee['initialBalance'], 2) }}</td>
-                                <td>0</td>
-                                <td>{{ number_format($currentBalance, 2) }}</td>
-                            </tr>
-                            @foreach($saleDebts as $debt)
-                                @php
-                                    $incomes += floatval($debt['income']) + floatval($debt['futureExpense']);
-                                    $expenses += floatval($debt['expense']) + floatval($debt['futureIncome']);
-                                    $currentBalance += floatval($debt['expense']) + floatval($debt['futureIncome']) - floatval($debt['income']) - floatval($debt['futureExpense']);
-                                @endphp
-                                <tr>
-                                    <td>{{$debt['due_date']}}</td>
-                                    <td @if($debt['invoice_id'] != null) data-bs-toggle="modal"
-                                        data-bs-target="#printModal"
-                                        wire:click="getInvoice({{$debt['invoice_id']}}, '{{$debt['tableName']}}')"
-                                        @endif>{{ $debt['note'] }}</td>
-                                    <td>{{ floatval($debt['expense']) != 0 ? floatval($debt['expense']) : floatval($debt['futureIncome']) }}</td>
-                                    <td>{{ floatval($debt['income']) != 0 ? floatval($debt['income']) : floatval($debt['futureExpense']) }}</td>
-                                    <td>{{number_format($currentBalance, 2)}}</td>
-                                </tr>
-                            @endforeach
-                            </tbody>
-                            <tfoot>
-                            <tr>
-                                <th colspan="2">الجــــــــــــــــمله</th>
-                                <th>{{ number_format($expenses, 2) }}</th>
-                                <th>{{ number_format($incomes, 2) }}</th>
-                                <th>{{ number_format($currentBalance, 2) }}</th>
-                            </tr>
-                            </tfoot>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card mt-2">
-                <div class="card-body invoice" dir="rtl">
-                    <div class="card-title">
-                        <div class="row">
-                            <div class="col-4"><h5>مبيعات
-                                    : {{$currentClient['clientName'] ?? ''}} بالتفصيل</h5>
-                            </div>
-                            <div class="col-4">
-                                <h5>الرصيد الافتتاحي : {{number_format($currentClient['initialBalance'] ?? 0, 2)}}</h5>
-                            </div>
-                            <div class="col-4"><h5>الرصيد : {{number_format($salesBalance, 2)}}</h5></div>
-                        </div>
-                    </div>
-                    <div class="scroll">
-                        <table class="text-center printInvoice">
-                            <thead>
-                            <tr>
-                                <th>التاريخ</th>
-                                <th>البيان</th>
-                                <th>سعر الوحده</th>
-                                <th>الكمية</th>
-                                <th>الجمله</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            @foreach($saleDebts as $debt)
-                                <tr>
-                                    <td>{{$debt['due_date']}}</td>
-                                    <td colspan="3">{{ $debt['note'] }}</td>
-                                    <td>{{ $debt['income'] != 0 ? number_format($debt['income'], 2) : ($debt['expense'] != 0 ? number_format($debt['expense'], 2) : ($debt['futureExpense'] != 0 ? number_format($debt['futureExpense'], 2) : number_format($debt['futureIncome'], 2))) }}</td>
-                                </tr>
-                                @if($debt['invoice_id'] != null)
-                                    @foreach(\App\Models\Sale::find($debt['invoice_id'])->saleDetails as $product)
-                                        <tr>
-                                            <td>{{ $debt['due_date'] }}</td>
-                                            <td>{{ $product->product->productName }}</td>
-                                            <td>{{ number_format($product->price,2) }}</td>
-                                            <td>{{ number_format($product->quantity,2) }}</td>
-                                            <td>{{ number_format($product->quantity * $product->price,2) }}</td>
-                                        </tr>
-                                    @endforeach
-                                @endif
-                            @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        @endif
-
         @if(!empty($employeeGifts))
             <div class="card mt-2">
                 <div class="card-body invoice" dir="rtl">
                     <div class="card-title">
                         <div class="row">
                             <div class="col-4"><h5>مدفوعات الى
-                                    : {{$currentEmployee['employeeName'] ?? ''}}</h5>
+                                    : {{$currentPeople['name'] ?? ''}}</h5>
                             </div>
                         </div>
                     </div>
@@ -1119,11 +815,11 @@
                             @foreach($employeeGifts as $gift)
                                 <tr>
                                     @php
-                                        $total += $gift->amount;
+                                        $total += $gift['amount'];
                                     @endphp
-                                    <td>{{$gift->due_date}}</td>
-                                    <td>{{$gift->note}}</td>
-                                    <td>{{number_format($gift->amount, 2)}}</td>
+                                    <td>{{$gift['due_date']}}</td>
+                                    <td>{{$gift['note']}}</td>
+                                    <td>{{number_format($gift['amount'], 2)}}</td>
                                 </tr>
                             @endforeach
                             </tbody>

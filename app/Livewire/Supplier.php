@@ -102,7 +102,7 @@ class Supplier extends Component
                 $supplier->save();
                 $this->alert('success', 'تم التعديل بنجاح', ['timerProgressBar' => true]);
             }
-
+$this->resetData();
         }
 
     }
@@ -354,7 +354,7 @@ class Supplier extends Component
 
     public function resetData($data = null)
     {
-        $this->reset('type', 'amount', 'debtId', 'payment', 'bank', 'bank_id', 'cash', 'due_date', 'blocked', 'initialSalesBalance', 'initialPurchasesBalance', 'initialDepositsBalance', 'discount', 'service', 'note', $data);
+        $this->reset('id','name','phone','type', 'amount', 'debtId', 'payment', 'bank', 'bank_id', 'cash', 'due_date', 'blocked', 'initialSalesBalance', 'initialPurchasesBalance', 'initialDepositsBalance', 'discount', 'service', 'note', $data);
     }
 
     public function render()

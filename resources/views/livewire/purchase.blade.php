@@ -21,7 +21,9 @@
                             </button>
                         @endif
                         @if(!empty($invoice) && !$editMode && !isset($invoice['id']) && !session("closed") && $invoice['date'] == session("date"))
-                            <button class="btn btn-success" wire:loading.class="visually-hidden" @if($id == 0) wire:click="save()" @else wire:click="editMessage()" @endif><i class="bi bi-bookmark-check"></i>
+                            <button class="btn btn-success" wire:loading.class="visually-hidden"
+                                    @if($id == 0) wire:click="save()" @else wire:click="editMessage()" @endif><i
+                                    class="bi bi-bookmark-check"></i>
                             </button>
                         @endif
                         <button class="btn btn-info" id="print"><i class="bi bi-printer"></i></button>
@@ -48,7 +50,8 @@
                                     style="cursor: pointer"><i class="bi bi-pen"></i></button>
                             <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#printModal"
                                     style="cursor: pointer"
-                                    wire:click="showInvoice()" @disabled(empty($cart)) @disabled(session("closed") && (floatval($paid) != 0 && $payment == "cash"))><i
+                                    wire:click="showInvoice()" @disabled(empty($cart)) @disabled(session("closed") && (floatval($paid) != 0 && $payment == "cash"))>
+                                <i
                                     class="bi bi-bookmark-check"></i></button>
                             <button class="btn btn-danger"
                                     wire:click="resetData('currentSupplier')" @disabled(empty($currentSupplier)) >
@@ -113,7 +116,8 @@
                                            class="form-control"
                                            {{ empty($currentProduct) ? 'disabled' : '' }} wire:model.live="currentProduct.quantity">
                                     <label for="price">سعر الوحده</label>
-                                    <input autocomplete="off" type="text" id="price" class="form-control" wire:keydown.enter="addToCart()"
+                                    <input autocomplete="off" type="text" id="price" class="form-control"
+                                           wire:keydown.enter="addToCart()"
                                            {{ empty($currentProduct) ? 'disabled' : '' }} wire:model.live="currentProduct.price">
 
                                     <label for="amount">الجمله</label>
@@ -226,7 +230,8 @@
                                                 <td>المدفوع</td>
                                                 <td><input autocomplete="off" type="text" min="0"
                                                            wire:keydown="calcRemainder()"
-                                                           wire:model.live="paid" @disabled(session("closed") && $payment == "cash")
+                                                           wire:model.live="paid"
+                                                           @disabled(session("closed") && $payment == "cash")
                                                            class="form-control text-center">
                                                 </td>
                                             </tr>
@@ -310,12 +315,11 @@
                                         </select>
                                     </div>
                                     <div class="col-8">
-                                        @if(count($suppliers) > 0)
-                                            <input autocomplete="off" type="text" placeholder="بحث ..."
-                                                   class="form-control"
-                                                   wire:keydown.enter="chooseSupplier({{$suppliers[0]}})"
-                                                   wire:model.live="clientSearch">
-                                        @endif
+                                        <input autocomplete="off" type="text" placeholder="بحث ..."
+                                               class="form-control"
+                                               @if(isset($suppliers[0])) wire:keydown.enter="chooseSupplier({{$suppliers[0]}})"
+                                               @endif
+                                               wire:model.live="supplierSearch">
                                     </div>
                                 </div>
                             </div>

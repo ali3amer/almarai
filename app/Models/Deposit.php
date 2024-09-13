@@ -23,15 +23,15 @@ class Deposit extends Model
         $deposits = DepositDebt::select(
             DB::raw("'deposits' as tableName"),
             DB::raw("people.type as clientType"),
-            'type',
+            'deposit_debts.type',
             DB::raw('null as invoice_id'),
             'deposit_debts.id',
             DB::raw("CASE
-        WHEN type = 'pay' THEN amount
+        WHEN deposit_debts.type = 'pay' THEN amount
         ELSE 0
      END as income"),
             DB::raw("CASE
-        WHEN type = 'debt' THEN amount
+        WHEN deposit_debts.type = 'debt' THEN amount
         ELSE 0
      END as expense"),
             DB::raw('0 as futureExpense'),
@@ -41,7 +41,7 @@ class Deposit extends Model
             'bank',
             'bank_id',
             DB::raw('deposit_debts.note as note'),
-            DB::raw('deposit_id as owner_id'),
+            DB::raw('people_id as owner_id'),
             DB::raw("people.name as ownerName"),
             'deposit_debts.created_at',
             'deposit_debts.updated_at'

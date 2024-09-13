@@ -49,7 +49,7 @@ class Employee extends Model
     {
         $gifts = EmployeeGift::select(
             DB::raw("'employees' as tableName"),
-            DB::raw("null as clientType"),
+            DB::raw("people.type as clientType"),
             DB::raw('null as type'),
             DB::raw('null as invoice_id'),
             'employee_gifts.id',
@@ -61,13 +61,13 @@ class Employee extends Model
             'payment',
             'bank',
             'bank_id',
-            'note',
+            'employee_gifts.note',
             DB::raw('null as owner_id'),
-            DB::raw("employees.employeeName as ownerName"),
+            DB::raw("people.name as ownerName"),
             'employee_gifts.created_at',
             'employee_gifts.updated_at'
         )
-            ->join('employees', 'employees.id', '=', 'employee_gifts.employee_id')->orderBy('due_date', 'asc')->get();
+            ->join('people', 'people.id', '=', 'employee_gifts.people_id')->orderBy('due_date', 'asc')->get();
 
 
         return $gifts;

@@ -151,7 +151,7 @@
                                         <th>إسم العميل</th>
                                         <th>الهاتف</th>
                                         <th>الرصيد الافتتاحي للمبيعات</th>
-                                        <th>الرصيد الافتتاحي للمشتريات</th>
+                                        <th>الرصيد الحالي للمبيعات</th>
                                         <th class="d-none">نقدي</th>
                                         <th>التحكم</th>
                                     </tr>
@@ -162,7 +162,7 @@
                                             <td>{{ $client->name }}</td>
                                             <td>{{ $client->phone }}</td>
                                             <td>{{ number_format($client->initialSalesBalance, 2) }}</td>
-                                            <td>{{ number_format($client->initialPurchasesBalance, 2) }}</td>
+                                            <td>{{ number_format($client->currentSalesBalance, 2) }}</td>
                                             <td class="d-none">{{ $client->cash ? "نعم" : "لا" }}</td>
                                             <td>
                                                 <button

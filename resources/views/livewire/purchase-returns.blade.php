@@ -13,8 +13,18 @@
                     <div class="card">
                         <div class="card-body">
                             <div class="card-title">
-                                <input type="text" autocomplete="off" placeholder="إسم المورد ...."
-                                       wire:model.live="supplierSearch" class="form-control text-center">
+                                <div class="row">
+                                    <div class="col-3">
+                                        <select class="form-select" wire:model.live="buyer">
+                                            <option value="client">عملاء</option>
+                                            <option value="employee">موظفين</option>
+                                            <option value="supplier">موردين</option>
+                                        </select>
+                                    </div>
+                                    <div class="col">
+                                        <input type="text" autocomplete="off"  placeholder="إسم المورد ...." wire:model.live="supplierSearch" class="form-control text-center">
+                                    </div>
+                                </div>
                             </div>
                             <div class="scroll">
                                 <table class="table table-responsive text-center">

@@ -175,8 +175,6 @@ class Sale extends Component
     public function chooseClient($client)
     {
         $this->currentClient = $client;
-        $this->currentClient['blocked'] = $this->buyer != 'employee' ? $this->currentClient['blocked'] : false;
-        $this->currentClient['cash'] = $this->buyer == "client" ? $this->currentClient['cash'] : false;
         $client = \App\Models\People::find($client['id']);
         $this->currentSalesBalance = $client->currentSalesBalance;
 
@@ -227,7 +225,7 @@ class Sale extends Component
                 $this->cart[$this->currentProduct['id']]['product_id'] = floatval($this->currentProduct['id']);
 
                 $this->cost += $this->cart[$this->currentProduct['id']]['amount'];
-                if ($this->currentClient['id'] == 1 && $this->buyer == "client") {
+                if ($this->currentClient['cash'] && $this->buyer == "client") {
                     $this->paid = $this->cost - $this->discount;
                 }
 

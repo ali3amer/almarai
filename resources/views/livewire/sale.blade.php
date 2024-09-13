@@ -1,7 +1,7 @@
 <div wire:keydown.escape.window="resetData()">
 
-        <x-title :$title/>
-{{--    <livewire:Title :$title/>--}}
+    <x-title :$title/>
+    {{--    <livewire:Title :$title/>--}}
     <!-- Print Invoice Modal -->
     <div wire:ignore.self class="modal fade" id="printModal" tabindex="-1" aria-labelledby="exampleModalLabel"
          aria-hidden="true">
@@ -21,7 +21,9 @@
                             </button>
                         @endif
                         @if(!empty($invoice) && !$editMode && !isset($invoice['id']) && !session("closed") && $invoice['date'] == session("date"))
-                            <button class="btn btn-success" wire:loading.class="visually-hidden" @if($id == 0) wire:click="save()" @else wire:click="editMessage()" @endif><i class="bi bi-bookmark-check"></i>
+                            <button class="btn btn-success" wire:loading.class="visually-hidden"
+                                    @if($id == 0) wire:click="save()" @else wire:click="editMessage()" @endif><i
+                                    class="bi bi-bookmark-check"></i>
                             </button>
                         @endif
 
@@ -114,7 +116,8 @@
                                            class="form-control"
                                            {{ empty($currentProduct) ? 'disabled' : '' }} wire:model.live="currentProduct.quantity">
                                     <label for="price">سعر الوحده</label>
-                                    <input autocomplete="off" type="text" id="price" class="form-control"  wire:keydown.enter="addToCart()"
+                                    <input autocomplete="off" type="text" id="price" class="form-control"
+                                           wire:keydown.enter="addToCart()"
                                            {{ empty($currentProduct) ? 'disabled' : '' }} wire:model.live="currentProduct.price">
 
                                     <label for="amount">الجمله</label>
@@ -309,12 +312,10 @@
                                         </select>
                                     </div>
                                     <div class="col-8">
-                                        @if(count($clients) > 0)
-                                            <input autocomplete="off" type="text" placeholder="بحث ..."
-                                                   class="form-control"
-                                                   wire:keydown.enter="chooseClient({{$clients[0]}})"
-                                                   wire:model.live="clientSearch">
-                                        @endif
+                                        <input autocomplete="off" type="text" placeholder="بحث ..."
+                                               class="form-control"
+                                               @if(isset($clients[0])) wire:keydown.enter="chooseClient({{$clients[0]}})" @endif
+                                               wire:model.live="clientSearch">
                                     </div>
                                 </div>
                             </div>

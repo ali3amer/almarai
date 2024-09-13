@@ -74,7 +74,7 @@
                     <div class="card-body">
                         <form action="" wire:submit="save({{ $id }})">
                             <label for="name" class="form-label">إسم الموظف</label>
-                            <input type="text" autocomplete="off" wire:model="name" class="form-control"
+                            <input type="text" autocomplete="off" wire:model.live="name" class="form-control"
                                    placeholder="إسم الموظف ..." id="name">
                             <div>
                                 @error('name') <span

@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Models\People;
 use App\Models\SaleDebt;
 use App\Models\Setting;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
@@ -75,7 +76,7 @@ class Purchase extends Component
         }
 
         if (\App\Models\People::where("type", "supplier")->count() == 0) {
-            \App\Models\People::create(['name' => "نقدي", 'phone' => "", 'initialSalesBalance' => 0,'initialPurchasesBalance' => 0,'initialDepositsBalance' => 0, 'startingDate' => session("date"), 'type' => "supplier", 'blocked' => false, 'cash' => true]);
+            \App\Models\People::create(['name' => "نقدي", 'phone' => "", 'initialSalesBalance' => 0, 'initialPurchasesBalance' => 0, 'initialDepositsBalance' => 0, 'startingDate' => session("date"), 'type' => "supplier", 'blocked' => false, 'cash' => true]);
         }
         if (\App\Models\People::where("type", "supplier")->where("cash", true)->first() != null) {
             $this->currentSupplier = \App\Models\People::where("type", "supplier")->where("cash", true)->first()->toArray();
@@ -83,7 +84,7 @@ class Purchase extends Component
             $this->currentSupplier = \App\Models\People::where("type", "supplier")->first()->toArray();
         }
 
-        $this->currentPurchasesBalance = \App\Models\Purchase::where("people_id", $this->currentSupplier['id'])->sum("remainder") + $this->currentSupplier['initialPurchasesBalance'];
+        $this->currentPurchasesBalance = \App\Models\People::find($this->currentSupplier['id'])->currentPurchasesBalance;
 
         $this->banks = Bank::all();
         if ($this->banks->count() != 0) {
@@ -110,7 +111,6 @@ class Purchase extends Component
                     'user_id' => auth()->id(),
                 ]);
                 $this->id = $purchase['id'];
-                $this->currentPurchasesBalance += $this->remainder;
 
                 foreach ($this->cart as $item) {
                     PurchaseDetail::create([
@@ -136,8 +136,6 @@ class Purchase extends Component
                     'user_id' => auth()->id(),
                 ]);
 
-                $this->currentPurchasesBalance -= $this->invoice['remainder'];
-                $this->currentPurchasesBalance += $this->remainder;
                 PurchaseDetail::where("purchase_id", $this->id)->forceDelete();
                 foreach ($this->cart as $item) {
                     PurchaseDetail::create([
@@ -152,6 +150,7 @@ class Purchase extends Component
             $this->showInvoice($this->id);
 
             $this->alert('success', 'تم الحفظ بنجاح', ['timerProgressBar' => true]);
+            $this->currentPurchasesBalance += People::find($this->currentSupplier['id'])->currentPurchasesBalance;
 
             $this->resetData();
         } else {
@@ -188,11 +187,9 @@ class Purchase extends Component
     public function chooseSupplier($supplier)
     {
         $this->currentSupplier = $supplier;
-        $this->currentSupplier['blocked'] = $this->buyer != 'employee' ? $this->currentSupplier['blocked'] : false;
-        $this->currentSupplier['cash'] = $this->buyer == "client" ? $this->currentSupplier['cash'] : false;
 
-            $supplier = \App\Models\People::where("type", $this->buyer)->find($supplier['id']);
-            $this->currentPurchasesBalance = $supplier->currentPurchasesBalance;
+        $supplier = \App\Models\People::where("type", $this->buyer)->find($supplier['id']);
+        $this->currentPurchasesBalance = $supplier->currentPurchasesBalance;
 
 
         if ($this->currentSupplier['cash']) {
@@ -377,7 +374,7 @@ class Purchase extends Component
         if ($this->due_date == '') {
             $this->due_date = session("date");
         }
-            $this->suppliers = \App\Models\People::where("type", $this->buyer)->where('name', 'LIKE', '%' . $this->supplierSearch . '%')->get();
+        $this->suppliers = \App\Models\People::where("type", $this->buyer)->where('name', 'LIKE', '%' . $this->supplierSearch . '%')->get();
 
         if ($this->settings->barcode) {
             $barcode = \App\Models\Product::where("barcode", $this->productSearch)->first();

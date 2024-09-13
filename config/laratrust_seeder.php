@@ -21,6 +21,7 @@ return [
             'employees' => 'c,r,u,d',
             'reports' => 'c,r,u,d',
             'days' => 'c,r,u,d',
+            'people' => 'c,r,u,d',
         ],
         'user' => []
     ],

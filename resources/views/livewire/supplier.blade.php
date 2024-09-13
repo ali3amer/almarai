@@ -146,12 +146,10 @@
                                 <table class="table text-center">
                                     <thead>
                                     <tr>
-                                        <th>#</th>
                                         <th>إسم المورد</th>
                                         <th>الهاتف</th>
                                         <th>الرصيد الافتتاحي للمشتريات</th>
-                                        <th>الرصيد الافتتاحي للمبيعات</th>
-                                        <th>الرصيد الافتتاحي للأمانات</th>
+                                        <th>الرصيد الحالي للمشتريات</th>
                                         <th class="d-none">نقدي</th>
                                         <th>التحكم</th>
                                     </tr>
@@ -159,12 +157,10 @@
                                     <tbody>
                                     @foreach($suppliers as $supplier)
                                         <tr>
-                                            <td>{{ $loop->index + 1 }}</td>
                                             <td>{{ $supplier->name }}</td>
                                             <td>{{ $supplier->phone }}</td>
                                             <td>{{ number_format($supplier->initialPurchasesBalance, 2) }}</td>
-                                            <td>{{ number_format($supplier->initialSalesBalance, 2) }}</td>
-                                            <td>{{ number_format($supplier->initialDepositsBalance, 2) }}</td>
+                                            <td>{{ number_format($supplier->currentPurchasesBalance, 2) }}</td>
                                             <td class="d-none">{{ $supplier->cash ? "نعم" : "لا" }}</td>
                                             <td>
                                                 <button
