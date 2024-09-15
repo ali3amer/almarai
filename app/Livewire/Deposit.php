@@ -3,6 +3,8 @@
 namespace App\Livewire;
 
 use App\Models\DepositDebt;
+use App\Models\PurchaseDebt;
+use App\Models\SaleDebt;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
 
 use App\Models\Bank;
@@ -37,8 +39,9 @@ class Deposit extends Component
     public null|int $bank_id = null;
     public Collection $deposits;
     public array $currentDeposit = [];
-    public Collection $debts;
+    public array $debts = [];
     public string $type = 'pay';
+    public string $debtType = 'deposits';
     public string $payment = 'cash';
     public string $due_date = '';
     public bool $blocked = false;
@@ -148,15 +151,27 @@ class Deposit extends Component
         $this->alert('success', 'تم الحذف بنجاح', ['timerProgressBar' => true]);
     }
 
-    public function showDebts($deposit)
+    public function showDebts($deposit = null)
     {
-        $this->currentDeposit = $deposit;
-        $this->debts = DepositDebt::where("people_id", $this->currentDeposit['id'])->get();
-        $this->currentBalance = \App\Models\People::find($this->currentDeposit['id'])->currentDepositsBalance;
+        if ($deposit == null) {
+            $deposit = $this->currentDeposit;
+        }
 
+        $this->currentDeposit = $deposit;
+
+        if ($this->debtType == "sales") {
+            $this->currentBalance = \App\Models\People::find($this->currentDeposit['id'])->currentSalesBalance;
+            $this->debts = (new \App\Models\Sale)->getMovements($this->currentDeposit['id'], 'deposit')->toArray();
+        } elseif ($this->debtType == "purchases") {
+            $this->currentBalance = \App\Models\People::find($this->currentDeposit['id'])->currentPurchasesBalance;
+            $this->debts = (new \App\Models\Purchase)->getMovements($this->currentDeposit['id'], 'deposit')->toArray();
+        } elseif ($this->debtType == 'deposits') {
+            $this->debts = (new \App\Models\Deposit)->getMovements($this->currentDeposit['id'], 'deposit')->toArray();
+            $this->currentBalance = \App\Models\People::find($this->currentDeposit['id'])->currentDepositsBalance;
+        }
     }
 
-    public function saveDebt()
+    public function saveDepositDebt()
     {
         if ($this->type == "debt" && floatval($this->amount) > floatval(session($this->payment == "cash" ? "safeBalance" : "bankBalance"))) {
             $this->confirm("المبلغ المدفوع أكبر من المبلغ المتوفر", [
@@ -217,6 +232,133 @@ class Deposit extends Component
 
     }
 
+    public function saveSaleDebt()
+    {
+
+        if ($this->type == 'debt') {
+            $note = 'تم إستلاف مبلغ';
+        } elseif ($this->type == "discount") {
+            $note = 'تم خصم مبلغ';
+        } else {
+            $note = 'تم إستلام مبلغ';
+        }
+
+        if ($this->type == "debt" && floatval($this->amount) > floatval(session($this->payment == "cash" ? "safeBalance" : "bankBalance"))) {
+            $this->confirm("المبلغ المدفوع أكبر من المبلغ المتوفر", [
+                'toast' => false,
+                'showConfirmButton' => false,
+                'confirmButtonText' => 'موافق',
+                'onConfirmed' => "cancelSale",
+                'showCancelButton' => true,
+                'cancelButtonText' => 'إلغاء',
+                'confirmButtonColor' => '#dc2626',
+                'cancelButtonColor' => '#4b5563'
+            ]);
+        } else {
+            if ($this->debtId == 0) {
+
+                if (floatval($this->amount) != 0) {
+                    $debt = SaleDebt::create([
+                        'people_id' => $this->currentDeposit['id'],
+                        'type' => $this->type,
+                        'amount' => $this->amount,
+                        'payment' => $this->payment,
+                        'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
+                        'bank' => $this->bank,
+                        'due_date' => $this->due_date,
+                        'note' => $this->note == '' ? $note : $this->note,
+                        'user_id' => auth()->id(),
+                    ]);
+                }
+
+                $this->alert('success', 'تم السداد بنجاح', ['timerProgressBar' => true]);
+            } else {
+                $debt = SaleDebt::where('id', $this->debtId)->first();
+
+                $debt->type = $this->type;
+                $debt->amount = $this->amount;
+                $debt->payment = $this->payment;
+                $debt->bank_id = $this->payment == 'bank' ? $this->bank_id : null;
+                $debt->bank = $this->bank;
+                $debt->due_date = $this->due_date;
+                $debt->user_id = auth()->id();
+                $debt->save();
+                $this->alert('success', 'تم تعديل الدفعيه بنجاح', ['timerProgressBar' => true]);
+
+            }
+            $this->showReceipt($debt->toArray());
+
+        }
+        $this->resetData();
+        $this->showDebts($this->currentDeposit);
+
+    }
+
+    public function savePurchaseDebt()
+    {
+        if ($this->type == 'debt') {
+            $note = 'تم إستلاف مبلغ';
+        } elseif ($this->type == "discount") {
+            $note = 'تم خصم مبلغ';
+        } else {
+            $note = 'تم دفع مبلغ';
+        }
+
+        if ($this->type == "pay" && floatval($this->amount) > floatval(session($this->payment == "cash" ? "safeBalance" : "bankBalance"))) {
+            $this->confirm("المبلغ المدفوع أكبر من المبلغ المتوفر", [
+                'toast' => false,
+                'showConfirmButton' => false,
+                'confirmButtonText' => 'موافق',
+                'onConfirmed' => "cancelSale",
+                'showCancelButton' => true,
+                'cancelButtonText' => 'إلغاء',
+                'confirmButtonColor' => '#dc2626',
+                'cancelButtonColor' => '#4b5563'
+            ]);
+
+        } else {
+            if ($this->debtId == 0) {
+
+                if (floatval($this->amount) != 0) {
+                    $debt = PurchaseDebt::create([
+                        'people_id' => $this->currentDeposit['id'],
+                        'type' => $this->type,
+                        'amount' => $this->amount,
+                        'payment' => $this->payment,
+                        'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
+                        'bank' => $this->bank,
+                        'due_date' => $this->due_date,
+                        'note' => $this->note == '' ? $note : $this->note,
+                        'user_id' => auth()->id(),
+                    ]);
+                }
+
+                $this->alert('success', 'تم السداد بنجاح', ['timerProgressBar' => true]);
+
+            } else {
+
+                $debt = PurchaseDebt::where('id', $this->debtId)->first();
+
+                $debt->type = $this->type;
+                $debt->amount = $this->amount;
+                $debt->payment = $this->payment;
+                $debt->bank_id = $this->payment == 'bank' ? $this->bank_id : null;
+                $debt->bank = $this->bank;
+                $debt->due_date = $this->due_date;
+                $debt->user_id = auth()->id();
+                $debt->save();
+
+                $this->alert('success', 'تم تعديل الدفعيه بنجاح', ['timerProgressBar' => true]);
+
+            }
+            $this->showReceipt($debt->toArray());
+        }
+
+        $this->resetData();
+        $this->showDebts($this->currentDeposit);
+
+    }
+
     public function showReceipt($debt)
     {
         $this->currentReceipt = $debt;
@@ -225,10 +367,10 @@ class Deposit extends Component
     public function chooseDebt($debt)
     {
         $this->currentDebt = $debt;
-        $this->debtId = $debt['id'];
+        $this->debtId = $debt['invoice_id'] ?? $debt['id'];
         $this->bank_id = $debt['bank_id'];
         $this->type = $debt['type'];
-        $this->amount = $debt['amount'];
+        $this->amount = $debt['amount'] ?? ($debt['type'] == "pay" ? $debt['income'] : $debt['expense']);
         $this->payment = $debt['payment'];
         $this->bank = $debt['bank'];
         $this->due_date = $debt['due_date'];
@@ -253,13 +395,19 @@ class Deposit extends Component
     {
         $id = $data['inputAttributes']['id'];
 
-        DepositDebt::where('id', $id)->forceDelete();
+        if ($this->debtType == 'purchases') {
+            PurchaseDebt::where('id', $id)->forceDelete();
+        } elseif ($this->debtType == 'sales') {
+            SaleDebt::where('id', $id)->forceDelete();
+        } elseif ($this->debtType == 'deposits') {
+            DepositDebt::where('id', $id)->forceDelete();
+        }
+
         $this->showDebts($this->currentDeposit);
 
         $this->alert('success', 'تم حذف الدفعيه بنجاح', ['timerProgressBar' => true]);
 
     }
-
 
     public function resetData($data = null)
     {

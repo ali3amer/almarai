@@ -87,13 +87,9 @@
                                    placeholder="الرصيد الإفتتاحي"
                                    id="initialSalesBalance">
                             <div>
-                                @error('initialSalesBalance') <span class="error text-danger">{{ $message }}</span> @enderror
+                                @error('initialSalesBalance') <span
+                                    class="error text-danger">{{ $message }}</span> @enderror
                             </div>
-
-                            <label for="startingDate">تاريخ الإضافه</label>
-                            <input type="date" disabled wire:model.live="startingDate" id="startingDate"
-                                   class="form-control text-center">
-
 
                             <div class="d-grid mt-2">
                                 <button type="submit"
@@ -181,20 +177,18 @@
                                 <select id="type" class="form-select text-center"
                                         @disabled($editGiftMode || $editDebtMode)
                                         wire:model.live="type">
-                                    <option value="gift">حافز او مرتب او سلفيه</option>
-                                    <option value="pay">سداد</option>
-                                    <option value="discount">خصم</option>
+                                    @if($debtType == "deposits")
+                                        <option value="pay">توريد للخزنه</option>
+                                        <option value="debt">سحب من الامانات</option>
+                                    @else
+                                        <option value="gift">حافز او مرتب او سلفيه</option>
+                                        <option value="debt">دين</option>
+                                        <option value="pay">توريد</option>
+                                        <option value="discount">خصم</option>
+                                    @endif
                                 </select>
                             </div>
 
-                            <div class="col-6">
-                                <label for="due_date">التاريخ</label>
-                                <input type="date" disabled class="form-control text-center" id="due_date"
-                                       wire:model.live="due_date">
-                            </div>
-                        </div>
-
-                        <div class="row">
                             <div class="col-6">
                                 <label for="amount">المدفوع</label>
                                 <input type="text" id="amount" autocomplete="off"
@@ -204,7 +198,9 @@
                                        wire:model.live="amount">
 
                             </div>
+                        </div>
 
+                        <div class="row">
                             <div class="col-6">
                                 <label for="payment">طريقة الدفع</label>
                                 <select id="payment"
@@ -214,9 +210,6 @@
                                     <option value="bank">بنك</option>
                                 </select>
                             </div>
-                        </div>
-
-                        <div class="row">
                             <div class="col-6">
                                 <label for="bank_id">البنك</label>
                                 <select id="bank_id"
@@ -230,17 +223,16 @@
                                     @error('bank_id') <span class="error text-danger">{{ $message }}</span> @enderror
                                 </div>
                             </div>
+                        </div>
 
+                        <div class="row">
                             <div class="col-6">
                                 <label for="bank">رقم الايصال</label>
                                 <input type="text" id="bank" autocomplete="off" class="form-control text-center"
                                        @disabled($type == "pay" && $editDebtMode) @disabled($payment == 'cash') placeholder="رقم الإيصال ...."
                                        wire:model.live="bank">
                             </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-12">
+                            <div class="col-6">
 
                                 <label for="note">ملاحظات</label>
 
@@ -251,16 +243,24 @@
                         </div>
 
                         @if(!session("closed") || $payment == "bank")
-                            @if($editGiftMode || $editDebtMode)
-                                <button @disabled(floatval($amount) == 0) class="btn btn-success w-100"
-                                        @if($type == "gift") wire:click="updateGift()"
-                                        @else wire:click="updateDebt()" @endif>تعديل
-                                </button>
+
+                            @if($type == 'gift')
+                                <button class="btn btn-{{$gift_id == 0 ? 'primary' : 'success'}} w-100" @disabled(floatval($amount) == 0)
+                                @disabled($payment == "bank" && $bank_id == null) wire:click="payGift()" >{{$gift_id == 0 ? 'دفــــع' : 'تعــــديل'}}</button>
                             @else
-                                <button class="btn btn-primary w-100" @disabled(floatval($amount) == 0)
-                                        @disabled($payment == "bank" && $bank_id == null) @if($type == "gift") wire:click="payGift()"
-                                        @else wire:click="payDebt()" @endif>{{ $type == "gift" ? "دفع" : "سداد" }}
-                                </button>
+                                @if($debtType == "purchases")
+                                    <button data-bs-toggle="modal" data-bs-target="#debtModal"
+                                            @disabled($payment == "bank" && $banks->count() == 0) @disabled($currentEmployee['cash']) @disabled(empty($currentEmployee) || $due_date == '') @disabled($amount == 0) class="btn btn-{{$debtId == 0 ? 'primary' : 'success'}} w-100"
+                                            wire:click="savePurchaseDebt()">{{$debtId == 0 ? 'دفــــع' : 'تعــــديل'}}</button>
+                                @elseif($debtType == "sales")
+                                    <button data-bs-toggle="modal" data-bs-target="#debtModal"
+                                            @disabled($payment == "bank" && $banks->count() == 0)  @disabled(empty($currentEmployee) || $due_date == '') @disabled($amount == 0) class="btn btn-{{$debtId == 0 ? 'primary' : 'success'}} w-100"
+                                            wire:click="saveSaleDebt()">{{$debtId == 0 ? 'دفــــع' : 'تعــــديل'}}</button>
+                                @elseif($debtType == "deposits")
+                                    <button data-bs-toggle="modal" data-bs-target="#debtModal"
+                                            @disabled($payment == "bank" && $banks->count() == 0)  @disabled(empty($currentEmployee) || $due_date == '') @disabled($amount == 0) class="btn btn-{{$debtId == 0 ? 'primary' : 'success'}} w-100"
+                                            wire:click="saveDepositDebt()">{{$debtId == 0 ? 'دفــــع' : 'تعــــديل'}}</button>
+                                @endif
                             @endif
                         @endif
 
@@ -324,9 +324,25 @@
                     <div class="card-body">
                         <div class="card-title">
                             <div class="row">
-                                <div class="col-6"><h6>المعاملات</h6></div>
-                                <div class="col-6"><h6>رصيد الموظف
-                                        : {{ number_format($currentBalance, 2) }}</div>
+                                <div class="col-4"><h6>المعاملات</h6></div>
+                                <div class="col-4"><h6>رصيد الموظف
+                                        : {{ number_format($currentBalance, 2) }}
+                                </div>
+                                <div class="col-4">
+                                    <div class="row d-flex align-items-center">
+                                        <div class="col-6">
+                                            <label for="debType"><h6>نوع المعاملات</h6></label>
+                                        </div>
+                                        <div class="col-6">
+                                            <select class="form-select" id="debType" wire:model.live="debtType"
+                                                    wire:change="getGifts()">
+                                                <option value="sales">مبيعات</option>
+                                                <option value="deposits">العهد والامانات</option>
+                                                <option value="purchases">مشتريات</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         <div class="scroll">

@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Models\ClientDebt;
 use App\Models\EmployeeDebt;
+use App\Models\Service;
 use App\Models\Setting;
 use App\Models\SupplierDebt;
 use Illuminate\Support\Facades\DB;
@@ -53,6 +54,7 @@ class Sale extends Component
     public array $oldQuantities = [];
     public array $currentProduct = [];
     public array $cart = [];
+    public array $services = [];
     public string $saleSearch = '';
     public float $remainder = 0;
     public float $currentSalesBalance = 0;
@@ -61,6 +63,9 @@ class Sale extends Component
     public array $invoice = [];
     public $discount = 0;
     public Setting $settings;
+    public $serviceName = "";
+    public $serviceAmount = 0;
+    public $totalServices = 0;
 
     public function mount()
     {
@@ -76,7 +81,7 @@ class Sale extends Component
         }
 
         if (\App\Models\People::where("type", "client")->count() == 0) {
-            \App\Models\People::create(['name' => "نقدي", 'phone' => "", 'initialSalesBalance' => 0,'initialPurchasesBalance' => 0,'initialDepositsBalance' => 0, 'startingDate' => session("date"), 'type' => "client", 'blocked' => false, 'cash' => true]);
+            \App\Models\People::create(['name' => "نقدي", 'phone' => "", 'initialSalesBalance' => 0, 'initialPurchasesBalance' => 0, 'initialDepositsBalance' => 0, 'startingDate' => session("date"), 'type' => "client", 'blocked' => false, 'cash' => true]);
         }
         if (\App\Models\People::where("type", "client")->where("cash", true)->first() != null) {
             $this->currentClient = \App\Models\People::where("type", "client")->where("cash", true)->first()->toArray();
@@ -120,6 +125,15 @@ class Sale extends Component
                     'price' => floatval($item['price']),
                 ]);
             }
+
+            foreach ($this->services as $service) {
+                Service::create([
+                    'sale_id' => $this->id,
+                    'serviceName' => $service['serviceName'],
+                    'amount' => floatval($service['serviceAmount'])
+                ]);
+            }
+
         } else {
             \App\Models\Sale::where("id", $this->id)->update([
                 "people_id" => $this->currentClient['id'],
@@ -135,8 +149,6 @@ class Sale extends Component
                 'user_id' => auth()->id(),
             ]);
 
-            $this->currentSalesBalance -= $this->invoice['remainder'];
-            $this->currentSalesBalance += $this->remainder;
             SaleDetail::where("sale_id", $this->id)->forceDelete();
             foreach ($this->cart as $item) {
                 SaleDetail::create([
@@ -144,6 +156,16 @@ class Sale extends Component
                     'product_id' => floatval($item['product_id']),
                     'quantity' => floatval($item['quantity']),
                     'price' => floatval($item['price']),
+                ]);
+            }
+
+            Service::where("sale_id", $this->id)->forceDelete();
+
+            foreach ($this->services as $service) {
+                Service::create([
+                    'sale_id' => $this->id,
+                    'serviceName' => $service['serviceName'],
+                    'amount' => floatval($service['serviceAmount'])
                 ]);
             }
         }
@@ -163,6 +185,7 @@ class Sale extends Component
         $this->invoice['date'] = $this->due_date;
         $this->invoice['client'] = $this->currentClient['name'];
         $this->invoice['cart'] = $this->cart;
+        $this->invoice['services'] = $this->services;
         $this->invoice['remainder'] = $this->remainder;
         $this->invoice['discount'] = floatval($this->discount);
         $this->invoice['paid'] = floatval($this->paid);
@@ -243,18 +266,36 @@ class Sale extends Component
         }
     }
 
+    public function addService()
+    {
+        $this->services[] = ['serviceName' => $this->serviceName, 'serviceAmount' => floatval($this->serviceAmount)];
+        $this->totalServices += floatval($this->serviceAmount);
+        $this->cost += floatval($this->serviceAmount);
+        $this->calcRemainder();
+        $this->reset("serviceName", "serviceAmount");
+    }
+
     public function deleteFromCart($id)
     {
         $this->cost -= $this->cart[$id]['amount'];
 
         unset($this->cart[$id]);
-        if (empty($this->cart)) {
+        if (empty($this->cart) && empty($this->services)) {
             $this->amount = 0;
             $this->cost = 0;
             $this->remainder = 0;
             $this->paid = 0;
             $this->discount = 0;
         }
+        $this->calcRemainder();
+
+    }
+
+    public function deleteService($key)
+    {
+
+        $this->cost -= floatval($this->services[$key]['serviceAmount']);
+        unset($this->services[$key]);
         $this->calcRemainder();
 
     }
@@ -276,6 +317,7 @@ class Sale extends Component
         $this->invoice['bank_id'] = $sale['bank_id'];
         $this->invoice['client'] = $this->currentClient['name'];
         $this->invoice['cart'] = SaleDetail::where('sale_id', $sale['id'])->join('products', 'products.id', '=', 'sale_details.product_id')->get()->keyBy("product_id")->toArray();
+        $this->invoice['services'] = Service::where('sale_id', $sale['id'])->select("id", "serviceName", "amount As serviceAmount")->get()->toArray();
         $this->invoice['remainder'] = floatval($sale['remainder']);
         $this->invoice['paid'] = floatval($sale['paid']);
         $this->invoice['discount'] = floatval($sale['discount']);
@@ -303,6 +345,7 @@ class Sale extends Component
         $this->cost = floatval($this->invoice['amount']) + floatval($this->invoice['discount']);
         $this->due_date = $this->invoice['date'];
         $this->cart = $this->invoice['cart'];
+        $this->services = $this->invoice['services'];
         foreach ($this->cart as $item) {
             $this->cart[$item['product_id']]['amount'] = floatval($item['price']) * floatval($item['quantity']);
         }
@@ -361,7 +404,7 @@ class Sale extends Component
 
     public function resetData($item = null)
     {
-        $item == "currentClient" ? $this->reset('search', 'clientSearch', 'id', 'oldQuantities', $item) : $this->reset('currentProduct', 'cart', 'bank', 'payment', 'bank', 'bank_id', 'search', 'clientSearch', 'paid', 'remainder', 'amount', 'cost', 'discount', 'id', 'oldQuantities', $item);
+        $item == "currentClient" ? $this->reset('search', 'clientSearch', 'id', 'oldQuantities', $item) : $this->reset('currentProduct', 'cart', 'bank', 'payment', 'bank', 'bank_id', 'search', 'clientSearch', 'paid', 'remainder', 'amount', 'cost', 'discount', 'id', 'services', 'serviceAmount', 'serviceName', 'totalServices', 'oldQuantities', $item);
     }
 
     public function render()

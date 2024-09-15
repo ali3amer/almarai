@@ -75,7 +75,7 @@ class Report extends Component
         'purchase_returns' => 'مرتجعات المشتريات',
         'purchase_debts' => 'الموردون',
         'employees' => 'الموظفين',
-        'deposits' => 'العهد والامانات',
+        'deposit_debts' => 'العهد والامانات',
         'expenses' => 'المصروفات',
         'withdraws' => 'الخزنه',
         'transfers' => 'التحويلات',

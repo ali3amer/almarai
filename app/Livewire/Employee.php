@@ -4,6 +4,8 @@ namespace App\Livewire;
 
 use App\Models\Bank;
 use App\Models\ClientDebt;
+use App\Models\DepositDebt;
+use App\Models\PurchaseDebt;
 use App\Models\SaleDebt;
 use App\Models\EmployeeGift;
 use App\Models\SaleDetail;
@@ -61,6 +63,7 @@ class Employee extends Component
     public $month = "";
     public $gift_id = 0;
     public array $currentReceipt = [];
+    public $debtType = 'sales';
 
     protected function rules()
     {
@@ -187,14 +190,29 @@ class Employee extends Component
 
     }
 
-    public function getGifts($employee)
+    public function getGifts($employee = null)
     {
+
+        if ($employee == null) {
+            $employee = $this->currentEmployee;
+        }
+
         $this->currentEmployee = $employee;
+
+        if ($this->debtType == "sales") {
+            $this->currentBalance = \App\Models\People::find($this->currentEmployee['id'])->currentSalesBalance;
+            $this->debts = (new \App\Models\Sale)->getMovements($this->currentEmployee['id'], 'employee')->toArray();
+        } elseif ($this->debtType == "purchases") {
+            $this->currentBalance = \App\Models\People::find($this->currentEmployee['id'])->currentPurchasesBalance;
+            $this->debts = (new \App\Models\Purchase)->getMovements($this->currentEmployee['id'], 'employee')->toArray();
+        } elseif ($this->debtType == 'deposits') {
+            $this->debts = (new \App\Models\Deposit)->getMovements($this->currentEmployee['id'], 'employee')->toArray();
+            $this->currentBalance = \App\Models\People::find($this->currentEmployee['id'])->currentDepositsBalance;
+        }
+
         $this->due_date = session("date");
         $this->gifts = EmployeeGift::where('people_id', $this->currentEmployee['id'])->get();
-        $this->debts = (new \App\Models\Sale)->getMovements($this->currentEmployee['id'], 'employee')->toArray();
         $this->currentEmployee['gifts'] = EmployeeGift::where("people_id", $this->currentEmployee["id"])->where("due_date", "LIKE", date("Y") . "-%" . $this->month . "-%")->sum("amount");
-        $this->currentBalance = \App\Models\People::find($this->currentEmployee['id'])->currentSalesBalance;
 
     }
 
@@ -212,20 +230,35 @@ class Employee extends Component
                 'cancelButtonColor' => '#4b5563'
             ]);
         } else {
-            EmployeeGift::create([
-                'people_id' => $this->currentEmployee['id'],
-                'payment' => $this->payment,
-                'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
-                'bank' => $this->bank,
-                'amount' => $this->amount,
-                'due_date' => $this->due_date,
-                'note' => $this->note ?? "تم دفع مبلغ للموظف"
-            ]);
+
+            if ($this->gift_id == 0) {
+                EmployeeGift::create([
+                    'people_id' => $this->currentEmployee['id'],
+                    'payment' => $this->payment,
+                    'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
+                    'bank' => $this->bank,
+                    'amount' => $this->amount,
+                    'due_date' => $this->due_date,
+                    'note' => $this->note ?? "تم دفع مبلغ للموظف"
+                ]);
+
+                $this->alert('success', 'تم الدفع بنجاح', ['timerProgressBar' => true]);
+
+            } else {
+                EmployeeGift::where('id', $this->gift_id)->update([
+                    'payment' => $this->payment,
+                    'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
+                    'bank' => $this->bank,
+                    'amount' => $this->amount,
+                    'due_date' => $this->due_date,
+                    'note' => $this->note ?? "تم دفع مبلغ للموظف"
+                ]);
+                $this->alert('success', 'تم التعديل بنجاح', ['timerProgressBar' => true]);
+            }
+
             $this->getGifts($this->currentEmployee);
 
             $this->resetData();
-
-            $this->alert('success', 'تم الدفع بنجاح', ['timerProgressBar' => true]);
 
         }
     }
@@ -244,26 +277,6 @@ class Employee extends Component
 
     }
 
-    public function updateGift()
-    {
-
-        EmployeeGift::where('id', $this->gift_id)->update([
-            'payment' => $this->payment,
-            'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
-            'bank' => $this->bank,
-            'amount' => $this->amount,
-            'due_date' => $this->due_date,
-            'note' => $this->note ?? "تم دفع مبلغ للموظف"
-        ]);
-
-        $this->getGifts($this->currentEmployee);
-
-        $this->resetData();
-
-        $this->alert('success', 'تم التعديل بنجاح', ['timerProgressBar' => true]);
-
-    }
-
     public function deleteGift($data)
     {
         $gift = EmployeeGift::where('id', $data['inputAttributes']['id'])->first();
@@ -274,35 +287,191 @@ class Employee extends Component
     }
 
 
-    public function payDebt()
+    public function saveSaleDebt()
     {
 
-        if ($this->type == "pay") {
-            $note = 'تم إستلام مبلغ';
+        if ($this->type == 'debt') {
+            $note = 'تم إستلاف مبلغ';
         } elseif ($this->type == "discount") {
-            $note = 'تم تخفيض مبلغ';
+            $note = 'تم خصم مبلغ';
+        } else {
+            $note = 'تم إستلام مبلغ';
         }
 
-        $debt = SaleDebt::create([
-            'people_id' => $this->currentEmployee['id'],
-            'type' => $this->type,
-            'amount' => floatval($this->amount),
-            'payment' => $this->payment,
-            'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
-            'bank' => $this->bank,
-            'due_date' => $this->due_date,
-            'note' => $this->note == '' ? $note : $this->note,
-            'user_id' => auth()->id(),
-        ]);
+        if ($this->type == "debt" && floatval($this->amount) > floatval(session($this->payment == "cash" ? "safeBalance" : "bankBalance"))) {
+            $this->confirm("المبلغ المدفوع أكبر من المبلغ المتوفر", [
+                'toast' => false,
+                'showConfirmButton' => false,
+                'confirmButtonText' => 'موافق',
+                'onConfirmed' => "cancelSale",
+                'showCancelButton' => true,
+                'cancelButtonText' => 'إلغاء',
+                'confirmButtonColor' => '#dc2626',
+                'cancelButtonColor' => '#4b5563'
+            ]);
+        } else {
+            if ($this->debtId == 0) {
 
+                if (floatval($this->amount) != 0) {
+                    $debt = SaleDebt::create([
+                        'people_id' => $this->currentEmployee['id'],
+                        'type' => $this->type,
+                        'amount' => $this->amount,
+                        'payment' => $this->payment,
+                        'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
+                        'bank' => $this->bank,
+                        'due_date' => $this->due_date,
+                        'note' => $this->note == '' ? $note : $this->note,
+                        'user_id' => auth()->id(),
+                    ]);
+                }
 
-        $this->showReceipt($debt->toArray());
+                $this->alert('success', 'تم السداد بنجاح', ['timerProgressBar' => true]);
+            } else {
+                $debt = SaleDebt::where('id', $this->debtId)->first();
 
+                $debt->type = $this->type;
+                $debt->amount = $this->amount;
+                $debt->payment = $this->payment;
+                $debt->bank_id = $this->payment == 'bank' ? $this->bank_id : null;
+                $debt->bank = $this->bank;
+                $debt->due_date = $this->due_date;
+                $debt->user_id = auth()->id();
+                $debt->save();
+                $this->alert('success', 'تم تعديل الدفعيه بنجاح', ['timerProgressBar' => true]);
+
+            }
+            $this->showReceipt($debt->toArray());
+
+        }
+        $this->resetData();
         $this->getGifts($this->currentEmployee);
 
-        $this->alert('success', 'تم الدفع بنجاح', ['timerProgressBar' => true]);
+    }
+
+    public function savePurchaseDebt()
+    {
+        if ($this->type == 'debt') {
+            $note = 'تم إستلاف مبلغ';
+        } elseif ($this->type == "discount") {
+            $note = 'تم خصم مبلغ';
+        } else {
+            $note = 'تم دفع مبلغ';
+        }
+
+        if ($this->type == "pay" && floatval($this->amount) > floatval(session($this->payment == "cash" ? "safeBalance" : "bankBalance"))) {
+            $this->confirm("المبلغ المدفوع أكبر من المبلغ المتوفر", [
+                'toast' => false,
+                'showConfirmButton' => false,
+                'confirmButtonText' => 'موافق',
+                'onConfirmed' => "cancelSale",
+                'showCancelButton' => true,
+                'cancelButtonText' => 'إلغاء',
+                'confirmButtonColor' => '#dc2626',
+                'cancelButtonColor' => '#4b5563'
+            ]);
+
+        } else {
+            if ($this->debtId == 0) {
+
+                if (floatval($this->amount) != 0) {
+                    $debt = PurchaseDebt::create([
+                        'people_id' => $this->currentEmployee['id'],
+                        'type' => $this->type,
+                        'amount' => $this->amount,
+                        'payment' => $this->payment,
+                        'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
+                        'bank' => $this->bank,
+                        'due_date' => $this->due_date,
+                        'note' => $this->note == '' ? $note : $this->note,
+                        'user_id' => auth()->id(),
+                    ]);
+                }
+
+                $this->alert('success', 'تم السداد بنجاح', ['timerProgressBar' => true]);
+
+            } else {
+
+                $debt = PurchaseDebt::where('id', $this->debtId)->first();
+
+                $debt->type = $this->type;
+                $debt->amount = $this->amount;
+                $debt->payment = $this->payment;
+                $debt->bank_id = $this->payment == 'bank' ? $this->bank_id : null;
+                $debt->bank = $this->bank;
+                $debt->due_date = $this->due_date;
+                $debt->user_id = auth()->id();
+                $debt->save();
+
+                $this->alert('success', 'تم تعديل الدفعيه بنجاح', ['timerProgressBar' => true]);
+
+            }
+            $this->showReceipt($debt->toArray());
+        }
 
         $this->resetData();
+        $this->getGifts($this->currentEmployee);
+
+    }
+
+    public function saveDepositDebt()
+    {
+        if ($this->type == "debt" && floatval($this->amount) > floatval(session($this->payment == "cash" ? "safeBalance" : "bankBalance"))) {
+            $this->confirm("المبلغ المدفوع أكبر من المبلغ المتوفر", [
+                'toast' => false,
+                'showConfirmButton' => false,
+                'confirmButtonText' => 'موافق',
+                'onConfirmed' => "cancelSale",
+                'showCancelButton' => true,
+                'cancelButtonText' => 'إلغاء',
+                'confirmButtonColor' => '#dc2626',
+                'cancelButtonColor' => '#4b5563'
+            ]);
+        } else {
+            if ($this->debtId == 0) {
+                if ($this->type == 'pay') {
+                    $note = 'تم إيداع مبلغ';
+                } else {
+                    $note = 'تم سحب مبلغ';
+                }
+                if (floatval($this->amount) != 0) {
+                    $debt = DepositDebt::create([
+                        'people_id' => $this->currentEmployee['id'],
+                        'type' => $this->type,
+                        'amount' => $this->amount,
+                        'payment' => $this->payment,
+                        'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
+                        'bank' => $this->bank,
+                        'due_date' => $this->due_date,
+                        'note' => $this->note == '' ? $note : $this->note,
+                        'user_id' => auth()->id(),
+                    ]);
+                }
+
+                $this->alert('success', $note, ['timerProgressBar' => true]);
+
+            } else {
+                $debt = DepositDebt::where('id', $this->debtId)->first();
+
+                $debt->type = $this->type;
+                $debt->amount = $this->amount;
+                $debt->payment = $this->payment;
+                $debt->bank_id = $this->payment == 'bank' ? $this->bank_id : null;
+                $debt->bank = $this->bank;
+                $debt->due_date = $this->due_date;
+                $debt->user_id = auth()->id();
+
+                $debt->save();
+
+                $this->alert('success', 'تم تعديل الدفعيه بنجاح', ['timerProgressBar' => true]);
+
+            }
+            $this->resetData();
+
+            $this->getGifts($this->currentEmployee);
+            $this->showReceipt($debt->toArray());
+
+        }
 
     }
 
@@ -325,31 +494,19 @@ class Employee extends Component
         $this->due_date = $debt['due_date'];
     }
 
-    public function updateDebt()
-    {
-        $debt = SaleDebt::where('id', $this->debtId)->first();
-            $debt->amount = floatval($this->amount);
-            $debt->payment = $this->payment;
-            $debt->bank_id = $this->payment == 'bank' ? $this->bank_id : null;
-            $debt->bank = $this->bank;
-            $debt->due_date = $this->due_date;
-            $debt->note = $this->note;
-            $debt->user_id = auth()->id();
-
-            $debt->save();
-
-        $this->getGifts($this->currentEmployee);
-
-        $this->resetData();
-
-        $this->alert('success', 'تم التعديل بنجاح', ['timerProgressBar' => true]);
-
-    }
 
     public function deleteDebt($data)
     {
         $id = $data['inputAttributes']['id'];
-        SaleDebt::where('id', $id)->delete();
+
+        if ($this->debtType == 'purchases') {
+            PurchaseDebt::where('id', $id)->forceDelete();
+        } elseif ($this->debtType == 'sales') {
+            SaleDebt::where('id', $id)->forceDelete();
+        } elseif ($this->debtType == 'deposits') {
+            DepositDebt::where('id', $id)->forceDelete();
+        }
+
         $this->getGifts($this->currentEmployee);
 
         $this->resetData();

@@ -71,22 +71,29 @@
                             <div class="card-title"><h5>إضافة كاش الى اليومية</h5></div>
                             <form wire:submit="withdraw()">
                                 <div class="row align-items-end">
-                                    <div class="col-9">
+                                    <div class="col-5">
                                         <label for="amount">المبلغ</label>
                                         <input autocomplete="off" required type="text" wire:model.live="amount"
                                                placeholder="المبلغ ....."
-                                               id="bankName" class="form-control">
+                                               id="bankName" class="form-control text-center">
                                     </div>
 
-                                    <div class="col-3">
+                                    <div class="col-5">
+                                        <label for="withdrawNote">ملاحظات</label>
+                                        <input autocomplete="off" required type="text" wire:model="withdrawNote"
+                                               placeholder="ملاحظات ....."
+                                               id="withdrawNote" class="form-control text-center">
+                                    </div>
+
+                                    <div class="col-2">
                                         @if($withdrawId == 0)
                                             <button type="submit"
-                                                    @disabled(floatval($safeBalance) == 0) @disabled(floatval($amount) > floatval($safeBalance))  @disabled(floatval($amount) == 0) class="btn btn-primary w-100 mt-1">
+                                                    @disabled(floatval($safeBalance) == 0) @disabled(floatval($amount) > floatval($safeBalance))  @disabled(floatval($amount) == 0) class="btn btn-primary mt-1">
                                                 حفظ
                                             </button>
                                         @else
                                             <button type="submit"
-                                                    @disabled(floatval($safeBalance) == 0) @disabled(floatval($amount) > floatval($safeBalance))  @disabled(floatval($amount) == 0) class="btn btn-success w-100 mt-1">
+                                                    @disabled(floatval($safeBalance) == 0) @disabled(floatval($amount) > floatval($safeBalance))  @disabled(floatval($amount) == 0) class="btn btn-success mt-1">
                                                 تعديل
                                             </button>
                                         @endif
@@ -99,6 +106,7 @@
                                     <tr>
                                         <th>التاريخ</th>
                                         <th>المبلغ</th>
+                                        <th>ملاحظات</th>
                                         <th>التحكم</th>
                                     </tr>
                                     </thead>
@@ -107,6 +115,7 @@
                                         <tr>
                                             <td>{{$withdraw->due_date}}</td>
                                             <td>{{number_format($withdraw->amount, 2)}}</td>
+                                            <td>{{$withdraw->note}}</td>
                                             <td>
                                                 <button class="btn btn-sm btn-info text-white"
                                                         @disabled(!$update) wire:click="editWithdraw({{$withdraw}})">
@@ -146,7 +155,8 @@
                             <div class="card-body">
                                 <div class="card-title"><h5>إغلاق اليومية</h5></div>
 
-                                <p>هل أنت متأكد من إغلاق اليومية بمبلغ {{ number_format(session("safeBalance"), 2) }}؟</p>
+                                <p>هل أنت متأكد من إغلاق اليومية بمبلغ {{ number_format(session("safeBalance"), 2) }}
+                                    ؟</p>
 
                                 <button type="submit" class="btn btn-primary w-100 mt-1">حفــــــــــــــــــظ
                                 </button>
@@ -175,7 +185,7 @@
                                             class="bi bi-bag-plus"></i></button>
 
                                     @if(!session("closed"))
-                                        <button @disabled(!$create) class="btn btn-info btn-sm" data-bs-toggle="modal"
+                                        <button @disabled(!$create) class="btn btn-info btn-sm text-white" data-bs-toggle="modal"
                                                 data-bs-target="#cashModal">سحب كاش من الخزنه
                                         </button>
 
@@ -252,22 +262,17 @@
                                 </div>
                             </div>
                             <div class="row mt-2">
-                                <div class="col-3">
-                                    <label for="due_date">تاريخ التحويل</label>
-                                    <input type="date" disabled wire:model="due_date" id="due_date"
-                                           class="form-control text-center" placeholder="رقم الاشعار ....">
-                                </div>
-
-                                <div class="col-3">
+                                <div class="col-4">
                                     <label for="type">البنك</label>
-                                    <select id="type" class="form-select text-center" wire:model.live="bank_id">
+                                    <select id="type" @disabled($banks->count() == 0) class="form-select text-center"
+                                            wire:model.live="bank_id">
                                         @foreach($banks as $bank)
                                             <option value="{{$bank->id}}">{{$bank->bankName}}</option>
                                         @endforeach
                                     </select>
                                 </div>
 
-                                <div class="col-3">
+                                <div class="col-4">
                                     <label for="note">ملاحظات</label>
                                     <input autocomplete="off" type="text" wire:model.live="note" id="note"
                                            class="form-control text-center" placeholder="محلاظات ....">
@@ -276,7 +281,7 @@
                                 @if(!session("closed"))
                                     <div class="col-2 d-flex align-items-end">
                                         <button
-                                            @disabled($transfer_amount == 0) @disabled(!$create) @disabled(\App\Models\Bank::count() == 0) @disabled($bank_id == null) class="btn w-100 btn-{{$transferId == 0 ? 'primary' : 'success'}}"
+                                            @disabled($transfer_amount == 0) @disabled(!$create) @disabled($banks->count() == 0) @disabled($bank_id == null) class="btn w-100 btn-{{$transferId == 0 ? 'primary' : 'success'}}"
                                             type="submit">{{$transferId == 0 ? 'حــــفظ' : 'تعـــديل'}}</button>
                                     </div>
                                 @endif
@@ -354,7 +359,10 @@
                                         <tr>
                                             <td>{{$day->due_date}}</td>
                                             <td>{{number_format($day->balance)}}</td>
-                                            <td><button @disabled(!$create) wire:click="changeStatus({{ $day }})" class="btn btn-sm btn-{{$day->closed ? 'danger' : 'primary'}}">{{ $day->closed ? "مغلق" : "مفتوح" }}</button></td>
+                                            <td>
+                                                <button @disabled(!$create) wire:click="changeStatus({{ $day }})"
+                                                        class="btn btn-sm btn-{{$day->closed ? 'danger' : 'primary'}}">{{ $day->closed ? "مغلق" : "مفتوح" }}</button>
+                                            </td>
                                         </tr>
                                     @endforeach
                                     </tbody>
@@ -376,11 +384,6 @@
 
                         <label for="safe">الرصيد الافتتاحي</label>
                         <input id="safe" type="text" wire:model="safe" placeholder="الرصيد الافتتاحي ...."
-                               class="form-control text-center">
-
-
-                        <label for="startingDate">تاريخ الإضافه</label>
-                        <input type="date" disabled wire:model.live="startingDate" id="startingDate"
                                class="form-control text-center">
 
                         <button class="btn btn-primary w-100 mt-3" wire:click="safeInitial()">حــــــــــــــفظ</button>

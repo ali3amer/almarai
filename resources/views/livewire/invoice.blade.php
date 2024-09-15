@@ -40,6 +40,19 @@
             @endforeach
         @endif
 
+        @if(isset($invoice['services']) && !empty($invoice['services']))
+            <tr>
+                <th colspan="{{ $settings ? $settings->expired_date ? '6' : '5' : '5' }}">الخدمات</th>
+            </tr>
+            @foreach($invoice['services'] as $index => $service)
+                <tr>
+                    <td>{{$index + 1}}</td>
+                    <td colspan="{{ $settings ? $settings->expired_date ? '4' : '3' : '3' }}">{{$service['serviceName']}}</td>
+                    <td>{{$service['serviceAmount']}}</td>
+                </tr>
+            @endforeach
+        @endif
+
         </tbody>
         <tfoot>
         @if(isset($invoice['showMode']) && !$invoice['showMode'])

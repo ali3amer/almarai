@@ -21,7 +21,7 @@
                                     </tr>
                                     <tr>
                                         <td>البيان</td>
-                                        <td>{{$currentReceipt['note']}}</td>
+                                        <td>{{ $currentReceipt['note'] }}</td>
                                     </tr>
                                     <tr>
                                         <td>نوع العملية</td>
@@ -45,7 +45,11 @@
                                     <tr>
                                         <td>المبلغ</td>
                                         <td>
-                                            {{ number_format($currentReceipt['amount'], 2) }}
+                                            @if(isset($currentReceipt['futureExpense']))
+                                                {{$currentReceipt['futureExpense'] != 0 ? number_format($currentReceipt['futureExpense'], 2) : ($currentReceipt['futureIncome'] != 0 ? number_format($currentReceipt['futureIncome'], 2) : ($currentReceipt['expense'] != 0 ? number_format($currentReceipt['expense'], 2) : number_format($currentReceipt['income'], 2)))}}
+                                            @else
+                                                {{ number_format($currentReceipt['amount'], 2) }}
+                                            @endif
                                         </td>
                                     </tr>
                                     </tbody>
@@ -88,11 +92,6 @@
                             <div>
                                 @error('initialBalance') <span class="error text-danger">{{ $message }}</span> @enderror
                             </div>
-
-                            <label for="startingDate">تاريخ بداية التعامل</label>
-                            <input type="date" disabled wire:model.live="startingDate" id="startingDate"
-                                   class="form-control text-center">
-
 
                             @if($blocked == true)
                                 <label for="note" class="form-label">سبب الإيقاف</label>
@@ -192,17 +191,16 @@
                             <div class="col-6">
                                 <label for="payment">نوع العملية</label>
                                 <select class="form-select text-center" wire:model.live="type">
-                                    <option value="pay">توريد للخزنه</option>
-                                    <option value="debt">سحب من الامانات</option>
+                                    @if($debtType == "deposits")
+                                        <option value="pay">توريد للخزنه</option>
+                                        <option value="debt">سحب من الامانات</option>
+                                    @else
+                                        <option value="debt">دين</option>
+                                        <option value="pay">توريد</option>
+                                        <option value="discount">خصم</option>
+                                    @endif
                                 </select>
                             </div>
-                            <div class="col-6">
-                                <label for="due_date">التاريخ</label>
-                                <input type="date" disabled wire:model.live="due_date" id="due_date"
-                                       class="form-control text-center">
-                            </div>
-                        </div>
-                        <div class="row my-2">
                             <div class="col-6">
                                 <label for="amount">المبلغ المدفوع</label>
                                 <input type="text"
@@ -210,6 +208,8 @@
                                        class="form-control text-center"
                                        placeholder="المدفوع ....">
                             </div>
+                        </div>
+                        <div class="row my-2">
                             <div class="col-6">
                                 <label for="payment">طريقة الدفع</label>
                                 <select
@@ -219,9 +219,6 @@
                                     <option value="bank">بنك</option>
                                 </select>
                             </div>
-                        </div>
-
-                        <div class="row">
                             <div class="col-6">
                                 <label for="payment">البنك</label>
                                 <select @disabled($payment == 'cash') class="form-select text-center"
@@ -232,6 +229,9 @@
                                 </select>
 
                             </div>
+                        </div>
+
+                        <div class="row">
                             <div class="col-6">
                                 <label for="bank">رقم الايصال</label>
                                 <input @disabled($payment == 'cash') autocomplete="off" type="text" autocomplete="off"
@@ -240,8 +240,7 @@
                                        placeholder="رقم الايصال ....">
 
                             </div>
-
-                            <div class="col-12">
+                            <div class="col-6">
                                 <label for="note">ملاحظات</label>
                                 <input autocomplete="off" type="text"
                                        wire:model="note" id="note"
@@ -252,12 +251,19 @@
 
                         <div class="row">
                             @if(!session("closed") || $payment == "bank")
-
-                                <div class="col-12 d-flex align-items-end">
+                                @if($debtType == "deposits")
                                     <button data-bs-toggle="modal" data-bs-target="#debtModal"
-                                            @disabled($payment == "bank" && $banks->count() == 0) @disabled(empty($currentDeposit) || $due_date == '') @disabled($amount == 0) class="btn btn-{{$debtId == 0 ? 'primary' : 'success'}} w-100"
-                                            wire:click="saveDebt()">{{$debtId == 0 ? 'دفــــع' : 'تعــــديل'}}</button>
-                                </div>
+                                            @disabled($payment == "bank" && $banks->count() == 0)  @disabled(empty($currentDeposit) || $due_date == '') @disabled($amount == 0) class="btn btn-{{$debtId == 0 ? 'primary' : 'success'}} w-100"
+                                            wire:click="saveDepositDebt()">{{$debtId == 0 ? 'دفــــع' : 'تعــــديل'}}</button>
+                                @elseif($debtType == "sales")
+                                    <button data-bs-toggle="modal" data-bs-target="#debtModal"
+                                            @disabled($payment == "bank" && $banks->count() == 0)  @disabled(empty($currentDeposit) || $due_date == '') @disabled($amount == 0) class="btn btn-{{$debtId == 0 ? 'primary' : 'success'}} w-100"
+                                            wire:click="saveSaleDebt()">{{$debtId == 0 ? 'دفــــع' : 'تعــــديل'}}</button>
+                                @elseif($debtType == "purchases")
+                                    <button data-bs-toggle="modal" data-bs-target="#debtModal"
+                                            @disabled($payment == "bank" && $banks->count() == 0) @disabled($currentDeposit['cash']) @disabled(empty($currentDeposit) || $due_date == '') @disabled($amount == 0) class="btn btn-{{$debtId == 0 ? 'primary' : 'success'}} w-100"
+                                            wire:click="savePurchaseDebt()">{{$debtId == 0 ? 'دفــــع' : 'تعــــديل'}}</button>
+                                @endif
                             @endif
                         </div>
 
@@ -270,9 +276,25 @@
                     <div class="card-body">
                         <div class="card-title">
                             <div class="row">
-                                <div class="col-6"><h6>المعاملات</h6></div>
-                                <div class="col-6"><h6>رصيد العميل
-                                        : {{ number_format($currentBalance, 2) }}</div>
+                                <div class="col-4"><h6>المعاملات</h6></div>
+                                <div class="col-4"><h6>رصيد العميل
+                                        : {{ number_format($currentBalance, 2) }}
+                                </div>
+                                <div class="col-4">
+                                    <div class="row d-flex align-items-center">
+                                        <div class="col-6">
+                                            <label for="debType"><h6>نوع المعاملات</h6></label>
+                                        </div>
+                                        <div class="col-6">
+                                            <select class="form-select" id="debType" wire:model.live="debtType"
+                                                    wire:change="showDebts()">
+                                                <option value="deposits">العهد والامانات</option>
+                                                <option value="sales">مبيعات</option>
+                                                <option value="purchases">مشتريات</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         <div class="scroll">
@@ -288,23 +310,27 @@
                                 <tbody>
                                 @foreach($debts as $debt)
                                     <tr>
-                                        <td style="cursor: pointer" wire:click="showReceipt({{$debt}})"
-                                            data-bs-toggle="modal" data-bs-target="#debtModal">{{$debt->due_date}}</td>
-                                        <td style="cursor: pointer" wire:click="showReceipt({{$debt}})"
-                                            data-bs-toggle="modal" data-bs-target="#debtModal">{{$debt->note}}</td>
-                                        <td style="cursor: pointer" wire:click="showReceipt({{$debt}})"
+                                        <td style="cursor: pointer" wire:click="showReceipt({{ json_encode($debt) }})"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#debtModal">{{$debt['due_date']}}</td>
+                                        <td style="cursor: pointer" wire:click="showReceipt({{ json_encode($debt) }})"
                                             data-bs-toggle="modal" data-bs-target="#debtModal">
-                                            {{number_format($debt->amount, 2)}}
+                                            {{ $debt['note']  }}
+                                        </td>
+                                        <td style="cursor: pointer" wire:click="showReceipt({{ json_encode($debt) }})"
+                                            data-bs-toggle="modal" data-bs-target="#debtModal">
+                                            {{$debt['futureExpense'] != 0 ? number_format($debt['futureExpense'], 2) : ($debt['futureIncome'] != 0 ? number_format($debt['futureIncome'], 2) : ($debt['expense'] != 0 ? number_format($debt['expense'], 2) : number_format($debt['income'], 2)))}}
                                         </td>
                                         <td>
-                                            @if($debt->due_date == session("date"))
+                                            @if($debt['due_date'] == session("date"))
                                                 <button @disabled(!$update) class="btn btn-sm btn-info"
-                                                        wire:click="chooseDebt({{$debt}})"><i
+                                                        wire:click="chooseDebt({{ json_encode($debt) }})"><i
                                                         class="bi bi-pen"></i>
                                                 </button>
 
                                                 <button @disabled(!$delete) class="btn btn-sm btn-danger"
-                                                        wire:click="deleteDebtMessage({{$debt}})"><i
+                                                        wire:click="deleteDebtMessage({{ json_encode($debt['id']) }})">
+                                                    <i
                                                         class="bi bi-trash"></i>
                                                 </button>
                                             @endif

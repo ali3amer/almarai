@@ -134,20 +134,47 @@
                         </div>
 
                         <div class="col-6">
+                            <div class="card mb-1">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-5">
+                                            <input autocomplete="off" type="text"
+                                                   placeholder="الخدمه  ....."
+                                                   wire:model.live="serviceName"
+                                                   class="form-control">
+                                        </div>
+                                        <div class="col-5">
+                                            <input autocomplete="off" type="text"
+                                                   placeholder="المبلغ  ....."
+                                                   wire:model.live="serviceAmount"
+                                                   class="form-control">
+                                        </div>
+                                        <div class="col-2">
+                                            <button @disabled($serviceName == "" || floatval($serviceAmount) == 0) class="btn btn-primary" wire:click="addService()">إضافة</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                             <div class="card">
                                 <div class="card-body">
                                     <div class="card-title">
                                         <div class="row">
                                             <div class="col-4"><h5>الفاتوره {{$id != 0 ? '#'. $id : ''}}</h5></div>
-                                            <div class="col-4"><input type="date" disabled
-                                                                      wire:model.live="due_date"
-                                                                      class="form-control">
-                                            </div>
+
                                             <div class="col-4">
                                                 <select @disabled($banks->count() == 0) wire:model.live="payment"
                                                         class="form-select">
                                                     <option value="cash">كاش</option>
                                                     <option value="bank">بنك</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-4">
+                                                <select wire:model.live="bank_id"
+                                                        @disabled($payment == 'cash') class="form-select">
+                                                    @foreach($banks as $bank)
+                                                        <option value="{{$bank->id}}">{{$bank->bankName}}</option>
+                                                    @endforeach
                                                 </select>
                                             </div>
                                         </div>
@@ -159,16 +186,6 @@
                                                        @disabled($payment == 'cash') wire:model.live="bank"
                                                        class="form-control">
                                             </div>
-
-                                            <div class="col-4">
-                                                <select wire:model.live="bank_id"
-                                                        @disabled($payment == 'cash') class="form-select">
-                                                    @foreach($banks as $bank)
-                                                        <option value="{{$bank->id}}">{{$bank->bankName}}</option>
-                                                    @endforeach
-                                                </select>
-                                            </div>
-
                                             <div class="col-4">
                                                 <input autocomplete="off" type="text"
                                                        placeholder="ملاحظه  ....."
@@ -208,6 +225,20 @@
                                                     </td>
                                                 </tr>
                                             @endforeach
+                                            @foreach($services as $key => $service)
+                                                <tr>
+                                                    <td colspan="4">{{ $service['serviceName'] }}</td>
+                                                    <td>{{ $service['serviceAmount'] }}</td>
+                                                    <td>
+                                                        <button wire:loading.attr="disabled"
+                                                                wire:click="deleteService({{$key}})"
+                                                                class="btn btn-primary btn-sm btn-danger"><i
+                                                                class="bi bi-trash-fill"></i>
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            @endforeach
+
                                             <tr>
                                                 <td>الجمله</td>
                                                 <td>{{number_format($cost, 2)}}</td>
@@ -309,9 +340,10 @@
                                 <div class="row">
                                     <div class="col-4 align-self-center">
                                         <select class="form-select" wire:model.live="buyer">
+                                            <option value="supplier">الموردين</option>
                                             <option value="client">العملاء</option>
                                             <option value="employee">الموظفين</option>
-                                            <option value="supplier">الموردين</option>
+                                            <option value="deposit">العهد</option>
                                         </select>
                                     </div>
                                     <div class="col-8">

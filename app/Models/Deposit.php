@@ -17,11 +17,11 @@ class Deposit extends Model
         return $this->hasMany(DepositDebt::class);
     }
 
-    public function getMovements()
+    public function getMovements($id = null, $clientType = 'client')
     {
 
         $deposits = DepositDebt::select(
-            DB::raw("'deposits' as tableName"),
+            DB::raw("'deposit_debts' as tableName"),
             DB::raw("people.type as clientType"),
             'deposit_debts.type',
             DB::raw('null as invoice_id'),
@@ -46,9 +46,12 @@ class Deposit extends Model
             'deposit_debts.created_at',
             'deposit_debts.updated_at'
         )
-            ->leftJoin('people', 'people.id', '=', 'deposit_debts.people_id')->orderBy('due_date', 'asc')->get();
+            ->leftJoin('people', 'people.id', '=', 'deposit_debts.people_id');
+        if ($id != null) {
+            $deposits = $deposits->where("deposit_debts.people_id", $id);
+        }
 
-        return $deposits;
+        return $deposits->orderBy('due_date', 'asc')->get();
     }
 
     public function getCurrentBalanceAttribute()

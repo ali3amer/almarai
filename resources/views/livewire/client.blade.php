@@ -113,11 +113,6 @@
                                     class="error text-danger">{{ $message }}</span> @enderror
                             </div>
 
-                            <label for="startingDate">تاريخ بداية التعامل</label>
-                            <input type="date" disabled wire:model.live="startingDate" id="startingDate"
-                                   class="form-control text-center">
-
-
                             @if($blocked == true)
                                 <label for="note" class="form-label">سبب الإيقاف</label>
                                 <input type="text" wire:model="note" autocomplete="off" class="form-control"
@@ -231,19 +226,14 @@
                                 </select>
                             </div>
                             <div class="col-6">
-                                <label for="due_date">التاريخ</label>
-                                <input type="date" disabled wire:model.live="due_date" id="due_date"
-                                       class="form-control text-center">
-                            </div>
-                        </div>
-                        <div class="row my-2">
-                            <div class="col-6">
                                 <label for="amount">المبلغ المدفوع</label>
                                 <input type="text"
                                        wire:model.live="amount" autocomplete="off" id="amount"
                                        class="form-control text-center"
                                        placeholder="المدفوع ....">
                             </div>
+                        </div>
+                        <div class="row my-2">
                             <div class="col-6">
                                 <label for="payment">طريقة الدفع</label>
                                 <select
@@ -253,9 +243,6 @@
                                     <option value="bank">بنك</option>
                                 </select>
                             </div>
-                        </div>
-
-                        <div class="row">
                             <div class="col-6">
                                 <label for="bank_id">البنك</label>
                                 <select @disabled($payment == 'cash') class="form-select text-center"
@@ -266,6 +253,9 @@
                                 </select>
 
                             </div>
+                        </div>
+
+                        <div class="row">
                             <div class="col-6">
                                 <label for="bank">رقم الايصال</label>
                                 <input @disabled($payment == 'cash') autocomplete="off" type="text" autocomplete="off"
@@ -274,8 +264,7 @@
                                        placeholder="رقم الايصال ....">
 
                             </div>
-
-                            <div class="col-12">
+                            <div class="col-6">
                                 <label for="note">ملاحظات</label>
                                 <input autocomplete="off" type="text"
                                        wire:model="note" id="note"
@@ -287,17 +276,20 @@
                         <div class="row">
                             @if(!session("closed") || $payment == "bank")
 
-
                                 <div
                                     class="col-12 d-flex align-items-end">
                                     @if($debtType == "purchases")
                                         <button data-bs-toggle="modal" data-bs-target="#debtModal"
                                                 @disabled($payment == "bank" && $banks->count() == 0) @disabled($currentClient['cash']) @disabled(empty($currentClient) || $due_date == '') @disabled($amount == 0 && $discount == 0) class="btn btn-{{$debtId == 0 ? 'primary' : 'success'}} w-100"
                                                 wire:click="savePurchaseDebt()">{{$debtId == 0 ? 'دفــــع' : 'تعــــديل'}}</button>
-                                    @else
+                                    @elseif($debtType == "sales")
                                         <button data-bs-toggle="modal" data-bs-target="#debtModal"
                                                 @disabled($payment == "bank" && $banks->count() == 0)  @disabled(empty($currentClient) || $due_date == '') @disabled($amount == 0 && $discount == 0 && $service == 0) class="btn btn-{{$debtId == 0 ? 'primary' : 'success'}} w-100"
                                                 wire:click="saveSaleDebt()">{{$debtId == 0 ? 'دفــــع' : 'تعــــديل'}}</button>
+                                    @elseif($debtType == "deposits")
+                                        <button data-bs-toggle="modal" data-bs-target="#debtModal"
+                                                @disabled($payment == "bank" && $banks->count() == 0)  @disabled(empty($currentClient) || $due_date == '') @disabled($amount == 0 && $discount == 0 && $service == 0) class="btn btn-{{$debtId == 0 ? 'primary' : 'success'}} w-100"
+                                                wire:click="saveDepositDebt()">{{$debtId == 0 ? 'دفــــع' : 'تعــــديل'}}</button>
                                     @endif
                                 </div>
                             @endif
@@ -323,8 +315,14 @@
                                         <div class="col-6">
                                             <select class="form-select" id="debType" wire:model.live="debtType"
                                                     wire:change="showDebts()">
-                                                <option value="sales">مبيعات</option>
-                                                <option value="purchases">مشتريات</option>
+                                                @if($debtType == "deposits")
+                                                    <option value="pay">توريد للخزنه</option>
+                                                    <option value="debt">سحب من الامانات</option>
+                                                @else
+                                                    <option value="debt">دين</option>
+                                                    <option value="pay">توريد</option>
+                                                    <option value="discount">خصم</option>
+                                                @endif
                                             </select>
                                         </div>
                                     </div>

@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Models\DepositDebt;
 use App\Models\PurchaseDebt;
 use Illuminate\Support\Facades\DB;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
@@ -171,9 +172,12 @@ class Client extends Component
         if ($this->debtType == "sales") {
             $this->currentBalance = \App\Models\People::find($this->currentClient['id'])->currentSalesBalance;
             $this->debts = (new \App\Models\Sale)->getMovements($this->currentClient['id'], 'client')->toArray();
-        } else {
+        } elseif ($this->debtType == "purchases") {
             $this->currentBalance = \App\Models\People::find($this->currentClient['id'])->currentPurchasesBalance;
             $this->debts = (new \App\Models\Purchase)->getMovements($this->currentClient['id'], 'client')->toArray();
+        } elseif ($this->debtType == 'deposits') {
+            $this->debts = (new \App\Models\Deposit)->getMovements($this->currentClient['id'], 'client')->toArray();
+            $this->currentBalance = \App\Models\People::find($this->currentClient['id'])->currentDepositsBalance;
         }
     }
 
@@ -303,6 +307,69 @@ class Client extends Component
         $this->showDebts($this->currentClient);
 
     }
+
+    public function saveDepositDebt()
+    {
+        if ($this->type == "debt" && floatval($this->amount) > floatval(session($this->payment == "cash" ? "safeBalance" : "bankBalance"))) {
+            $this->confirm("المبلغ المدفوع أكبر من المبلغ المتوفر", [
+                'toast' => false,
+                'showConfirmButton' => false,
+                'confirmButtonText' => 'موافق',
+                'onConfirmed' => "cancelSale",
+                'showCancelButton' => true,
+                'cancelButtonText' => 'إلغاء',
+                'confirmButtonColor' => '#dc2626',
+                'cancelButtonColor' => '#4b5563'
+            ]);
+        } else {
+            if ($this->debtId == 0) {
+                if ($this->type == 'pay') {
+                    $note = 'تم إيداع مبلغ';
+                } else {
+                    $note = 'تم سحب مبلغ';
+                }
+                if (floatval($this->amount) != 0) {
+                    $debt = DepositDebt::create([
+                        'people_id' => $this->currentClient['id'],
+                        'type' => $this->type,
+                        'amount' => $this->amount,
+                        'payment' => $this->payment,
+                        'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
+                        'bank' => $this->bank,
+                        'due_date' => $this->due_date,
+                        'note' => $this->note == '' ? $note : $this->note,
+                        'user_id' => auth()->id(),
+                    ]);
+                }
+
+                $this->alert('success', $note, ['timerProgressBar' => true]);
+
+            } else {
+                $debt = DepositDebt::where('id', $this->debtId)->first();
+
+                $debt->type = $this->type;
+                $debt->amount = $this->amount;
+                $debt->payment = $this->payment;
+                $debt->bank_id = $this->payment == 'bank' ? $this->bank_id : null;
+                $debt->bank = $this->bank;
+                $debt->due_date = $this->due_date;
+                $debt->user_id = auth()->id();
+
+                $debt->save();
+
+                $this->alert('success', 'تم تعديل الدفعيه بنجاح', ['timerProgressBar' => true]);
+
+            }
+            $this->resetData();
+
+            $this->showDebts($this->currentClient);
+            $this->showReceipt($debt->toArray());
+
+        }
+
+    }
+
+
     public function showReceipt($debt)
     {
         $this->currentReceipt = (array)$debt;
@@ -342,8 +409,10 @@ class Client extends Component
 
         if ($this->debtType == 'purchases') {
             PurchaseDebt::where('id', $id)->forceDelete();
-        } else {
+        } elseif ($this->debtType == 'sales') {
             SaleDebt::where('id', $id)->forceDelete();
+        } elseif ($this->debtType == 'deposits') {
+            DepositDebt::where('id', $id)->forceDelete();
         }
         $this->showDebts($this->currentClient);
 

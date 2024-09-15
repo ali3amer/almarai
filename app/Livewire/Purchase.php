@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Models\People;
 use App\Models\SaleDebt;
+use App\Models\Service;
 use App\Models\Setting;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
 
@@ -60,6 +61,10 @@ class Purchase extends Component
     public $discount = 0;
     public $cost = 0;
     public Setting $settings;
+    public array $services = [];
+    public $serviceName = "";
+    public $serviceAmount = 0;
+    public $totalServices = 0;
 
 
     public function mount()
@@ -121,6 +126,14 @@ class Purchase extends Component
                     ]);
 
                 }
+
+                foreach ($this->services as $service) {
+                    Service::create([
+                        'purchase_id' => $this->id,
+                        'serviceName' => $service['serviceName'],
+                        'amount' => floatval($service['serviceAmount'])
+                    ]);
+                }
             } else {
                 \App\Models\Purchase::where("id", $this->id)->update([
                     "people_id" => $this->currentSupplier['id'],
@@ -143,6 +156,16 @@ class Purchase extends Component
                         'product_id' => floatval($item['product_id']),
                         'quantity' => floatval($item['quantity']),
                         'price' => floatval($item['price']),
+                    ]);
+                }
+
+                Service::where("purchase_id", $this->id)->forceDelete();
+
+                foreach ($this->services as $service) {
+                    Service::create([
+                        'purchase_id' => $this->id,
+                        'serviceName' => $service['serviceName'],
+                        'amount' => floatval($service['serviceAmount'])
                     ]);
                 }
             }
@@ -175,6 +198,7 @@ class Purchase extends Component
         $this->invoice['date'] = $this->due_date;
         $this->invoice['client'] = $this->currentSupplier['name'];
         $this->invoice['cart'] = $this->cart;
+        $this->invoice['services'] = $this->services;
         $this->invoice['remainder'] = $this->remainder;
         $this->invoice['discount'] = floatval($this->discount);
         $this->invoice['paid'] = floatval($this->paid);
@@ -232,6 +256,16 @@ class Purchase extends Component
         $this->calcRemainder();
     }
 
+    public function addService()
+    {
+        $this->services[] = ['serviceName' => $this->serviceName, 'serviceAmount' => floatval($this->serviceAmount)];
+        $this->totalServices += floatval($this->serviceAmount);
+        $this->cost += floatval($this->serviceAmount);
+        $this->calcRemainder();
+        $this->reset("serviceName", "serviceAmount");
+    }
+
+
     public function deleteFromCart($id)
     {
         $this->cost -= $this->cart[$id]['amount'];
@@ -241,13 +275,22 @@ class Purchase extends Component
         }
 
         unset($this->cart[$id]);
-        if (empty($this->cart)) {
+        if (empty($this->cart) && empty($this->services)) {
             $this->amount = 0;
             $this->remainder = 0;
             $this->paid = 0;
             $this->discount = 0;
             $this->cost = 0;
         }
+        $this->calcRemainder();
+
+    }
+
+    public function deleteService($key)
+    {
+
+        $this->cost -= floatval($this->services[$key]['serviceAmount']);
+        unset($this->services[$key]);
         $this->calcRemainder();
 
     }
@@ -269,6 +312,7 @@ class Purchase extends Component
         $this->invoice['date'] = $purchase['due_date'];
         $this->invoice['client'] = $this->currentSupplier['name'];
         $this->invoice['cart'] = PurchaseDetail::where('purchase_id', $purchase['id'])->join('products', 'products.id', '=', 'purchase_details.product_id')->get()->keyBy("product_id")->toArray();
+        $this->invoice['services'] = Service::where('purchase_id', $purchase['id'])->select("id", "serviceName", "amount as serviceAmount")->get()->toArray();
         $this->invoice['remainder'] = floatval($purchase['remainder']);
         $this->invoice['paid'] = floatval($purchase['paid']);
         $this->invoice['discount'] = floatval($purchase['discount']);
@@ -297,6 +341,7 @@ class Purchase extends Component
         $this->cost = floatval($this->invoice['amount']) + floatval($this->invoice['discount']);
         $this->due_date = $this->invoice['date'];
         $this->cart = $this->invoice['cart'];
+        $this->services = $this->invoice['services'];
         foreach ($this->cart as $item) {
             $this->cart[$item['product_id']]['amount'] = floatval($item['price']) * floatval($item['quantity']);
         }
@@ -355,7 +400,7 @@ class Purchase extends Component
     public function resetData($item = null)
     {
 
-        $item == "currentSupplier" ? $this->reset('search', 'supplierSearch', 'id', 'oldQuantities', $item) : $this->reset('currentProduct', 'cart', 'bank', 'payment', 'bank', 'bank_id', 'search', 'supplierSearch', 'discount', 'cost', 'paid', 'remainder', 'amount', 'id', 'oldQuantities', $item);
+        $item == "currentSupplier" ? $this->reset('search', 'supplierSearch', 'id', 'oldQuantities', $item) : $this->reset('currentProduct', 'cart', 'bank', 'payment', 'bank', 'bank_id', 'search', 'supplierSearch', 'discount', 'cost', 'paid', 'remainder', 'amount', 'id', 'services', 'serviceName', 'serviceAmount', 'totalServices', 'oldQuantities', $item);
     }
 
     public function render()

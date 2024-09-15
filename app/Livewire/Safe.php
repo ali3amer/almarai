@@ -64,6 +64,7 @@ class Safe extends Component
     public bool $readDay = false;
     public bool $updateDay = false;
     public bool $deleteDay = false;
+    public $withdrawNote = null;
 
     public function mount()
     {
@@ -124,7 +125,7 @@ class Safe extends Component
 
     public function getWithdraws()
     {
-        $this->reset("payment", "amount", "withdrawId");
+        $this->reset("payment", "amount", "withdrawId", "withdrawNote");
         $this->withdraws = Withdraw::all();
     }
 
@@ -137,6 +138,7 @@ class Safe extends Component
                 "payment" => $this->payment,
                 "bank_id" => $this->payment == "cash" ? null : $this->bank_id,
                 "amount" => $this->amount,
+                "note" => $this->withdrawNote
             ]);
         } else {
             Withdraw::where("id", $this->withdrawId)->update([
@@ -144,6 +146,7 @@ class Safe extends Component
                 "payment" => $this->payment,
                 "bank_id" => $this->payment == "cash" ? null : $this->bank_id,
                 "amount" => $this->amount,
+                "note" => $this->withdrawNote
             ]);
         }
 
@@ -277,6 +280,7 @@ class Safe extends Component
     {
         $this->withdrawId = $withdraw['id'];
         $this->amount = $withdraw['amount'];
+        $this->withdrawNote = $withdraw['note'];
     }
 
     public function deleteMessageWithdraw($withdraw)

@@ -16,9 +16,10 @@
                                 <div class="row">
                                     <div class="col-3">
                                         <select class="form-select" wire:model.live="buyer">
-                                            <option value="client">عملاء</option>
-                                            <option value="employee">موظفين</option>
-                                            <option value="supplier">موردين</option>
+                                            <option value="client">العملاء</option>
+                                            <option value="supplier">الموردين</option>
+                                            <option value="employee">الموظفين</option>
+                                            <option value="deposit">العهد</option>
                                         </select>
                                     </div>
                                     <div class="col">
@@ -222,10 +223,6 @@
                                        placeholder="المبلغ المدفوع">
                             </div>
 
-                            <div class="col">
-                                <label for="due_date">تاريخ الارجاع</label>
-                                <input type="date" disabled @disabled(empty($currentDetail)) wire:model="due_date" class="form-control text-center">
-                            </div>
 
                             @if(!session("closed") && $update)
                                 <div class="col d-flex align-items-end">

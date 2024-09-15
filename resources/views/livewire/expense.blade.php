@@ -61,13 +61,6 @@
                             <div>
                                 @error('amount') <span class="error text-danger">{{ $message }}</span> @enderror
                             </div>
-                            <label for="due_date" class="form-label">التاريخ</label>
-                            <input type="date" disabled autocomplete="off" wire:model="due_date" class="form-control text-center"
-                                   placeholder="التاريخ ....."
-                                   name="due_date" id="due_date">
-                            <div>
-                                @error('due_date') <span class="error text-danger">{{ $message }}</span> @enderror
-                            </div>
 
                             @if(!session("closed") || $payment == "bank")
                                 <div class="d-grid mt-2">
