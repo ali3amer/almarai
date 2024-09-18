@@ -67,6 +67,18 @@ return [
                 'timeout' => 60 * 5, // 5 minute timeout
             ]
         ],
+        'db2' => [
+            'driver' => 'mysql',
+            'host' => 'localhost',
+            'database' => 'oldsales',
+            'username' => 'root',
+            'password' => '',
+            'charset' => 'utf8',
+            'collation' => 'utf8_general_ci',
+            'prefix' => '',
+            'strict' => false,
+            'engine' => null,
+        ],
 
         'pgsql' => [
             'driver' => 'pgsql',

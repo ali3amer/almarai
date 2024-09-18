@@ -47,7 +47,7 @@
                             </div>
 
                             <label for="bank" class="form-label">رقم الإيصال</label>
-                            <input @disabled($payment == "cash") @disabled($banks->count() == 0) type="text"
+                            <input @disabled($payment == "cash" || $banks->count() == 0) type="text" {{$payment == "bank" ? 'required' : ""}}
                                    autocomplete="off" wire:model="bank" class="form-control" placeholder="رقم الإيصال ..."
                                    id="bank">
                             <div>
@@ -116,9 +116,10 @@
                                 <table class="table text-center">
                                     <thead>
                                     <tr>
-                                        <th>#</th>
                                         <th>البند</th>
                                         <th>البيان</th>
+                                        <th>وسلة الدفع</th>
+                                        <th>الإشعار</th>
                                         <th>المبلغ</th>
                                         <th>التاريخ</th>
                                         <th>التحكم</th>
@@ -127,9 +128,10 @@
                                     <tbody class="text-white">
                                     @foreach($expenses as $expense)
                                         <tr>
-                                            <td>{{ $loop->index + 1 }}</td>
                                             <td>{{ $expense->option->optionName ?? "" }}</td>
                                             <td>{{ $expense->description }}</td>
+                                            <td>{{ $expense->payment == "cash" ? "كاش" : "بنك" }}</td>
+                                            <td>{{ $expense->bank }}</td>
                                             <td>{{ number_format($expense->amount, 2) }}</td>
                                             <td>{{ $expense->due_date }}</td>
                                             <td>
@@ -169,8 +171,8 @@
                                                 <button class="btn btn-sm btn-info text-white"
                                                         @disabled(!$update) wire:click="editOption({{$option}})">
                                                     <i class="bi bi-pen"></i></button>
-                                                /
-                                                <button class="btn btn-sm btn-danger"
+
+                                                <button class="btn btn-sm btn-danger d-none"
                                                         @disabled(!$delete) wire:click="deleteOptionMessage({{$option}})">
                                                     <i class="bi bi-trash"></i></button>
                                             </td>

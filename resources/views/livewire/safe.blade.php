@@ -281,7 +281,7 @@
                                 @if(!session("closed"))
                                     <div class="col-2 d-flex align-items-end">
                                         <button
-                                            @disabled($transfer_amount == 0) @disabled(!$create) @disabled($banks->count() == 0) @disabled($bank_id == null) class="btn w-100 btn-{{$transferId == 0 ? 'primary' : 'success'}}"
+                                            @disabled(floatval($transfer_amount) == 0) @disabled(!$create) @disabled($banks->count() == 0) @disabled($bank_id == null) class="btn w-100 btn-{{$transferId == 0 ? 'primary' : 'success'}}"
                                             type="submit">{{$transferId == 0 ? 'حــــفظ' : 'تعـــديل'}}</button>
                                     </div>
                                 @endif

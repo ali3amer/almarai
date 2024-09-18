@@ -394,7 +394,7 @@ class Report extends Component
             }
 
             $this->expensesByOptions = $this->expenses->groupBy('option_id')->map(function ($expenses) {
-                $optionName = $expenses->first()->option->optionName;
+                $optionName = $expenses->first()->option->optionName ?? "غير مصنف";
                 $totalAmount = $expenses->sum('amount');
                 return ['option_name' => $optionName, 'total_amount' => $totalAmount];
             });

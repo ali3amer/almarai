@@ -232,7 +232,7 @@ class Expense extends Component
         if ($this->optionsMode) {
             $this->options = ExpenseOption::where("optionName", "LIKE", "%" . $this->search . "%")->get();
         } else {
-            $this->expenses = \App\Models\Expense::where('description', 'like', '%' . $this->search . '%')->get();
+            $this->expenses = \App\Models\Expense::where("due_date", session("date"))->where('description', 'like', '%' . $this->search . '%')->get();
         }
         return view('livewire.expense');
     }

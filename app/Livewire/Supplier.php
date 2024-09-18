@@ -173,15 +173,27 @@ class Supplier extends Component
         }
         $this->currentSupplier = $supplier;
         if ($this->debtType == 'purchases') {
-            $this->debts = (new \App\Models\Purchase)->getMovements($this->currentSupplier['id'])->toArray();
+            $this->debts = (new \App\Models\Purchase)->getMovements($this->currentSupplier['id'])->where("due_date", session("date"))->toArray();
             $this->currentBalance = \App\Models\People::find($this->currentSupplier['id'])->currentPurchasesBalance;
         } elseif ($this->debtType == 'sales') {
-            $this->debts = (new \App\Models\Sale)->getMovements($this->currentSupplier['id'], 'supplier')->toArray();
+            $this->debts = (new \App\Models\Sale)->getMovements($this->currentSupplier['id'], 'supplier')->where("due_date", session("date"))->toArray();
             $this->currentBalance = \App\Models\People::find($this->currentSupplier['id'])->currentSalesBalance;
         } elseif ($this->debtType == 'deposits') {
-            $this->debts = (new \App\Models\Deposit)->getMovements($this->supplier['id'], 'currentSupplier')->toArray();
+            $this->debts = (new \App\Models\Deposit)->getMovements($this->supplier['id'], 'currentSupplier')->where("due_date", session("date"))->toArray();
             $this->currentBalance = \App\Models\People::find($this->currentSupplier['id'])->currentDepositsBalance;
         }
+    }
+
+    public function saveDebt()
+    {
+        if ($this->debtType == "deposits") {
+            $this->saveDepositDebt();
+        } elseif ($this->debtType == "sales") {
+            $this->saveSaleDebt();
+        } elseif ($this->debtType == "purchases") {
+            $this->savePurchaseDebt();
+        }
+
     }
 
     public function saveSaleDebt()

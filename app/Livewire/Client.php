@@ -176,9 +176,21 @@ class Client extends Component
             $this->currentBalance = \App\Models\People::find($this->currentClient['id'])->currentPurchasesBalance;
             $this->debts = (new \App\Models\Purchase)->getMovements($this->currentClient['id'], 'client')->toArray();
         } elseif ($this->debtType == 'deposits') {
-            $this->debts = (new \App\Models\Deposit)->getMovements($this->currentClient['id'], 'client')->toArray();
+            $this->debts = (new \App\Models\Deposit)->getMovements($this->currentClient['id'], 'client')->where("due_date", session("date"))->toArray();
             $this->currentBalance = \App\Models\People::find($this->currentClient['id'])->currentDepositsBalance;
         }
+    }
+
+    public function saveDebt()
+    {
+        if ($this->debtType == "deposits") {
+            $this->saveDepositDebt();
+        } elseif ($this->debtType == "sales") {
+            $this->saveSaleDebt();
+        } elseif ($this->debtType == "purchases") {
+            $this->savePurchaseDebt();
+        }
+
     }
 
     public function saveSaleDebt()

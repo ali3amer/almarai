@@ -161,16 +161,27 @@ class Deposit extends Component
 
         if ($this->debtType == "sales") {
             $this->currentBalance = \App\Models\People::find($this->currentDeposit['id'])->currentSalesBalance;
-            $this->debts = (new \App\Models\Sale)->getMovements($this->currentDeposit['id'], 'deposit')->toArray();
+            $this->debts = (new \App\Models\Sale)->getMovements($this->currentDeposit['id'], 'deposit')->where("due_date", session("date"))->toArray();
         } elseif ($this->debtType == "purchases") {
             $this->currentBalance = \App\Models\People::find($this->currentDeposit['id'])->currentPurchasesBalance;
-            $this->debts = (new \App\Models\Purchase)->getMovements($this->currentDeposit['id'], 'deposit')->toArray();
+            $this->debts = (new \App\Models\Purchase)->getMovements($this->currentDeposit['id'], 'deposit')->where("due_date", session("date"))->toArray();
         } elseif ($this->debtType == 'deposits') {
-            $this->debts = (new \App\Models\Deposit)->getMovements($this->currentDeposit['id'], 'deposit')->toArray();
+            $this->debts = (new \App\Models\Deposit)->getMovements($this->currentDeposit['id'], 'deposit')->where("due_date", session("date"))->toArray();
             $this->currentBalance = \App\Models\People::find($this->currentDeposit['id'])->currentDepositsBalance;
         }
     }
 
+    public function saveDebt()
+    {
+        if ($this->debtType == "deposits") {
+            $this->saveDepositDebt();
+        } elseif ($this->debtType == "sales") {
+            $this->saveSaleDebt();
+        } elseif ($this->debtType == "purchases") {
+            $this->savePurchaseDebt();
+        }
+
+    }
     public function saveDepositDebt()
     {
         if ($this->type == "debt" && floatval($this->amount) > floatval(session($this->payment == "cash" ? "safeBalance" : "bankBalance"))) {
@@ -223,10 +234,9 @@ class Deposit extends Component
                 $this->alert('success', 'تم تعديل الدفعيه بنجاح', ['timerProgressBar' => true]);
 
             }
-            $this->resetData();
-
-            $this->showDebts($this->currentDeposit);
             $this->showReceipt($debt->toArray());
+            $this->resetData();
+            $this->showDebts($this->currentDeposit);
 
         }
 

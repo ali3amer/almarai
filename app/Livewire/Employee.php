@@ -201,12 +201,12 @@ class Employee extends Component
 
         if ($this->debtType == "sales") {
             $this->currentBalance = \App\Models\People::find($this->currentEmployee['id'])->currentSalesBalance;
-            $this->debts = (new \App\Models\Sale)->getMovements($this->currentEmployee['id'], 'employee')->toArray();
+            $this->debts = (new \App\Models\Sale)->getMovements($this->currentEmployee['id'], 'employee')->where("due_date", session("date"))->toArray();
         } elseif ($this->debtType == "purchases") {
             $this->currentBalance = \App\Models\People::find($this->currentEmployee['id'])->currentPurchasesBalance;
-            $this->debts = (new \App\Models\Purchase)->getMovements($this->currentEmployee['id'], 'employee')->toArray();
+            $this->debts = (new \App\Models\Purchase)->getMovements($this->currentEmployee['id'], 'employee')->where("due_date", session("date"))->toArray();
         } elseif ($this->debtType == 'deposits') {
-            $this->debts = (new \App\Models\Deposit)->getMovements($this->currentEmployee['id'], 'employee')->toArray();
+            $this->debts = (new \App\Models\Deposit)->getMovements($this->currentEmployee['id'], 'employee')->where("due_date", session("date"))->toArray();
             $this->currentBalance = \App\Models\People::find($this->currentEmployee['id'])->currentDepositsBalance;
         }
 
@@ -286,6 +286,17 @@ class Employee extends Component
         $this->alert('success', 'تم الحذف بنجاح', ['timerProgressBar' => true]);
     }
 
+    public function saveDebt()
+    {
+        if ($this->debtType == "deposits") {
+            $this->saveDepositDebt();
+        } elseif ($this->debtType == "sales") {
+            $this->saveSaleDebt();
+        } elseif ($this->debtType == "purchases") {
+            $this->savePurchaseDebt();
+        }
+
+    }
 
     public function saveSaleDebt()
     {
