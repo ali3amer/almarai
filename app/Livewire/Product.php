@@ -19,6 +19,8 @@ class Product extends Component
         'delete'
     ];
     public string $title = 'المنتجات';
+    public bool $show = false;
+
     public $search = '';
     public $store_id = 0;
     public $category_id = 0;

@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('services', function (Blueprint $table) {
             $table->id();
-            $table->string('note'); // Name of the service
+            $table->string('serviceName'); // Name of the service
             $table->decimal('amount', 10, 2); // The cost of the service
             $table->unsignedBigInteger('purchase_id')->nullable(); // If service is related to a purchase
             $table->foreign('purchase_id')->references('id')->on('purchases')->onDelete('cascade')->onUpdate('cascade');

@@ -1,6 +1,6 @@
 <div wire:keydown.escape.window="resetData()">
 
-    <x-title :$title/>
+    <x-title :$title :$show/>
     {{--    <livewire:Title :$title/>--}}
     <!-- Print Invoice Modal -->
     <div wire:ignore.self class="modal fade" id="printModal" tabindex="-1" aria-labelledby="exampleModalLabel"
@@ -20,11 +20,15 @@
                                     wire:click="chooseSale({{$invoice['id']}})"><i class="bi bi-pen"></i>
                             </button>
                         @endif
-                        @if(!empty($invoice) && !$editMode && !isset($invoice['id']) && !session("closed") && $invoice['date'] == session("date"))
+                        @if(!empty($invoice) && !$editMode && !isset($invoice['id']) && !session("closed") && $invoice['date'] == session("date") && ($payment == "cash" || ($payment == "bank" && $bank != "")))
                             <button class="btn btn-success" wire:loading.class="visually-hidden"
                                     @if($id == 0) wire:click="save()" @else wire:click="editMessage()" @endif><i
                                     class="bi bi-bookmark-check"></i>
                             </button>
+                        @endif
+
+                        @if($payment == "bank" && $bank == "")
+                            <h6 class="text-danger">أدخل رقم الاشعار</h6>
                         @endif
 
                         <button class="btn btn-info" id="print"><i class="bi bi-printer"></i></button>
@@ -150,7 +154,10 @@
                                                    class="form-control">
                                         </div>
                                         <div class="col-2">
-                                            <button @disabled($serviceName == "" || floatval($serviceAmount) == 0) class="btn btn-primary" wire:click="addService()">إضافة</button>
+                                            <button
+                                                @disabled($serviceName == "" || floatval($serviceAmount) == 0) class="btn btn-primary"
+                                                wire:click="addService()">إضافة
+                                            </button>
                                         </div>
                                     </div>
                                 </div>

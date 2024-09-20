@@ -15,6 +15,8 @@ class Damaged extends Component
         'delete',
     ];
     public string $title = 'المنتجات التالفه';
+    public bool $show = false;
+
     public string $productsSearch = '';
     public string $due_date = '';
     public int $id = 0;

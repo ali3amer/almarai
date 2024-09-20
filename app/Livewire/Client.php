@@ -23,6 +23,7 @@ class Client extends Component
         'deleteDebt'
     ];
     public string $title = 'العملاء';
+    public bool $show = false;
     public int $id = 0;
     public int $debtId = 0;
     public string $name = '';
@@ -95,7 +96,9 @@ class Client extends Component
                 $client->name = $this->name;
                 $client->phone = $this->phone;
                 $client->note = $this->note;
-                $client->initialBalance = floatval($this->initialBalance);
+                $client->initialSalesBalance = floatval($this->initialSalesBalance);
+                $client->initialPurchasesBalance = floatval($this->initialPurchasesBalance);
+                $client->initialDepositsBalance = floatval($this->initialDepositsBalance);
                 $client->save();
                 $this->alert('success', 'تم التعديل بنجاح', ['timerProgressBar' => true]);
             }

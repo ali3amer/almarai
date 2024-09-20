@@ -21,7 +21,7 @@ class title extends Component
     /**
      * Create a new component instance.
      */
-    public function __construct(public string $title)
+    public function __construct(public string $title, public bool $show)
     {
         if (session("date") == null) {
             session(['date' => date("Y-m-d")]);

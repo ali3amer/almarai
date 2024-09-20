@@ -23,6 +23,8 @@ class Supplier extends Component
         'deleteDebt'
     ];
     public string $title = 'الموردين';
+    public bool $show = false;
+
     public int $id = 0;
     public int $debtId = 0;
     public string $name = '';

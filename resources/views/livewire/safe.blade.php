@@ -127,6 +127,10 @@
                                             </td>
                                         </tr>
                                     @endforeach
+                                    <tr>
+                                        <td>الجمله</td>
+                                        <td>{{ number_format($withdraws->sum("amount"), 2) }}</td>
+                                    </tr>
                                     </tbody>
                                 </table>
                             </div>
@@ -169,7 +173,7 @@
     </div>
 
 
-    <x-title :$title/>
+    <x-title :$title :$show/>
     {{--    <livewire:Title :$title />--}}
 
     <div class="row my-2">
@@ -337,12 +341,17 @@
                 </div>
             </div>
 
-            <div class="col-5 mt-2 d-none">
+            <div class="col-5 mt-2">
                 <div class="card">
                     <div class="card-body">
                         <div class="card-title">
-                            <button wire:click="getAllDueDates()" class="btn btn-primary">+</button>
-                            <button wire:click="closeAllDays()" class="btn btn-danger">-</button>
+                            <div class="row">
+                                <div class="col-6">
+                                    <button wire:click="getAllDueDates()" class="btn btn-primary">+</button>
+                                    <button wire:click="closeAllDays()" class="btn btn-danger">-</button>
+                                </div>
+                                <div class="col-6"><h5>الجمله : {{ number_format($days->sum("balance"), 2) }}</h5></div>
+                            </div>
                         </div>
                         <div class="scroll">
                             @if(!empty($days))

@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Models\ClientDebt;
 use App\Models\EmployeeDebt;
+use App\Models\People;
 use App\Models\Service;
 use App\Models\Setting;
 use App\Models\SupplierDebt;
@@ -30,6 +31,8 @@ class Sale extends Component
     ];
 
     public string $title = 'المبيعات';
+    public bool $show = false;
+
     public int $id = 0;
     public $bank_id = null;
     public $note = null;
@@ -48,7 +51,7 @@ class Sale extends Component
     public $amount = 0;
     public $paid = 0;
     public string $payment = 'cash';
-    public $bank = null;
+    public $bank = '';
 
     public array $currentClient = [];
     public array $oldQuantities = [];
@@ -114,7 +117,6 @@ class Sale extends Component
                 'user_id' => auth()->id(),
             ]);
             $this->id = $sale['id'];
-            $this->currentSalesBalance += $this->remainder;
 
 
             foreach ($this->cart as $item) {
@@ -169,8 +171,9 @@ class Sale extends Component
                 ]);
             }
         }
+        $this->currentSalesBalance = People::find($this->currentClient['id'])->currentSalesBalance;
 
-        $this->showInvoice($this->id);
+            $this->showInvoice($this->id);
 
         $this->alert('success', 'تم الحفظ بنجاح', ['timerProgressBar' => true]);
 
@@ -388,6 +391,7 @@ class Sale extends Component
 
         \App\Models\Sale::where('id', $id)->forceDelete();
 
+        $this->currentSalesBalance = People::find($this->currentClient['id'])->currentSalesBalance;
         $this->alert('success', 'تم الإلغاء بنجاح', ['timerProgressBar' => true]);
 
     }
@@ -397,6 +401,7 @@ class Sale extends Component
         $this->amount = $this->cost - floatval($this->discount);
         if ($this->currentClient['cash'] && $this->buyer == "client") {
             $this->paid = $this->amount;
+            $this->remainder = 0;
         } else {
             $this->remainder = floatval($this->amount) - floatval($this->paid);
         }

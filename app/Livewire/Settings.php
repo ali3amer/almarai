@@ -17,6 +17,8 @@ class Settings extends Component
     use LivewireAlert;
 
     public $title = "الإعدادات";
+    public bool $show = false;
+
 
     public $name = "Point Of Sale";
     public $barcode = false;
@@ -94,7 +96,9 @@ class Settings extends Component
 
     public function fixData()
     {
+        set_time_limit(180);
         Artisan::call("migrate:fresh --seed");
+        $this->alert('success', 'تم تنظيف الجداول', ['timerProgressBar' => true]);
         $tables = [
             "settings" => "settings",
             "safes" => "safes",
@@ -216,6 +220,7 @@ class Settings extends Component
             $deposits[$deposit->id]["oldId"] = $deposit->id;
             $deposits[$deposit->id]["newId"] = $people->id;
         }
+        $this->alert('success', 'تم حفظ العملاء بنجاح', ['timerProgressBar' => true]);
 
         // عملية نقل البيانات للجداول الأخرى
         foreach ($tables as $table) {
@@ -258,7 +263,7 @@ class Settings extends Component
                 // التحقق من الحقول المتعلقة بـ discount و service
                 if (isset($item['discount']) && floatval($item['discount']) > 0 && isset($item['type'])) {
                     $item['amount'] = $item['discount'];
-                    $item['type'] = $item['discount'];
+                    $item['type'] = 'discount';
                     unset($item['discount']);
                 } else {
                     unset($item['discount']);

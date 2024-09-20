@@ -12,6 +12,8 @@ class Store extends Component
     use LivewireAlert;
 
     public string $title = 'المخازن';
+    public bool $show = false;
+
     public int $id = 0;
     public string $storeName = '';
     public string $search = '';

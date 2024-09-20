@@ -34,6 +34,8 @@ class Report extends Component
     use LivewireAlert;
 
     public string $title = 'التقارير';
+    public bool $show = false;
+
 
     public string $reportType = '';
     public int $store_id = 0;
@@ -268,8 +270,8 @@ class Report extends Component
                 $this->currentPeople['initialPurchasesBalance'] = $people->getPastPurchasesBalance($this->from);
                 $this->currentPeople['initialSalesBalance'] = $people->getPastSalesBalance($this->from);
 
-                $saleDebts = (new \App\Models\Sale)->getMovements($this->currentPeople['id'], $this->reportType)->whereBetween("due_date", "<", [$this->from, $this->to]);
-                $purchaseDebts = (new \App\Models\Purchase)->getMovements($this->currentPeople['id'], $this->reportType)->whereBetween("due_date", "<", [$this->from, $this->to]);
+                $saleDebts = (new \App\Models\Sale)->getMovements($this->currentPeople['id'], $this->reportType)->whereBetween("due_date", [$this->from, $this->to]);
+                $purchaseDebts = (new \App\Models\Purchase)->getMovements($this->currentPeople['id'], $this->reportType)->whereBetween("due_date", [$this->from, $this->to]);
                 $gifts = \App\Models\EmployeeGift::where('people_id', $this->currentPeople['id'])->whereBetween('due_date', [$this->from, $this->to])->get();
 
             } else {

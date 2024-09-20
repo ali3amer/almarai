@@ -1,6 +1,6 @@
 <div wire:keydown.escape.window="resetData()">
 
-    <x-title :$title/>
+    <x-title :$title :$show/>
 
     <div class="invoice d-none d-print-block">
         <h2 dir="rtl">قائمة الأسعار</h2>

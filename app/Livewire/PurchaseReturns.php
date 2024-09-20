@@ -21,6 +21,8 @@ class PurchaseReturns extends Component
         'delete',
     ];
     public string $title = 'مرتجعات المشتريات';
+    public bool $show = false;
+
 
     public string $productName = '';
     public $payment = 'cash';

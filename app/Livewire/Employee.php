@@ -25,6 +25,8 @@ class Employee extends Component
         'deleteDebt'
     ];
     public string $title = 'الموظفين';
+    public bool $show = false;
+
     public int $id = 0;
     public $bank_id = null;
     public string $name = '';
@@ -192,7 +194,6 @@ class Employee extends Component
 
     public function getGifts($employee = null)
     {
-
         if ($employee == null) {
             $employee = $this->currentEmployee;
         }
@@ -202,12 +203,18 @@ class Employee extends Component
         if ($this->debtType == "sales") {
             $this->currentBalance = \App\Models\People::find($this->currentEmployee['id'])->currentSalesBalance;
             $this->debts = (new \App\Models\Sale)->getMovements($this->currentEmployee['id'], 'employee')->where("due_date", session("date"))->toArray();
+            $this->type = "pay";
+
         } elseif ($this->debtType == "purchases") {
             $this->currentBalance = \App\Models\People::find($this->currentEmployee['id'])->currentPurchasesBalance;
             $this->debts = (new \App\Models\Purchase)->getMovements($this->currentEmployee['id'], 'employee')->where("due_date", session("date"))->toArray();
+            $this->type = "pay";
+
         } elseif ($this->debtType == 'deposits') {
             $this->debts = (new \App\Models\Deposit)->getMovements($this->currentEmployee['id'], 'employee')->where("due_date", session("date"))->toArray();
             $this->currentBalance = \App\Models\People::find($this->currentEmployee['id'])->currentDepositsBalance;
+            $this->type = "pay";
+
         }
 
         $this->due_date = session("date");

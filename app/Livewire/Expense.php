@@ -19,6 +19,8 @@ class Expense extends Component
         'deleteOption'
     ];
     public string $title = 'المصروفات';
+    public bool $show = false;
+
     public int $id = 0;
     #[Rule('required', message: 'هذا الحقل مطلوب')]
     public string $description = '';

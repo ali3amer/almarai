@@ -24,6 +24,8 @@ class Safe extends Component
     ];
 
     public string $title = 'الخزنه';
+    public bool $show = false;
+
 
     public $startingDate;
     public $capital = 0;
@@ -89,12 +91,12 @@ class Safe extends Component
         $dates = \App\Models\Sale::select('due_date')->distinct()->get()->sortBy('due_date');
         $toDay = session("date");
         foreach ($dates as $date) {
-            session(["date" => $date->due_date]);
+//            session(["date" => $date->due_date]);
             $day = Day::updateOrCreate(
-                ['due_date' => session('date')],
+                ['due_date' => $date->due_date],
                 [
                     'closed' => false,
-                    'balance' => \App\Models\Safe::first()->safeDayBalance,
+                    'balance' => \App\Models\Safe::first()->getSafeDayBalance($date->due_date),
                     'user_id' => auth()->id()
                 ]
             );

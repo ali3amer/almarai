@@ -16,6 +16,7 @@ class Category extends Component
     ];
 
     public string $title = 'الأقسام';
+    public bool $show = false;
     public int $id = 0;
     public string $categoryName = '';
     public string $search = '';

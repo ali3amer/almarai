@@ -122,7 +122,7 @@
         </div>
     </div>
 
-    <x-title :$title/>
+    <x-title :$title :$show/>
     {{--    <livewire:Title :$title/>--}}
 
     <button class="d-print-none btn btn-primary position-fixed z-2" style="bottom: 10px; border-radius: 50%"

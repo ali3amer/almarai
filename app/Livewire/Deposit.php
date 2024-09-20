@@ -23,6 +23,8 @@ class Deposit extends Component
         'deleteDebt'
     ];
     public string $title = 'العهد والأمانات';
+    public bool $show = false;
+
     public int $id = 0;
     public int $debtId = 0;
     public string $name = '';

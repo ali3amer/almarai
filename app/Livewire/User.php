@@ -16,6 +16,8 @@ class User extends Component
         'delete',
     ];
     public string $title = 'المستخدمين';
+    public bool $show = false;
+
     public int $id = 0;
     #[Rule('required', message: 'أدخل إسم المستخدم كامل')]
     public string $name = '';

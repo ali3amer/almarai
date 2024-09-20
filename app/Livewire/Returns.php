@@ -20,6 +20,8 @@ class Returns extends Component
         'delete',
     ];
     public string $title = 'المرتجعات';
+    public bool $show = false;
+
     public bool $create = false;
     public bool $read = false;
     public bool $update = false;

@@ -27,6 +27,8 @@ class Purchase extends Component
     ];
 
     public string $title = 'المشتريات';
+    public bool $show = false;
+
     public int $id = 0;
     public $bank_id = null;
     public $note = null;
@@ -44,7 +46,7 @@ class Purchase extends Component
     public float $amount = 0;
     public $paid = 0;
     public string $payment = 'cash';
-    public $bank = null;
+    public $bank = '';
 
     public array $currentSupplier = [];
     public array $oldQuantities = [];
@@ -173,7 +175,7 @@ class Purchase extends Component
             $this->showInvoice($this->id);
 
             $this->alert('success', 'تم الحفظ بنجاح', ['timerProgressBar' => true]);
-            $this->currentPurchasesBalance += People::find($this->currentSupplier['id'])->currentPurchasesBalance;
+            $this->currentPurchasesBalance = People::find($this->currentSupplier['id'])->currentPurchasesBalance;
 
             $this->resetData();
         } else {
@@ -383,6 +385,8 @@ class Purchase extends Component
         $id = $data['inputAttributes']['id'];
 
         \App\Models\Purchase::where('id', $id)->forceDelete();
+        $this->currentPurchasesBalance = People::find($this->currentSupplier['id'])->currentPurchasesBalance;
+
 
         $this->alert('success', 'تم الحفظ بنجاح', ['timerProgressBar' => true]);
     }

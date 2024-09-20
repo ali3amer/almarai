@@ -37,19 +37,20 @@
 <div class="card bg-{{ session("closed") ? "danger" : "white" }} mt-2 d-print-non shadow">
     <div class="card-body p-1">
         <div class="row align-items-center">
-            <div class="col-2">
-                <h6 class="m-0 px-2">{{ $title }}</h6>
+            <div class="col-2" style="cursor: pointer;">
+                <h6 class="m-0 px-2" wire:click="$toggle('show')">{{ $title }}</h6>
             </div>
             <div class="col-2">
                 <input type="text" readonly style="cursor:pointer;" value="{{ session("date") }}" class="form-control text-center form-control-sm " data-bs-toggle="modal" data-bs-target="#changeDate">
             </div>
-            <div class="col-2">
+            <div class="col-2 {{ $show ? "" : "d-none" }}">
+
                 <h6 class="m-0 px-2">{{ "الخزنة : " . number_format($safeBalance, 2) }}</h6>
             </div>
-            <div class="col-3">
+            <div class="col-3 {{ $show ? "" : "d-none" }}">
                 <h6 class="m-0 px-2">{{ "البنك : " . number_format($bankBalance, 2) }}</h6>
             </div>
-            <div class="col-3">
+            <div class="col-3 {{ $show ? "" : "d-none" }}">
                 <h6 class="m-0 px-2">{{ "الجمله : " . number_format(floatval($bankBalance) + floatval($safeBalance), 2) }}</h6>
             </div>
         </div>

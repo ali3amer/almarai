@@ -1,5 +1,5 @@
 <div>
-    <x-title :$title/>
+    <x-title :$title :$show/>
 
     <div class="card bg-white mt-2">
         <div class="card-body">
