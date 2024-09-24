@@ -27,7 +27,7 @@
                             </button>
                         @endif
 
-                        @if($payment == "bank" && $bank == "")
+                        @if($payment == "bank" && $bank == "" && !$editMode)
                             <h6 class="text-danger">أدخل رقم الاشعار</h6>
                         @endif
                         <button class="btn btn-info" id="print"><i class="bi bi-printer"></i></button>

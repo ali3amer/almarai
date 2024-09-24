@@ -99,7 +99,7 @@ class People extends Model
         $initial = $this->startingDate == $date ? $this->initialSalesBalance : 0;
         $creditReturnsTotal = $this->saleReturns()->where("sale_returns.due_date", $date)->sum(DB::raw('quantity * price')) - $this->saleReturns->where("sale_returns.due_date", $date)->sum('sale_returns.amount');
 
-        return $initial + $this->sales()->where("due_date", "<", $date)->sum("remainder") - $this->saleDebts()->where("due_date", $date)->where("type", "discount")->sum("amount") + $this->saleDebts()->where("due_date", $date)->where("type", "debt")->sum("amount") - $this->saleDebts()->where("due_date", $date)->where("type", "pay")->sum("amount") - $creditReturnsTotal;
+        return $initial + $this->sales()->where("due_date",  $date)->sum("remainder") - $this->saleDebts()->where("due_date", $date)->where("type", "discount")->sum("amount") + $this->saleDebts()->where("due_date", $date)->where("type", "debt")->sum("amount") - $this->saleDebts()->where("due_date", $date)->where("type", "pay")->sum("amount") - $creditReturnsTotal;
     }
 
     public function getSalesBetweenBalance($from, $to)
@@ -129,7 +129,7 @@ class People extends Model
         $initial = $this->startingDate == $date ? $this->initialPurchasesBalance : 0;
         $creditReturnsTotal = $this->purchaseReturns()->where("purchase_returns.due_date", $date)->sum(DB::raw('quantity * price')) - $this->purchaseReturns->where("purchase_returns.due_date", $date)->sum('purchase_returns.amount');
 
-        return $initial + $this->purchases()->where("due_date", "<", $date)->sum("remainder") - $this->purchaseDebts()->where("due_date", $date)->where("type", "discount")->sum("amount") + $this->purchaseDebts()->where("due_date", $date)->where("type", "debt")->sum("amount") - $this->purchaseDebts()->where("due_date", $date)->where("type", "pay")->sum("amount") - $creditReturnsTotal;
+        return $initial + $this->purchases()->where("due_date", $date)->sum("remainder") - $this->purchaseDebts()->where("due_date", $date)->where("type", "discount")->sum("amount") + $this->purchaseDebts()->where("due_date", $date)->where("type", "debt")->sum("amount") - $this->purchaseDebts()->where("due_date", $date)->where("type", "pay")->sum("amount") - $creditReturnsTotal;
     }
 
     public function getPurchasesBetweenBalance($from, $to)

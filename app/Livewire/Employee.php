@@ -202,16 +202,16 @@ class Employee extends Component
 
         if ($this->debtType == "sales") {
             $this->currentBalance = \App\Models\People::find($this->currentEmployee['id'])->currentSalesBalance;
-            $this->debts = (new \App\Models\Sale)->getMovements($this->currentEmployee['id'], 'employee')->where("due_date", session("date"))->toArray();
+            $this->debts = (new \App\Models\Sale)->getMovements($this->currentEmployee['id'])->where("due_date", session("date"))->toArray();
             $this->type = "pay";
 
         } elseif ($this->debtType == "purchases") {
             $this->currentBalance = \App\Models\People::find($this->currentEmployee['id'])->currentPurchasesBalance;
-            $this->debts = (new \App\Models\Purchase)->getMovements($this->currentEmployee['id'], 'employee')->where("due_date", session("date"))->toArray();
+            $this->debts = (new \App\Models\Purchase)->getMovements($this->currentEmployee['id'])->where("due_date", session("date"))->toArray();
             $this->type = "pay";
 
         } elseif ($this->debtType == 'deposits') {
-            $this->debts = (new \App\Models\Deposit)->getMovements($this->currentEmployee['id'], 'employee')->where("due_date", session("date"))->toArray();
+            $this->debts = (new \App\Models\Deposit)->getMovements($this->currentEmployee['id'])->where("due_date", session("date"))->toArray();
             $this->currentBalance = \App\Models\People::find($this->currentEmployee['id'])->currentDepositsBalance;
             $this->type = "pay";
 

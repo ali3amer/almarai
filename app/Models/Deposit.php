@@ -17,7 +17,7 @@ class Deposit extends Model
         return $this->hasMany(DepositDebt::class);
     }
 
-    public function getMovements($id = null, $clientType = 'client')
+    public function getMovements($id = null)
     {
 
         $deposits = DepositDebt::select(

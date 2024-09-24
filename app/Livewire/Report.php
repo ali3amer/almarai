@@ -7,6 +7,7 @@ use App\Models\ClientDebt;
 use App\Models\EmployeeDebt;
 use App\Models\EmployeeGift;
 use App\Models\Expense;
+use App\Models\People;
 use App\Models\PurchaseDebt;
 use App\Models\PurchaseDetail;
 use App\Models\PurchaseReturn;
@@ -56,6 +57,7 @@ class Report extends Component
         'client' => 'تقرير عميل',
         'employee' => 'تقرير موظف',
         'supplier' => 'تقرير مورد',
+        'deposit' => 'تقرير العهد والأمانات',
         'sales' => 'تقرير مبيعات',
         'purchases' => 'تقرير مشتريات',
         'expenses' => 'تقرير المصروفات',
@@ -96,6 +98,7 @@ class Report extends Component
     public collection $stores;
     public array $saleDebts = [];
     public array $purchaseDebts = [];
+    public array $depositDebts = [];
     public collection $clients;
     public collection $people;
     public collection $debts;
@@ -115,6 +118,7 @@ class Report extends Component
     public string $productSearch = '';
     public array $invoice = [];
     public float $salesBalance = 0;
+    public float $depositsBalance = 0;
     public float $total = 0;
     public Collection $transfers;
     public Collection $expenses;
@@ -164,22 +168,23 @@ class Report extends Component
                 $this->totalSafeBalance = Safe::first()->currentBalance;
 
                 $this->totalClientsBalance = \App\Models\People::all()->sum(function ($client) {
-                    return $client->getDaySalesBalance($this->day);
+                    return $client->getPastSalesBalance($this->day) + $client->getDaySalesBalance($this->day);
                 });
 
                 $this->totalExpenses = EmployeeGift::where("due_date", $this->day)->sum("amount") + Expense::where("due_date", $this->day)->sum("amount");
 
                 $this->totalSuppliersBalance = \App\Models\People::all()->sum(function ($supplier) {
-                    return $supplier->getDayPurchasesBalance($this->day);
+                    return $supplier->getPastPurchasesBalance($this->day) + $supplier->getDayPurchasesBalance($this->day);
                 });
+
                 $this->totalDepositsBalance = \App\Models\People::all()->sum(function ($deposit) {
-                    return $deposit->getDayDepositsBalance($this->day);
+                    return $deposit->getPastDepositsBalance($this->day) + $deposit->getDayDepositsBalance($this->day);
                 });
 
                 $this->people = \App\Models\People::all()->map(function ($people) {
-                    $people->purchasesBalance = $people->getDayPurchasesBalance($this->day);
-                    $people->salesBalance = $people->getSalesDayBalance($this->day);
-                    $people->depositsBalance = $people->getDayDepositsBalance($this->day);
+                    $people->purchasesBalance = $people->getPastPurchasesBalance($this->day) + $people->getDayPurchasesBalance($this->day);
+                    $people->salesBalance = $people->getPastSalesBalance($this->day) + $people->getSalesDayBalance($this->day);
+                    $people->depositsBalance = $people->getPastDepositsBalance($this->day) + $people->getDayDepositsBalance($this->day);
                     return $people;
                 });
 
@@ -192,23 +197,23 @@ class Report extends Component
                 $this->totalSafeBalance = Safe::first()->currentBalance;
 
                 $this->totalClientsBalance = \App\Models\People::all()->sum(function ($client) {
-                    return $client->getsalesBetweenBalance($this->from, $this->to);
+                    return $client->getPastSalesBalance($this->from) + $client->getsalesBetweenBalance($this->from, $this->to);
                 });
 
                 $this->totalExpenses = EmployeeGift::whereBetween("due_date", [$this->from, $this->to])->sum("amount") + Expense::whereBetween("due_date", [$this->from, $this->to])->sum("amount");
 
                 $this->totalSuppliersBalance = \App\Models\People::all()->sum(function ($supplier) {
-                    return $supplier->getPurchasesBetweenBalance($this->from, $this->to);
+                    return $supplier->getPastPurchasesBalance($this->from) + $supplier->getPurchasesBetweenBalance($this->from, $this->to);
                 });
                 $this->totalDepositsBalance = \App\Models\People::all()->sum(function ($deposit) {
-                    return $deposit->getDepositsBetweenBalance($this->from, $this->to);
+                    return $deposit->getPastDepositsBalance($this->from) + $deposit->getDepositsBetweenBalance($this->from, $this->to);
                 });
 
 
                 $this->people = \App\Models\People::all()->map(function ($people) {
-                    $people->purchasesBalance = $people->getPurchasesBetweenBalance($this->from, $this->to);
-                    $people->salesBalance = $people->getSalesBetweenBalance($this->from, $this->to);
-                    $people->depositsBalance = $people->getDepositsBetweenBalance($this->from, $this->to);
+                    $people->purchasesBalance = $people->getPastPurchasesBalance($this->from) + $people->getPurchasesBetweenBalance($this->from, $this->to);
+                    $people->salesBalance = $people->getPastSalesBalance($this->from) + $people->getSalesBetweenBalance($this->from, $this->to);
+                    $people->depositsBalance = $people->getPastDepositsBalance($this->from) + $people->getDepositsBetweenBalance($this->from, $this->to);
                     return $people;
                 });
 
@@ -256,40 +261,50 @@ class Report extends Component
             foreach ($this->products as $product) {
                 $this->sum += $product->stock * $product->purchase_price;
             }
-        } elseif ($this->reportType == 'client' || $this->reportType == 'supplier' || $this->reportType == 'employee') {   // supplier
+        } elseif ($this->reportType == 'client' || $this->reportType == 'supplier' || $this->reportType == 'employee' || $this->reportType == 'deposit') {   // supplier
             $people = \App\Models\People::find($this->currentPeople['id']);
             if ($this->reportDuration == 'day') {
                 $this->currentPeople['initialPurchasesBalance'] = $people->getPastPurchasesBalance($this->day);
                 $this->currentPeople['initialSalesBalance'] = $people->getPastSalesBalance($this->day);
+                $this->currentPeople['initialDepositsBalance'] = $people->getPastDepositsBalance($this->day);
 
-                $saleDebts = (new \App\Models\Sale)->getMovements($this->currentPeople['id'], $this->reportType)->where('due_date', $this->day);
-                $purchaseDebts = (new \App\Models\Purchase)->getMovements($this->currentPeople['id'], $this->reportType)->where('due_date', $this->day);
+                $saleDebts = (new \App\Models\Sale)->getMovements($this->currentPeople['id'])->where('due_date', $this->day);
+                $purchaseDebts = (new \App\Models\Purchase)->getMovements($this->currentPeople['id'])->where('due_date', $this->day);
                 $gifts = \App\Models\EmployeeGift::where('people_id', $this->currentPeople['id'])->where('due_date', $this->day)->get();
-
+                $depositDebts = $people->depositDebts->where('due_date', $this->day);
+                $this->salesBalance = $this->currentPeople['initialSalesBalance'] + $people->getDaySalesBalance($this->day);
+                $this->purchasesBalance = $this->currentPeople['initialPurchasesBalance'] + $people->getDayPurchasesBalance($this->day);
+                $this->depositsBalance = $this->currentPeople['initialDepositsBalance'] + $people->getDayDepositsBalance($this->day);
             } elseif ($this->reportDuration == 'duration') {
                 $this->currentPeople['initialPurchasesBalance'] = $people->getPastPurchasesBalance($this->from);
                 $this->currentPeople['initialSalesBalance'] = $people->getPastSalesBalance($this->from);
+                $this->currentPeople['initialDepositsBalance'] = $people->getPastDepositsBalance($this->from);
 
-                $saleDebts = (new \App\Models\Sale)->getMovements($this->currentPeople['id'], $this->reportType)->whereBetween("due_date", [$this->from, $this->to]);
-                $purchaseDebts = (new \App\Models\Purchase)->getMovements($this->currentPeople['id'], $this->reportType)->whereBetween("due_date", [$this->from, $this->to]);
+                $saleDebts = (new \App\Models\Sale)->getMovements($this->currentPeople['id'])->whereBetween("due_date", [$this->from, $this->to]);
+                $purchaseDebts = (new \App\Models\Purchase)->getMovements($this->currentPeople['id'])->whereBetween("due_date", [$this->from, $this->to]);
                 $gifts = \App\Models\EmployeeGift::where('people_id', $this->currentPeople['id'])->whereBetween('due_date', [$this->from, $this->to])->get();
-
+                $depositDebts = $people->depositDebts->whereBetween('due_date', [$this->from, $this->to]);
+                $this->salesBalance = $this->currentPeople['initialSalesBalance'] + $people->getSalesBetweenBalance($this->from, $this->to);
+                $this->purchasesBalance = $this->currentPeople['initialPurchasesBalance'] + $people->getPurchasesBetweenBalance($this->from, $this->to);
+                $this->depositsBalance = $this->currentPeople['initialDepositsBalance'] + $people->getPastDepositsBalance($this->from, $this->to);
             } else {
                 $this->currentPeople['initialPurchasesBalance'] = $people->initialPurchasesBalance;
                 $this->currentPeople['initialSalesBalance'] = $people->initialSalesBalance;
+                $this->currentPeople['initialDepositsBalance'] = $people->initialDepositsBalance;
 
-                $saleDebts = (new \App\Models\Sale)->getMovements($this->currentPeople['id'], $this->reportType);
-                $purchaseDebts = (new \App\Models\Purchase)->getMovements($this->currentPeople['id'], $this->reportType);
+                $saleDebts = (new \App\Models\Sale)->getMovements($this->currentPeople['id']);
+                $purchaseDebts = (new \App\Models\Purchase)->getMovements($this->currentPeople['id']);
                 $gifts = \App\Models\EmployeeGift::where('people_id', $this->currentPeople['id'])->get();
-
+                $depositDebts = $people->depositDebts;
+                $this->depositsBalance = $people->currentDepositsBalance;
+                $this->salesBalance = $people->currentSalesBalance;
+                $this->purchasesBalance = $people->currentPurchasesBalance;
             }
 
+            $this->depositDebts = $depositDebts->toArray();
             $this->employeeGifts = $gifts->toArray();
             $this->saleDebts = $saleDebts->toArray();
             $this->purchaseDebts = $purchaseDebts->toArray();
-            $this->salesBalance = $this->currentPeople['initialSalesBalance'] + $saleDebts->sum("expense") + $saleDebts->sum("futureIncome") - $saleDebts->sum("income") - $saleDebts->sum("futureExpense");
-            $this->purchasesBalance = $this->currentPeople['initialPurchasesBalance'] + $purchaseDebts->sum("expense") + $purchaseDebts->sum("futureIncome") - $purchaseDebts->sum("income") - $purchaseDebts->sum("futureExpense");
-
         } elseif ($this->reportType == 'sales') {  // sale
 
             $sales = SaleDetail::join('sales', 'sales.id', '=', 'sale_details.sale_id')
@@ -410,58 +425,54 @@ class Report extends Component
             $this->safeBalance = 0;
 
             if ($this->reportDuration == "day") {
-                $sales = (new \App\Models\Sale)->getMovements()->where("due_date", $this->day)->toArray();
-                $purchases = (new \App\Models\Purchase)->getMovements()->where("due_date", $this->day)->toArray();
-                $deposits = (new \App\Models\Deposit)->getMovements()->where("due_date", $this->day)->toArray();
-                $expenses = (new \App\Models\Expense)->getMovements()->where("due_date", $this->day)->toArray();
-                $gifts = (new \App\Models\Employee)->getMovements()->where("due_date", $this->day)->toArray();
-                $withdraws = (new \App\Models\Withdraw)->getMovements()->where("due_date", $this->day)->toArray();
-                $transfers = (new \App\Models\Transfer)->getMovements()->where("due_date", $this->day)->toArray();
-
-                $this->transfers = Transfer::where("due_date", $this->day)->get();
-
+                $sales = (new \App\Models\Sale)->getMovements()->where("due_date", $this->day);
+                $purchases = (new \App\Models\Purchase)->getMovements()->where("due_date", $this->day);
+                $deposits = (new \App\Models\Deposit)->getMovements()->where("due_date", $this->day);
+                $expenses = (new \App\Models\Expense)->getMovements()->where("due_date", $this->day);
+                $gifts = (new \App\Models\Employee)->getMovements()->where("due_date", $this->day);
+                $withdraws = (new \App\Models\Withdraw)->getMovements()->where("due_date", $this->day);
+                $transfers = (new \App\Models\Transfer)->getMovements()->where("due_date", $this->day);
                 $this->safeBalance = (new \App\Models\Safe)->getSafeDayBalance($this->day);
                 $this->bankBalance = (new \App\Models\Bank)->getDayBalance($this->day);
             } elseif ($this->reportDuration == "duration") {
-                $sales = (new \App\Models\Sale)->getMovements()->whereBetween("due_date", [$this->from, $this->to])->toArray();
-                $purchases = (new \App\Models\Purchase)->getMovements()->whereBetween("due_date", [$this->from, $this->to])->toArray();
-                $deposits = (new \App\Models\Deposit)->getMovements()->whereBetween("due_date", [$this->from, $this->to])->toArray();
-                $expenses = (new \App\Models\Expense)->getMovements()->whereBetween("due_date", [$this->from, $this->to])->toArray();
-                $gifts = (new \App\Models\Employee)->getMovements()->whereBetween("due_date", [$this->from, $this->to])->toArray();
-                $withdraws = (new \App\Models\Withdraw)->getMovements()->whereBetween("due_date", [$this->from, $this->to])->toArray();
-                $transfers = (new \App\Models\Transfer)->getMovements()->whereBetween("due_date", [$this->from, $this->to])->toArray();
+                $sales = (new \App\Models\Sale)->getMovements()->whereBetween("due_date", [$this->from, $this->to]);
+                $purchases = (new \App\Models\Purchase)->getMovements()->whereBetween("due_date", [$this->from, $this->to]);
+                $deposits = (new \App\Models\Deposit)->getMovements()->whereBetween("due_date", [$this->from, $this->to]);
+                $expenses = (new \App\Models\Expense)->getMovements()->whereBetween("due_date", [$this->from, $this->to]);
+                $gifts = (new \App\Models\Employee)->getMovements()->whereBetween("due_date", [$this->from, $this->to]);
+                $withdraws = (new \App\Models\Withdraw)->getMovements()->whereBetween("due_date", [$this->from, $this->to]);
+                $transfers = (new \App\Models\Transfer)->getMovements()->whereBetween("due_date", [$this->from, $this->to]);
                 $this->safeBalance = (new \App\Models\Safe)->getSafeBetweenBalance($this->from, $this->to);
                 $this->bankBalance = (new \App\Models\Bank)->getBetweenBalance($this->from, $this->to);
 
-                $this->transfers = Transfer::whereBetween("due_date", [$this->from, $this->to])->get();
             } else {
-                $sales = (new \App\Models\Sale)->getMovements()->toArray();
-                $purchases = (new \App\Models\Purchase)->getMovements()->toArray();
-                $deposits = (new \App\Models\Deposit)->getMovements()->toArray();
-                $expenses = (new \App\Models\Expense)->getMovements()->toArray();
-                $gifts = (new \App\Models\Employee)->getMovements()->toArray();
-                $withdraws = (new \App\Models\Withdraw)->getMovements()->toArray();
-                $transfers = (new \App\Models\Transfer)->getMovements()->toArray();
+                $sales = (new \App\Models\Sale)->getMovements();
+                $purchases = (new \App\Models\Purchase)->getMovements();
+                $deposits = (new \App\Models\Deposit)->getMovements();
+                $expenses = (new \App\Models\Expense)->getMovements();
+                $gifts = (new \App\Models\Employee)->getMovements();
+                $withdraws = (new \App\Models\Withdraw)->getMovements();
+                $transfers = (new \App\Models\Transfer)->getMovements();
                 $this->safeBalance = Safe::first()->currentBalance;
                 $this->bankBalance = (new \App\Models\Bank)->getCurrentTotalBalance();
+
+//                if ($this->payment != '') {
+//                    $sales = $sales->where("payment", $this->payment);
+//                    $purchases = $purchases->where("payment", $this->payment);
+//                    $deposits = $deposits->where("payment", $this->payment);
+//                    $expenses = $expenses->where("payment", $this->payment);
+//                    $gifts = $gifts->where("payment", $this->payment);
+//                    $withdraws = $withdraws->where("payment", $this->payment);
+//                    $transfers = $transfers->where("payment", $this->payment);
+//                }
             }
 
-            if ($this->payment != '') {
-                $sales = (new \App\Models\Sale)->getMovements()->where("payment", $this->payment)->toArray();
-                $purchases = (new \App\Models\Purchase)->getMovements()->where("payment", $this->payment)->toArray();
-                $deposits = (new \App\Models\Deposit)->getMovements()->where("payment", $this->payment)->toArray();
-                $expenses = (new \App\Models\Expense)->getMovements()->where("payment", $this->payment)->toArray();
-                $gifts = (new \App\Models\Employee)->getMovements()->where("payment", $this->payment)->toArray();
-                $withdraws = (new \App\Models\Withdraw)->getMovements()->where("payment", $this->payment)->toArray();
-                $transfers = (new \App\Models\Transfer)->getMovements()->where("payment", $this->payment)->toArray();
-            }
-
-            $allMovements = collect($sales)
-                ->merge($purchases)
-                ->merge($deposits)
-                ->merge($expenses)
-                ->merge($gifts)
-                ->merge($withdraws)->merge($transfers);
+            $allMovements = collect($sales->toArray())
+                ->merge($purchases->toArray())
+                ->merge($deposits->toArray())
+                ->merge($expenses->toArray())
+                ->merge($gifts->toArray())
+                ->merge($withdraws->toArray())->merge($transfers->toArray());
 
             $this->statements = $allMovements->sortBy(['due_date', 'created_at', 'invoice_id'])->toArray();
 
@@ -523,7 +534,7 @@ class Report extends Component
         if ($this->reportType == 'inventory') {
             $this->reportDuration = $this->reportDurations[0];
         }
-        if ($this->reportType == 'client' || $this->reportType == 'supplier' || $this->reportType == 'employee') {
+        if ($this->reportType == 'client' || $this->reportType == 'supplier' || $this->reportType == 'employee' || $this->reportType == 'deposit') {
             $this->clients = \App\Models\People::where("type", $this->reportType)->where('name', 'LIKE', '%' . $this->clientSearch . '%')->get();
         } elseif ($this->reportType == 'sales' || $this->reportType == 'purchases' || $this->reportType == 'tracking') {
             if ($this->store_id == 0) {

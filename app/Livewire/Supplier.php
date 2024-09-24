@@ -178,12 +178,14 @@ class Supplier extends Component
             $this->debts = (new \App\Models\Purchase)->getMovements($this->currentSupplier['id'])->where("due_date", session("date"))->toArray();
             $this->currentBalance = \App\Models\People::find($this->currentSupplier['id'])->currentPurchasesBalance;
         } elseif ($this->debtType == 'sales') {
-            $this->debts = (new \App\Models\Sale)->getMovements($this->currentSupplier['id'], 'supplier')->where("due_date", session("date"))->toArray();
+            $this->debts = (new \App\Models\Sale)->getMovements($this->currentSupplier['id'])->where("due_date", session("date"))->toArray();
             $this->currentBalance = \App\Models\People::find($this->currentSupplier['id'])->currentSalesBalance;
         } elseif ($this->debtType == 'deposits') {
-            $this->debts = (new \App\Models\Deposit)->getMovements($this->supplier['id'], 'currentSupplier')->where("due_date", session("date"))->toArray();
+            $this->debts = (new \App\Models\Deposit)->getMovements($this->currentSupplier['id'])->where("due_date", session("date"))->toArray();
             $this->currentBalance = \App\Models\People::find($this->currentSupplier['id'])->currentDepositsBalance;
         }
+        $this->type = "pay";
+
     }
 
     public function saveDebt()

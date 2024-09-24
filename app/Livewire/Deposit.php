@@ -163,14 +163,16 @@ class Deposit extends Component
 
         if ($this->debtType == "sales") {
             $this->currentBalance = \App\Models\People::find($this->currentDeposit['id'])->currentSalesBalance;
-            $this->debts = (new \App\Models\Sale)->getMovements($this->currentDeposit['id'], 'deposit')->where("due_date", session("date"))->toArray();
+            $this->debts = (new \App\Models\Sale)->getMovements($this->currentDeposit['id'])->where("due_date", session("date"))->toArray();
         } elseif ($this->debtType == "purchases") {
             $this->currentBalance = \App\Models\People::find($this->currentDeposit['id'])->currentPurchasesBalance;
-            $this->debts = (new \App\Models\Purchase)->getMovements($this->currentDeposit['id'], 'deposit')->where("due_date", session("date"))->toArray();
+            $this->debts = (new \App\Models\Purchase)->getMovements($this->currentDeposit['id'])->where("due_date", session("date"))->toArray();
         } elseif ($this->debtType == 'deposits') {
-            $this->debts = (new \App\Models\Deposit)->getMovements($this->currentDeposit['id'], 'deposit')->where("due_date", session("date"))->toArray();
+            $this->debts = (new \App\Models\Deposit)->getMovements($this->currentDeposit['id'])->where("due_date", session("date"))->toArray();
             $this->currentBalance = \App\Models\People::find($this->currentDeposit['id'])->currentDepositsBalance;
         }
+        $this->type = "pay";
+
     }
 
     public function saveDebt()
@@ -423,7 +425,7 @@ class Deposit extends Component
 
     public function resetData($data = null)
     {
-        $this->reset('type', 'name', 'initialSalesBalance', 'initialPurchasesBalance', 'initialDepositsBalance', 'amount', 'debtId', 'payment', 'bank', 'bank_id', 'due_date', 'blocked', 'note', $data);
+        $this->reset('type', 'name', 'initialSalesBalance', 'initialPurchasesBalance', 'initialDepositsBalance', 'amount', 'debtId', 'payment', 'bank', 'bank_id', 'due_date', 'blocked', 'note', 'id', $data);
     }
 
     public function render()

@@ -40,7 +40,7 @@ class Purchase extends Model
         return $this->hasMany(Service::class);
     }
 
-    public function getMovements($id = null, $clientType = 'supplier')
+    public function getMovements($id = null)
     {
         $purchases = Purchase::select(
             DB::raw("'purchases' as tableName"),
@@ -92,18 +92,18 @@ class Purchase extends Model
             DB::raw('null as invoice_id'),
             'purchase_debts.id',
             DB::raw("CASE
-        WHEN purchase_debts.type = 'debt' THEN amount
-        ELSE 0
-     END as income"),
-            DB::raw("CASE
         WHEN purchase_debts.type = 'pay' THEN amount
         ELSE 0
      END as expense"),
             DB::raw("CASE
+        WHEN purchase_debts.type = 'debt' THEN amount
+        ELSE 0
+     END as income"),
+            DB::raw("CASE
         WHEN purchase_debts.type = 'discount' THEN amount
         ELSE 0
-     END as futureExpense"),
-            DB::raw('0 as futureIncome'),
+     END as futureIncome"),
+            DB::raw('0 as futureExpense'),
             'due_date',
             'payment',
             'bank',

@@ -225,9 +225,14 @@
                                 <div class="col-6">
                                     <label for="type">نوع العملية</label>
                                     <select class="form-select text-center" wire:model.live="type">
-                                        <option value="debt">دين</option>
-                                        <option value="pay">توريد</option>
-                                        <option value="discount">خصم</option>
+                                        @if($debtType == "deposits")
+                                            <option value="pay">توريد للخزنه</option>
+                                            <option value="debt">سحب من الامانات</option>
+                                        @else
+                                            <option value="debt">دين</option>
+                                            <option value="pay">توريد</option>
+                                            <option value="discount">خصم</option>
+                                        @endif
                                     </select>
                                 </div>
                                 <div class="col-6">
@@ -307,14 +312,9 @@
                                         <div class="col-6">
                                             <select class="form-select" id="debType" wire:model.live="debtType"
                                                     wire:change="showDebts()">
-                                                @if($debtType == "deposits")
-                                                    <option value="pay">توريد للخزنه</option>
-                                                    <option value="debt">سحب من الامانات</option>
-                                                @else
-                                                    <option value="debt">دين</option>
-                                                    <option value="pay">توريد</option>
-                                                    <option value="discount">خصم</option>
-                                                @endif
+                                                <option value="sales">مبيعات</option>
+                                                <option value="deposits">العهد والامانات</option>
+                                                <option value="purchases">مشتريات</option>
                                             </select>
                                         </div>
                                     </div>

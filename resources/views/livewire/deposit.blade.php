@@ -90,11 +90,11 @@
                             <div>
                                 @error('phone') <span class="error text-danger">{{ $message }}</span> @enderror
                             </div>
-                            <label for="initialBalance" class="form-label">الرصيد الافتتاحي</label>
-                            <input type="text" wire:model="initialBalance" autocomplete="off" class="form-control"
-                                   placeholder="الرصيد الافتتاحي ..." id="initialBalance">
+                            <label for="initialDepositsBalance" class="form-label">الرصيد الافتتاحي</label>
+                            <input type="text" wire:model="initialDepositsBalance" autocomplete="off" class="form-control"
+                                   placeholder="الرصيد الافتتاحي ..." id="initialDepositsBalance">
                             <div>
-                                @error('initialBalance') <span class="error text-danger">{{ $message }}</span> @enderror
+                                @error('initialDepositsBalance') <span class="error text-danger">{{ $message }}</span> @enderror
                             </div>
 
                             @if($blocked == true)
@@ -139,7 +139,7 @@
                                         <tr>
                                             <td>{{ $deposit->name }}</td>
                                             <td>{{ $deposit->phone }}</td>
-                                            <td>{{ number_format($deposit->initialDepositBalance, 2) }}</td>
+                                            <td>{{ number_format($deposit->initialDepositsBalance, 2) }}</td>
                                             <td>{{ number_format($deposit->currentDepositsBalance, 2) }}</td>
                                             <td>
                                                 <button

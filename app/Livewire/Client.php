@@ -174,14 +174,16 @@ class Client extends Component
 
         if ($this->debtType == "sales") {
             $this->currentBalance = \App\Models\People::find($this->currentClient['id'])->currentSalesBalance;
-            $this->debts = (new \App\Models\Sale)->getMovements($this->currentClient['id'], 'client')->toArray();
+            $this->debts = (new \App\Models\Sale)->getMovements($this->currentClient['id'])->where("due_date", session("date"))->toArray();
         } elseif ($this->debtType == "purchases") {
             $this->currentBalance = \App\Models\People::find($this->currentClient['id'])->currentPurchasesBalance;
-            $this->debts = (new \App\Models\Purchase)->getMovements($this->currentClient['id'], 'client')->toArray();
+            $this->debts = (new \App\Models\Purchase)->getMovements($this->currentClient['id'])->where("due_date", session("date"))->toArray();
         } elseif ($this->debtType == 'deposits') {
-            $this->debts = (new \App\Models\Deposit)->getMovements($this->currentClient['id'], 'client')->where("due_date", session("date"))->toArray();
+            $this->debts = (new \App\Models\Deposit)->getMovements($this->currentClient['id'])->where("due_date", session("date"))->toArray();
             $this->currentBalance = \App\Models\People::find($this->currentClient['id'])->currentDepositsBalance;
         }
+        $this->type = "pay";
+
     }
 
     public function saveDebt()

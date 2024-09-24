@@ -48,7 +48,7 @@ class Sale extends Model
         return $this->hasMany(Service::class);
     }
 
-    public function getMovements($id = null, $clientType = 'client')
+    public function getMovements($id = null)
     {
         // استعلام المبيعات
         $sales = Sale::select(
@@ -110,11 +110,11 @@ class Sale extends Model
             WHEN sale_debts.type = 'pay' THEN amount
             ELSE 0
          END as income"),
-            DB::raw('0 as futureExpense'),
             DB::raw("CASE
             WHEN sale_debts.type = 'discount' THEN amount
             ELSE 0
-         END as futureIncome"),
+         END as futureExpense"),
+            DB::raw('0 as futureIncome'),
             'due_date',
             'payment',
             'bank',

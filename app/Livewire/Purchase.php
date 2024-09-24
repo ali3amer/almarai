@@ -404,7 +404,7 @@ class Purchase extends Component
     public function resetData($item = null)
     {
 
-        $item == "currentSupplier" ? $this->reset('search', 'supplierSearch', 'id', 'oldQuantities', $item) : $this->reset('currentProduct', 'cart', 'bank', 'payment', 'bank', 'bank_id', 'search', 'supplierSearch', 'discount', 'cost', 'paid', 'remainder', 'amount', 'id', 'services', 'serviceName', 'serviceAmount', 'totalServices', 'oldQuantities', $item);
+        $item == "currentSupplier" ? $this->reset('search', 'supplierSearch', $item) : $this->reset('currentProduct', 'cart', 'bank', 'payment', 'bank', 'bank_id', 'search', 'supplierSearch', 'discount', 'cost', 'paid', 'remainder', 'amount', 'id', 'services', 'serviceName', 'serviceAmount', 'totalServices', 'oldQuantities', $item);
     }
 
     public function render()

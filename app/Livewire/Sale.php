@@ -116,8 +116,8 @@ class Sale extends Component
                 'due_date' => $this->due_date,
                 'user_id' => auth()->id(),
             ]);
-            $this->id = $sale['id'];
 
+            $this->id = $sale['id'];
 
             foreach ($this->cart as $item) {
                 SaleDetail::create([
@@ -130,7 +130,7 @@ class Sale extends Component
 
             foreach ($this->services as $service) {
                 Service::create([
-                    'sale_id' => $this->id,
+                    'sale_id' => $sale['id'],
                     'serviceName' => $service['serviceName'],
                     'amount' => floatval($service['serviceAmount'])
                 ]);
@@ -409,7 +409,7 @@ class Sale extends Component
 
     public function resetData($item = null)
     {
-        $item == "currentClient" ? $this->reset('search', 'clientSearch', 'id', 'oldQuantities', $item) : $this->reset('currentProduct', 'cart', 'bank', 'payment', 'bank', 'bank_id', 'search', 'clientSearch', 'paid', 'remainder', 'amount', 'cost', 'discount', 'id', 'services', 'serviceAmount', 'serviceName', 'totalServices', 'oldQuantities', $item);
+        $item == "currentClient" ? $this->reset('search', 'clientSearch', $item) : $this->reset('currentProduct', 'cart', 'bank', 'payment', 'bank', 'bank_id', 'search', 'clientSearch', 'paid', 'remainder', 'amount', 'cost', 'discount', 'id', 'services', 'serviceAmount', 'serviceName', 'totalServices', $item);
     }
 
     public function render()
