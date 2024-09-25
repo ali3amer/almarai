@@ -227,7 +227,7 @@ class Client extends Component
                     $debt = SaleDebt::create([
                         'people_id' => $this->currentClient['id'],
                         'type' => $this->type,
-                        'amount' => $this->amount,
+                        'amount' => floatval($this->amount),
                         'payment' => $this->payment,
                         'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
                         'bank' => $this->bank,
@@ -289,7 +289,7 @@ class Client extends Component
                     $debt = PurchaseDebt::create([
                         'people_id' => $this->currentClient['id'],
                         'type' => $this->type,
-                        'amount' => $this->amount,
+                        'amount' => floatval($this->amount),
                         'payment' => $this->payment,
                         'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
                         'bank' => $this->bank,
@@ -349,7 +349,7 @@ class Client extends Component
                     $debt = DepositDebt::create([
                         'people_id' => $this->currentClient['id'],
                         'type' => $this->type,
-                        'amount' => $this->amount,
+                        'amount' => floatval($this->amount),
                         'payment' => $this->payment,
                         'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
                         'bank' => $this->bank,

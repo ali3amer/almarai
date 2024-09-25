@@ -99,7 +99,7 @@ class People extends Model
         $initial = $this->startingDate == $date ? $this->initialSalesBalance : 0;
         $creditReturnsTotal = $this->saleReturns()->where("sale_returns.due_date", $date)->sum(DB::raw('quantity * price')) - $this->saleReturns->where("sale_returns.due_date", $date)->sum('sale_returns.amount');
 
-        return $initial + $this->sales()->where("due_date",  $date)->sum("remainder") - $this->saleDebts()->where("due_date", $date)->where("type", "discount")->sum("amount") + $this->saleDebts()->where("due_date", $date)->where("type", "debt")->sum("amount") - $this->saleDebts()->where("due_date", $date)->where("type", "pay")->sum("amount") - $creditReturnsTotal;
+        return $initial + $this->sales()->where("due_date", $date)->sum("remainder") - $this->saleDebts()->where("due_date", $date)->where("type", "discount")->sum("amount") + $this->saleDebts()->where("due_date", $date)->where("type", "debt")->sum("amount") - $this->saleDebts()->where("due_date", $date)->where("type", "pay")->sum("amount") - $creditReturnsTotal;
     }
 
     public function getSalesBetweenBalance($from, $to)
@@ -160,5 +160,25 @@ class People extends Model
     {
         $initial = ($this->startingDate >= $from && $this->startingDate <= $to) ? $this->initialDepositsBalance : 0;
         return $initial + $this->depositDebts()->where("type", "pay")->whereBetween("due_date", [$from, $to])->sum("amount") - $this->depositDebts()->where("type", "debt")->whereBetween("due_date", [$from, $to])->sum("amount");
+    }
+
+    public function getCurrentGiftsBalanceAttribute()
+    {
+        return $this->gifts()->where("type", "debt")->sum("amount") - $this->gifts()->where("type", "pay")->sum("amount") - $this->gifts()->where("type", "discount")->sum("amount");
+    }
+
+    public function getPastGiftsBalance($date)
+    {
+        return $this->gifts()->where("due_date", "<", $date)->where("type", "debt")->sum("amount") - $this->gifts()->where("due_date", "<", $date)->where("type", "pay")->sum("amount") - $this->gifts()->where("due_date", "<", $date)->where("type", "discount")->sum("amount");
+    }
+
+    public function getDayGiftsBalance($date)
+    {
+        return $this->gifts()->where("due_date", $date)->where("type", "debt")->sum("amount") - $this->gifts()->where("due_date", $date)->where("type", "pay")->sum("amount") - $this->gifts()->where("due_date", $date)->where("type", "discount")->sum("amount");
+    }
+
+    public function getGiftsBetweenBalance($from, $to)
+    {
+        return $this->gifts()->whereBetween("due_date", [$from, $to])->where("type", "debt")->sum("amount") - $this->gifts()->whereBetween("due_date", [$from, $to])->where("type", "pay")->sum("amount") - $this->gifts()->whereBetween("due_date", [$from, $to])->where("type", "discount")->sum("amount");
     }
 }

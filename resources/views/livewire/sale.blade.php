@@ -55,7 +55,7 @@
                                     style="cursor: pointer"><i class="bi bi-pen"></i></button>
                             <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#printModal"
                                     style="cursor: pointer"
-                                    wire:click="showInvoice()" @disabled(empty($cart)) @disabled(session("closed") && (floatval($paid) != 0 && $payment == "cash"))>
+                                    wire:click="showInvoice()" @disabled(empty($cart) && empty($services)) @disabled(session("closed") && (floatval($paid) != 0 && $payment == "cash"))>
                                 <i
                                     class="bi bi-bookmark-check"></i></button>
                             <button class="btn btn-danger"

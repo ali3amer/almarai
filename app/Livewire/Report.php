@@ -183,7 +183,7 @@ class Report extends Component
 
                 $this->people = \App\Models\People::all()->map(function ($people) {
                     $people->purchasesBalance = $people->getPastPurchasesBalance($this->day) + $people->getDayPurchasesBalance($this->day);
-                    $people->salesBalance = $people->getPastSalesBalance($this->day) + $people->getSalesDayBalance($this->day);
+                    $people->salesBalance = $people->getPastSalesBalance($this->day) + $people->getDaySalesBalance($this->day);
                     $people->depositsBalance = $people->getPastDepositsBalance($this->day) + $people->getDayDepositsBalance($this->day);
                     return $people;
                 });
@@ -432,8 +432,8 @@ class Report extends Component
                 $gifts = (new \App\Models\Employee)->getMovements()->where("due_date", $this->day);
                 $withdraws = (new \App\Models\Withdraw)->getMovements()->where("due_date", $this->day);
                 $transfers = (new \App\Models\Transfer)->getMovements()->where("due_date", $this->day);
-                $this->safeBalance = (new \App\Models\Safe)->getSafeDayBalance($this->day);
-                $this->bankBalance = (new \App\Models\Bank)->getDayBalance($this->day);
+                $this->safeBalance = (new \App\Models\Safe)->getPastSafeBalance($this->day) + (new \App\Models\Safe)->getSafeDayBalance($this->day);
+                $this->bankBalance = (new \App\Models\Bank)->getPastBankBalance($this->day) + (new \App\Models\Bank)->getDayBankBalance($this->day);
             } elseif ($this->reportDuration == "duration") {
                 $sales = (new \App\Models\Sale)->getMovements()->whereBetween("due_date", [$this->from, $this->to]);
                 $purchases = (new \App\Models\Purchase)->getMovements()->whereBetween("due_date", [$this->from, $this->to]);
@@ -442,8 +442,8 @@ class Report extends Component
                 $gifts = (new \App\Models\Employee)->getMovements()->whereBetween("due_date", [$this->from, $this->to]);
                 $withdraws = (new \App\Models\Withdraw)->getMovements()->whereBetween("due_date", [$this->from, $this->to]);
                 $transfers = (new \App\Models\Transfer)->getMovements()->whereBetween("due_date", [$this->from, $this->to]);
-                $this->safeBalance = (new \App\Models\Safe)->getSafeBetweenBalance($this->from, $this->to);
-                $this->bankBalance = (new \App\Models\Bank)->getBetweenBalance($this->from, $this->to);
+                $this->safeBalance = (new \App\Models\Safe)->getPastSafeBalance($this->from) + (new \App\Models\Safe)->getSafeBetweenBalance($this->from, $this->to);
+                $this->bankBalance = (new \App\Models\Bank)->getPastBankBalance($this->from) + (new \App\Models\Bank)->getBetweenBalance($this->from, $this->to);
 
             } else {
                 $sales = (new \App\Models\Sale)->getMovements();
@@ -455,16 +455,17 @@ class Report extends Component
                 $transfers = (new \App\Models\Transfer)->getMovements();
                 $this->safeBalance = Safe::first()->currentBalance;
                 $this->bankBalance = (new \App\Models\Bank)->getCurrentTotalBalance();
+            }
 
-//                if ($this->payment != '') {
-//                    $sales = $sales->where("payment", $this->payment);
-//                    $purchases = $purchases->where("payment", $this->payment);
-//                    $deposits = $deposits->where("payment", $this->payment);
-//                    $expenses = $expenses->where("payment", $this->payment);
-//                    $gifts = $gifts->where("payment", $this->payment);
-//                    $withdraws = $withdraws->where("payment", $this->payment);
-//                    $transfers = $transfers->where("payment", $this->payment);
-//                }
+
+            if ($this->payment != '') {
+                $sales = $sales->where("payment", $this->payment);
+                $purchases = $purchases->where("payment", $this->payment);
+                $deposits = $deposits->where("payment", $this->payment);
+                $expenses = $expenses->where("payment", $this->payment);
+                $gifts = $gifts->where("payment", $this->payment);
+                $withdraws = $withdraws->where("payment", $this->payment);
+                $transfers = $transfers->where("payment", $this->payment);
             }
 
             $allMovements = collect($sales->toArray())

@@ -28,12 +28,14 @@ class Bank extends Model
             + Transfer::where("bank_id", $this->id)->where("transfer_type", "cash_to_bank")->sum("amount")
             - Transfer::where("bank_id", $this->id)->where("transfer_type", "bank_to_cash")->sum("amount")
             - Expense::where("bank_id", $this->id)->where("payment", "bank")->sum("amount")
-            - EmployeeGift::where("bank_id", $this->id)->where("payment", "bank")->sum("amount")
+            - EmployeeGift::where("bank_id", $this->id)->where("type", "salary")->where("payment", "bank")->sum("amount")
+            - EmployeeGift::where("bank_id", $this->id)->where("type", "debt")->where("payment", "bank")->sum("amount")
+            + EmployeeGift::where("bank_id", $this->id)->where("type", "pay")->where("payment", "bank")->sum("amount")
             - PurchaseDebt::where("bank_id", $this->id)->where("type", "pay")->where("payment", "bank")->sum("amount")
             + PurchaseDebt::where("bank_id", $this->id)->where("type", "debt")->where("payment", "bank")->sum("amount");
     }
 
-    public function getDayBalance($date)
+    public function getDayBankBalance($date)
     {
         $initial = Bank::where("startingDate", $date)->sum("initialBalance");
         return $initial
@@ -46,11 +48,32 @@ class Bank extends Model
             + Transfer::where("transfer_type", "cash_to_bank")->where("due_date", $date)->sum("amount")
             - Transfer::where("transfer_type", "bank_to_cash")->where("due_date", $date)->sum("amount")
             - Expense::where("payment", "bank")->where("due_date", $date)->sum("amount")
-            - EmployeeGift::where("payment", "bank")->where("due_date", $date)->sum("amount")
+            - EmployeeGift::where("payment", "bank")->where("type", "salary")->where("due_date", $date)->sum("amount")
+            - EmployeeGift::where("payment", "bank")->where("type", "debt")->where("due_date", $date)->sum("amount")
+            + EmployeeGift::where("payment", "bank")->where("type", "pay")->where("due_date", $date)->sum("amount")
             - PurchaseDebt::where("type", "pay")->where("payment", "bank")->where("due_date", $date)->sum("amount")
             + PurchaseDebt::where("type", "debt")->where("payment", "bank")->where("due_date", $date)->sum("amount");
     }
 
+    public function getPastBankBalance($date)
+    {
+        $initial = Bank::where("startingDate", $date)->sum("initialBalance");
+        return $initial
+            + Sale::where("payment", "bank")->where("due_date", "<", $date)->sum("paid")
+            - Purchase::where("payment", "bank")->where("due_date", "<", $date)->sum("paid")
+            + SaleDebt::where("type", "pay")->where("due_date", "<", $date)->where("payment", "bank")->sum("amount")
+            - SaleDebt::where("type", "debt")->where("due_date", "<", $date)->where("payment", "bank")->sum("amount")
+            + DepositDebt::where("type", "pay")->where("due_date", "<", $date)->where("payment", "bank")->sum("amount")
+            - DepositDebt::where("type", "debt")->where("due_date", "<", $date)->where("payment", "bank")->sum("amount")
+            + Transfer::where("transfer_type", "cash_to_bank")->where("due_date", "<", $date)->sum("amount")
+            - Transfer::where("transfer_type", "bank_to_cash")->where("due_date", "<", $date)->sum("amount")
+            - Expense::where("payment", "bank")->where("due_date", "<", $date)->sum("amount")
+            - EmployeeGift::where("payment", "bank")->where("type", "salary")->where("due_date", "<", $date)->sum("amount")
+            - EmployeeGift::where("payment", "bank")->where("type", "debt")->where("due_date", "<", $date)->sum("amount")
+            + EmployeeGift::where("payment", "bank")->where("type", "pay")->where("due_date", "<", $date)->sum("amount")
+            - PurchaseDebt::where("type", "pay")->where("payment", "bank")->where("due_date", "<", $date)->sum("amount")
+            + PurchaseDebt::where("type", "debt")->where("payment", "bank")->where("due_date", "<", $date)->sum("amount");
+    }
     public function getBetweenBalance($from, $to)
     {
         $initial = Bank::whereBetween("startingDate", [$from, $to])->sum("initialBalance");
@@ -64,7 +87,9 @@ class Bank extends Model
             + Transfer::where("transfer_type", "cash_to_bank")->whereBetween("due_date", [$from, $to])->sum("amount")
             - Transfer::where("transfer_type", "bank_to_cash")->whereBetween("due_date", [$from, $to])->sum("amount")
             - Expense::where("payment", "bank")->whereBetween("due_date", [$from, $to])->sum("amount")
-            - EmployeeGift::where("payment", "bank")->whereBetween("due_date", [$from, $to])->sum("amount")
+            - EmployeeGift::where("payment", "bank")->where("type", "salary")->whereBetween("due_date", [$from, $to])->sum("amount")
+            - EmployeeGift::where("payment", "bank")->where("type", "debt")->whereBetween("due_date", [$from, $to])->sum("amount")
+            + EmployeeGift::where("payment", "bank")->where("type", "pay")->whereBetween("due_date", [$from, $to])->sum("amount")
             - PurchaseDebt::where("type", "pay")->where("payment", "bank")->whereBetween("due_date", [$from, $to])->sum("amount")
             + PurchaseDebt::where("type", "debt")->where("payment", "bank")->whereBetween("due_date", [$from, $to])->sum("amount");
     }
@@ -81,7 +106,9 @@ class Bank extends Model
             + Transfer::where("transfer_type", "cash_to_bank")->sum("amount")
             - Transfer::where("transfer_type", "bank_to_cash")->sum("amount")
             - Expense::where("payment", "bank")->sum("amount")
-            - EmployeeGift::where("payment", "bank")->sum("amount")
+            - EmployeeGift::where("payment", "bank")->where("type", "salary")->sum("amount")
+            - EmployeeGift::where("payment", "bank")->where("type", "debt")->sum("amount")
+            + EmployeeGift::where("payment", "bank")->where("type", "pay")->sum("amount")
             - PurchaseDebt::where("type", "pay")->where("payment", "bank")->sum("amount")
             + PurchaseDebt::where("type", "debt")->where("payment", "bank")->sum("amount");
     }

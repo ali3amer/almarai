@@ -5,6 +5,7 @@ namespace App\Livewire;
 use App\Models\Bank;
 use App\Models\ClientDebt;
 use App\Models\DepositDebt;
+use App\Models\People;
 use App\Models\PurchaseDebt;
 use App\Models\SaleDebt;
 use App\Models\EmployeeGift;
@@ -36,7 +37,7 @@ class Employee extends Component
     public array $debts = [];
     public Collection $details;
     public string $search = '';
-    public string $type = 'gift';
+    public string $type = 'salary';
     public string $due_date = '';
     public $bank = '';
     public string $payment = 'cash';
@@ -65,7 +66,8 @@ class Employee extends Component
     public $month = "";
     public $gift_id = 0;
     public array $currentReceipt = [];
-    public $debtType = 'sales';
+    public $debtType = 'gifts';
+    public $currentDebt = [];
 
     protected function rules()
     {
@@ -154,21 +156,6 @@ class Employee extends Component
         ]);
     }
 
-    public function deleteGiftMessage($gift)
-    {
-        $this->confirm("  هل توافق على الحذف؟  ", [
-            'inputAttributes' => ["id" => $gift['id']],
-            'toast' => false,
-            'showConfirmButton' => true,
-            'confirmButtonText' => 'موافق',
-            'onConfirmed' => "deleteGift",
-            'showCancelButton' => true,
-            'cancelButtonText' => 'إلغاء',
-            'confirmButtonColor' => '#dc2626',
-            'cancelButtonColor' => '#4b5563'
-        ]);
-    }
-
     public function deleteDebtMessage($id)
     {
         $this->confirm("  هل توافق على الحذف؟  ", [
@@ -200,26 +187,32 @@ class Employee extends Component
 
         $this->currentEmployee = $employee;
 
-        if ($this->debtType == "sales") {
-            $this->currentBalance = \App\Models\People::find($this->currentEmployee['id'])->currentSalesBalance;
+        $employee = People::find($this->currentEmployee['id']);
+
+        if ($this->debtType == 'gifts') {
+            $this->type = 'salary';
+            $this->debts = (new \App\Models\Employee)->getMovements($this->currentEmployee['id'])->where("due_date", session("date"))->toArray();
+            $this->currentBalance = $employee->currentGiftsBalance;
+        } elseif ($this->debtType == "sales") {
+            $this->type = 'pay';
+            $this->currentBalance = $employee->currentSalesBalance;
             $this->debts = (new \App\Models\Sale)->getMovements($this->currentEmployee['id'])->where("due_date", session("date"))->toArray();
-            $this->type = "pay";
-
         } elseif ($this->debtType == "purchases") {
-            $this->currentBalance = \App\Models\People::find($this->currentEmployee['id'])->currentPurchasesBalance;
+            $this->type = 'pay';
+            $this->currentBalance = $employee->currentPurchasesBalance;
             $this->debts = (new \App\Models\Purchase)->getMovements($this->currentEmployee['id'])->where("due_date", session("date"))->toArray();
-            $this->type = "pay";
-
         } elseif ($this->debtType == 'deposits') {
+            $this->type = 'pay';
             $this->debts = (new \App\Models\Deposit)->getMovements($this->currentEmployee['id'])->where("due_date", session("date"))->toArray();
-            $this->currentBalance = \App\Models\People::find($this->currentEmployee['id'])->currentDepositsBalance;
-            $this->type = "pay";
-
+            $this->currentBalance = $employee->currentDepositsBalance;
         }
 
         $this->due_date = session("date");
-        $this->gifts = EmployeeGift::where('people_id', $this->currentEmployee['id'])->get();
-        $this->currentEmployee['gifts'] = EmployeeGift::where("people_id", $this->currentEmployee["id"])->where("due_date", "LIKE", date("Y") . "-%" . $this->month . "-%")->sum("amount");
+        $this->currentEmployee['salesBalance'] = $employee->currentSalesBalance;
+        $this->currentEmployee['purchasesBalance'] = $employee->currentPurchasesBalance;
+        $this->currentEmployee['depositsBalance'] = $employee->currentDepositsBalance;
+        $this->currentEmployee['giftsBalance'] = $employee->currentGiftsBalance;
+        //        $this->currentEmployee['gifts'] = EmployeeGift::where("people_id", $this->currentEmployee["id"])->where("due_date", "LIKE", date("Y") . "-%" . $this->month . "-%")->sum("amount");
 
     }
 
@@ -238,27 +231,39 @@ class Employee extends Component
             ]);
         } else {
 
-            if ($this->gift_id == 0) {
+            if ($this->type == "debt") {
+                $note = "سلفيه";
+            } elseif ($this->type == "pay") {
+                $note = "سداد";
+            } elseif ($this->type == "salary") {
+                $note = "مرتب";
+            } else {
+                $note = "خصم";
+            }
+
+            if ($this->debtId == 0) {
                 EmployeeGift::create([
                     'people_id' => $this->currentEmployee['id'],
                     'payment' => $this->payment,
                     'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
                     'bank' => $this->bank,
-                    'amount' => $this->amount,
+                    'type' => $this->type,
+                    'amount' => floatval($this->amount),
                     'due_date' => $this->due_date,
-                    'note' => $this->note ?? "تم دفع مبلغ للموظف"
+                    'note' => $this->note == null || $this->note == '' ? $note : $this->note
                 ]);
 
                 $this->alert('success', 'تم الدفع بنجاح', ['timerProgressBar' => true]);
 
             } else {
-                EmployeeGift::where('id', $this->gift_id)->update([
+                EmployeeGift::where('id', $this->debtId)->update([
                     'payment' => $this->payment,
                     'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
                     'bank' => $this->bank,
-                    'amount' => $this->amount,
+                    'type' => $this->type,
+                    'amount' => floatval($this->amount),
                     'due_date' => $this->due_date,
-                    'note' => $this->note ?? "تم دفع مبلغ للموظف"
+                    'note' => $this->note == null || $this->note == '' ? $note : $this->note
                 ]);
                 $this->alert('success', 'تم التعديل بنجاح', ['timerProgressBar' => true]);
             }
@@ -274,28 +279,20 @@ class Employee extends Component
     {
         $this->editGiftMode = true;
         $this->gift_id = $gift->id;
-        $this->type = "gift";
+        $this->type = $gift->type;
         $this->payment = $gift->payment;
         $this->bank_id = $gift->bank_id;
         $this->bank = $gift->bank;
         $this->amount = $gift->amount;
         $this->note = $gift->note;
         $this->due_date = $gift->due_date;
-
-    }
-
-    public function deleteGift($data)
-    {
-        $gift = EmployeeGift::where('id', $data['inputAttributes']['id'])->first();
-
-        $gift->delete();
-        $this->getGifts($this->currentEmployee);
-        $this->alert('success', 'تم الحذف بنجاح', ['timerProgressBar' => true]);
     }
 
     public function saveDebt()
     {
-        if ($this->debtType == "deposits") {
+        if ($this->debtType == "gifts") {
+            $this->payGift();
+        } elseif ($this->debtType == "deposits") {
             $this->saveDepositDebt();
         } elseif ($this->debtType == "sales") {
             $this->saveSaleDebt();
@@ -334,12 +331,12 @@ class Employee extends Component
                     $debt = SaleDebt::create([
                         'people_id' => $this->currentEmployee['id'],
                         'type' => $this->type,
-                        'amount' => $this->amount,
+                        'amount' => floatval($this->amount),
                         'payment' => $this->payment,
                         'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
                         'bank' => $this->bank,
                         'due_date' => $this->due_date,
-                        'note' => $this->note == '' ? $note : $this->note,
+                        'note' => $this->note == null || $this->note == '' ? $note : $this->note,
                         'user_id' => auth()->id(),
                     ]);
                 }
@@ -396,12 +393,12 @@ class Employee extends Component
                     $debt = PurchaseDebt::create([
                         'people_id' => $this->currentEmployee['id'],
                         'type' => $this->type,
-                        'amount' => $this->amount,
+                        'amount' => floatval($this->amount),
                         'payment' => $this->payment,
                         'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
                         'bank' => $this->bank,
                         'due_date' => $this->due_date,
-                        'note' => $this->note == '' ? $note : $this->note,
+                        'note' => $this->note == null || $this->note == '' ? $note : $this->note,
                         'user_id' => auth()->id(),
                     ]);
                 }
@@ -456,12 +453,12 @@ class Employee extends Component
                     $debt = DepositDebt::create([
                         'people_id' => $this->currentEmployee['id'],
                         'type' => $this->type,
-                        'amount' => $this->amount,
+                        'amount' => floatval($this->amount),
                         'payment' => $this->payment,
                         'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
                         'bank' => $this->bank,
                         'due_date' => $this->due_date,
-                        'note' => $this->note == '' ? $note : $this->note,
+                        'note' => $this->note == null || $this->note == '' ? $note : $this->note,
                         'user_id' => auth()->id(),
                     ]);
                 }
@@ -506,7 +503,7 @@ class Employee extends Component
         $this->bank_id = $debt['bank_id'];
         $this->type = $debt['type'];
         $this->note = $debt['note'];
-        $this->amount = $debt['amount'] ?? $debt['income'];
+        $this->amount = $debt['amount'] ?? ($debt['income'] != 0 ? $debt['income'] : $debt['expense']);
         $this->payment = $debt['payment'];
         $this->bank = $debt['bank'];
         $this->due_date = $debt['due_date'];
@@ -517,7 +514,9 @@ class Employee extends Component
     {
         $id = $data['inputAttributes']['id'];
 
-        if ($this->debtType == 'purchases') {
+        if ($this->debtType == "gifts") {
+            EmployeeGift::where('id', $id)->forceDelete();
+        } elseif ($this->debtType == 'purchases') {
             PurchaseDebt::where('id', $id)->forceDelete();
         } elseif ($this->debtType == 'sales') {
             SaleDebt::where('id', $id)->forceDelete();

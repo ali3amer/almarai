@@ -119,13 +119,13 @@ class PurchaseReturns extends Component
                     'quantity' => floatval($this->quantityReturn),
                     'due_date' => $this->due_date,
                     'price' => $this->currentDetail['price'],
-                    'amount' => $this->amount
+                    'amount' => floatval($this->amount)
                 ]);
             } else {
                 PurchaseReturn::where("id", $this->id)->update([
                     'quantity' => floatval($this->quantityReturn),
                     'price' => $this->currentDetail['price'],
-                    'amount' => $this->amount
+                    'amount' => floatval($this->amount)
                 ]);
 
             }

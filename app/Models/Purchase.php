@@ -95,15 +95,16 @@ class Purchase extends Model
         WHEN purchase_debts.type = 'pay' THEN amount
         ELSE 0
      END as expense"),
+
             DB::raw("CASE
         WHEN purchase_debts.type = 'debt' THEN amount
         ELSE 0
      END as income"),
+            DB::raw('0 as futureIncome'),
             DB::raw("CASE
         WHEN purchase_debts.type = 'discount' THEN amount
         ELSE 0
-     END as futureIncome"),
-            DB::raw('0 as futureExpense'),
+     END as futureExpense"),
             'due_date',
             'payment',
             'bank',

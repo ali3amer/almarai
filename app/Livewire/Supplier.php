@@ -229,7 +229,7 @@ class Supplier extends Component
                     $debt = SaleDebt::create([
                         'people_id' => $this->currentSupplier['id'],
                         'type' => $this->type,
-                        'amount' => $this->amount,
+                        'amount' => floatval($this->amount),
                         'payment' => $this->payment,
                         'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
                         'bank' => $this->bank,
@@ -291,7 +291,7 @@ class Supplier extends Component
                     $debt = PurchaseDebt::create([
                         'people_id' => $this->currentSupplier['id'],
                         'type' => $this->type,
-                        'amount' => $this->amount,
+                        'amount' => floatval($this->amount),
                         'payment' => $this->payment,
                         'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
                         'bank' => $this->bank,
@@ -351,7 +351,7 @@ class Supplier extends Component
                     $debt = DepositDebt::create([
                         'people_id' => $this->currentSupplier['id'],
                         'type' => $this->type,
-                        'amount' => $this->amount,
+                        'amount' => floatval($this->amount),
                         'payment' => $this->payment,
                         'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
                         'bank' => $this->bank,

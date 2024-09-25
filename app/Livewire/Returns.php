@@ -128,14 +128,14 @@ class Returns extends Component
                     'product_id' => $this->currentDetail['product_id'],
                     'quantity' => floatval($this->quantityReturn),
                     'price' => $this->currentDetail['price'],
-                    'amount' => $this->amount,
+                    'amount' => floatval($this->amount),
                     'due_date' => $this->due_date,
                 ]);
             } else {
                 SaleReturn::where("id", $this->id)->update([
                     'quantity' => floatval($this->quantityReturn),
                     'price' => floatval($this->price),
-                    'amount' => $this->amount,
+                    'amount' => floatval($this->amount),
                 ]);
             }
 

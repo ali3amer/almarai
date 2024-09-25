@@ -9,7 +9,9 @@ use Illuminate\Support\Facades\DB;
 class Employee extends Model
 {
     use HasFactory;
+
     protected $guarded = [];
+
     public function sales()
     {
         return $this->hasMany(Sale::class);
@@ -45,18 +47,27 @@ class Employee extends Model
         return $this->hasManyThrough(PurchaseReturn::class, Purchase::class);
     }
 
-    public function getMovements()
+    public function getMovements($id = null)
     {
         $gifts = EmployeeGift::select(
             DB::raw("'employees' as tableName"),
             DB::raw("people.type as clientType"),
-            DB::raw('null as type'),
+            'employee_gifts.type',
             DB::raw('null as invoice_id'),
             'employee_gifts.id',
-            DB::raw('0 as income'),
-            DB::raw('amount as expense'),
+            DB::raw("CASE
+        WHEN employee_gifts.type = 'pay' THEN amount
+        ELSE 0
+    END as income"),
+            DB::raw("CASE
+        WHEN employee_gifts.type IN ('salary', 'debt') THEN amount
+        ELSE 0
+    END as expense"),
+            DB::raw("CASE
+        WHEN employee_gifts.type = 'discount' THEN amount
+        ELSE 0
+    END as futureExpense"),
             DB::raw('0 as futureIncome'),
-            DB::raw("0 as futureExpense"),
             'due_date',
             'payment',
             'bank',
@@ -67,10 +78,13 @@ class Employee extends Model
             'employee_gifts.created_at',
             'employee_gifts.updated_at'
         )
-            ->join('people', 'people.id', '=', 'employee_gifts.people_id')->orderBy('due_date', 'asc')->get();
+            ->join('people', 'people.id', '=', 'employee_gifts.people_id');
 
 
-        return $gifts;
+        if ($id != null) {
+            $gifts = $gifts->where("people_id", $id);
+        }
+        return $gifts->orderBy('due_date', 'asc')->get();
     }
 
     public function getCurrentSalesBalanceAttribute()
@@ -122,7 +136,7 @@ class Employee extends Model
         $initial = $this->startingDate == $date ? $this->initialBalance : 0;
         $creditReturnsTotal = $this->purchaseReturns()->where("purchase_returns.due_date", $date)->sum(DB::raw('quantity * price')) - $this->purchaseReturns->where("purchase_returns.due_date", $date)->sum('amount');
 
-        return $initial + $this->purchases()->where("due_date", "<", $date)->sum("remainder") - $this->purchaseDebts()->where("due_date", $date)->where("type", "discount")->sum("amount")  + $this->purchaseDebts()->where("due_date", $date)->where("type", "debt")->sum("amount") - $this->purchaseDebts()->where("due_date", $date)->where("type", "pay")->sum("amount") - $creditReturnsTotal;
+        return $initial + $this->purchases()->where("due_date", "<", $date)->sum("remainder") - $this->purchaseDebts()->where("due_date", $date)->where("type", "discount")->sum("amount") + $this->purchaseDebts()->where("due_date", $date)->where("type", "debt")->sum("amount") - $this->purchaseDebts()->where("due_date", $date)->where("type", "pay")->sum("amount") - $creditReturnsTotal;
     }
 
     public function getPurchasesBetweenBalance($from, $to)

@@ -169,10 +169,18 @@ class Product extends Model
 
     public function getPrice($date = null)
     {
-        return $this->prices()
+       $price = $this->prices()
             ->where("due_date", "<=", $date)
             ->orderBy('due_date', 'desc')
-            ->first()->purchase_price;
+            ->first();
+        if ($price) {
+            return $this->prices()
+                ->where("due_date", "<=", $date)
+                ->orderBy('due_date', 'desc')
+                ->first()->purchase_price;
+        } else {
+            return $this->purchase_price;
+        }
     }
 
     public function getStockAttribute()
