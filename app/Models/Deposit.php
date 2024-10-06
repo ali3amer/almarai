@@ -17,41 +17,46 @@ class Deposit extends Model
         return $this->hasMany(DepositDebt::class);
     }
 
-    public function getMovements($id = null)
+    public function getMovements($id = null, $duration = null, $from = null, $to = null)
     {
+        $array = [];
 
-        $deposits = DepositDebt::select(
-            DB::raw("'deposit_debts' as tableName"),
-            DB::raw("people.type as clientType"),
-            'deposit_debts.type',
-            DB::raw('null as invoice_id'),
-            'deposit_debts.id',
-            DB::raw("CASE
-        WHEN deposit_debts.type = 'pay' THEN amount
-        ELSE 0
-     END as income"),
-            DB::raw("CASE
-        WHEN deposit_debts.type = 'debt' THEN amount
-        ELSE 0
-     END as expense"),
-            DB::raw('0 as futureExpense'),
-            DB::raw('0 as futureIncome'),
-            'due_date',
-            'payment',
-            'bank',
-            'bank_id',
-            DB::raw('deposit_debts.note as note'),
-            DB::raw('people_id as owner_id'),
-            DB::raw("people.name as ownerName"),
-            'deposit_debts.created_at',
-            'deposit_debts.updated_at'
-        )
-            ->leftJoin('people', 'people.id', '=', 'deposit_debts.people_id');
-        if ($id != null) {
-            $deposits = $deposits->where("deposit_debts.people_id", $id);
+        if ($duration == "day") {
+            $deposits = DepositDebt::where("due_date", $from)->get();
+
+        } elseif ($duration == "duration") {
+            $deposits = DepositDebt::whereBetween("due_date", [$from, $to])->get();
+        } else {
+            $deposits = DepositDebt::all();
         }
 
-        return $deposits->orderBy('due_date', 'asc')->get();
+
+        if ($id != null) {
+            $deposits = $deposits->where("people_id", $id);
+        }
+        foreach ($deposits as $deposit) {
+            $array[] = [
+                "tableName" => "deposit_debts",
+                "clientType" => $deposit->people->type,
+                "type" => $deposit->type,
+                "real" => true,
+                "invoice_id" => null,
+                "id" => $deposit->id,
+                "debit" => $deposit->type == "debt" ? $deposit->amount : 0,
+                "credit" => $deposit->type == "pay" ? $deposit->amount : 0,
+                "due_date" => $deposit->due_date,
+                "payment" => $deposit->payment,
+                "bank" => $deposit->bank,
+                "bank_id" => $deposit->bank_id,
+                "note" => $deposit->note,
+                "owner_id" => $deposit->people_id,
+                "ownerName" => $deposit->people->name,
+                "created_at" => $deposit->created_at,
+                "updated_at" => $deposit->updated_at,
+            ];
+        }
+
+        return $array = collect($array)->sortBy("created_at")->toArray();
     }
 
     public function getCurrentBalanceAttribute()

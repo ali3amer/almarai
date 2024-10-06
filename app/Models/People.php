@@ -52,34 +52,6 @@ class People extends Model
         return $this->hasMany(DepositDebt::class);
     }
 
-    public function getMovements()
-    {
-        $gifts = EmployeeGift::select(
-            DB::raw("'employees' as tableName"),
-            DB::raw("null as clientType"),
-            DB::raw('null as type'),
-            DB::raw('null as invoice_id'),
-            'employee_gifts.id',
-            DB::raw('0 as income'),
-            DB::raw('amount as expense'),
-            DB::raw('0 as futureIncome'),
-            DB::raw("0 as futureExpense"),
-            'due_date',
-            'payment',
-            'bank',
-            'bank_id',
-            'note',
-            DB::raw('null as owner_id'),
-            DB::raw("employees.employeeName as ownerName"),
-            'employee_gifts.created_at',
-            'employee_gifts.updated_at'
-        )
-            ->join('employees', 'employees.id', '=', 'employee_gifts.employee_id')->orderBy('due_date', 'asc')->get();
-
-
-        return $gifts;
-    }
-
     public function getCurrentSalesBalanceAttribute()
     {
         $creditReturnsTotal = $this->saleReturns()->sum(DB::raw('quantity * price')) - $this->saleReturns->sum('amount');

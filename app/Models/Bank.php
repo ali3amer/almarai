@@ -57,7 +57,7 @@ class Bank extends Model
 
     public function getPastBankBalance($date)
     {
-        $initial = Bank::where("startingDate", $date)->sum("initialBalance");
+        $initial = Bank::sum("initialBalance");
         return $initial
             + Sale::where("payment", "bank")->where("due_date", "<", $date)->sum("paid")
             - Purchase::where("payment", "bank")->where("due_date", "<", $date)->sum("paid")
@@ -96,7 +96,7 @@ class Bank extends Model
 
     public function getCurrentTotalBalance()
     {
-        return Bank::sum("initialBalance")
+        return Bank::first()->initialBalance
             + Sale::where("payment", "bank")->sum("paid")
             - Purchase::where("payment", "bank")->sum("paid")
             + SaleDebt::where("type", "pay")->where("payment", "bank")->sum("amount")

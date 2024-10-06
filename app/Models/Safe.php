@@ -102,7 +102,8 @@ class Safe extends Model
 
     public function getPastSafeBalance($date)
     {
-        return $this->initialBalance
+        $initial = Safe::count() != 0 ? Safe::first()->initialBalance : 0;
+        return $initial
             + Sale::where("payment", "cash")->where("due_date", "<", $date)->sum("paid")
             - Purchase::where("payment", "cash")->where("due_date", "<", $date)->sum("paid")
             + SaleDebt::where("type", "pay")->where("due_date", "<", $date)->where("payment", "cash")->sum("amount")

@@ -191,22 +191,21 @@ class Employee extends Component
 
         if ($this->debtType == 'gifts') {
             $this->type = 'salary';
-            $this->debts = (new \App\Models\Employee)->getMovements($this->currentEmployee['id'])->where("due_date", session("date"))->toArray();
+            $this->debts = (new \App\Models\Employee)->getMovements(id: $this->currentEmployee['id'], duration: "day", from: session("date"));
             $this->currentBalance = $employee->currentGiftsBalance;
         } elseif ($this->debtType == "sales") {
             $this->type = 'pay';
             $this->currentBalance = $employee->currentSalesBalance;
-            $this->debts = (new \App\Models\Sale)->getMovements($this->currentEmployee['id'])->where("due_date", session("date"))->toArray();
+            $this->debts = (new \App\Models\Sale)->getMovements(id: $this->currentEmployee['id'], duration: "day", from: session("date"));
         } elseif ($this->debtType == "purchases") {
             $this->type = 'pay';
             $this->currentBalance = $employee->currentPurchasesBalance;
-            $this->debts = (new \App\Models\Purchase)->getMovements($this->currentEmployee['id'])->where("due_date", session("date"))->toArray();
+            $this->debts = (new \App\Models\Purchase)->getMovements(id: $this->currentEmployee['id'], duration: "day", from: session("date"));
         } elseif ($this->debtType == 'deposits') {
             $this->type = 'pay';
-            $this->debts = (new \App\Models\Deposit)->getMovements($this->currentEmployee['id'])->where("due_date", session("date"))->toArray();
+            $this->debts = (new \App\Models\Deposit)->getMovements(id: $this->currentEmployee['id'], duration: "day", from: session("date"));
             $this->currentBalance = $employee->currentDepositsBalance;
         }
-
         $this->due_date = session("date");
         $this->currentEmployee['salesBalance'] = $employee->currentSalesBalance;
         $this->currentEmployee['purchasesBalance'] = $employee->currentPurchasesBalance;
@@ -218,7 +217,7 @@ class Employee extends Component
 
     public function payGift()
     {
-        if (floatval($this->amount) > floatval(session($this->payment == "cash" ? "safeBalance" : "bankBalance"))) {
+        if ((floatval($this->amount) > floatval(session($this->payment == "cash" ? "safeBalance" : "bankBalance"))) && $this->type == "debt") {
             $this->confirm("المبلغ المدفوع أكبر من المبلغ المتوفر", [
                 'toast' => false,
                 'showConfirmButton' => false,
@@ -503,7 +502,7 @@ class Employee extends Component
         $this->bank_id = $debt['bank_id'];
         $this->type = $debt['type'];
         $this->note = $debt['note'];
-        $this->amount = $debt['amount'] ?? ($debt['income'] != 0 ? $debt['income'] : $debt['expense']);
+        $this->amount = $debt['amount'] ?? ($debt['debit'] != 0 ? $debt['debit'] : $debt['credit']);
         $this->payment = $debt['payment'];
         $this->bank = $debt['bank'];
         $this->due_date = $debt['due_date'];

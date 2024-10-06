@@ -215,8 +215,8 @@ class Sale extends Component
         if ($product->stock > 0) {
             $this->currentProduct = $product->toArray();
             $this->currentProduct['quantity'] = 1;
-            $this->currentProduct['price'] = $product['sale_price'];
-            $this->currentProduct['amount'] = $product['sale_price'];
+            $this->currentProduct['price'] = floatval($product['sale_price']);
+            $this->currentProduct['amount'] = floatval($product['sale_price']);
             $this->currentProduct['stock'] = $product->stock;
             $this->productSearch = '';
         }
@@ -230,8 +230,8 @@ class Sale extends Component
 
     public function addToCart()
     {
-        $stock = $this->currentProduct['quantity'];
-        $quantity = isset($this->cart[$this->currentProduct['id']]) ? $this->cart[$this->currentProduct['id']]['quantity'] : 0;
+        $stock = floatval($this->currentProduct['quantity']);
+        $quantity = isset($this->cart[$this->currentProduct['id']]) ? floatval($this->cart[$this->currentProduct['id']]['quantity']) : 0;
         if ($stock + $quantity > $this->currentProduct["stock"]) {
             $this->confirm("العدد المطلوب من " . $this->currentProduct['productName'] . " غير متوفر لايوجد سوى " . $this->currentProduct['stock'], [
                 'toast' => false,

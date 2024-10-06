@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Models\DepositDebt;
+use App\Models\People;
 use App\Models\SaleDebt;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
 
@@ -174,17 +175,26 @@ class Supplier extends Component
             $supplier = $this->currentSupplier;
         }
         $this->currentSupplier = $supplier;
+
+        $supplier = People::find($this->currentSupplier['id']);
+
+
         if ($this->debtType == 'purchases') {
-            $this->debts = (new \App\Models\Purchase)->getMovements($this->currentSupplier['id'])->where("due_date", session("date"))->toArray();
+            $this->debts = (new \App\Models\Purchase)->getMovements(id: $this->currentSupplier['id'], duration: "day", from: session("date"));
             $this->currentBalance = \App\Models\People::find($this->currentSupplier['id'])->currentPurchasesBalance;
         } elseif ($this->debtType == 'sales') {
-            $this->debts = (new \App\Models\Sale)->getMovements($this->currentSupplier['id'])->where("due_date", session("date"))->toArray();
+            $this->debts = (new \App\Models\Sale)->getMovements(id: $this->currentSupplier['id'], duration: "day", from: session("date"));
             $this->currentBalance = \App\Models\People::find($this->currentSupplier['id'])->currentSalesBalance;
         } elseif ($this->debtType == 'deposits') {
-            $this->debts = (new \App\Models\Deposit)->getMovements($this->currentSupplier['id'])->where("due_date", session("date"))->toArray();
+            $this->debts = (new \App\Models\Deposit)->getMovements(id: $this->currentSupplier['id'], duration: "day", from: session("date"));
             $this->currentBalance = \App\Models\People::find($this->currentSupplier['id'])->currentDepositsBalance;
         }
         $this->type = "pay";
+
+        $this->currentSupplier['salesBalance'] = $supplier->currentSalesBalance;
+        $this->currentSupplier['purchasesBalance'] = $supplier->currentPurchasesBalance;
+        $this->currentSupplier['depositsBalance'] = $supplier->currentDepositsBalance;
+        $this->currentSupplier['giftsBalance'] = $supplier->currentGiftsBalance;
 
     }
 
@@ -400,7 +410,7 @@ class Supplier extends Component
         $this->debtId = $debt['id'];
         $this->bank_id = $debt['bank_id'];
         $this->type = $debt['type'];
-        $this->amount = $debt['amount'] ?? ($debt['type'] == "pay" ? $debt['income'] : $debt['expense']);
+        $this->amount = $debt['amount'] ?? ($debt['debit'] != 0 ? $debt['debit'] : $debt['credit']);
         $this->payment = $debt['payment'];
         $this->bank = $debt['bank'];
         $this->due_date = $debt['due_date'];

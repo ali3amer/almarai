@@ -40,152 +40,148 @@ class Purchase extends Model
         return $this->hasMany(Service::class);
     }
 
-    public function getMovements($id = null)
+    public function getMovements($id = null, $duration = null, $from = null, $to = null)
     {
-        $purchases = Purchase::select(
-            DB::raw("'purchases' as tableName"),
-            DB::raw("people.type as clientType"),
-            DB::raw('null as type'),
-            'purchases.id as invoice_id',
-            'purchases.id',
-            DB::raw('0 as expense'),
-            DB::raw('0 as income'),
-            DB::raw('0 as futureIncome'),
-            DB::raw('amount as futureExpense'),
-            'due_date',
-            'payment',
-            'bank',
-            'bank_id',
-            DB::raw('CONCAT("مشتريات للفاتوره رقم #", purchases.id) as note'),
-            DB::raw('people_id as owner_id'),
-            DB::raw("people.name as ownerName"),
-            'purchases.created_at',
-            'purchases.updated_at'
-        )->leftJoin('people', 'people.id', '=', 'purchases.people_id');
+        $array = [];
 
-        $paidPurchases = Purchase::select(
-            DB::raw("'purchases' as tableName"),
-            DB::raw("people.type as clientType"),
-            DB::raw('null as type'),
-            'purchases.id as invoice_id',
-            'purchases.id',
-            DB::raw('paid as expense'),
-            DB::raw('0 as income'),
-            DB::raw('0 as futureExpense'),
-            DB::raw('0 as futureIncome'),
-            'due_date',
-            'payment',
-            'bank',
-            'bank_id',
-            DB::raw('CONCAT("مدفوعات مشتريات لفاتوره #", purchases.id) as note'),
-            DB::raw('people_id as owner_id'),
-            DB::raw("people.name as ownerName"),
-            'purchases.created_at',
-            'purchases.updated_at'
-        )->where('paid', '!=', 0)
-            ->leftJoin('people', 'people.id', '=', 'purchases.people_id');
+        if ($duration == "day") {
+            $purchases = Purchase::where("due_date", $from)->get();
+            $purchaseDebts = PurchaseDebt::where("due_date", $from)->get();
+            $purchaseReturns = PurchaseReturn::whereHas('purchase', function ($query) use ($from) {
+                $query->where('due_date', $from);
+            })->get();
+        } elseif ($duration == "duration") {
+            $purchases = Purchase::whereBetween("due_date", [$from, $to])->get();
+            $purchaseDebts = PurchaseDebt::whereBetween("due_date", [$from, $to])->get();
+            $purchaseReturns = PurchaseReturn::whereHas('purchase', function ($query) use ($from, $to) {
+                $query->whereBetween('due_date', [$from, $to]);
+            })->get();
+        } else {
+            $purchases = Purchase::all();
+            $purchaseDebts = PurchaseDebt::all();
+            $purchaseReturns = PurchaseReturn::all();
+        }
 
-        $purchaseDebts = PurchaseDebt::select(
-            DB::raw("'purchase_debts' as tableName"),
-            DB::raw("people.type as clientType"),
-            'purchase_debts.type',
-            DB::raw('null as invoice_id'),
-            'purchase_debts.id',
-            DB::raw("CASE
-        WHEN purchase_debts.type = 'pay' THEN amount
-        ELSE 0
-     END as expense"),
-
-            DB::raw("CASE
-        WHEN purchase_debts.type = 'debt' THEN amount
-        ELSE 0
-     END as income"),
-            DB::raw('0 as futureIncome'),
-            DB::raw("CASE
-        WHEN purchase_debts.type = 'discount' THEN amount
-        ELSE 0
-     END as futureExpense"),
-            'due_date',
-            'payment',
-            'bank',
-            'bank_id',
-            'purchase_debts.note',
-            DB::raw('people_id as owner_id'),
-            DB::raw("people.name as ownerName"),
-            'purchase_debts.created_at',
-            'purchase_debts.updated_at'
-        )
-            ->leftJoin('people', 'people.id', '=', 'purchase_debts.people_id');
-
-        $returnPurchase = PurchaseReturn::select(
-            DB::raw("'purchase_returns' as tableName"),
-            DB::raw("people.type as clientType"),
-            DB::raw('null as type'),
-            'purchase_id as invoice_id',
-            'purchase_returns.id',
-            DB::raw('0 as income'),
-            DB::raw('0 as expense'),
-            DB::raw('quantity * price as futureIncome'),
-            DB::raw("0 as futureExpense"),
-            'purchase_returns.due_date',
-            DB::raw("'cash' as payment"),
-            DB::raw('null as bank'),
-            DB::raw('null as bank_id'),
-            DB::raw('CONCAT("مرتجعات مشتريات لفاتوره #", purchase_id) as note'),
-            DB::raw('people_id as owner_id'),
-            DB::raw("people.name as ownerName"),
-            'purchase_returns.created_at',
-            'purchase_returns.updated_at'
-        )
-            ->join('purchases', 'purchases.id', '=', 'purchase_returns.purchase_id')
-            ->leftJoin('people', 'people.id', '=', 'purchases.people_id');
-
-        $paidReturnPurchase = PurchaseReturn::select(
-            DB::raw("'purchase_returns' as tableName"),
-            DB::raw("people.type as clientType"),
-            DB::raw('null as type'),
-            'purchase_id as invoice_id',
-            'purchase_returns.id',
-            DB::raw('0 as expense'),
-            DB::raw('purchase_returns.amount as income'),
-            DB::raw('0 as futureIncome'),
-            DB::raw("0 as futureExpense"),
-            'purchase_returns.due_date',
-            DB::raw("'cash' as payment"),
-            DB::raw('null as bank'),
-            DB::raw('null as bank_id'),
-            DB::raw('CONCAT("مدفوعات مرتجع لفاتوره #", purchase_id) as note'),
-            DB::raw('people_id as owner_id'),
-            DB::raw("people.name as ownerName"), // إضافة اسم المالك
-            'purchase_returns.created_at',
-            'purchase_returns.updated_at'
-        )->where("purchase_returns.amount", "!=", 0)
-            ->join('purchases', 'purchases.id', '=', 'purchase_returns.purchase_id')
-            ->leftJoin('people', 'people.id', '=', 'purchases.people_id');
 
         if ($id != null) {
             $purchases = $purchases->where("people_id", $id);
 
-            $paidPurchases = $paidPurchases->where("people_id", $id);
-
             $purchaseDebts = $purchaseDebts->where("people_id", $id);
 
-            $returnPurchase = $returnPurchase->whereHas('purchase', function ($query) use ($id) {
-                $query->where("people_id", $id);
-            });
-
-            $paidReturnPurchase = $paidReturnPurchase->whereHas('purchase', function ($query) use ($id) {
-                $query->where("people_id", $id);
+            $purchaseReturns = $purchaseReturns->filter(function ($return) use ($id) {
+                return $return->purchase->people_id == $id;
             });
         }
+        foreach ($purchases as $purchase) {
+            $array[] = [
+                "tableName" => "purchases",
+                "clientType" => $purchase->people->type,
+                "type" => null,
+                "real" => false,
+                "invoice_id" => $purchase->id,
+                "id" => $purchase->id,
+                "debit" => 0,
+                "credit" => $purchase->amount,
+                "due_date" => $purchase->due_date,
+                "payment" => null,
+                "bank" => null,
+                "bank_id" => null,
+                "note" => "فاتورة مشتريات رقم #" . $purchase->id,
+                "owner_id" => $purchase->people_id,
+                "ownerName" => $purchase->people->name,
+                "created_at" => $purchase->created_at,
+                "updated_at" => $purchase->updated_at,
+            ];
 
+            if ($purchase->paid != 0) {
+                $array[] = [
+                    "tableName" => "purchases",
+                    "clientType" => $purchase->people->type,
+                    "type" => null,
+                    "real" => true,
+                    "invoice_id" => $purchase->id,
+                    "id" => $purchase->id,
+                    "debit" => $purchase->paid,
+                    "credit" => 0,
+                    "due_date" => $purchase->due_date,
+                    "payment" => $purchase->payment,
+                    "bank" => $purchase->bank,
+                    "bank_id" => $purchase->bank_id,
+                    "note" => "مدفوعات فاتورة مشتريات رقم #" . $purchase->id,
+                    "owner_id" => $purchase->people_id,
+                    "ownerName" => $purchase->people->name,
+                    "created_at" => $purchase->created_at,
+                    "updated_at" => $purchase->updated_at,
+                ];
+            }
+        }
 
-        return $purchases->union($paidPurchases)
-            ->union($purchaseDebts)
-            ->union($returnPurchase)
-            ->union($paidReturnPurchase)
-            ->orderBy('due_date', 'asc')
-            ->get();
+        foreach ($purchaseReturns as $return) {
+            $array[] = [
+                "tableName" => "purchase_returns",
+                "clientType" => $return->purchase->people->type,
+                "type" => null,
+                "real" => false,
+                "invoice_id" => $return->purchase_id,
+                "id" => $return->id,
+                "debit" => $return->price * $return->quantity,
+                "credit" => 0,
+                "due_date" => $return->due_date,
+                "payment" => null,
+                "bank" => $return->bank,
+                "bank_id" => $return->bank_id,
+                "note" => "مرتجعات فاتورة مشتريات رقم #" . $return->purchase_id,
+                "owner_id" => $return->purchase->people_id,
+                "ownerName" => $return->purchase->people->name,
+                "created_at" => $return->created_at,
+                "updated_at" => $return->updated_at,
+            ];
+            if ($return->amount != 0) {
+                $array[] = [
+                    "tableName" => "purchase_returns",
+                    "clientType" => $return->purchase->people->type,
+                    "type" => null,
+                    "real" => true,
+                    "invoice_id" => $return->purchase_id,
+                    "id" => $return->id,
+                    "debit" => 0,
+                    "credit" => $return->amount,
+                    "due_date" => $return->due_date,
+                    "payment" => $return->payment,
+                    "bank" => $return->bank,
+                    "bank_id" => $return->bank_id,
+                    "note" => "مدفوعات مرتجعات فاتورة مشتريات رقم #" . $return->purchase_id,
+                    "owner_id" => $return->purchase->people_id,
+                    "ownerName" => $return->purchase->people->name,
+                    "created_at" => $return->created_at,
+                    "updated_at" => $return->updated_at,
+                ];
+            }
+        }
+
+        foreach ($purchaseDebts as $debt) {
+            $array[] = [
+                "tableName" => "purchase_debts",
+                "clientType" => $debt->people->type,
+                "type" => $debt->type,
+                "real" => !($debt->type == "discount"),
+                "invoice_id" => null,
+                "id" => $debt->id,
+                "debit" => $debt->type == "pay" || $debt->type == "discount" ? $debt->amount : 0,
+                "credit" => $debt->type == "debt" ? $debt->amount : 0,
+                "due_date" => $debt->due_date,
+                "payment" => $debt->type != "discount" ? $debt->payment : null,
+                "bank" => $debt->bank,
+                "bank_id" => $debt->bank_id,
+                "note" => $debt->note,
+                "owner_id" => $debt->people_id,
+                "ownerName" => $debt->people->name,
+                "created_at" => $debt->created_at,
+                "updated_at" => $debt->updated_at,
+            ];
+        }
+
+        return $array = collect($array)->sortBy("created_at")->toArray();
     }
 
 }

@@ -16,6 +16,10 @@ class EmployeeGift extends Model
     {
         return $this->belongsTo(Employee::class);
     }
+    public function people()
+    {
+        return $this->belongsTo(People::class);
+    }
 
     public function debt()
     {

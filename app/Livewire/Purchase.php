@@ -227,8 +227,8 @@ class Purchase extends Component
     {
         $this->currentProduct = $product->toArray();
         $this->currentProduct['quantity'] = 1;
-        $this->currentProduct['price'] = $product['purchase_price'];
-        $this->currentProduct['amount'] = $product['purchase_price'];
+        $this->currentProduct['price'] = floatval($product['purchase_price']);
+        $this->currentProduct['amount'] = floatval($product['purchase_price']);
         $this->productSearch = '';
 
     }

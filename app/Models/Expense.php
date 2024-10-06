@@ -18,33 +18,44 @@ class Expense extends Model
         return $this->belongsTo(ExpenseOption::class);
     }
 
-    public function getMovements()
+    public function getMovements($id = null, $duration = null, $from = null, $to = null)
     {
-        $expenses = Expense::select(
-            DB::raw("'expenses' as tableName"),
-            DB::raw("null as clientType"),
-            DB::raw('null as type'),
-            DB::raw('null as invoice_id'),
-            'expenses.id',
-            DB::raw('0 as income'),
-            DB::raw('amount as expense'),
-            DB::raw('0 as futureIncome'),
-            DB::raw("0 as futureExpense"),
-            'due_date',
-            'payment',
-            'bank',
-            'bank_id',
-            'description as note',
-            DB::raw('null as owner_id'),
-            DB::raw("expense_options.optionName as ownerName"),
-            'expenses.created_at',
-            'expenses.updated_at'
-        )
-            ->join('expense_options', 'expense_options.id', '=', 'expenses.option_id')->orderBy('due_date', 'asc')->get();
+        $array = [];
 
+        if ($duration == "day") {
+            $expenses = Expense::where("due_date", $from)->get();
 
-        return $expenses;
+        } elseif ($duration == "duration") {
+            $expenses = Expense::whereBetween("due_date", [$from, $to])->get();
+        } else {
+            $expenses = Expense::all();
+        }
+
+        foreach ($expenses as $expense) {
+            $array[] = [
+                "tableName" => "expenses",
+                "clientType" => null,
+                "type" => null,
+                "real" => true,
+                "invoice_id" => null,
+                "id" => $expense->id,
+                "debit" => $expense->amount,
+                "credit" => 0,
+                "due_date" => $expense->due_date,
+                "payment" => $expense->payment,
+                "bank" => $expense->bank,
+                "bank_id" => $expense->bank_id,
+                "note" => $expense->note,
+                "owner_id" => null,
+                "ownerName" => $expense->option_id != null ? $expense->option->optionName : null,
+                "created_at" => $expense->created_at,
+                "updated_at" => $expense->updated_at,
+            ];
+        }
+
+        return $array = collect($array)->sortBy("created_at")->toArray();
     }
+
 
 
     public function getCreatedAtAttribute($value)

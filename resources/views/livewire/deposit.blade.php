@@ -49,8 +49,8 @@
                                     <tr>
                                         <td>المبلغ</td>
                                         <td>
-                                            @if(isset($currentReceipt['futureExpense']))
-                                                {{$currentReceipt['futureExpense'] != 0 ? number_format($currentReceipt['futureExpense'], 2) : ($currentReceipt['futureIncome'] != 0 ? number_format($currentReceipt['futureIncome'], 2) : ($currentReceipt['expense'] != 0 ? number_format($currentReceipt['expense'], 2) : number_format($currentReceipt['income'], 2)))}}
+                                            @if(isset($currentReceipt['debit']))
+                                                {{$currentReceipt['debit'] != 0 ? number_format($currentReceipt['debit'], 2) : number_format($currentReceipt['credit'], 2) }}
                                             @else
                                                 {{ number_format($currentReceipt['amount'], 2) }}
                                             @endif
@@ -91,10 +91,12 @@
                                 @error('phone') <span class="error text-danger">{{ $message }}</span> @enderror
                             </div>
                             <label for="initialDepositsBalance" class="form-label">الرصيد الافتتاحي</label>
-                            <input type="text" wire:model="initialDepositsBalance" autocomplete="off" class="form-control"
+                            <input type="text" wire:model="initialDepositsBalance" autocomplete="off"
+                                   class="form-control"
                                    placeholder="الرصيد الافتتاحي ..." id="initialDepositsBalance">
                             <div>
-                                @error('initialDepositsBalance') <span class="error text-danger">{{ $message }}</span> @enderror
+                                @error('initialDepositsBalance') <span
+                                    class="error text-danger">{{ $message }}</span> @enderror
                             </div>
 
                             @if($blocked == true)
@@ -129,7 +131,6 @@
                                     <tr>
                                         <th>الإسم</th>
                                         <th>الهاتف</th>
-                                        <th>الرصيد الافتتاحي</th>
                                         <th>الرصيد الحالي</th>
                                         <th>التحكم</th>
                                     </tr>
@@ -139,7 +140,6 @@
                                         <tr>
                                             <td>{{ $deposit->name }}</td>
                                             <td>{{ $deposit->phone }}</td>
-                                            <td>{{ number_format($deposit->initialDepositsBalance, 2) }}</td>
                                             <td>{{ number_format($deposit->currentDepositsBalance, 2) }}</td>
                                             <td>
                                                 <button
@@ -175,6 +175,36 @@
                 </div>
             </div>
         @else
+            <div class="col-12">
+                <div class="card bg-white my-1 shadow">
+                    <div class="card-body p-2 invoice" style="page-break-after: unset" dir="rtl">
+                        <div class="row align-items-center">
+                            <div class="col-3">
+                                <h6 class="m-0 px-2">العهد
+                                    : {{ number_format($currentDeposit['depositsBalance'], 2) }}</h6>
+                            </div>
+
+                            <div class="col-3">
+                                <h6 class="m-0 px-2">المبيعات
+                                    : {{ number_format($currentDeposit['salesBalance'], 2) }}</h6>
+                            </div>
+
+                            <div class="col-3">
+                                <h6 class="m-0 px-2">المشتريات
+                                    : {{ number_format($currentDeposit['purchasesBalance'], 2) }}</h6>
+                            </div>
+
+                            <div class="col-3">
+                                <h6 class="m-0 px-2">
+                                    الجمله
+                                    : {{ number_format($currentDeposit['salesBalance'] + $currentDeposit['depositsBalance'] - $currentDeposit['purchasesBalance'], 2) }}
+                                </h6>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="col-4">
                 <div class="card">
                     <form wire:submit="saveDebt()">
@@ -276,7 +306,7 @@
                         <div class="card-title">
                             <div class="row">
                                 <div class="col-4"><h6>المعاملات</h6></div>
-                                <div class="col-4"><h6>رصيد العميل
+                                <div class="col-4"><h6>الرصيد
                                         : {{ number_format($currentBalance, 2) }}
                                 </div>
                                 <div class="col-4">
@@ -318,7 +348,7 @@
                                         </td>
                                         <td style="cursor: pointer" wire:click="showReceipt({{ json_encode($debt) }})"
                                             data-bs-toggle="modal" data-bs-target="#debtModal">
-                                            {{$debt['futureExpense'] != 0 ? number_format($debt['futureExpense'], 2) : ($debt['futureIncome'] != 0 ? number_format($debt['futureIncome'], 2) : ($debt['expense'] != 0 ? number_format($debt['expense'], 2) : number_format($debt['income'], 2)))}}
+                                            {{$debt['debit'] != 0 ? number_format($debt['debit'], 2) : number_format($debt['credit'], 2)}}
                                         </td>
                                         <td>
                                             @if($debt['due_date'] == session("date"))

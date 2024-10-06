@@ -10,8 +10,8 @@ class DepositDebt extends Model
     use HasFactory;
     protected $guarded = [];
 
-    public function deposit()
+    public function people()
     {
-        return $this->belongsTo(Deposit::class);
+        return $this->belongsTo(People::class);
     }
 }

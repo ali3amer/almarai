@@ -49,8 +49,8 @@
                                     <tr>
                                         <td>المبلغ</td>
                                         <td>
-                                            @if(isset($currentReceipt['futureExpense']))
-                                                {{$currentReceipt['futureExpense'] != 0 ? number_format($currentReceipt['futureExpense'], 2) : ($currentReceipt['futureIncome'] != 0 ? number_format($currentReceipt['futureIncome'], 2) : ($currentReceipt['expense'] != 0 ? number_format($currentReceipt['expense'], 2) : number_format($currentReceipt['income'], 2)))}}
+                                            @if(isset($currentReceipt['debit']))
+                                                {{$currentReceipt['debit'] != 0 ? number_format($currentReceipt['debit'], 2) : number_format($currentReceipt['credit'], 2)}}
                                             @else
                                                 {{ number_format($currentReceipt['amount'], 2) }}
                                             @endif
@@ -72,6 +72,7 @@
 
     <div class="row mt-2">
         @if(empty($currentClient))
+
             <div class="col-3">
                 <div class="card bg-white">
                     <div class="card-body">
@@ -149,7 +150,6 @@
                                     <tr>
                                         <th>إسم العميل</th>
                                         <th>الهاتف</th>
-                                        <th>الرصيد الافتتاحي للمبيعات</th>
                                         <th>الرصيد الحالي للمبيعات</th>
                                         <th class="d-none">نقدي</th>
                                         <th>التحكم</th>
@@ -160,8 +160,7 @@
                                         <tr>
                                             <td>{{ $client->name }}</td>
                                             <td>{{ $client->phone }}</td>
-                                            <td>{{ number_format($client->initialSalesBalance, 2) }}</td>
-                                            <td>{{ number_format($client->currentSalesBalance, 2) }}</td>
+                                            <td>{{ number_format($client->currentSalesBalance - $client->currentPurchasesBalance, 2) }}</td>
                                             <td class="d-none">{{ $client->cash ? "نعم" : "لا" }}</td>
                                             <td>
                                                 <button
@@ -204,6 +203,36 @@
                 </div>
             </div>
         @else
+            <div class="col-12">
+                <div class="card bg-white my-1 shadow">
+                    <div class="card-body p-2 invoice" style="page-break-after: unset" dir="rtl">
+                        <div class="row align-items-center">
+                            <div class="col-3">
+                                <h6 class="m-0 px-2">المبيعات
+                                    : {{ number_format($currentClient['salesBalance'], 2) }}</h6>
+                            </div>
+
+                            <div class="col-3">
+                                <h6 class="m-0 px-2">المشتريات
+                                    : {{ number_format($currentClient['purchasesBalance'], 2) }}</h6>
+                            </div>
+
+                            <div class="col-3">
+                                <h6 class="m-0 px-2">العهد
+                                    : {{ number_format($currentClient['depositsBalance'], 2) }}</h6>
+                            </div>
+
+                            <div class="col-3">
+                                <h6 class="m-0 px-2">
+                                    الجمله
+                                    : {{ number_format($currentClient['salesBalance'] + $currentClient['depositsBalance'] - $currentClient['purchasesBalance'], 2) }}
+                                </h6>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="col-4">
                 <div class="card">
                     <form wire:submit="saveDebt()">
@@ -214,7 +243,8 @@
                                         <h6>سداد</h6>
                                     </div>
                                     <div class="col-9">
-                                        <input type="text" style="cursor:pointer;" wire:click="resetData('currentClient')"
+                                        <input type="text" style="cursor:pointer;"
+                                               wire:click="resetData('currentClient')"
                                                readonly value="{{$currentClient['name']}}"
                                                class="border-danger form-control text-center" placeholder="إسم العيل">
                                     </div>
@@ -268,10 +298,12 @@
                             <div class="row">
                                 <div class="col-6">
                                     <label for="bank">رقم الايصال</label>
-                                    <input @disabled($payment == 'cash') @required($payment == "bank")  autocomplete="off" type="text"
-                                           wire:model="bank" id="bank"
-                                           class="form-control text-center mb-2"
-                                           placeholder="رقم الايصال ....">
+                                    <input
+                                        @disabled($payment == 'cash') @required($payment == "bank")  autocomplete="off"
+                                        type="text"
+                                        wire:model="bank" id="bank"
+                                        class="form-control text-center mb-2"
+                                        placeholder="رقم الايصال ....">
 
                                 </div>
                                 <div class="col-6">
@@ -286,7 +318,7 @@
                             <div class="row">
                                 @if(!session("closed") || $payment == "bank")
                                     <button
-                                             @disabled($payment == "bank" && $banks->count() == 0)  @disabled(empty($currentClient) || $due_date == '') @disabled($amount == 0) class="btn btn-{{$debtId == 0 ? 'primary' : 'success'}} w-100"
+                                        @disabled($payment == "bank" && $banks->count() == 0)  @disabled(empty($currentClient) || $due_date == '') @disabled($amount == 0) class="btn btn-{{$debtId == 0 ? 'primary' : 'success'}} w-100"
                                     >{{$debtId == 0 ? 'دفــــع' : 'تعــــديل'}}</button>
                                 @endif
                             </div>
@@ -302,7 +334,7 @@
                         <div class="card-title">
                             <div class="row">
                                 <div class="col-4"><h6>المعاملات</h6></div>
-                                <div class="col-4"><h6>رصيد العميل
+                                <div class="col-4"><h6>الرصيد
                                         : {{ number_format($currentBalance, 2) }}</div>
                                 <div class="col-4">
                                     <div class="row d-flex align-items-center">
@@ -343,7 +375,7 @@
                                         </td>
                                         <td style="cursor: pointer" wire:click="showReceipt({{ json_encode($debt) }})"
                                             data-bs-toggle="modal" data-bs-target="#debtModal">
-                                            {{$debt['futureExpense'] != 0 ? number_format($debt['futureExpense'], 2) : ($debt['futureIncome'] != 0 ? number_format($debt['futureIncome'], 2) : ($debt['expense'] != 0 ? number_format($debt['expense'], 2) : number_format($debt['income'], 2)))}}
+                                            {{$debt['debit'] != 0 ? number_format($debt['debit'], 2) : number_format($debt['credit'], 2)}}
                                         </td>
                                         <td>
                                             @if($debt['due_date'] == session("date") && !session("closed") && $debt['invoice_id'] == null)

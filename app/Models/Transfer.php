@@ -18,89 +18,64 @@ class Transfer extends Model
         return $this->belongsTo(Bank::class, 'bank_id');
     }
 
-    public function getMovements()
+    public function getMovements($id = null, $duration = null, $from = null, $to = null)
     {
-        $cash_to_bank_expense = Transfer::select(
-            DB::raw("'transfers' as tableName"),
-            DB::raw("null as clientType"),
-            DB::raw('null as type'),
-            DB::raw('null as invoice_id'),
-            DB::raw('0 as income'),
-            DB::raw('amount as expense'),
-            DB::raw('0 as futureIncome'),
-            DB::raw("0 as futureExpense"),
-            'due_date',
-            DB::raw("'cash' as payment"),
-            'bank',
-            DB::raw("IF(note IS NULL OR note = '', 'تحويل من الخزنة إلى بنك', note) as note"),
-            DB::raw('null as owner_id'),
-            DB::raw("null as ownerName"),
-            'created_at',
-            'updated_at'
-        )->where("transfer_type", "cash_to_bank");
 
-        $cash_to_bank_income = Transfer::select(
-            DB::raw("'transfers' as tableName"),
-            DB::raw("null as clientType"),
-            DB::raw('null as type'),
-            DB::raw('null as invoice_id'),
-            DB::raw('amount as income'),
-            DB::raw('0 as expense'),
-            DB::raw('0 as futureIncome'),
-            DB::raw("0 as futureExpense"),
-            'due_date',
-            DB::raw("'bank' as payment"),
-            'bank',
-            DB::raw("IF(note IS NULL OR note = '', 'إستلام بنك', note) as note"),
-            DB::raw('null as owner_id'),
-            DB::raw("null as ownerName"),
-            'created_at',
-            'updated_at'
-        )->where("transfer_type", "cash_to_bank");
+        $array = [];
 
-        $bank_to_cash_expense = Transfer::select(
-            DB::raw("'transfers' as tableName"),
-            DB::raw("null as clientType"),
-            DB::raw('null as type'),
-            DB::raw('null as invoice_id'),
-            DB::raw('0 as income'),
-            DB::raw('amount as expense'),
-            DB::raw('0 as futureIncome'),
-            DB::raw("0 as futureExpense"),
-            'due_date',
-            DB::raw("'bank' as payment"),
-            'bank',
-            DB::raw("IF(note IS NULL OR note = '', 'تحويل من بنك إلى كاش', note) as note"),
-            DB::raw('null as owner_id'),
-            DB::raw("null as ownerName"),
-            'created_at',
-            'updated_at'
-        )->where("transfer_type", "bank_to_cash");
+        if ($duration == "day") {
+            $transfers = Transfer::where("due_date", $from)->get();
 
-        $bank_to_cash_income = Transfer::select(
-            DB::raw("'transfers' as tableName"),
-            DB::raw("null as clientType"),
-            DB::raw('null as type'),
-            DB::raw('null as invoice_id'),
-            DB::raw('amount as income'),
-            DB::raw('0 as expense'),
-            DB::raw('0 as futureIncome'),
-            DB::raw("0 as futureExpense"),
-            'due_date',
-            DB::raw("'cash' as payment"),
-            'bank',
-            DB::raw("IF(note IS NULL OR note = '', 'استلام كاش', note) as note"),
-            DB::raw('null as owner_id'),
-            DB::raw("null as ownerName"),
-            'created_at',
-            'updated_at'
-        )->where("transfer_type", "bank_to_cash");
+        } elseif ($duration == "duration") {
+            $transfers = Transfer::whereBetween("due_date", [$from, $to])->get();
+        } else {
+            $transfers = Transfer::all();
+        }
 
-        return $cash_to_bank_expense->union($cash_to_bank_income)
-            ->union($bank_to_cash_expense)
-            ->union($bank_to_cash_income)
-            ->orderBy('due_date', 'asc')
-            ->get();
+        foreach ($transfers as $transfer) {
+            $array[] = [
+                "tableName" => "transfers",
+                "clientType" => null,
+                "type" => null,
+                "real" => true,
+                "invoice_id" => null,
+                "id" => $transfer->id,
+                "debit" => $transfer->amount,
+                "credit" => 0,
+                "due_date" => $transfer->due_date,
+                "payment" => $transfer->transfer_type == "cash_to_bank" ? "cash" : "bank",
+                "bank" => $transfer->bank,
+                "bank_id" => $transfer->bank_id,
+                "note" => $transfer->note ?? ($transfer->transfer_type == "cash_to_bank" ? "تحويل من الخزنة إلى بنك" : "تحويل من البنك إلى الخزنة"),
+                "owner_id" => null,
+                "ownerName" => null,
+                "created_at" => $transfer->created_at,
+                "updated_at" => $transfer->updated_at,
+            ];
+            $array[] = [
+                "tableName" => "transfers",
+                "clientType" => null,
+                "type" => null,
+                "real" => true,
+                "invoice_id" => null,
+                "id" => $transfer->id,
+                "debit" => 0,
+                "credit" => $transfer->amount,
+                "due_date" => $transfer->due_date,
+                "payment" => $transfer->transfer_type == "cash_to_bank" ? "bank" : "cash",
+                "bank" => $transfer->bank,
+                "bank_id" => $transfer->bank_id,
+                "note" => $transfer->note ?? ($transfer->transfer_type == "cash_to_bank" ?  "إستلام بنك" : "إستلام كاش"),
+                "owner_id" => null,
+                "ownerName" => null,
+                "created_at" => $transfer->created_at,
+                "updated_at" => $transfer->updated_at,
+            ];
+
+        }
+
+        return $array = collect($array)->sortBy("created_at")->toArray();
+
     }
 
     public function getCreatedAtAttribute($value)

@@ -49,9 +49,8 @@
                                     <tr>
                                         <td>المبلغ</td>
                                         <td>
-                                            @if(isset($currentReceipt['futureExpense']))
-                                                {{$currentReceipt['futureExpense'] != 0 ? number_format($currentReceipt['futureExpense'], 2) : ($currentReceipt['futureIncome'] != 0 ? number_format($currentReceipt['futureIncome'], 2) : ($currentReceipt['expense'] != 0 ? number_format($currentReceipt['expense'], 2) : number_format($currentReceipt['income'], 2)))}}
-
+                                            @if(isset($currentReceipt['debit']))
+                                                {{$currentReceipt['debit'] != 0 ? number_format($currentReceipt['debit'], 2) : number_format($currentReceipt['credit'], 2) }}
                                             @else
                                                 {{ number_format($currentReceipt['amount'], 2) }}
                                             @endif
@@ -118,9 +117,7 @@
                                 <table class="table text-center">
                                     <thead>
                                     <tr>
-                                        <th>#</th>
                                         <th>إسم الموظف</th>
-                                        <th>الرصيد الإفتتاحي</th>
                                         <th>الرصيد الحالي</th>
                                         <th>التحكم</th>
                                     </tr>
@@ -128,9 +125,7 @@
                                     <tbody class="text-white">
                                     @foreach($employees as $employee)
                                         <tr>
-                                            <td>{{ $loop->index + 1 }}</td>
                                             <td>{{ $employee->name }}</td>
-                                            <td>{{ number_format($employee->initialSalesBalance, 2) }}</td>
                                             <td>{{ number_format($employee->currentSalesBalance + $employee->currentGiftsBalance + $employee->currentDepositsBalance - $employee->currentPurchasesBalance, 2) }}</td>
                                             <td>
                                                 <button
@@ -216,8 +211,8 @@
                                         @if($debtType == "gifts")
                                             <option value="salary">حافز او مرتب</option>
                                         @endif
-                                        <option value="debt">دين</option>
-                                        <option value="pay">توريد</option>
+                                        <option value="debt">سحب من الخزنه</option>
+                                        <option value="pay">توريد للخزنه</option>
                                         @if($debtType != "deposits")
                                             <option value="discount">خصم</option>
                                         @endif
@@ -297,7 +292,7 @@
                         <div class="card-title">
                             <div class="row">
                                 <div class="col-4"><h6>المعاملات</h6></div>
-                                <div class="col-4"><h6>رصيد الموظف
+                                <div class="col-4"><h6>الرصيد
                                         : {{ number_format($currentBalance, 2) }}
                                 </div>
                                 <div class="col-4">
@@ -340,7 +335,7 @@
                                         </td>
                                         <td style="cursor: pointer" wire:click="showReceipt({{ json_encode($debt) }})"
                                             data-bs-toggle="modal" data-bs-target="#debtModal">
-                                            {{$debt['futureExpense'] != 0 ? number_format($debt['futureExpense'], 2) : ($debt['futureIncome'] != 0 ? number_format($debt['futureIncome'], 2) : ($debt['expense'] != 0 ? number_format($debt['expense'], 2) : number_format($debt['income'], 2)))}}
+                                            {{$debt['debit'] != 0 ? number_format($debt['debit'], 2) : number_format($debt['credit'], 2) }}
                                         </td>
                                         <td>
                                             @if($debt['due_date'] == session("date") && !session("closed") && $debt['invoice_id'] == null)

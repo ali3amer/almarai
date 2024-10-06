@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Models\DepositDebt;
+use App\Models\People;
 use App\Models\PurchaseDebt;
 use Illuminate\Support\Facades\DB;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
@@ -171,18 +172,24 @@ class Client extends Component
             $client = $this->currentClient;
         }
         $this->currentClient = $client;
+        $client = People::find($this->currentClient['id']);
 
         if ($this->debtType == "sales") {
             $this->currentBalance = \App\Models\People::find($this->currentClient['id'])->currentSalesBalance;
-            $this->debts = (new \App\Models\Sale)->getMovements($this->currentClient['id'])->where("due_date", session("date"))->toArray();
+            $this->debts = (new \App\Models\Sale)->getMovements(id: $this->currentClient['id'], duration: "day", from: session("date"));
         } elseif ($this->debtType == "purchases") {
             $this->currentBalance = \App\Models\People::find($this->currentClient['id'])->currentPurchasesBalance;
-            $this->debts = (new \App\Models\Purchase)->getMovements($this->currentClient['id'])->where("due_date", session("date"))->toArray();
+            $this->debts = (new \App\Models\Purchase)->getMovements(id: $this->currentClient['id'], duration: "day", from: session("date"));
         } elseif ($this->debtType == 'deposits') {
-            $this->debts = (new \App\Models\Deposit)->getMovements($this->currentClient['id'])->where("due_date", session("date"))->toArray();
+            $this->debts = (new \App\Models\Deposit)->getMovements(id: $this->currentClient['id'], duration: "day", from: session("date"));
             $this->currentBalance = \App\Models\People::find($this->currentClient['id'])->currentDepositsBalance;
         }
         $this->type = "pay";
+
+        $this->currentClient['salesBalance'] = $client->currentSalesBalance;
+        $this->currentClient['purchasesBalance'] = $client->currentPurchasesBalance;
+        $this->currentClient['depositsBalance'] = $client->currentDepositsBalance;
+        $this->currentClient['giftsBalance'] = $client->currentGiftsBalance;
 
     }
 
@@ -399,7 +406,7 @@ class Client extends Component
         $this->debtId = $debt['invoice_id'] ?? $debt['id'];
         $this->bank_id = $debt['bank_id'];
         $this->type = $debt['type'];
-        $this->amount = $debt['amount'] ?? ($debt['type'] == "pay" ? $debt['income'] : $debt['expense']);
+        $this->amount = $debt['amount'] ?? ($debt['debit'] != 0 ? $debt['debit'] : $debt['credit']);
         $this->payment = $debt['payment'];
         $this->bank = $debt['bank'];
         $this->due_date = $debt['due_date'];

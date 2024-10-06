@@ -17,31 +17,64 @@ class Withdraw extends Model
         return $this->belongsTo(Bank::class);
     }
 
-    public function getMovements()
+    public function getMovements($id = null, $duration = null, $from = null, $to = null)
     {
-        $withdraw = Withdraw::select(
-            DB::raw("'withdraws' as tableName"),
-            DB::raw("null as clientType"),
-            DB::raw('null as type'),
-            DB::raw('null as invoice_id'),
-            DB::raw('amount as income'),
-            DB::raw('0 as expense'),
-            DB::raw('0 as futureIncome'),
-            DB::raw("0 as futureExpense"),
-            'due_date',
-            'payment',
-            DB::raw('null as bank'),
-            DB::raw('null as bank_id'),
-            DB::raw('"تم السحب من الخزنه" as note'),
-            DB::raw('null as owner_id'),
-            DB::raw("'الخزنه' as ownerName"),
-            'created_at',
-            'updated_at'
-        )->orderBy('due_date', 'asc')->get();
+        $array = [];
 
+        if ($duration == "day") {
+            $withdraws = Withdraw::where("due_date", $from)->get();
 
-        return $withdraw;
+        } elseif ($duration == "duration") {
+            $withdraws = Withdraw::whereBetween("due_date", [$from, $to])->get();
+        } else {
+            $withdraws = Withdraw::all();
+        }
+
+        foreach ($withdraws as $withdraw) {
+            $array[] = [
+                "tableName" => "withdraws",
+                "clientType" => null,
+                "type" => null,
+                "real" => true,
+                "invoice_id" => null,
+                "id" => $withdraw->id,
+                "debit" => 0,
+                "credit" => $withdraw->amount,
+                "due_date" => $withdraw->due_date,
+                "payment" => $withdraw->payment,
+                "bank" => $withdraw->bank,
+                "bank_id" => $withdraw->bank_id,
+                "note" => $withdraw->note ?? "تم السحب من الخزنه",
+                "owner_id" => null,
+                "ownerName" => "الخزنه",
+                "created_at" => $withdraw->created_at,
+                "updated_at" => $withdraw->updated_at,
+            ];
+            $array[] = [
+                "tableName" => "withdraws",
+                "clientType" => null,
+                "type" => null,
+                "real" => true,
+                "invoice_id" => null,
+                "id" => $withdraw->id,
+                "debit" => $withdraw->amount,
+                "credit" => 0,
+                "due_date" => $withdraw->due_date,
+                "payment" => $withdraw->payment,
+                "bank" => $withdraw->bank,
+                "bank_id" => $withdraw->bank_id,
+                "note" => $withdraw->note ?? "تم التوريد الى الخزنه",
+                "owner_id" => null,
+                "ownerName" => "الخزنه",
+                "created_at" => $withdraw->created_at,
+                "updated_at" => $withdraw->updated_at,
+            ];
+        }
+
+        return $array = collect($array)->sortBy("created_at")->toArray();
     }
+
+
 
     public function user()
     {

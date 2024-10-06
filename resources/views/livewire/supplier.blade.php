@@ -49,8 +49,8 @@
                                     <tr>
                                         <td>المبلغ</td>
                                         <td>
-                                            @if(isset($currentReceipt['futureExpense']))
-                                                {{$currentReceipt['futureExpense'] != 0 ? number_format($currentReceipt['futureExpense'], 2) : ($currentReceipt['futureIncome'] != 0 ? number_format($currentReceipt['futureIncome'], 2) : ($currentReceipt['expense'] != 0 ? number_format($currentReceipt['expense'], 2) : number_format($currentReceipt['income'], 2)))}}
+                                            @if(isset($currentReceipt['debit']))
+                                                {{$currentReceipt['debit'] != 0 ? number_format($currentReceipt['debit'], 2) : number_format($debt['credit'], 2) }}
                                             @else
                                                 {{ number_format($currentReceipt['amount'], 2) }}
                                             @endif
@@ -148,8 +148,7 @@
                                     <tr>
                                         <th>إسم المورد</th>
                                         <th>الهاتف</th>
-                                        <th>الرصيد الافتتاحي للمشتريات</th>
-                                        <th>الرصيد الحالي للمشتريات</th>
+                                        <th>الرصيد الحالي</th>
                                         <th class="d-none">نقدي</th>
                                         <th>التحكم</th>
                                     </tr>
@@ -159,8 +158,7 @@
                                         <tr>
                                             <td>{{ $supplier->name }}</td>
                                             <td>{{ $supplier->phone }}</td>
-                                            <td>{{ number_format($supplier->initialPurchasesBalance, 2) }}</td>
-                                            <td>{{ number_format($supplier->currentPurchasesBalance, 2) }}</td>
+                                            <td>{{ number_format($supplier->currentPurchasesBalance - $supplier->currentSalesBalance, 2) }}</td>
                                             <td class="d-none">{{ $supplier->cash ? "نعم" : "لا" }}</td>
                                             <td>
                                                 <button
@@ -204,6 +202,37 @@
                 </div>
             </div>
         @else
+
+            <div class="col-12">
+                <div class="card bg-white my-1 shadow">
+                    <div class="card-body p-2 invoice" style="page-break-after: unset" dir="rtl">
+                        <div class="row align-items-center">
+                            <div class="col-3">
+                                <h6 class="m-0 px-2">المشتريات
+                                    : {{ number_format($currentSupplier['purchasesBalance'], 2) }}</h6>
+                            </div>
+
+                            <div class="col-3">
+                                <h6 class="m-0 px-2">المبيعات
+                                    : {{ number_format($currentSupplier['salesBalance'], 2) }}</h6>
+                            </div>
+
+                            <div class="col-3">
+                                <h6 class="m-0 px-2">العهد
+                                    : {{ number_format($currentSupplier['depositsBalance'], 2) }}</h6>
+                            </div>
+
+                            <div class="col-3">
+                                <h6 class="m-0 px-2">
+                                    الجمله
+                                    : {{ number_format( $currentSupplier['purchasesBalance'] - ($currentSupplier['salesBalance'] + $currentSupplier['depositsBalance']), 2) }}
+                                </h6>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="col-4">
                 <div class="card">
                     <form wire:submit="saveDebt()">
@@ -308,7 +337,7 @@
                         <div class="card-title">
                             <div class="row d-flex  align-items-center">
                                 <div class="col-4"><h6>المعاملات</h6></div>
-                                <div class="col-4"><h6>رصيد المورد : {{ number_format($currentBalance, 2) }}</h6></div>
+                                <div class="col-4"><h6>الرصيد : {{ number_format($currentBalance, 2) }}</h6></div>
                                 <div class="col-4">
                                     <div class="row d-flex align-items-center">
                                         <div class="col-6">
@@ -348,7 +377,7 @@
                                         </td>
                                         <td style="cursor: pointer" wire:click="showReceipt({{ json_encode($debt) }})"
                                             data-bs-toggle="modal" data-bs-target="#debtModal">
-                                            {{$debt['futureExpense'] != 0 ? number_format($debt['futureExpense'], 2) : ($debt['futureIncome'] != 0 ? number_format($debt['futureIncome'], 2) : ($debt['expense'] != 0 ? number_format($debt['expense'], 2) : number_format($debt['income'], 2)))}}
+                                            {{$debt['debit'] != 0 ? number_format($debt['debit'], 2) : number_format($debt['credit'], 2) }}
                                         </td>
                                         <td>
                                             @if($debt['due_date'] == session("date") && !session("closed") && $debt['invoice_id'] == null)

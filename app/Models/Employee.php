@@ -47,45 +47,49 @@ class Employee extends Model
         return $this->hasManyThrough(PurchaseReturn::class, Purchase::class);
     }
 
-    public function getMovements($id = null)
+
+    public function getMovements($id = null, $duration = null, $from = null, $to = null)
     {
-        $gifts = EmployeeGift::select(
-            DB::raw("'employees' as tableName"),
-            DB::raw("people.type as clientType"),
-            'employee_gifts.type',
-            DB::raw('null as invoice_id'),
-            'employee_gifts.id',
-            DB::raw("CASE
-        WHEN employee_gifts.type = 'pay' THEN amount
-        ELSE 0
-    END as income"),
-            DB::raw("CASE
-        WHEN employee_gifts.type IN ('salary', 'debt') THEN amount
-        ELSE 0
-    END as expense"),
-            DB::raw("CASE
-        WHEN employee_gifts.type = 'discount' THEN amount
-        ELSE 0
-    END as futureExpense"),
-            DB::raw('0 as futureIncome'),
-            'due_date',
-            'payment',
-            'bank',
-            'bank_id',
-            'employee_gifts.note',
-            DB::raw('null as owner_id'),
-            DB::raw("people.name as ownerName"),
-            'employee_gifts.created_at',
-            'employee_gifts.updated_at'
-        )
-            ->join('people', 'people.id', '=', 'employee_gifts.people_id');
+        $array = [];
+
+        if ($duration == "day") {
+            $gifts = EmployeeGift::where("due_date", $from)->get();
+
+        } elseif ($duration == "duration") {
+            $gifts = EmployeeGift::whereBetween("due_date", [$from, $to])->get();
+        } else {
+            $gifts = EmployeeGift::all();
+        }
 
 
         if ($id != null) {
             $gifts = $gifts->where("people_id", $id);
         }
-        return $gifts->orderBy('due_date', 'asc')->get();
+        foreach ($gifts as $gift) {
+            $array[] = [
+                "tableName" => "employees",
+                "clientType" => $gift->people->type,
+                "type" => $gift->type,
+                "real" => !($gift->type == "discount"),
+                "invoice_id" => null,
+                "id" => $gift->id,
+                "debit" => ($gift->type == "salary" || $gift->type == "debt") ? $gift->amount : 0,
+                "credit" => ($gift->type == "discount" || $gift->type == "pay") ? $gift->amount : 0,
+                "due_date" => $gift->due_date,
+                "payment" => $gift->payment,
+                "bank" => $gift->bank,
+                "bank_id" => $gift->bank_id,
+                "note" => $gift->note,
+                "owner_id" => $gift->people_id,
+                "ownerName" => $gift->people->name,
+                "created_at" => $gift->created_at,
+                "updated_at" => $gift->updated_at,
+            ];
+        }
+
+        return $array = collect($array)->sortBy("created_at")->toArray();
     }
+
 
     public function getCurrentSalesBalanceAttribute()
     {
