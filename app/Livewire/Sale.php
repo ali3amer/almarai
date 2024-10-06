@@ -173,7 +173,7 @@ class Sale extends Component
         }
         $this->currentSalesBalance = People::find($this->currentClient['id'])->currentSalesBalance;
 
-            $this->showInvoice($this->id);
+        $this->showInvoice($this->id);
 
         $this->alert('success', 'تم الحفظ بنجاح', ['timerProgressBar' => true]);
 
