@@ -21,7 +21,7 @@ class Damaged extends Component
     public string $due_date = '';
     public int $id = 0;
     #[Rule('required|min:1')]
-    public float $quantity = 0;
+    public $quantity = 0;
     public Collection $products;
     public Collection $damageds;
     public array $currentProduct = [];

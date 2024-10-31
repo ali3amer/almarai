@@ -145,4 +145,28 @@ class Safe extends Model
             - SaleReturn::whereBetween("due_date", [$from, $to])->sum("amount")
             + PurchaseReturn::whereBetween("due_date", [$from, $to])->sum("amount");
     }
+
+    public function getSafeCreditDebitDayBalance($date)
+    {
+        $credit = Sale::where("payment", "cash")->where("due_date", $date)->sum("paid")
+            + SaleDebt::where("type", "pay")->where("due_date", $date)->where("payment", "cash")->where("type", "pay")->sum("amount")
+            + DepositDebt::where("type", "pay")->where("due_date", $date)->where("payment", "cash")->sum("amount")
+            + Transfer::where("transfer_type", "bank_to_cash")->where("due_date", $date)->sum("amount")
+            + EmployeeGift::where("payment", "cash")->where("type", "pay")->where("due_date", $date)->sum("amount")
+            + PurchaseDebt::where("type", "debt")->where("payment", "cash")->where("due_date", $date)->where("type", "debt")->sum("amount")
+            + PurchaseReturn::where("due_date", $date)->sum("amount");
+
+
+        $debit =  Purchase::where("payment", "cash")->where("due_date", $date)->sum("paid")
+            + SaleDebt::where("type", "debt")->where("due_date", $date)->where("payment", "cash")->where("type", "debt")->sum("amount")
+            + DepositDebt::where("type", "debt")->where("due_date", $date)->where("payment", "cash")->sum("amount")
+            + Transfer::where("transfer_type", "cash_to_bank")->where("due_date", $date)->sum("amount")
+            + Expense::where("payment", "cash")->where("due_date", $date)->sum("amount")
+            + EmployeeGift::where("payment", "cash")->where("type", "salary")->where("due_date", $date)->sum("amount")
+            + EmployeeGift::where("payment", "cash")->where("type", "debt")->where("due_date", $date)->sum("amount")
+            + PurchaseDebt::where("type", "pay")->where("payment", "cash")->where("due_date", $date)->where("type", "pay")->sum("amount")
+            + SaleReturn::where("due_date", $date)->sum("amount");
+
+        return ['due_date' => $date, 'credit' => $credit, 'debit' => $debit];
+    }
 }

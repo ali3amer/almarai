@@ -531,6 +531,93 @@
             </div>
         </div>
 
+    @elseif($reportType == "safeDays" && !empty($days))
+        <div class="card mt-2">
+            <div class="card-body invoice">
+                <div class="card-title" dir="rtl">
+                    <h2>ملخص الخزنه</h2>
+                </div>
+                <div class="scroll">
+                    <table class="text-center printInvoice" dir="rtl">
+                        <thead>
+                        <tr>
+                            <th>التاريخ</th>
+                            <th>الوارد</th>
+                            <th>الصادر</th>
+                            <th>الرصيد</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr>
+                            <td>الرصيد الافتتاحي</td>
+                            <td>{{ number_format($initialSafeBalance, 2) }}</td>
+                            <td>0</td>
+                            <td>{{ number_format($initialSafeBalance, 2) }}</td>
+                        </tr>
+                        @php $credit = $initialSafeBalance; @endphp
+                        @php $debit = 0; @endphp
+                        @php $balance = 0; @endphp
+                        @foreach($days as $day)
+                            @if($day['credit'] != 0 || $day['debit'] != 0)
+                                <tr>
+                                    @php $credit += $day['credit']; @endphp
+                                    @php $debit += $day['debit']; @endphp
+                                    @php $balance = $credit - $debit; @endphp
+                                    <td>{{ $day['due_date'] }}</td>
+                                    <td>{{ number_format($day['credit'] , 2) }}</td>
+                                    <td>{{ number_format($day['debit'] , 2) }}</td>
+                                    <td>{{ number_format($balance, 2) }}</td>
+                                </tr>
+                            @endif
+                        @endforeach
+                        </tbody>
+                        <tfoot>
+                        <tr>
+                            <th>الجمله</th>
+                            <th>{{ number_format($credit , 2) }}</th>
+                            <th>{{ number_format($debit , 2) }}</th>
+                            <th>{{ number_format($balance , 2) }}</th>
+                        </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mt-2">
+            <div class="card-body invoice">
+                <div class="card-title" dir="rtl">
+                    <h2>الصافي</h2>
+                </div>
+                <div class="scroll">
+                    <table class="text-center printInvoice" dir="rtl">
+                        <thead>
+                        <tr>
+                            <th>البيان</th>
+                            <th>المبلغ</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr>
+                            <td>الوارد</td>
+                            <td>{{ number_format($credit, 2) }}</td>
+                        </tr>
+                        <tr>
+                            <td>الصادر</td>
+                            <td>{{ number_format($debit, 2) }}</td>
+                        </tr>
+                        </tbody>
+                        <tfoot>
+                        <tr>
+                            <th>الجمله</th>
+                            <th>{{ number_format($credit - $debit, 2) }}</th>
+                        </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+
     @elseif($reportType == 'inventory' && !empty($products))
 
         <div class="card mt-2">

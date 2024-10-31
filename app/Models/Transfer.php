@@ -74,7 +74,7 @@ class Transfer extends Model
 
         }
 
-        return $array = collect($array)->sortBy("created_at")->toArray();
+        return $array = collect($array)->sortBy("due_date")->toArray();
 
     }
 

@@ -163,23 +163,23 @@
                 <div class="card bg-white my-1 shadow">
                     <div class="card-body p-2 invoice" style="page-break-after: unset" dir="rtl">
                         <div class="row align-items-center">
-                            <div class="col-2">
+                            <div class="col-2 d-none">
                                 <h6 class="m-0 px-2">السحوبات
                                     : {{ number_format($currentEmployee['giftsBalance'], 2) }}</h6>
                             </div>
                             <div class="col-3">
-                                <h6 class="m-0 px-2">المبيعات
+                                <h6 class="m-0 px-2">الرصيد
                                     : {{ number_format($currentEmployee['salesBalance'], 2) }}</h6>
                             </div>
-                            <div class="col-2">
+                            <div class="col-2 d-none">
                                 <h6 class="m-0 px-2">العهد
                                     : {{ number_format($currentEmployee['depositsBalance'], 2) }}</h6>
                             </div>
-                            <div class="col-2">
+                            <div class="col-2 d-none">
                                 <h6 class="m-0 px-2">المشتريات
                                     : {{ number_format($currentEmployee['purchasesBalance'], 2) }}</h6>
                             </div>
-                            <div class="col-2">
+                            <div class="col-2 d-none">
                                 <h6 class="m-0 px-2">
                                     الجمله
                                     : {{ number_format($currentEmployee['giftsBalance'] + $currentEmployee['salesBalance'] + $currentEmployee['depositsBalance'] - $currentEmployee['purchasesBalance'], 2) }}
@@ -303,10 +303,10 @@
                                         <div class="col-6">
                                             <select class="form-select" id="debType" wire:model.live="debtType"
                                                     wire:change="getGifts()">
-                                                <option value="gifts">مدفوعات الموظف</option>
+{{--                                                <option value="gifts">مدفوعات الموظف</option>--}}
                                                 <option value="sales">مبيعات</option>
-                                                <option value="deposits">العهد والامانات</option>
-                                                <option value="purchases">مشتريات</option>
+{{--                                                <option value="deposits">العهد والامانات</option>--}}
+{{--                                                <option value="purchases">مشتريات</option>--}}
                                             </select>
                                         </div>
                                     </div>

@@ -96,7 +96,7 @@ class Bank extends Model
 
     public function getCurrentTotalBalance()
     {
-        return Bank::first()->initialBalance
+        return Bank::sum("initialBalance")
             + Sale::where("payment", "bank")->sum("paid")
             - Purchase::where("payment", "bank")->sum("paid")
             + SaleDebt::where("type", "pay")->where("payment", "bank")->sum("amount")

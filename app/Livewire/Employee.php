@@ -66,7 +66,7 @@ class Employee extends Component
     public $month = "";
     public $gift_id = 0;
     public array $currentReceipt = [];
-    public $debtType = 'gifts';
+    public $debtType = 'sales';
     public $currentDebt = [];
 
     protected function rules()

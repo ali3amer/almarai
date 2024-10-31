@@ -50,7 +50,7 @@
                     <input type="text" id="quantity" wire:model.live="quantity" autocomplete="off" class="form-control text-center"
                            placeholder="الكمية التالفه">
 
-                    <button @disabled(empty($currentProduct) || ($quantity == 0)) class="btn {{ $id == 0 ? 'btn-primary' : 'btn-success' }} w-100 mt-2" wire:click="save()">{{$id == 0 ? 'حفـــــــــــــــظ' : 'تعـــــــــــــديل'}}</button>
+                    <button @disabled(empty($currentProduct) || (floatval($quantity) == 0)) class="btn {{ $id == 0 ? 'btn-primary' : 'btn-success' }} w-100 mt-2" wire:click="save()">{{$id == 0 ? 'حفـــــــــــــــظ' : 'تعـــــــــــــديل'}}</button>
                 </div>
             </div>
         </div>

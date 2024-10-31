@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Models\Bank;
 use App\Models\ClientDebt;
+use App\Models\Day;
 use App\Models\EmployeeDebt;
 use App\Models\EmployeeGift;
 use App\Models\Expense;
@@ -54,6 +55,7 @@ class Report extends Component
     public array $reportTypes = [
         0 => '-------------------------',
         'general' => 'تقرير عام',
+        'safeDays' => 'تقرير ملخص الخزنه',
         'inventory' => 'تقرير جرد',
         'client' => 'تقرير عميل',
         'employee' => 'تقرير موظف',
@@ -145,6 +147,7 @@ class Report extends Component
     public $giftsBalance = 0;
     public $initialSafeBalance = 0;
     public $initialBankBalance = 0;
+    public array $days = [];
 
     public function choosePeople(People $people)
     {
@@ -169,7 +172,7 @@ class Report extends Component
                 });
                 $this->totalBanksBalance = (new \App\Models\Bank)->getPastBankBalance($this->day) + (new \App\Models\Bank)->getDayBankBalance($this->day);
 
-                $this->totalSafeBalance = (new \App\Models\Safe)->getPastSafeBalance($this->day) +  (new \App\Models\Safe)->getSafeDayBalance($this->day);
+                $this->totalSafeBalance = (new \App\Models\Safe)->getPastSafeBalance($this->day) + (new \App\Models\Safe)->getSafeDayBalance($this->day);
 
                 $this->totalClientsBalance = \App\Models\People::all()->sum(function ($client) {
                     return $client->getPastSalesBalance($this->day) + $client->getDaySalesBalance($this->day);
@@ -255,6 +258,35 @@ class Report extends Component
             $this->assets = $this->totalProductsStock + $this->totalBanksBalance + $this->totalSafeBalance + $this->totalClientsBalance + $this->totalExpenses;
             $this->adversaries = $this->totalSuppliersBalance + $this->totalDepositsBalance + $this->capital;
 
+        } elseif ($this->reportType == "safeDays") {
+            if ($this->reportDuration == "day") {
+                $this->initialSafeBalance = (new \App\Models\Safe)->getPastSafeBalance($this->day);
+
+                $this->days = Day::where("due_date", $this->day)->get()->map(function ($day) {
+                    $creditDebit = (new \App\Models\Safe)->getSafeCreditDebitDayBalance($day->due_date);
+                    $day->credit = $creditDebit['credit'];
+                    $day->debit = $creditDebit['debit'];
+                    return $day;
+                })->toArray();
+            } elseif ($this->reportDuration == "duration") {
+                $this->initialSafeBalance = (new \App\Models\Safe)->getPastSafeBalance($this->from);
+
+                $this->days = Day::whereBetween("due_date", [$this->from ,$this->to])->get()->map(function ($day) {
+                    $creditDebit = (new \App\Models\Safe)->getSafeCreditDebitDayBalance($day->due_date);
+                    $day->credit = $creditDebit['credit'];
+                    $day->debit = $creditDebit['debit'];
+                    return $day;
+                })->toArray();
+            } else {
+                $this->initialSafeBalance = Safe::sum("initialBalance");
+
+                $this->days = Day::all()->map(function ($day) {
+                    $creditDebit = (new \App\Models\Safe)->getSafeCreditDebitDayBalance($day->due_date);
+                    $day->credit = $creditDebit['credit'];
+                    $day->debit = $creditDebit['debit'];
+                    return $day;
+                })->toArray();
+            }
         } elseif ($this->reportType == 'inventory') {
             if ($this->store_id == 0) {
                 $this->products = \App\Models\Product::all();
@@ -472,11 +504,11 @@ class Report extends Component
             $allMovements = array_merge($sales, $purchases, $deposits, $expenses, $gifts, $withdraws, $transfers);
 
             if ($this->payment == "cash") {
-                $this->statements = collect($allMovements)->where("payment", "cash")->sortBy(['due_date', 'created_at', 'invoice_id'])->toArray();
+                $this->statements = collect($allMovements)->where("payment", "cash")->sortBy('due_date')->toArray();
             } elseif ($this->payment == "bank") {
-                $this->statements = collect($allMovements)->where("payment", "bank")->sortBy(['due_date', 'created_at', 'invoice_id'])->toArray();
+                $this->statements = collect($allMovements)->where("payment", "bank")->sortBy('due_date')->toArray();
             } else {
-                $this->statements = collect($allMovements)->sortBy(['due_date', 'created_at', 'invoice_id'])->toArray();
+                $this->statements = collect($allMovements)->sortBy('due_date')->toArray();
             }
         }
     }

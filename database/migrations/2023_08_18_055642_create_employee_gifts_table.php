@@ -22,6 +22,8 @@ return new class extends Migration {
             $table->decimal('amount', 10, 2);
             $table->date('due_date');
             $table->string('note')->nullable();
+            $table->unsignedBigInteger('user_id')->nullable();
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade')->onUpdate('cascade');
             $table->timestamps();
         });
     }

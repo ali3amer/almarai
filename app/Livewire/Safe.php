@@ -189,7 +189,6 @@ class Safe extends Component
         if ($this->safeId == 0) {
             \App\Models\Safe::create(['initialBalance' => floatval($this->safe), "startingDate" => $this->startingDate, 'capital' => floatval($this->capital)]);
             $this->alert('success', 'تم حفظ الرصيد بنجاح', ['timerProgressBar' => true]);
-
         } else {
             \App\Models\Safe::where('id', $this->safeId)->update(['initialBalance' => floatval($this->safe), "startingDate" => $this->startingDate, 'capital' => floatval($this->capital)]);
             $this->alert('success', 'تم تعديل الرصيد بنجاح', ['timerProgressBar' => true]);

@@ -55,15 +55,11 @@ class Sale extends Model
         if ($duration == "day") {
             $sales = Sale::where("due_date", $from)->get();
             $saleDebts = SaleDebt::where("due_date", $from)->get();
-            $saleReturns = SaleReturn::whereHas('sale', function ($query) use ($from) {
-                $query->where('due_date', $from);
-            })->get();
+            $saleReturns = SaleReturn::where("due_date", $from)->get();
         } elseif ($duration == "duration") {
             $sales = Sale::whereBetween("due_date", [$from, $to])->get();
             $saleDebts = SaleDebt::whereBetween("due_date", [$from, $to])->get();
-            $saleReturns = SaleReturn::whereHas('sale', function ($query) use ($from, $to) {
-                $query->whereBetween('due_date', [$from, $to]);
-            })->get();
+            $saleReturns = SaleReturn::whereBetween("due_date", [$from, $to])->get();
         } else {
             $sales = Sale::all();
             $saleDebts = SaleDebt::all();
@@ -189,7 +185,7 @@ class Sale extends Model
             ];
         }
 
-        return $array = collect($array)->sortBy("created_at")->toArray();
+        return $array = collect($array)->sortBy("due_date")->toArray();
     }
 
 

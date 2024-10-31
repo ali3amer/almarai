@@ -47,15 +47,11 @@ class Purchase extends Model
         if ($duration == "day") {
             $purchases = Purchase::where("due_date", $from)->get();
             $purchaseDebts = PurchaseDebt::where("due_date", $from)->get();
-            $purchaseReturns = PurchaseReturn::whereHas('purchase', function ($query) use ($from) {
-                $query->where('due_date', $from);
-            })->get();
+            $purchaseReturns = PurchaseReturn::where('due_date', $from)->get();
         } elseif ($duration == "duration") {
             $purchases = Purchase::whereBetween("due_date", [$from, $to])->get();
             $purchaseDebts = PurchaseDebt::whereBetween("due_date", [$from, $to])->get();
-            $purchaseReturns = PurchaseReturn::whereHas('purchase', function ($query) use ($from, $to) {
-                $query->whereBetween('due_date', [$from, $to]);
-            })->get();
+            $purchaseReturns = PurchaseReturn::whereBetween('due_date', [$from, $to])->get();
         } else {
             $purchases = Purchase::all();
             $purchaseDebts = PurchaseDebt::all();
@@ -181,7 +177,7 @@ class Purchase extends Model
             ];
         }
 
-        return $array = collect($array)->sortBy("created_at")->toArray();
+        return $array = collect($array)->sortBy("due_date")->toArray();
     }
 
 }

@@ -15,6 +15,7 @@
         "vite": "^4.0.0"
     },
     "dependencies": {
+        "popper.js": "^1.16.1",
         "print-this": "^1.16.0"
     }
 }

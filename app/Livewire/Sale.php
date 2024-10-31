@@ -109,7 +109,7 @@ class Sale extends Component
                 'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
                 'bank' => $this->bank,
                 'paid' => floatval($this->paid),
-                'remainder' => $this->remainder,
+                'remainder' => $this->currentClient['cash'] ? 0 : floatval($this->remainder),
                 'discount' => floatval($this->discount),
                 'amount' => floatval($this->amount),
                 'note' => $this->note,
@@ -143,7 +143,7 @@ class Sale extends Component
                 'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
                 'bank' => $this->bank,
                 'paid' => floatval($this->paid),
-                'remainder' => $this->remainder,
+                'remainder' => $this->currentClient['cash'] ? 0 : floatval($this->remainder),
                 'discount' => floatval($this->discount),
                 'amount' => floatval($this->amount),
                 'note' => $this->note,
@@ -173,7 +173,7 @@ class Sale extends Component
         }
         $this->currentSalesBalance = People::find($this->currentClient['id'])->currentSalesBalance;
 
-        $this->showInvoice($this->id);
+            $this->showInvoice($this->id);
 
         $this->alert('success', 'تم الحفظ بنجاح', ['timerProgressBar' => true]);
 
