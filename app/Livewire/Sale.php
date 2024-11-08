@@ -173,7 +173,7 @@ class Sale extends Component
         }
         $this->currentSalesBalance = People::find($this->currentClient['id'])->currentSalesBalance;
 
-            $this->showInvoice($this->id);
+        $this->showInvoice($this->id);
 
         $this->alert('success', 'تم الحفظ بنجاح', ['timerProgressBar' => true]);
 
@@ -217,7 +217,7 @@ class Sale extends Component
             $this->currentProduct['quantity'] = 1;
             $this->currentProduct['price'] = floatval($product['sale_price']);
             $this->currentProduct['amount'] = floatval($product['sale_price']);
-            $this->currentProduct['stock'] = $product->stock;
+            $this->currentProduct['stock'] = floatval($product->stock);
             $this->productSearch = '';
         }
 
@@ -232,8 +232,9 @@ class Sale extends Component
     {
         $stock = floatval($this->currentProduct['quantity']);
         $quantity = isset($this->cart[$this->currentProduct['id']]) ? floatval($this->cart[$this->currentProduct['id']]['quantity']) : 0;
-        if ($stock + $quantity > $this->currentProduct["stock"]) {
-            $this->confirm("العدد المطلوب من " . $this->currentProduct['productName'] . " غير متوفر لايوجد سوى " . $this->currentProduct['stock'], [
+        $total = $stock + $quantity;
+        if (bccomp($total, $this->currentProduct["stock"], 2) === 1) {
+            $this->confirm("العدد المطلوب من " . $this->currentProduct['productName'] . " هو " . $total . " غير متوفر لايوجد سوى " . $this->currentProduct['stock'], [
                 'toast' => false,
                 'showConfirmButton' => false,
                 'confirmButtonText' => 'موافق',

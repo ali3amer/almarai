@@ -266,8 +266,9 @@ class Report extends Component
                     $creditDebit = (new \App\Models\Safe)->getSafeCreditDebitDayBalance($day->due_date);
                     $day->credit = $creditDebit['credit'];
                     $day->debit = $creditDebit['debit'];
+                    $day->withdraw = $creditDebit['withdraw'];
                     return $day;
-                })->toArray();
+                })->sortBy("due_date")->toArray();
             } elseif ($this->reportDuration == "duration") {
                 $this->initialSafeBalance = (new \App\Models\Safe)->getPastSafeBalance($this->from);
 
@@ -275,8 +276,9 @@ class Report extends Component
                     $creditDebit = (new \App\Models\Safe)->getSafeCreditDebitDayBalance($day->due_date);
                     $day->credit = $creditDebit['credit'];
                     $day->debit = $creditDebit['debit'];
+                    $day->withdraw = $creditDebit['withdraw'];
                     return $day;
-                })->toArray();
+                })->sortBy("due_date")->toArray();
             } else {
                 $this->initialSafeBalance = Safe::sum("initialBalance");
 
@@ -284,8 +286,9 @@ class Report extends Component
                     $creditDebit = (new \App\Models\Safe)->getSafeCreditDebitDayBalance($day->due_date);
                     $day->credit = $creditDebit['credit'];
                     $day->debit = $creditDebit['debit'];
+                    $day->withdraw = $creditDebit['withdraw'];
                     return $day;
-                })->toArray();
+                })->sortBy("due_date")->toArray();
             }
         } elseif ($this->reportType == 'inventory') {
             if ($this->store_id == 0) {
@@ -341,6 +344,8 @@ class Report extends Component
                 $this->salesBalance = $people->currentSalesBalance;
                 $this->purchasesBalance = $people->currentPurchasesBalance;
                 $this->giftsBalance = $people->currentGiftsBalance;
+                $allMovements = array_merge($this->saleDebts, $this->purchaseDebts, $this->depositDebts, $this->employeeGifts);
+                $this->statements = collect($allMovements)->sortBy('due_date')->toArray();
             }
 
         } elseif ($this->reportType == 'sales') {  // sale

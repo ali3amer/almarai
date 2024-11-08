@@ -148,13 +148,15 @@ class Safe extends Model
 
     public function getSafeCreditDebitDayBalance($date)
     {
+        $withdraw = Withdraw::where("due_date", $date)->sum("amount");
+
         $credit = Sale::where("payment", "cash")->where("due_date", $date)->sum("paid")
             + SaleDebt::where("type", "pay")->where("due_date", $date)->where("payment", "cash")->where("type", "pay")->sum("amount")
             + DepositDebt::where("type", "pay")->where("due_date", $date)->where("payment", "cash")->sum("amount")
             + Transfer::where("transfer_type", "bank_to_cash")->where("due_date", $date)->sum("amount")
             + EmployeeGift::where("payment", "cash")->where("type", "pay")->where("due_date", $date)->sum("amount")
             + PurchaseDebt::where("type", "debt")->where("payment", "cash")->where("due_date", $date)->where("type", "debt")->sum("amount")
-            + PurchaseReturn::where("due_date", $date)->sum("amount");
+            + PurchaseReturn::where("due_date", $date)->sum("amount") + $withdraw;
 
 
         $debit =  Purchase::where("payment", "cash")->where("due_date", $date)->sum("paid")
@@ -167,6 +169,6 @@ class Safe extends Model
             + PurchaseDebt::where("type", "pay")->where("payment", "cash")->where("due_date", $date)->where("type", "pay")->sum("amount")
             + SaleReturn::where("due_date", $date)->sum("amount");
 
-        return ['due_date' => $date, 'credit' => $credit, 'debit' => $debit];
+        return ['due_date' => $date, 'credit' => $credit, 'debit' => $debit, "withdraw" => $withdraw];
     }
 }
