@@ -800,7 +800,7 @@
                                 @if($debt['invoice_id'] != null)
                                     @if($debt['tableName'] == "sales")
                                        @php $invoice = \App\Models\Sale::find($debt['invoice_id'])->saleDetails; @endphp
-                                    @else
+                                    @elseif($debt['tableName'] == "purchases")
                                         @php $invoice = \App\Models\Purchase::find($debt['invoice_id'])->purchaseDetails; @endphp
                                     @endif
                                     @foreach($invoice as $product)
