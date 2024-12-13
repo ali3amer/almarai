@@ -22,6 +22,7 @@ return [
             'reports' => 'c,r,u,d',
             'days' => 'c,r,u,d',
             'people' => 'c,r,u,d',
+            'settlements' => 'c,r,u,d',
         ],
         'user' => []
     ],

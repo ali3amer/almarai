@@ -42,6 +42,7 @@ class User extends Component
         ['purchase-returns', 'مرتجعات المشتريات'],
         ['safes', 'الخزنه'],
         ['damageds', 'التالف'],
+        ['settlements', 'التسويات'],
         ['users', 'المستخدمين'],
     ];
     public array $tabPermissions = [];

@@ -1,8 +1,6 @@
 <?php
 $links = [
-    ['store', 'المخازن'],
-    ['category', 'الاقسام'],
-    ['product', 'المنتجات'],
+
     ['supplier', 'الموردين'],
     ['deposit', 'العهد'],
     ['client', 'العملاء'],
@@ -17,9 +15,15 @@ $links = [
 //    ['debt', 'الديون'],
 //    ['claim', 'المطالبات'],
     ['damaged', 'التالف'],
+    ['settlement', 'التسويات'],
     ['user', 'المستخدمين'],
 ];
 
+$listLinks = [
+    ['store', 'المخازن'],
+    ['category', 'الاقسام'],
+    ['product', 'المنتجات'],
+];
 ?>
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <a class="navbar-brand visually-hidden" href="#">المراعي</a>
@@ -29,6 +33,32 @@ $links = [
     </button>
     <div class="collapse navbar-collapse" id="navbarNav">
         <ul class="navbar-nav ml-auto">
+            <li class="nav-item dropdown d-flex">
+                    <button class="dropbtn">قائمة
+                        <i class="fa fa-caret-down"></i>
+                    </button>
+                    <div class="dropdown-content">
+                        @foreach($listLinks as $link)
+                            @php
+                                if ($link[0] == 'category') {
+                                    $permission = 'categories';
+                                } elseif ($link[0] == 'purchase-returns') {
+                                    $permission = 'purchase-returns';
+                                } elseif ($link[0] == 'returns') {
+                                    $permission = 'returns';
+                                } else {
+                                    $permission = $link[0].'s';
+                                }
+                            @endphp
+                            @if(key_exists($permission .'-read', $permissions))
+                                    <a wire:navigate
+                                       href="{{ $link[0] }}">
+                                        {{ $link[1] }}
+                                    </a>
+                            @endif
+                        @endforeach
+                    </div>
+            </li>
             @foreach($links as $link)
                 @php
                 if ($link[0] == 'category') {

@@ -50,6 +50,7 @@ Route::middleware(['auth', 'auth.session'])->group(function () {
     Route::get('/debt', Livewire\Debt::class);
     Route::get('/claim', Livewire\Claim::class);
     Route::get('/settings', Livewire\Settings::class);
+    Route::get('/settlement', Livewire\Settlement::class);
     Route::get('/user', Livewire\User::class);
 });
 

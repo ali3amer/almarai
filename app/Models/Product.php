@@ -47,6 +47,11 @@ class Product extends Model
         return $this->hasMany(Damaged::class);
     }
 
+    public function settlements()
+    {
+        return $this->hasMany(Settlement::class);
+    }
+
     public function prices()
     {
         return $this->hasMany(Price::class);
@@ -86,17 +91,29 @@ class Product extends Model
             ->where('due_date', '<=', $date)
             ->sum('quantity');
 
+        $settlementsIncrementBeforeDate = $this->settlements()
+            ->where('due_date', '<=', $date)->where('type', 'increment')
+            ->sum('quantity');
+
+        $settlementsDecrementBeforeDate = $this->settlements()
+            ->where('due_date', '<=', $date)->where('type', 'decrement')
+            ->sum('quantity');
+
         // حساب المخزون قبل التاريخ
         return $initialStock
             + $purchasesBeforeDate
             - $salesBeforeDate
             + $saleReturnsBeforeDate
             - $purchaseReturnsBeforeDate
-            - $damagedBeforeDate;
+            - $damagedBeforeDate
+            + $settlementsIncrementBeforeDate
+            - $settlementsDecrementBeforeDate;
     }
 
     public function getProductMovements()
     {
+        $movements = [];
+
         // تفاصيل المبيعات (صادر)
         $salesDetails = SaleDetail::select(
             DB::raw("'sales' as tableName"),
@@ -104,9 +121,10 @@ class Product extends Model
             DB::raw('0 as income'),
             'sale_id as invoice_id',
             'sales.due_date as due_date',
-            DB::raw('CONCAT("مبيعات للفاتوره رقم #", sale_id) as note')
+            DB::raw('CONCAT("مبيعات للفاتوره رقم #", sale_id, " | ", people.name) as note')
         )
             ->join('sales', 'sales.id', '=', 'sale_details.sale_id')
+            ->join('people', 'sales.people_id', '=', 'people.id')
             ->where('sale_details.product_id', $this->id);
 
         // تفاصيل المشتريات (وارد)
@@ -116,9 +134,10 @@ class Product extends Model
             DB::raw('quantity as income'),
             'purchase_id as invoice_id',
             'purchases.due_date as due_date',
-            DB::raw('CONCAT("مشتريات للفاتوره رقم #", purchase_id) as note')
+            DB::raw('CONCAT("مشتريات للفاتوره رقم #", purchase_id, " | ", people.name) as note')
         )
             ->join('purchases', 'purchases.id', '=', 'purchase_details.purchase_id')
+            ->join('people', 'purchases.people_id', '=', 'people.id')
             ->where('purchase_details.product_id', $this->id);
 
         // مرتجعات المبيعات (وارد)
@@ -128,9 +147,10 @@ class Product extends Model
             DB::raw('quantity as income'),
             'sale_id as invoice_id',
             'sales.due_date as due_date',
-            DB::raw('CONCAT("مرتجعات مبيعات للفاتوره رقم #", sale_id) as note')
+            DB::raw('CONCAT("مرتجعات مبيعات للفاتوره رقم #", sale_id, " | ", people.name) as note')
         )
             ->join('sales', 'sales.id', '=', 'sale_returns.sale_id')
+            ->join('people', 'sales.people_id', '=', 'people.id')
             ->where('sale_returns.product_id', $this->id);
 
         // مرتجعات المشتريات (صادر)
@@ -140,9 +160,10 @@ class Product extends Model
             DB::raw('0 as income'),
             'purchase_id as invoice_id',
             'purchases.due_date as due_date',
-            DB::raw('CONCAT("مرتجعات مشتريات للفاتوره رقم #", purchase_id) as note')
+            DB::raw('CONCAT("مرتجعات مشتريات للفاتوره رقم #", purchase_id, purchase_id, " | ", people.name) as note')
         )
             ->join('purchases', 'purchases.id', '=', 'purchase_returns.purchase_id')
+            ->join('people', 'purchases.people_id', '=', 'people.id')
             ->where('purchase_returns.product_id', $this->id);
 
 
@@ -156,6 +177,26 @@ class Product extends Model
         )
             ->where('damageds.product_id', $this->id);
 
+        $settlementsDecrement = Settlement::select(
+            DB::raw("'settlements' as tableName"),
+            DB::raw('quantity as expense'),
+            DB::raw('0 as income'),
+            DB::raw('null as invoice_id'),
+            'settlements.due_date as due_date',
+            DB::raw("note as note")
+        )
+            ->where('settlements.product_id', $this->id)->where('type', 'decrement');
+
+        $settlementsIncrement = Settlement::select(
+            DB::raw("'settlements' as tableName"),
+            DB::raw('0 as expense'),
+            DB::raw('quantity as income'),
+            DB::raw('null as invoice_id'),
+            'settlements.due_date as due_date',
+            DB::raw("note as note")
+        )
+            ->where('settlements.product_id', $this->id)->where('type', 'increment');
+
 
         // استخدام union مع ترتيب الحركات حسب التاريخ
         return $salesDetails
@@ -163,13 +204,15 @@ class Product extends Model
             ->union($saleReturns)
             ->union($purchaseReturns)
             ->union($damageds)
+            ->union($settlementsIncrement)
+            ->union($settlementsDecrement)
             ->orderBy('due_date', 'asc')
             ->get();
     }
 
     public function getPrice($date = null)
     {
-       $price = $this->prices()
+        $price = $this->prices()
             ->where("due_date", "<=", $date)
             ->orderBy('due_date', 'desc')
             ->first();
@@ -185,7 +228,7 @@ class Product extends Model
 
     public function getStockAttribute()
     {
-        return $this->initialStock + $this->purchaseDetails()->sum("quantity") - $this->saleDetails()->sum("quantity") + $this->saleReturns()->sum("quantity") - $this->purchaseReturns()->sum("quantity") - $this->damageds()->sum("quantity");
+        return $this->initialStock + $this->purchaseDetails()->sum("quantity") - $this->saleDetails()->sum("quantity") + $this->saleReturns()->sum("quantity") - $this->purchaseReturns()->sum("quantity") - $this->damageds()->sum("quantity") + $this->settlements()->where('type', 'increment')->sum('quantity') - $this->settlements()->where('type', 'decrement')->sum('quantity');
     }
 
 }

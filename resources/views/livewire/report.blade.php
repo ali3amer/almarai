@@ -1251,6 +1251,7 @@
                             <thead>
                             <tr>
                                 <th>التاريخ</th>
+                                <th>رقم الفاتوره</th>
                                 <th>البيان</th>
                                 <th>الوارد</th>
                                 <th>الصادر</th>
@@ -1267,6 +1268,7 @@
                             @if($currentProduct['initialStock'] != 0)
                                 <tr>
                                     <td></td>
+                                    <td></td>
                                     <td style="cursor:pointer;">الكمية السابقه</td>
                                     <td>{{ number_format($currentProduct['initialStock'], 2) }}</td>
                                     <td>0</td>
@@ -1274,14 +1276,15 @@
                                 </tr>
                             @endif
                             @foreach($trackingProducts as $item)
-                                <tr data-bs-toggle="modal" data-bs-target="#printModal"
-                                    wire:click="getInvoice({{$item['invoice_id']}}, '{{$item['tableName']}}')">
+                                <tr @if($item['invoice_id'] != null) data-bs-toggle="modal" data-bs-target="#printModal"
+                                     wire:click="getInvoice({{$item['invoice_id']}}, '{{$item['tableName']}}')" @endif>
                                     @php
                                         $currentStock += floatval($item['income']) - floatval($item['expense']);
                                         $income += floatval($item['income']);
                                         $expense += floatval($item['expense']);
                                     @endphp
                                     <td>{{ $item['due_date'] }}</td>
+                                    <td>{{ $item['invoice_id'] }}</td>
                                     <td>{{ $item['note'] }}</td>
                                     <td>{{ number_format($item['income'], 2) }}</td>
                                     <td>{{ number_format($item['expense'], 2) }}</td>
@@ -1291,7 +1294,7 @@
                             </tbody>
                             <tfoot>
                             <tr>
-                                <th colspan="2">الجمـــــــــــــــلة</th>
+                                <th colspan="3">الجمـــــــــــــــلة</th>
                                 <th>{{ number_format($income, 2) }}</th>
                                 <th>{{ number_format($expense, 2) }}</th>
                                 <th>{{ number_format($currentStock, 2) }}</th>
