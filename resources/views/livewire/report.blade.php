@@ -187,9 +187,9 @@
                         </select>
                     @endif
 
-                    @if($reportType == "daily" || $reportType == "safe")
+                    @if($reportType == "daily" || $reportType == "safe" || $reportType == "bank")
                         <label for="payment">وسيلة الدفع</label>
-                        <select class="form-select" wire:model.live="payment"
+                        <select class="form-select" @disabled($reportType == "bank") wire:model.live="payment"
                                 id="payment">
                             <option value="">--------------------</option>
                             <option value="cash">كاش</option>
@@ -1432,7 +1432,7 @@
                                 <td>0</td>
                             </tr>
                         @endif
-                        @if($payment == "cash" || $payment == "")
+                        @if($payment == "bank" || $payment == "")
                             <tr>
                                 <td></td>
                                 <td></td>
@@ -1535,8 +1535,8 @@
                                 <td></td>
                                 <td></td>
                                 <td></td>
-                                <td>كاش</td>
                                 <td>رصيد الخزنه السابق</td>
+                                <td>كاش</td>
                                 <td>{{ number_format($initialSafeBalance, 2) }}</td>
                                 <td>0</td>
                             </tr>
@@ -1546,8 +1546,8 @@
                                 <td></td>
                                 <td></td>
                                 <td></td>
-                                <td>بنك</td>
                                 <td>رصيد البنك السابق</td>
+                                <td>بنك</td>
                                 <td>{{ number_format($initialBankBalance, 2) }}</td>
                                 <td>0</td>
                             </tr>
@@ -1562,11 +1562,11 @@
                                     <td>{{ $statement['due_date'] }}</td>
                                     <td>{{ $accounts[$statement['tableName']] }}</td>
                                     <td>{{ $statement['ownerName'] }}</td>
-                                    <td>{{ $statement['payment'] == "cash" ? "كاش" : ($statement['payment']== "bank" ? "بنك" : "") }}</td>
                                     <td @if($statement['invoice_id'] != null) data-bs-toggle="modal"
                                         data-bs-target="#printModal"
                                         wire:click="getInvoice({{$statement['invoice_id']}}, '{{$statement['tableName']}}')"
                                         style="cursor:pointer;" @endif >{{ $statement['note'] }}</td>
+                                    <td>{{ $statement['payment'] == "cash" ? "كاش" : ($statement['payment']== "bank" ? "بنك" : "") }}</td>
                                     <td>{{ $statement['real'] ? number_format($statement['credit'], 2) : 0 }}</td>
                                     <td>{{ $statement['real'] ? number_format($statement['debit'], 2) : 0 }}</td>
                                 </tr>
@@ -1576,6 +1576,99 @@
                         <tfoot>
                         <tr>
                             <th colspan="5">الجمـــــــــــــــلة</th>
+                            <th>{{ number_format($credit, 2) }}</th>
+                            <th>{{ number_format($debit, 2) }}</th>
+                        </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    @elseif($reportType == 'bank' && !empty($statements))
+        <div class="card mt-2">
+            <div class="card-body invoice">
+                <div class="card-title" dir="rtl">
+                    <div class="row">
+                        @if($payment == "" || $payment == "cash")
+                            <div class="col-4">
+                                <h3>الخزنة : {{number_format($safeBalance, 2)}}</h3>
+                            </div>
+                        @endif
+
+                        @if($payment == "" || $payment == "bank")
+                            <div class="col-4">
+                                <h3>البنك : {{number_format($bankBalance, 2)}}</h3>
+                            </div>
+                        @endif
+
+                        @if($payment == "")
+                            <div class="col-4">
+                                <h3>الجمله : {{number_format($safeBalance + $bankBalance, 2)}}</h3>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+                <div class="scroll">
+                    <table class="text-center printInvoice">
+                        <thead>
+                        <tr>
+                            <th>التاريخ</th>
+                            <th>رقم الفاتوره</th>
+                            <th>الجهة</th>
+                            <th>رقم الإشعار</th>
+                            <th>الوارد</th>
+                            <th>الصادر</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+
+                        @php
+                            $credit = (($payment == "" || $payment == "cash") ? $initialSafeBalance : 0) + (($payment == "" || $payment == "bank") ? $initialBankBalance : 0);
+                            $debit = 0;
+                        @endphp
+                        @if($payment == "cash" || $payment == "")
+                            <tr>
+                                <td></td>
+                                <td></td>
+                                <td>رصيد الخزنه السابق</td>
+                                <td></td>
+                                <td>{{ number_format($initialSafeBalance, 2) }}</td>
+                                <td>0</td>
+                            </tr>
+                        @endif
+                        @if($payment == "bank" || $payment == "")
+                            <tr>
+                                <td></td>
+                                <td></td>
+                                <td>رصيد البنك السابق</td>
+                                <td></td>
+                                <td>{{ number_format($initialBankBalance, 2) }}</td>
+                                <td>0</td>
+                            </tr>
+                        @endif
+                        @foreach($statements as $statement)
+                            @if(floatval($statement['real']))
+                                @php
+                                    $debit += floatval($statement['debit']);
+                                    $credit += floatval($statement['credit']);
+                                @endphp
+                                <tr>
+                                    <td>{{ $statement['due_date'] }}</td>
+                                    <td>{{ $statement['invoice_id'] }}</td>
+                                    <td @if($statement['invoice_id'] != null) data-bs-toggle="modal"
+                                        data-bs-target="#printModal"
+                                        wire:click="getInvoice({{$statement['invoice_id']}}, '{{$statement['tableName']}}')"
+                                        style="cursor:pointer;" @endif >{{ $statement['note'] }} @if($statement['ownerName'] != null) {{ " | " . $statement['ownerName'] }} @endif</td>
+                                    <td>{{ $statement['bank'] }}</td>
+                                    <td>{{ $statement['real'] ? number_format($statement['credit'], 2) : 0 }}</td>
+                                    <td>{{ $statement['real'] ? number_format($statement['debit'], 2) : 0 }}</td>
+                                </tr>
+                            @endif
+                        @endforeach
+                        </tbody>
+                        <tfoot>
+                        <tr>
+                            <th colspan="4">الجمـــــــــــــــلة</th>
                             <th>{{ number_format($credit, 2) }}</th>
                             <th>{{ number_format($debit, 2) }}</th>
                         </tr>

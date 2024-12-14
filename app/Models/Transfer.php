@@ -46,7 +46,7 @@ class Transfer extends Model
                 "payment" => $transfer->transfer_type == "cash_to_bank" ? "cash" : "bank",
                 "bank" => $transfer->bank,
                 "bank_id" => $transfer->bank_id,
-                "note" => $transfer->note ?? ($transfer->transfer_type == "cash_to_bank" ? "تحويل من الخزنة إلى بنك" : "تحويل من البنك إلى الخزنة"),
+                "note" => $transfer->note != null || $transfer->note != '' ? $transfer->note : ($transfer->transfer_type == "cash_to_bank" ? "تحويل من الخزنة إلى بنك" : "تحويل من البنك إلى الخزنة"),
                 "owner_id" => null,
                 "ownerName" => null,
                 "created_at" => $transfer->created_at,

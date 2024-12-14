@@ -544,6 +544,10 @@ class Employee extends Component
             }
         }
 
+        if ($this->due_date == '' || $this->payment == "cash") {
+            $this->due_date = session("date");
+        }
+
         if (empty($this->currentEmployee)) {
             $this->employees = \App\Models\People::where("type", "employee")->where('name', 'like', '%' . $this->search . '%')->get();
         }

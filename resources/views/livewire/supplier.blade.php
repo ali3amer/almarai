@@ -202,7 +202,6 @@
                 </div>
             </div>
         @else
-
             <div class="col-12">
                 <div class="card bg-white my-1 shadow">
                     <div class="card-body p-2 invoice" style="page-break-after: unset" dir="rtl">
@@ -319,12 +318,20 @@
 
                             <div class="row">
 
-                                @if(!session("closed") || $payment == "bank")
-                                    <button
-                                        @disabled($payment == "bank" && $banks->count() == 0)  @disabled(empty($currentSupplier) || $due_date == '') @disabled($amount == 0) class="btn btn-{{$debtId == 0 ? 'primary' : 'success'}} w-100"
-                                    >{{$debtId == 0 ? 'دفــــع' : 'تعــــديل'}}</button>
+                                <div class="col-6">
+                                    <label for="note">التاريخ</label>
+                                    <input autocomplete="off" @disabled($payment == "cash") type="date"
+                                           wire:model="due_date" id="due_date"
+                                           class="form-control text-center mb-2">
+                                </div>
+                                <div class="col-6 d-flex align-items-end">
+                                    @if(!session("closed") || $payment == "bank")
+                                        <button
+                                            @disabled($payment == "bank" && $banks->count() == 0)  @disabled(empty($currentSupplier) || $due_date == '') @disabled($amount == 0) class="btn btn-{{$debtId == 0 ? 'primary' : 'success'}} mb-2 w-100"
+                                        >{{$debtId == 0 ? 'دفــــع' : 'تعــــديل'}}</button>
 
-                                @endif
+                                    @endif
+                                </div>
                             </div>
                         </div>
                     </form>

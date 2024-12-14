@@ -231,6 +231,9 @@ class Expense extends Component
             $this->due_date = session("date");
         }
 
+        if ($this->due_date == '' || $this->payment == "cash") {
+            $this->due_date = session("date");
+        }
         if ($this->optionsMode) {
             $this->options = ExpenseOption::where("optionName", "LIKE", "%" . $this->search . "%")->get();
         } else {

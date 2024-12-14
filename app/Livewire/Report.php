@@ -67,6 +67,7 @@ class Report extends Component
         'tracking' => 'تقرير متابعة حركة صنف',
         'daily' => 'تقرير القيود اليومية',
         'safe' => 'تقرير خزنة',
+        'bank' => 'تقرير البنك',
     ];
     public array $reportDurations = [
         0 => '-------------------------',
@@ -272,7 +273,7 @@ class Report extends Component
             } elseif ($this->reportDuration == "duration") {
                 $this->initialSafeBalance = (new \App\Models\Safe)->getPastSafeBalance($this->from);
 
-                $this->days = Day::whereBetween("due_date", [$this->from ,$this->to])->get()->map(function ($day) {
+                $this->days = Day::whereBetween("due_date", [$this->from, $this->to])->get()->map(function ($day) {
                     $creditDebit = (new \App\Models\Safe)->getSafeCreditDebitDayBalance($day->due_date);
                     $day->credit = $creditDebit['credit'];
                     $day->debit = $creditDebit['debit'];
@@ -459,7 +460,7 @@ class Report extends Component
                 return ['option_name' => $optionName, 'total_amount' => $totalAmount];
             });
 
-        } elseif ($this->reportType == "safe" || $this->reportType == "daily") {
+        } elseif ($this->reportType == "safe" || $this->reportType == "bank" || $this->reportType == "daily") {
             $this->paid = 0;
             $this->debt = 0;
             $this->saleFuture = 0;
@@ -522,6 +523,9 @@ class Report extends Component
     {
         $this->statements = [];
         $this->resetData();
+        if ($this->reportType == "bank") {
+            $this->payment = "bank";
+        }
     }
 
     public function getInvoice($id, $tableName)

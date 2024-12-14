@@ -287,12 +287,19 @@
                             </div>
 
                             <div class="row">
-                                @if(!session("closed") || $payment == "bank")
-                                    <button
-                                        @disabled($payment == "bank" && $banks->count() == 0)  @disabled(empty($currentDeposit) || $due_date == '') @disabled($amount == 0) class="btn btn-{{$debtId == 0 ? 'primary' : 'success'}} w-100"
-                                    >{{$debtId == 0 ? 'دفــــع' : 'تعــــديل'}}</button>
-
-                                @endif
+                                <div class="col-6">
+                                    <label for="note">التاريخ</label>
+                                    <input autocomplete="off" @disabled($payment == "cash") type="date"
+                                           wire:model="due_date" id="due_date"
+                                           class="form-control text-center mb-2">
+                                </div>
+                                <div class="col-6 d-flex align-items-end">
+                                    @if(!session("closed") || $payment == "bank")
+                                        <button
+                                            @disabled($payment == "bank" && $banks->count() == 0)  @disabled(empty($currentDeposit) || $due_date == '') @disabled($amount == 0) class="btn btn-{{$debtId == 0 ? 'primary' : 'success'}} mb-2 w-100"
+                                        >{{$debtId == 0 ? 'دفــــع' : 'تعــــديل'}}</button>
+                                    @endif
+                                </div>
                             </div>
 
                         </div>

@@ -458,7 +458,7 @@ class Supplier extends Component
                 $this->bank_id = $this->banks->first()->id;
             }
         }
-        if ($this->due_date == '') {
+        if ($this->due_date == '' || $this->payment == "cash") {
             $this->due_date = session("date");
         }
 
