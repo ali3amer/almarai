@@ -413,6 +413,11 @@ class Sale extends Component
         $item == "currentClient" ? $this->reset('search', 'clientSearch', $item) : $this->reset('currentProduct', 'cart', 'bank', 'payment', 'bank', 'bank_id', 'search', 'clientSearch', 'paid', 'remainder', 'amount', 'cost', 'discount', 'id', 'services', 'serviceAmount', 'serviceName', 'totalServices', $item);
     }
 
+    public function getProductsProperty()
+    {
+        // جلب المنتجات مع الباجينيشن
+        return \App\Models\Product::where('productName', 'LIKE', '%' . $this->productSearch . '%')->simplePaginate(10);
+    }
     public function render()
     {
 
@@ -440,10 +445,8 @@ class Sale extends Component
             }
         }
 
-        $product = \App\Models\Product::where('productName', 'LIKE', '%' . $this->productSearch . '%')->simplePaginate(10);
-
         return view('livewire.sale', [
-            'products' => $product
+            'products' => $this->products
         ]);
     }
 }

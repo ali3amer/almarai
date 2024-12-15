@@ -85,25 +85,29 @@
                                     </tr>
                                     </thead>
                                     <tbody>
-                                    @foreach($products as $product)
-                                        <tr style="cursor: pointer">
-                                            <td>{{$product->productName}}</td>
-                                            <td>{{number_format($product->sale_price, 2)}}</td>
-                                            <td>{{number_format($product->stock, 2)}}</td>
-                                            <td>
-                                                <button
-                                                    {{ $product->stock < 1 ? "disabled" : "" }} wire:click="chooseProduct({{$product}})"
-                                                    class="btn btn-primary btn-sm">+
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    @endforeach
+                                    @if(!empty($products))
+                                        @foreach($products as $product)
+                                            <tr style="cursor: pointer">
+                                                <td>{{$product->productName}}</td>
+                                                <td>{{number_format($product->sale_price, 2)}}</td>
+                                                <td>{{number_format($product->stock, 2)}}</td>
+                                                <td>
+                                                    <button
+                                                        {{ $product->stock < 1 ? "disabled" : "" }} wire:click="chooseProduct({{$product}})"
+                                                        class="btn btn-primary btn-sm">+
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    @endif
                                     </tbody>
                                 </table>
                             </div>
                         </div>
                         <div class="card-footer" style="overflow: hidden">
-                            {{$products->links()}}
+                            @if(!empty($products))
+                                {{$products->links()}}
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -224,6 +228,11 @@
                                                     <td>{{number_format(floatval($item['quantity']), 2)}}</td>
                                                     <td>{{number_format($item['amount'], 2)}}</td>
                                                     <td>
+                                                        <button wire:loading.attr="disabled"
+                                                                wire:click="editProduct({{$item['product_id']}})"
+                                                                class="btn btn-primary btn-sm btn-info"><i
+                                                                class="bi text-white bi-pen"></i>
+                                                        </button> /
                                                         <button wire:loading.attr="disabled"
                                                                 wire:click="deleteFromCart({{$item['product_id']}})"
                                                                 class="btn btn-primary btn-sm btn-danger"><i
