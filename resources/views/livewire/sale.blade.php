@@ -68,7 +68,7 @@
                                     <div class="col-4 align-self-center"><h5>المنتجات</h5></div>
                                     <div class="col-8"><input autocomplete="off" type="text" id="productSearch"
                                                               placeholder="بحث ..."
-                                                              @if(!empty($products)) wire:keydown.enter="chooseProduct({{$products->first()}})"
+                                                              @if(!empty($products)) wire:keydown.enter="chooseProduct({{$products->first()->id}})"
                                                               @endif
                                                               class="form-control"
                                                               wire:model.live="productSearch" autofocus></div>
@@ -93,7 +93,7 @@
                                                 <td>{{number_format($product->stock, 2)}}</td>
                                                 <td>
                                                     <button
-                                                        {{ $product->stock < 1 ? "disabled" : "" }} wire:click="chooseProduct({{$product}})"
+                                                        {{ round($product->stock, 3) == 0 ? "disabled" : "" }} wire:click="chooseProduct({{$product->id}})"
                                                         class="btn btn-primary btn-sm">+
                                                     </button>
                                                 </td>
@@ -229,7 +229,7 @@
                                                     <td>{{number_format($item['amount'], 2)}}</td>
                                                     <td>
                                                         <button wire:loading.attr="disabled"
-                                                                wire:click="editProduct({{$item['product_id']}})"
+                                                                wire:click="chooseProduct({{$item['product_id']}}, true)"
                                                                 class="btn btn-primary btn-sm btn-info"><i
                                                                 class="bi text-white bi-pen"></i>
                                                         </button> /
@@ -310,7 +310,7 @@
                                         <div class="col-4 align-self-center"><h5>الفواتير</h5></div>
                                         <div class="col-8"><input autocomplete="off" type="text" id="saleSearch"
                                                                   placeholder="بحث ..."
-                                                                  @if(!empty($products))  wire:keydown.enter="chooseProduct({{$products->first()}})"
+                                                                  @if(!empty($products))  wire:keydown.enter="chooseProduct({{$products->first()->id}})"
                                                                   @endif
                                                                   class="form-control"
                                                                   wire:model.live="saleSearch" autofocus></div>

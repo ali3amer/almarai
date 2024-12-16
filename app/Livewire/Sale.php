@@ -54,7 +54,6 @@ class Sale extends Component
     public $bank = '';
 
     public array $currentClient = [];
-    public array $oldQuantities = [];
     public array $currentProduct = [];
     public array $cart = [];
     public array $services = [];
@@ -210,15 +209,21 @@ class Sale extends Component
         }
     }
 
-    public function chooseProduct(\App\Models\Product $product)
+    public function chooseProduct($id,bool $edit = false)
     {
+        $product = \App\Models\Product::find($id);
+        $stock = $edit ? round($product->stock, 3) + $this->cart[$product->id]['quantity'] : round($product->stock, 3);
         if ($product->stock > 0) {
             $this->currentProduct = $product->toArray();
-            $this->currentProduct['quantity'] = 1;
+            $this->currentProduct['quantity'] = $edit ? $this->cart[$product->id]['quantity'] : 1;
             $this->currentProduct['price'] = floatval($product['sale_price']);
             $this->currentProduct['amount'] = floatval($product['sale_price']);
-            $this->currentProduct['stock'] = floatval($product->stock);
+            $this->currentProduct['stock'] =  $stock;
             $this->productSearch = '';
+        }
+
+        if ($edit) {
+            $this->deleteFromCart($id);
         }
 
     }
@@ -413,11 +418,6 @@ class Sale extends Component
         $item == "currentClient" ? $this->reset('search', 'clientSearch', $item) : $this->reset('currentProduct', 'cart', 'bank', 'payment', 'bank', 'bank_id', 'search', 'clientSearch', 'paid', 'remainder', 'amount', 'cost', 'discount', 'id', 'services', 'serviceAmount', 'serviceName', 'totalServices', $item);
     }
 
-    public function getProductsProperty()
-    {
-        // جلب المنتجات مع الباجينيشن
-        return \App\Models\Product::where('productName', 'LIKE', '%' . $this->productSearch . '%')->simplePaginate(10);
-    }
     public function render()
     {
 
@@ -446,7 +446,7 @@ class Sale extends Component
         }
 
         return view('livewire.sale', [
-            'products' => $this->products
+            'products' => \App\Models\Product::where('productName', 'LIKE', '%' . $this->productSearch . '%')->simplePaginate(10)
         ]);
     }
 }
