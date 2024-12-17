@@ -45,6 +45,7 @@ class Purchase extends Component
 
     public float $amount = 0;
     public $paid = 0;
+    public $bank_paid = 0;
     public string $payment = 'cash';
     public $bank = '';
 
@@ -110,6 +111,7 @@ class Purchase extends Component
                     'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
                     'bank' => $this->bank,
                     'paid' => floatval($this->paid),
+                    'bank_paid' => floatval($this->bank_paid),
                     'discount' => floatval($this->discount),
                     'remainder' => $this->currentSupplier['cash'] ? 0 : floatval($this->remainder),
                     'amount' => floatval($this->amount),
@@ -143,11 +145,11 @@ class Purchase extends Component
                     'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
                     'bank' => $this->bank,
                     'paid' => floatval($this->paid),
+                    'bank_paid' => floatval($this->bank_paid),
                     'remainder' => $this->currentSupplier['cash'] ? 0 : floatval($this->remainder),
                     'discount' => floatval($this->discount),
                     'amount' => floatval($this->amount),
                     'note' => $this->note,
-                    'due_date' => $this->due_date,
                     'user_id' => auth()->id(),
                 ]);
 
@@ -204,6 +206,7 @@ class Purchase extends Component
         $this->invoice['remainder'] = $this->remainder;
         $this->invoice['discount'] = floatval($this->discount);
         $this->invoice['paid'] = floatval($this->paid);
+        $this->invoice['bank_paid'] = floatval($this->bank_paid);
         $this->invoice['cost'] = floatval($this->cost);
         $this->invoice['showMode'] = false;
         $this->invoice['amount'] = floatval($this->amount);
@@ -223,15 +226,23 @@ class Purchase extends Component
         }
     }
 
-    public function chooseProduct(\App\Models\Product $product)
+    public function chooseProduct($id, bool $edit = false)
     {
+        $product = \App\Models\Product::find($id);
+        $stock = $edit ? round($product->stock, 3) + $this->cart[$product->id]['quantity'] : round($product->stock, 3);
         $this->currentProduct = $product->toArray();
-        $this->currentProduct['quantity'] = 1;
-        $this->currentProduct['price'] = floatval($product['purchase_price']);
-        $this->currentProduct['amount'] = floatval($product['purchase_price']);
+        $this->currentProduct['quantity'] = $edit ? $this->cart[$product->id]['quantity'] : 1;
+        $this->currentProduct['price'] = floatval($product['sale_price']);
+        $this->currentProduct['amount'] = floatval($product['sale_price']);
+        $this->currentProduct['stock'] = $stock;
         $this->productSearch = '';
 
+        if ($edit) {
+            $this->deleteFromCart($id);
+        }
+
     }
+
 
     public function calcCurrentProduct()
     {
@@ -281,6 +292,7 @@ class Purchase extends Component
             $this->amount = 0;
             $this->remainder = 0;
             $this->paid = 0;
+            $this->bank_paid = 0;
             $this->discount = 0;
             $this->cost = 0;
         }
@@ -317,12 +329,13 @@ class Purchase extends Component
         $this->invoice['services'] = Service::where('purchase_id', $purchase['id'])->select("id", "serviceName", "amount as serviceAmount")->get()->toArray();
         $this->invoice['remainder'] = floatval($purchase['remainder']);
         $this->invoice['paid'] = floatval($purchase['paid']);
+        $this->invoice['bank_paid'] = floatval($purchase['bank_paid']);
         $this->invoice['discount'] = floatval($purchase['discount']);
         $this->invoice['cost'] = floatval($purchase['amount']) + floatval($purchase['discount']);
         $this->invoice['amount'] = $purchase['amount'];
         $this->invoice['showMode'] = false;
 
-        if ($this->invoice['paid'] > 0) {
+        if ($this->invoice['paid'] + $this->invoice['bank_paid'] > 0) {
             $this->payment = $purchase['payment'];
             $this->invoice['paidId'] = $purchase['id'];
         }
@@ -337,6 +350,7 @@ class Purchase extends Component
         $this->bank = $this->invoice['bank'];
         $this->bank_id = $this->invoice['bank_id'];
         $this->paid = floatval($this->invoice['paid']);
+        $this->bank_paid = floatval($this->invoice['bank_paid']);
         $this->remainder = floatval($this->invoice['remainder']);
         $this->discount = floatval($this->invoice['discount']);
         $this->amount = floatval($this->invoice['amount']);
@@ -397,7 +411,7 @@ class Purchase extends Component
         if ($this->currentSupplier['cash']) {
             $this->paid = $this->amount;
         } else {
-            $this->remainder = floatval($this->amount) - floatval($this->paid);
+            $this->remainder = floatval($this->amount) - floatval($this->paid) - floatval($this->bank_paid);
         }
     }
 
@@ -429,7 +443,7 @@ class Purchase extends Component
             $barcode = \App\Models\Product::where("barcode", $this->productSearch)->first();
 
             if ($barcode) {
-                $this->chooseProduct($barcode);
+                $this->chooseProduct($barcode->id);
             }
         }
 

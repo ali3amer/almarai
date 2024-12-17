@@ -100,7 +100,29 @@ class Purchase extends Model
                     "debit" => $purchase->paid,
                     "credit" => 0,
                     "due_date" => $purchase->due_date,
-                    "payment" => $purchase->payment,
+                    "payment" => "cash",
+                    "bank" => null,
+                    "bank_id" => null,
+                    "note" => "مدفوعات فاتورة مشتريات رقم #" . $purchase->id,
+                    "owner_id" => $purchase->people_id,
+                    "ownerName" => $purchase->people->name,
+                    "created_at" => $purchase->created_at,
+                    "updated_at" => $purchase->updated_at,
+                ];
+            }
+
+            if ($purchase->bank_paid != 0) {
+                $array[] = [
+                    "tableName" => "purchases",
+                    "clientType" => $purchase->people->type,
+                    "type" => null,
+                    "real" => true,
+                    "invoice_id" => $purchase->id,
+                    "id" => $purchase->id,
+                    "debit" => $purchase->paid,
+                    "credit" => 0,
+                    "due_date" => $purchase->due_date,
+                    "payment" => "bank",
                     "bank" => $purchase->bank,
                     "bank_id" => $purchase->bank_id,
                     "note" => "مدفوعات فاتورة مشتريات رقم #" . $purchase->id,

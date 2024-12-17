@@ -108,7 +108,29 @@ class Sale extends Model
                     "debit" => 0,
                     "credit" => $sale->paid,
                     "due_date" => $sale->due_date,
-                    "payment" => $sale->payment,
+                    "payment" => "cash",
+                    "bank" => null,
+                    "bank_id" => null,
+                    "note" => "مدفوعات فاتورة مبيعات رقم #" . $sale->id,
+                    "owner_id" => $sale->people_id,
+                    "ownerName" => $sale->people->name,
+                    "created_at" => $sale->created_at,
+                    "updated_at" => $sale->updated_at,
+                ];
+            }
+
+            if ($sale->bank_paid != 0) {
+                $array[] = [
+                    "tableName" => "sales",
+                    "clientType" => $sale->people->type,
+                    "type" => null,
+                    "real" => true,
+                    "invoice_id" => $sale->id,
+                    "id" => $sale->id,
+                    "debit" => 0,
+                    "credit" => $sale->paid,
+                    "due_date" => $sale->due_date,
+                    "payment" => "bank",
                     "bank" => $sale->bank,
                     "bank_id" => $sale->bank_id,
                     "note" => "مدفوعات فاتورة مبيعات رقم #" . $sale->id,

@@ -14,12 +14,14 @@ return new class extends Migration
         Schema::create('purchases', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('people_id')->nullable();
-            $table->foreign('people_id')->references('id')->on('people')->onDelete('cascade')->onUpdate('cascade');$table->enum('payment', ['cash', 'bank'])->default("cash");
+            $table->foreign('people_id')->references('id')->on('people')->onDelete('cascade')->onUpdate('cascade');
+            $table->enum('payment', ['cash', 'bank', 'parts'])->default("cash");
             $table->unsignedBigInteger('bank_id')->nullable();
             $table->foreign('bank_id')->references('id')->on('banks')->onDelete('cascade')->onUpdate('cascade');
             $table->string('bank')->nullable();
             $table->string('note')->nullable();
-            $table->decimal('paid', 10, 2);
+            $table->decimal('paid', 10, 2)->default(0);
+            $table->decimal('bank_paid', 10, 2)->default(0);
             $table->decimal('remainder', 10, 2)->nullable();
             $table->decimal('discount', 10, 2)->nullable();
             $table->decimal('amount', 10, 2);

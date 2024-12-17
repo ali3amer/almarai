@@ -23,7 +23,7 @@
         </tr>
         </thead>
         <tbody>
-        @if(isset($invoice['cart']))
+        @if(isset($invoice['cart']) )
             @foreach($invoice['cart'] as $item)
                 <tr style="cursor: pointer" class="align-items-center">
                     <td scope="row">{{$loop->index + 1}}</td>
@@ -54,32 +54,48 @@
         @endif
 
         </tbody>
-        <tfoot>
-        @if(isset($invoice['showMode']) && !$invoice['showMode'])
+        @if(!empty($invoice))
+            <tfoot>
+            @if(isset($invoice['showMode']) && !$invoice['showMode'])
+                <tr>
+                    <td colspan="4">المجموع الكلي</td>
+                    <td>{{isset($invoice['cost']) ? number_format($invoice['cost'], 2) : ''}}</td>
+                </tr>
+                <tr>
+                    <td colspan="4">التخفيض</td>
+                    <td>{{isset($invoice['discount']) ? number_format($invoice['discount'], 2) : ''}}</td>
+                </tr>
+            @endif
             <tr>
-                <td colspan="4">المجموع الكلي</td>
-                <td>{{isset($invoice['cost']) ? number_format($invoice['cost'], 2) : ''}}</td>
+                <td colspan="4">الصافي</td>
+                <td>{{isset($invoice['cost']) && isset($invoice['discount']) ? number_format(floatval($invoice['cost'] - $invoice['discount']), 2) : ''}}</td>
             </tr>
-            <tr>
-                <td colspan="4">التخفيض</td>
-                <td>{{isset($invoice['discount']) ? number_format($invoice['discount'], 2) : ''}}</td>
-            </tr>
+
+
+            @if($invoice['payment'] == "parts")
+                <tr>
+                    <td colspan="4">كاش</td>
+                    <td>{{number_format($invoice['paid'], 2)}}</td>
+                </tr>
+                <tr>
+                    <td colspan="4">بنك</td>
+                    <td>{{number_format($invoice['bank_paid'], 2) }}</td>
+                </tr>
+            @endif
+
+
+            @if(isset($invoice['showMode']) && !$invoice['showMode'])
+                <tr>
+                    <td colspan="4">المدفوع</td>
+                    <td>{{isset($invoice['paid']) ? number_format($invoice['paid'] + $invoice['bank_paid'], 2) : ''}}</td>
+                </tr>
+                <tr>
+                    <td colspan="4">المتبقي</td>
+                    <td>{{isset($invoice['remainder']) ? number_format($invoice['remainder'], 2) : ''}}</td>
+                </tr>
+            @endif
+            </tfoot>
         @endif
-        <tr>
-            <td colspan="4">الصافي</td>
-            <td>{{isset($invoice['cost']) && isset($invoice['discount']) ? number_format(floatval($invoice['cost'] - $invoice['discount']), 2) : ''}}</td>
-        </tr>
-        @if(isset($invoice['showMode']) && !$invoice['showMode'])
-            <tr>
-                <td colspan="4">المدفوع</td>
-                <td>{{isset($invoice['paid']) ? number_format($invoice['paid'], 2) : ''}}</td>
-            </tr>
-            <tr>
-                <td colspan="4">المتبقي</td>
-                <td>{{isset($invoice['remainder']) ? number_format($invoice['remainder'], 2) : ''}}</td>
-            </tr>
-        @endif
-        </tfoot>
     </table>
 
     @if(isset($invoice['cart']) && $returns->count() > 0)

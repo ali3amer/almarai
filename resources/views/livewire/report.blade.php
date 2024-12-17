@@ -197,6 +197,16 @@
                         </select>
                     @endif
 
+                    @if($reportType == "safe" || $reportType == "bank")
+                        <label for="payment">صادر أم وارد</label>
+                        <select class="form-select" wire:model.live="showType"
+                                id="payment">
+                            <option>الكل</option>
+                            <option value="expense">صادر</option>
+                            <option value="income">وارد</option>
+                        </select>
+                    @endif
+
                     @if($reportType == 'client' || $reportType == 'supplier' || $reportType == 'deposit' || $reportType == 'employee')
                         <label for="client">الإسم</label>
                         <input data-bs-toggle="modal" wire:model="currentPeople.name" readonly
@@ -799,7 +809,7 @@
                                 </tr>
                                 @if($debt['invoice_id'] != null)
                                     @if($debt['tableName'] == "sales")
-                                       @php $invoice = \App\Models\Sale::find($debt['invoice_id'])->saleDetails; @endphp
+                                        @php $invoice = \App\Models\Sale::find($debt['invoice_id'])->saleDetails; @endphp
                                     @elseif($debt['tableName'] == "purchases")
                                         @php $invoice = \App\Models\Purchase::find($debt['invoice_id'])->purchaseDetails; @endphp
                                     @endif
@@ -822,45 +832,205 @@
         @endif
 
         @if(100 == 200)
-                @if(!empty($purchaseDebts))
-                    <div class="card mt-2">
-                        <div class="card-body invoice" dir="rtl">
-                            <div class="card-title">
-                                <div class="row">
-                                    <div class="col-4"><h5>مشتريات
-                                            : {{$currentPeople['name'] ?? ''}}</h5>
-                                    </div>
+            @if(!empty($purchaseDebts))
+                <div class="card mt-2">
+                    <div class="card-body invoice" dir="rtl">
+                        <div class="card-title">
+                            <div class="row">
+                                <div class="col-4"><h5>مشتريات
+                                        : {{$currentPeople['name'] ?? ''}}</h5>
                                 </div>
                             </div>
-                            <div class="scroll">
-                                <table class="text-center printInvoice">
-                                    <thead>
-                                    <tr>
-                                        <th>التاريخ</th>
-                                        <th>البيان</th>
-                                        <th>عليه</th>
-                                        <th>له</th>
-                                        <th>الرصيد</th>
-                                    </tr>
-                                    </thead>
-                                    <tbody>
+                        </div>
+                        <div class="scroll">
+                            <table class="text-center printInvoice">
+                                <thead>
+                                <tr>
+                                    <th>التاريخ</th>
+                                    <th>البيان</th>
+                                    <th>عليه</th>
+                                    <th>له</th>
+                                    <th>الرصيد</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                @php
+                                    $currentBalance = floatval($currentPeople['initialPurchasesBalance']);
+                                    $credit = floatval($currentPeople['initialPurchasesBalance']);
+                                    $debit = 0;
+                                @endphp
+                                <tr>
+                                    <td></td>
+                                    <td>الرصيد السابق</td>
+                                    <td>0</td>
+                                    <td>{{ number_format($currentPeople['initialPurchasesBalance'], 2) }}</td>
+                                    <td>{{ number_format($currentBalance, 2) }}</td>
+                                </tr>
+                                @foreach($purchaseDebts as $debt)
                                     @php
-                                        $currentBalance = floatval($currentPeople['initialPurchasesBalance']);
-                                        $credit = floatval($currentPeople['initialPurchasesBalance']);
-                                        $debit = 0;
+                                        $debit += floatval($debt['debit']);
+                                        $credit += floatval($debt['credit']);
+                                        $currentBalance =  $credit - $debit;
                                     @endphp
                                     <tr>
-                                        <td></td>
-                                        <td>الرصيد السابق</td>
-                                        <td>0</td>
-                                        <td>{{ number_format($currentPeople['initialPurchasesBalance'], 2) }}</td>
-                                        <td>{{ number_format($currentBalance, 2) }}</td>
+                                        <td>{{$debt['due_date']}}</td>
+                                        <td @if($debt['invoice_id'] != null) data-bs-toggle="modal"
+                                            data-bs-target="#printModal"
+                                            wire:click="getInvoice({{$debt['invoice_id']}}, '{{$debt['tableName']}}')"
+                                            @endif>{{ $debt['note'] }}</td>
+                                        <td>{{ number_format($debt['debit'], 2) }}</td>
+                                        <td>{{ number_format($debt['credit'], 2) }}</td>
+                                        <td>{{number_format($currentBalance, 2)}}</td>
                                     </tr>
-                                    @foreach($purchaseDebts as $debt)
+                                @endforeach
+                                </tbody>
+                                <tfoot>
+                                <tr>
+                                    <th colspan="2">الجــــــــــــــــمله</th>
+                                    <th>{{ number_format($debit, 2) }}</th>
+                                    <th>{{ number_format($credit, 2) }}</th>
+                                    <th>{{ number_format($currentBalance, 2) }}</th>
+                                </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mt-2">
+                    <div class="card-body invoice" dir="rtl">
+                        <div class="card-title">
+                            <div class="row">
+                                <div class="col-4"><h5>مشتريات
+                                        : {{$currentPeople['name'] ?? ''}} بالتفصيل</h5>
+                                </div>
+
+                            </div>
+                        </div>
+                        <div class="scroll">
+                            <table class="text-center printInvoice">
+                                <thead>
+                                <tr>
+                                    <th>التاريخ</th>
+                                    <th>البيان</th>
+                                    <th>سعر الوحده</th>
+                                    <th>الكمية</th>
+                                    <th>الجمله</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                @foreach($purchaseDebts as $debt)
+                                    <tr>
+                                        <td>{{$debt['due_date']}}</td>
+                                        <td colspan="3">{{ $debt['note'] }}</td>
+                                        <td>{{ number_format($debt['debit'] != 0 ? $debt['debit'] : $debt['debit'], 2) }}</td>
+                                    </tr>
+                                    @if($debt['invoice_id'] != null)
+                                        @foreach(\App\Models\Purchase::find($debt['invoice_id'])->purchaseDetails as $product)
+                                            <tr>
+                                                <td>{{ $debt['due_date'] }}</td>
+                                                <td>{{ $product->product->productName }}</td>
+                                                <td>{{ number_format($product->price,2) }}</td>
+                                                <td>{{ number_format($product->quantity,2) }}</td>
+                                                <td>{{ number_format($product->quantity * $product->price,2) }}</td>
+                                            </tr>
+                                        @endforeach
+                                    @endif
+                                @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            @endif
+
+            @if(!empty($employeeGifts))
+                <div class="card mt-2">
+                    <div class="card-body invoice" dir="rtl">
+                        <div class="card-title">
+                            <div class="row">
+                                <div class="col-4"><h5>مدفوعات الى
+                                        : {{$currentPeople['name'] ?? ''}}</h5>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="scroll">
+                            <table class="text-center printInvoice">
+                                <thead>
+                                <tr>
+                                    <th>التاريخ</th>
+                                    <th>البيان</th>
+                                    <th>المبلغ</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                @php
+                                    $total = 0;
+                                @endphp
+
+                                @foreach($employeeGifts as $gift)
+                                    @if($gift['type'] == "salary")
+                                        <tr>
+                                            @php
+                                                $total += $gift['debit'];
+                                            @endphp
+                                            <td>{{$gift['due_date']}}</td>
+                                            <td>{{$gift['note']}}</td>
+                                            <td>{{number_format($gift['debit'], 2)}}</td>
+                                        </tr>
+                                    @endif
+                                @endforeach
+                                </tbody>
+                                <tfoot>
+                                <tr>
+                                    <th colspan="2">الجــــــــــــــــمله</th>
+                                    <th>{{ number_format($total, 2) }}</th>
+                                </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mt-2">
+                    <div class="card-body invoice" dir="rtl">
+                        <div class="card-title">
+                            <div class="row">
+                                <div class="col-4"><h5>سحوبات
+                                        : {{$currentPeople['name'] ?? ''}}</h5>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="scroll">
+                            <table class="text-center printInvoice">
+                                <thead>
+                                <tr>
+                                    <th>التاريخ</th>
+                                    <th>البيان</th>
+                                    <th>عليه</th>
+                                    <th>له</th>
+                                    <th>الرصيد</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                @php
+                                    $currentBalance = $currentPeople['initialGiftsBalance'];
+                                    $debit = 0;
+                                    $credit = $currentPeople['initialGiftsBalance'];
+                                @endphp
+                                <tr>
+                                    <td></td>
+                                    <td>الرصيد السابق</td>
+                                    <td>{{ number_format($currentPeople['initialGiftsBalance'], 2) }}</td>
+                                    <td>0</td>
+                                    <td>{{ number_format($currentBalance, 2) }}</td>
+                                </tr>
+                                @foreach($employeeGifts as $debt)
+                                    @if($debt['type'] != "salary")
                                         @php
                                             $debit += floatval($debt['debit']);
                                             $credit += floatval($debt['credit']);
-                                            $currentBalance =  $credit - $debit;
+                                            $currentBalance = $debit - $credit;
                                         @endphp
                                         <tr>
                                             <td>{{$debt['due_date']}}</td>
@@ -872,248 +1042,88 @@
                                             <td>{{ number_format($debt['credit'], 2) }}</td>
                                             <td>{{number_format($currentBalance, 2)}}</td>
                                         </tr>
-                                    @endforeach
-                                    </tbody>
-                                    <tfoot>
-                                    <tr>
-                                        <th colspan="2">الجــــــــــــــــمله</th>
-                                        <th>{{ number_format($debit, 2) }}</th>
-                                        <th>{{ number_format($credit, 2) }}</th>
-                                        <th>{{ number_format($currentBalance, 2) }}</th>
-                                    </tr>
-                                    </tfoot>
-                                </table>
-                            </div>
+                                    @endif
+                                @endforeach
+
+                                </tbody>
+                                <tfoot>
+                                <tr>
+                                    <th colspan="2">الجــــــــــــــــمله</th>
+                                    <th>{{ number_format($debit, 2) }}</th>
+                                    <th>{{ number_format($credit, 2) }}</th>
+                                    <th>{{ number_format($currentBalance, 2) }}</th>
+                                </tr>
+                                </tfoot>
+                            </table>
                         </div>
                     </div>
+                </div>
+            @endif
 
-                    <div class="card mt-2">
-                        <div class="card-body invoice" dir="rtl">
-                            <div class="card-title">
-                                <div class="row">
-                                    <div class="col-4"><h5>مشتريات
-                                            : {{$currentPeople['name'] ?? ''}} بالتفصيل</h5>
-                                    </div>
-
+            @if(!empty($depositDebts))
+                <div class="card mt-2">
+                    <div class="card-body invoice" dir="rtl">
+                        <div class="card-title">
+                            <div class="row">
+                                <div class="col-4"><h5>العهد والأمانات
+                                        : {{$currentPeople['name'] ?? ''}}</h5>
                                 </div>
-                            </div>
-                            <div class="scroll">
-                                <table class="text-center printInvoice">
-                                    <thead>
-                                    <tr>
-                                        <th>التاريخ</th>
-                                        <th>البيان</th>
-                                        <th>سعر الوحده</th>
-                                        <th>الكمية</th>
-                                        <th>الجمله</th>
-                                    </tr>
-                                    </thead>
-                                    <tbody>
-                                    @foreach($purchaseDebts as $debt)
-                                        <tr>
-                                            <td>{{$debt['due_date']}}</td>
-                                            <td colspan="3">{{ $debt['note'] }}</td>
-                                            <td>{{ number_format($debt['debit'] != 0 ? $debt['debit'] : $debt['debit'], 2) }}</td>
-                                        </tr>
-                                        @if($debt['invoice_id'] != null)
-                                            @foreach(\App\Models\Purchase::find($debt['invoice_id'])->purchaseDetails as $product)
-                                                <tr>
-                                                    <td>{{ $debt['due_date'] }}</td>
-                                                    <td>{{ $product->product->productName }}</td>
-                                                    <td>{{ number_format($product->price,2) }}</td>
-                                                    <td>{{ number_format($product->quantity,2) }}</td>
-                                                    <td>{{ number_format($product->quantity * $product->price,2) }}</td>
-                                                </tr>
-                                            @endforeach
-                                        @endif
-                                    @endforeach
-                                    </tbody>
-                                </table>
+                                <div class="col-4"><h5>الرصيد : {{number_format($depositsBalance, 2)}}</h5></div>
+
                             </div>
                         </div>
-                    </div>
-                @endif
-
-                @if(!empty($employeeGifts))
-                    <div class="card mt-2">
-                        <div class="card-body invoice" dir="rtl">
-                            <div class="card-title">
-                                <div class="row">
-                                    <div class="col-4"><h5>مدفوعات الى
-                                            : {{$currentPeople['name'] ?? ''}}</h5>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="scroll">
-                                <table class="text-center printInvoice">
-                                    <thead>
-                                    <tr>
-                                        <th>التاريخ</th>
-                                        <th>البيان</th>
-                                        <th>المبلغ</th>
-                                    </tr>
-                                    </thead>
-                                    <tbody>
+                        <div class="scroll">
+                            <table class="text-center printInvoice">
+                                <thead>
+                                <tr>
+                                    <th>التاريخ</th>
+                                    <th>البيان</th>
+                                    <th>عليه</th>
+                                    <th>له</th>
+                                    <th>الرصيد</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                @php
+                                    $currentBalance = $currentPeople['initialDepositsBalance'];
+                                    $incomes = 0;
+                                    $expenses = $currentPeople['initialDepositsBalance'];
+                                @endphp
+                                <tr>
+                                    <td></td>
+                                    <td>الرصيد السابق</td>
+                                    <td>0</td>
+                                    <td>{{ number_format($currentPeople['initialDepositsBalance'], 2) }}</td>
+                                    <td>{{ number_format($currentBalance, 2) }}</td>
+                                </tr>
+                                @foreach($depositDebts as $debt)
                                     @php
-                                        $total = 0;
-                                    @endphp
-
-                                    @foreach($employeeGifts as $gift)
-                                        @if($gift['type'] == "salary")
-                                            <tr>
-                                                @php
-                                                    $total += $gift['debit'];
-                                                @endphp
-                                                <td>{{$gift['due_date']}}</td>
-                                                <td>{{$gift['note']}}</td>
-                                                <td>{{number_format($gift['debit'], 2)}}</td>
-                                            </tr>
-                                        @endif
-                                    @endforeach
-                                    </tbody>
-                                    <tfoot>
-                                    <tr>
-                                        <th colspan="2">الجــــــــــــــــمله</th>
-                                        <th>{{ number_format($total, 2) }}</th>
-                                    </tr>
-                                    </tfoot>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="card mt-2">
-                        <div class="card-body invoice" dir="rtl">
-                            <div class="card-title">
-                                <div class="row">
-                                    <div class="col-4"><h5>سحوبات
-                                            : {{$currentPeople['name'] ?? ''}}</h5>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="scroll">
-                                <table class="text-center printInvoice">
-                                    <thead>
-                                    <tr>
-                                        <th>التاريخ</th>
-                                        <th>البيان</th>
-                                        <th>عليه</th>
-                                        <th>له</th>
-                                        <th>الرصيد</th>
-                                    </tr>
-                                    </thead>
-                                    <tbody>
-                                    @php
-                                        $currentBalance = $currentPeople['initialGiftsBalance'];
-                                        $debit = 0;
-                                        $credit = $currentPeople['initialGiftsBalance'];
+                                        $expenses += $debt['type'] == 'pay' ? floatval($debt['amount']) : 0;
+                                        $incomes += $debt['type'] == 'debt' ? floatval($debt['amount']) : 0;
+                                        $currentBalance += floatval($debt['type'] == "pay" ? floatval($debt['amount']) : 0) - floatval($debt['type'] == "debt" ? floatval($debt['amount']) : 0);
                                     @endphp
                                     <tr>
-                                        <td></td>
-                                        <td>الرصيد السابق</td>
-                                        <td>{{ number_format($currentPeople['initialGiftsBalance'], 2) }}</td>
-                                        <td>0</td>
-                                        <td>{{ number_format($currentBalance, 2) }}</td>
+                                        <td>{{$debt['due_date']}}</td>
+                                        <td>{{ $debt['note'] }}</td>
+                                        <td>{{ $debt['type'] == "debt" ? number_format($debt['amount'], 2) : 0 }}</td>
+                                        <td>{{ $debt['type'] == "pay" ? number_format($debt['amount'], 2) : 0 }}</td>
+                                        <td>{{number_format($currentBalance, 2)}}</td>
                                     </tr>
-                                    @foreach($employeeGifts as $debt)
-                                        @if($debt['type'] != "salary")
-                                            @php
-                                                $debit += floatval($debt['debit']);
-                                                $credit += floatval($debt['credit']);
-                                                $currentBalance = $debit - $credit;
-                                            @endphp
-                                            <tr>
-                                                <td>{{$debt['due_date']}}</td>
-                                                <td @if($debt['invoice_id'] != null) data-bs-toggle="modal"
-                                                    data-bs-target="#printModal"
-                                                    wire:click="getInvoice({{$debt['invoice_id']}}, '{{$debt['tableName']}}')"
-                                                    @endif>{{ $debt['note'] }}</td>
-                                                <td>{{ number_format($debt['debit'], 2) }}</td>
-                                                <td>{{ number_format($debt['credit'], 2) }}</td>
-                                                <td>{{number_format($currentBalance, 2)}}</td>
-                                            </tr>
-                                        @endif
-                                    @endforeach
-
-                                    </tbody>
-                                    <tfoot>
-                                    <tr>
-                                        <th colspan="2">الجــــــــــــــــمله</th>
-                                        <th>{{ number_format($debit, 2) }}</th>
-                                        <th>{{ number_format($credit, 2) }}</th>
-                                        <th>{{ number_format($currentBalance, 2) }}</th>
-                                    </tr>
-                                    </tfoot>
-                                </table>
-                            </div>
+                                @endforeach
+                                </tbody>
+                                <tfoot>
+                                <tr>
+                                    <th colspan="2">الجــــــــــــــــمله</th>
+                                    <th>{{ number_format($incomes, 2) }}</th>
+                                    <th>{{ number_format($expenses, 2) }}</th>
+                                    <th>{{ number_format($currentBalance, 2) }}</th>
+                                </tr>
+                                </tfoot>
+                            </table>
                         </div>
                     </div>
-                @endif
-
-                @if(!empty($depositDebts))
-                    <div class="card mt-2">
-                        <div class="card-body invoice" dir="rtl">
-                            <div class="card-title">
-                                <div class="row">
-                                    <div class="col-4"><h5>العهد والأمانات
-                                            : {{$currentPeople['name'] ?? ''}}</h5>
-                                    </div>
-                                    <div class="col-4"><h5>الرصيد : {{number_format($depositsBalance, 2)}}</h5></div>
-
-                                </div>
-                            </div>
-                            <div class="scroll">
-                                <table class="text-center printInvoice">
-                                    <thead>
-                                    <tr>
-                                        <th>التاريخ</th>
-                                        <th>البيان</th>
-                                        <th>عليه</th>
-                                        <th>له</th>
-                                        <th>الرصيد</th>
-                                    </tr>
-                                    </thead>
-                                    <tbody>
-                                    @php
-                                        $currentBalance = $currentPeople['initialDepositsBalance'];
-                                        $incomes = 0;
-                                        $expenses = $currentPeople['initialDepositsBalance'];
-                                    @endphp
-                                    <tr>
-                                        <td></td>
-                                        <td>الرصيد السابق</td>
-                                        <td>0</td>
-                                        <td>{{ number_format($currentPeople['initialDepositsBalance'], 2) }}</td>
-                                        <td>{{ number_format($currentBalance, 2) }}</td>
-                                    </tr>
-                                    @foreach($depositDebts as $debt)
-                                        @php
-                                            $expenses += $debt['type'] == 'pay' ? floatval($debt['amount']) : 0;
-                                            $incomes += $debt['type'] == 'debt' ? floatval($debt['amount']) : 0;
-                                            $currentBalance += floatval($debt['type'] == "pay" ? floatval($debt['amount']) : 0) - floatval($debt['type'] == "debt" ? floatval($debt['amount']) : 0);
-                                        @endphp
-                                        <tr>
-                                            <td>{{$debt['due_date']}}</td>
-                                            <td>{{ $debt['note'] }}</td>
-                                            <td>{{ $debt['type'] == "debt" ? number_format($debt['amount'], 2) : 0 }}</td>
-                                            <td>{{ $debt['type'] == "pay" ? number_format($debt['amount'], 2) : 0 }}</td>
-                                            <td>{{number_format($currentBalance, 2)}}</td>
-                                        </tr>
-                                    @endforeach
-                                    </tbody>
-                                    <tfoot>
-                                    <tr>
-                                        <th colspan="2">الجــــــــــــــــمله</th>
-                                        <th>{{ number_format($incomes, 2) }}</th>
-                                        <th>{{ number_format($expenses, 2) }}</th>
-                                        <th>{{ number_format($currentBalance, 2) }}</th>
-                                    </tr>
-                                    </tfoot>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                @endif
+                </div>
+            @endif
         @endif
 
     @elseif($reportType == 'sales' && !empty($sales))
@@ -1277,7 +1287,7 @@
                             @endif
                             @foreach($trackingProducts as $item)
                                 <tr @if($item['invoice_id'] != null) data-bs-toggle="modal" data-bs-target="#printModal"
-                                     wire:click="getInvoice({{$item['invoice_id']}}, '{{$item['tableName']}}')" @endif>
+                                    wire:click="getInvoice({{$item['invoice_id']}}, '{{$item['tableName']}}')" @endif>
                                     @php
                                         $currentStock += floatval($item['income']) - floatval($item['expense']);
                                         $income += floatval($item['income']);
@@ -1520,8 +1530,12 @@
                             <th>الجهة</th>
                             <th>البيان</th>
                             <th>وسيلة الدفع</th>
-                            <th>الوارد</th>
-                            <th>الصادر</th>
+                            @if($showType == "income" || $showType == null)
+                                <th>الوارد</th>
+                            @endif
+                            @if($showType == "expense" || $showType == null)
+                                <th>الصادر</th>
+                            @endif
                         </tr>
                         </thead>
                         <tbody>
@@ -1537,8 +1551,12 @@
                                 <td></td>
                                 <td>رصيد الخزنه السابق</td>
                                 <td>كاش</td>
-                                <td>{{ number_format($initialSafeBalance, 2) }}</td>
-                                <td>0</td>
+                                @if($showType == "income" || $showType == null)
+                                    <td>{{ number_format($initialSafeBalance, 2) }}</td>
+                                @endif
+                                @if($showType == "expense" || $showType == null)
+                                    <td>0</td>
+                                @endif
                             </tr>
                         @endif
                         @if($payment == "bank" || $payment == "")
@@ -1548,8 +1566,12 @@
                                 <td></td>
                                 <td>رصيد البنك السابق</td>
                                 <td>بنك</td>
-                                <td>{{ number_format($initialBankBalance, 2) }}</td>
-                                <td>0</td>
+                                @if($showType == "income" || $showType == null)
+                                    <td>{{ number_format($initialBankBalance, 2) }}</td>
+                                @endif
+                                @if($showType == "expense" || $showType == null)
+                                    <td>0</td>
+                                @endif
                             </tr>
                         @endif
                         @foreach($statements as $statement)
@@ -1567,8 +1589,12 @@
                                         wire:click="getInvoice({{$statement['invoice_id']}}, '{{$statement['tableName']}}')"
                                         style="cursor:pointer;" @endif >{{ $statement['note'] }}</td>
                                     <td>{{ $statement['payment'] == "cash" ? "كاش" : ($statement['payment']== "bank" ? "بنك" : "") }}</td>
-                                    <td>{{ $statement['real'] ? number_format($statement['credit'], 2) : 0 }}</td>
-                                    <td>{{ $statement['real'] ? number_format($statement['debit'], 2) : 0 }}</td>
+                                    @if($showType == "income" || $showType == null)
+                                        <td>{{ $statement['real'] ? number_format($statement['credit'], 2) : 0 }}</td>
+                                    @endif
+                                    @if($showType == "expense" || $showType == null)
+                                        <td>{{ $statement['real'] ? number_format($statement['debit'], 2) : 0 }}</td>
+                                    @endif
                                 </tr>
                             @endif
                         @endforeach
@@ -1576,8 +1602,12 @@
                         <tfoot>
                         <tr>
                             <th colspan="5">الجمـــــــــــــــلة</th>
-                            <th>{{ number_format($credit, 2) }}</th>
-                            <th>{{ number_format($debit, 2) }}</th>
+                            @if($showType == "income" || $showType == null)
+                                <th>{{ number_format($credit, 2) }}</th>
+                            @endif
+                            @if($showType == "expense" || $showType == null)
+                                <th>{{ number_format($debit, 2) }}</th>
+                            @endif
                         </tr>
                         </tfoot>
                     </table>
@@ -1616,8 +1646,12 @@
                             <th>رقم الفاتوره</th>
                             <th>الجهة</th>
                             <th>رقم الإشعار</th>
-                            <th>الوارد</th>
-                            <th>الصادر</th>
+                            @if($showType == "income" || $showType == null)
+                                <th>الوارد</th>
+                            @endif
+                            @if($showType == "expense" || $showType == null)
+                                <th>الصادر</th>
+                            @endif
                         </tr>
                         </thead>
                         <tbody>
@@ -1632,8 +1666,12 @@
                                 <td></td>
                                 <td>رصيد الخزنه السابق</td>
                                 <td></td>
-                                <td>{{ number_format($initialSafeBalance, 2) }}</td>
-                                <td>0</td>
+                                @if($showType == "income" || $showType == null)
+                                    <td>{{ number_format($initialSafeBalance, 2) }}</td>
+                                @endif
+                                @if($showType == "income" || $showType == null)
+                                    <td>0</td>
+                                @endif
                             </tr>
                         @endif
                         @if($payment == "bank" || $payment == "")
@@ -1642,8 +1680,12 @@
                                 <td></td>
                                 <td>رصيد البنك السابق</td>
                                 <td></td>
-                                <td>{{ number_format($initialBankBalance, 2) }}</td>
-                                <td>0</td>
+                                @if($showType == "income" || $showType == null)
+                                    <td>{{ number_format($initialBankBalance, 2) }}</td>
+                                @endif
+                                @if($showType == "expense" || $showType == null)
+                                    <td>0</td>
+                                @endif
                             </tr>
                         @endif
                         @foreach($statements as $statement)
@@ -1658,10 +1700,16 @@
                                     <td @if($statement['invoice_id'] != null) data-bs-toggle="modal"
                                         data-bs-target="#printModal"
                                         wire:click="getInvoice({{$statement['invoice_id']}}, '{{$statement['tableName']}}')"
-                                        style="cursor:pointer;" @endif >{{ $statement['note'] }} @if($statement['ownerName'] != null) {{ " | " . $statement['ownerName'] }} @endif</td>
+                                        style="cursor:pointer;" @endif >{{ $statement['note'] }} @if($statement['ownerName'] != null)
+                                            {{ " | " . $statement['ownerName'] }}
+                                        @endif</td>
                                     <td>{{ $statement['bank'] }}</td>
-                                    <td>{{ $statement['real'] ? number_format($statement['credit'], 2) : 0 }}</td>
-                                    <td>{{ $statement['real'] ? number_format($statement['debit'], 2) : 0 }}</td>
+                                    @if($showType == "income" || $showType == null)
+                                        <td>{{ $statement['real'] ? number_format($statement['credit'], 2) : 0 }}</td>
+                                    @endif
+                                    @if($showType == "expense" || $showType == null)
+                                        <td>{{ $statement['real'] ? number_format($statement['debit'], 2) : 0 }}</td>
+                                    @endif
                                 </tr>
                             @endif
                         @endforeach
@@ -1669,8 +1717,12 @@
                         <tfoot>
                         <tr>
                             <th colspan="4">الجمـــــــــــــــلة</th>
-                            <th>{{ number_format($credit, 2) }}</th>
-                            <th>{{ number_format($debit, 2) }}</th>
+                            @if($showType == "income" || $showType == null)
+                                <th>{{ number_format($credit, 2) }}</th>
+                            @endif
+                            @if($showType == "expense" || $showType == null)
+                                <th>{{ number_format($debit, 2) }}</th>
+                            @endif
                         </tr>
                         </tfoot>
                     </table>

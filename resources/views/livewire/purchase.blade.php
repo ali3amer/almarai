@@ -15,7 +15,8 @@
                             <button data-bs-dismiss="modal" class="btn btn-danger"
                                     wire:click="deleteMessage({{$invoice['id']}})"><i class="bi bi-trash"></i>
                             </button>
-
+                        @endif
+                        @if(!empty($invoice) && $editMode && isset($invoice['id']))
                             <button class="btn btn-warning" data-bs-dismiss="modal" aria-label="Close"
                                     wire:click="choosePurchase({{$invoice['id']}})"><i class="bi bi-pen"></i>
                             </button>
@@ -68,7 +69,7 @@
                                     <div class="col-4 align-self-center"><h5>المنتجات</h5></div>
                                     <div class="col-8"><input autocomplete="off" type="text" id="productSearch"
                                                               placeholder="بحث ..."
-                                                              @if(!empty($products)) wire:keydown.enter="chooseProduct({{$products->first()}})"
+                                                              @if(!empty($products)) wire:keydown.enter="chooseProduct({{$products->first()->id}})"
                                                               @endif
                                                               class="form-control"
                                                               wire:model.live="productSearch" autofocus></div>
@@ -92,7 +93,7 @@
                                             <td>{{number_format($product->stock, 2)}}</td>
                                             <td>
                                                 <button
-                                                    wire:click="chooseProduct({{$product}})"
+                                                    wire:click="chooseProduct({{$product->id}})"
                                                     class="btn btn-primary btn-sm">+
                                                 </button>
                                             </td>
@@ -170,10 +171,11 @@
                                             <div class="col-4"><h5>الفاتوره {{$id != 0 ? '#'. $id : ''}}</h5></div>
 
                                             <div class="col-4">
-                                                <select @disabled($banks->count() == 0) wire:model.live="payment"
+                                                <select @disabled($banks->count() == 0 ) wire:model.live="payment"
                                                         class="form-select">
                                                     <option value="cash">كاش</option>
                                                     <option value="bank">بنك</option>
+                                                    <option value="parts">جزء كاش وجزء بنك</option>
                                                 </select>
                                             </div>
                                             <div class="col-4">
@@ -225,6 +227,12 @@
                                                     <td>{{number_format($item['amount'], 2)}}</td>
                                                     <td>
                                                         <button wire:loading.attr="disabled"
+                                                                wire:click="chooseProduct({{$item['product_id']}}, true)"
+                                                                class="btn btn-primary btn-sm btn-info"><i
+                                                                class="bi text-white bi-pen"></i>
+                                                        </button>
+                                                        /
+                                                        <button wire:loading.attr="disabled"
                                                                 wire:click="deleteFromCart({{$item['product_id']}})"
                                                                 class="btn btn-primary btn-sm btn-danger"><i
                                                                 class="bi bi-trash-fill"></i>
@@ -265,13 +273,24 @@
                                                 <td>{{number_format($amount, 2)}}</td>
                                             </tr>
                                             <tr>
-                                                <td>المدفوع</td>
+                                                <td>كاش</td>
                                                 <td><input autocomplete="off" type="text" min="0"
                                                            wire:keydown="calcRemainder()"
                                                            wire:model.live="paid"
                                                            @disabled(session("closed") && $payment == "cash")
                                                            class="form-control text-center">
                                                 </td>
+                                                <td>بنك</td>
+                                                <td><input autocomplete="off" type="text" min="0"
+                                                           wire:keydown="calcRemainder()"
+                                                           wire:model.live="bank_paid"
+                                                           @disabled($payment == "cash")
+                                                           class="form-control text-center">
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>المدفوع</td>
+                                                <td>{{number_format($paid + $bank_paid, 2)}}</td>
                                             </tr>
                                             <tr>
                                                 <td>المتبقي</td>
@@ -301,7 +320,7 @@
                                         <div class="col-4 align-self-center"><h5>الفواتير</h5></div>
                                         <div class="col-8"><input autocomplete="off" type="text" id="purchaseSearch"
                                                                   placeholder="بحث ..."
-                                                                  @if(!empty($products)) wire:keydown.enter="chooseProduct({{$products->first()}})"
+                                                                  @if(!empty($products)) wire:keydown.enter="chooseProduct({{$products->first()->id}})"
                                                                   @endif
                                                                   class="form-control"
                                                                   wire:model.live="purchaseSearch" autofocus></div>
@@ -326,8 +345,14 @@
                                                 <td>{{$purchase->due_date}}</td>
                                                 <td>{{number_format($purchase->amount, 2)}}</td>
                                                 <td>
-                                                    @if($purchase->paid > 0)
-                                                        {{ $purchase->payment == "cash" ? "كاش" : "بنك" }}
+                                                    @if($purchase->paid + $purchase->bank_paid > 0)
+                                                        @if($purchase->payment == "cash")
+                                                            كاش
+                                                        @elseif($purchase->payment == "bank")
+                                                            بنك
+                                                        @else
+                                                            جزء كاش وجزء بنك
+                                                        @endif
                                                     @endif
                                                 </td>
                                             </tr>

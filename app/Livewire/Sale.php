@@ -50,6 +50,7 @@ class Sale extends Component
     public $cost = 0;
     public $amount = 0;
     public $paid = 0;
+    public $bank_paid = 0;
     public string $payment = 'cash';
     public $bank = '';
 
@@ -108,6 +109,7 @@ class Sale extends Component
                 'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
                 'bank' => $this->bank,
                 'paid' => floatval($this->paid),
+                'bank_paid' => floatval($this->bank_paid),
                 'remainder' => $this->currentClient['cash'] ? 0 : floatval($this->remainder),
                 'discount' => floatval($this->discount),
                 'amount' => floatval($this->amount),
@@ -142,11 +144,11 @@ class Sale extends Component
                 'bank_id' => $this->payment == 'bank' ? $this->bank_id : null,
                 'bank' => $this->bank,
                 'paid' => floatval($this->paid),
+                'bank_paid' => floatval($this->bank_paid),
                 'remainder' => $this->currentClient['cash'] ? 0 : floatval($this->remainder),
                 'discount' => floatval($this->discount),
                 'amount' => floatval($this->amount),
                 'note' => $this->note,
-                'due_date' => $this->due_date,
                 'user_id' => auth()->id(),
             ]);
 
@@ -191,6 +193,7 @@ class Sale extends Component
         $this->invoice['remainder'] = $this->remainder;
         $this->invoice['discount'] = floatval($this->discount);
         $this->invoice['paid'] = floatval($this->paid);
+        $this->invoice['bank_paid'] = floatval($this->bank_paid);
         $this->invoice['cost'] = floatval($this->cost);
         $this->invoice['amount'] = floatval($this->amount);
         $this->invoice['showMode'] = false;
@@ -294,6 +297,7 @@ class Sale extends Component
             $this->cost = 0;
             $this->remainder = 0;
             $this->paid = 0;
+            $this->bank_paid = 0;
             $this->discount = 0;
         }
         $this->calcRemainder();
@@ -329,6 +333,7 @@ class Sale extends Component
         $this->invoice['services'] = Service::where('sale_id', $sale['id'])->select("id", "serviceName", "amount As serviceAmount")->get()->toArray();
         $this->invoice['remainder'] = floatval($sale['remainder']);
         $this->invoice['paid'] = floatval($sale['paid']);
+        $this->invoice['bank_paid'] = floatval($sale['bank_paid']);
         $this->invoice['discount'] = floatval($sale['discount']);
         $this->invoice['cost'] = floatval($sale['amount']) + floatval($sale['discount']);
         $this->invoice['amount'] = $sale['amount'];
@@ -348,6 +353,7 @@ class Sale extends Component
         $this->bank = $this->invoice['bank'];
         $this->bank_id = $this->invoice['bank_id'];
         $this->paid = floatval($this->invoice['paid']);
+        $this->bank_paid = floatval($this->invoice['bank_paid']);
         $this->remainder = floatval($this->invoice['remainder']);
         $this->discount = floatval($this->invoice['discount']);
         $this->amount = floatval($this->invoice['amount']);
@@ -409,7 +415,7 @@ class Sale extends Component
             $this->paid = $this->amount;
             $this->remainder = 0;
         } else {
-            $this->remainder = floatval($this->amount) - floatval($this->paid);
+            $this->remainder = floatval($this->amount) - floatval($this->paid) - floatval($this->bank_paid);
         }
     }
 
@@ -441,7 +447,7 @@ class Sale extends Component
             $barcode = \App\Models\Product::where("barcode", $this->productSearch)->first();
 
             if ($barcode) {
-                $this->chooseProduct($barcode);
+                $this->chooseProduct($barcode->id);
             }
         }
 

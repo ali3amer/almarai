@@ -15,12 +15,15 @@
                             <button data-bs-dismiss="modal" class="btn btn-danger"
                                     wire:click="deleteMessage({{$invoice['id']}})"><i class="bi bi-trash"></i>
                             </button>
+                        @endif
 
+                        @if(!empty($invoice) && $editMode && isset($invoice['id']))
                             <button class="btn btn-warning" data-bs-dismiss="modal" aria-label="Close"
                                     wire:click="chooseSale({{$invoice['id']}})"><i class="bi bi-pen"></i>
                             </button>
                         @endif
-                        @if(!empty($invoice) && !$editMode && !isset($invoice['id']) && !session("closed") && $invoice['date'] == session("date") && ($payment == "cash" || ($payment == "bank" && $bank != "")))
+
+                        @if(!empty($invoice) && !$editMode && !isset($invoice['id']))
                             <button class="btn btn-success" wire:loading.class="visually-hidden"
                                     @if($id == 0) wire:click="save()" @else wire:click="editMessage()" @endif><i
                                     class="bi bi-bookmark-check"></i>
@@ -177,6 +180,7 @@
                                                         class="form-select">
                                                     <option value="cash">كاش</option>
                                                     <option value="bank">بنك</option>
+                                                    <option value="parts">جزء كاش وجزء بنك</option>
                                                 </select>
                                             </div>
                                             <div class="col-4">
@@ -232,7 +236,8 @@
                                                                 wire:click="chooseProduct({{$item['product_id']}}, true)"
                                                                 class="btn btn-primary btn-sm btn-info"><i
                                                                 class="bi text-white bi-pen"></i>
-                                                        </button> /
+                                                        </button>
+                                                        /
                                                         <button wire:loading.attr="disabled"
                                                                 wire:click="deleteFromCart({{$item['product_id']}})"
                                                                 class="btn btn-primary btn-sm btn-danger"><i
@@ -274,13 +279,24 @@
                                                 <td>{{number_format($amount, 2)}}</td>
                                             </tr>
                                             <tr>
-                                                <td>المدفوع</td>
+                                                <td>كاش</td>
                                                 <td><input autocomplete="off" type="text" min="0"
                                                            wire:keydown="calcRemainder()"
                                                            wire:model.live="paid"
                                                            @disabled(session("closed") && $payment == "cash")
                                                            class="form-control text-center">
                                                 </td>
+                                                <td>بنك</td>
+                                                <td><input autocomplete="off" type="text" min="0"
+                                                           wire:keydown="calcRemainder()"
+                                                           wire:model.live="bank_paid"
+                                                           @disabled($payment == "cash")
+                                                           class="form-control text-center">
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>المدفوع</td>
+                                                <td>{{number_format(floatval($paid) + floatval($bank_paid), 2)}}</td>
                                             </tr>
                                             <tr>
                                                 <td>المتبقي</td>
@@ -335,8 +351,14 @@
                                                 <td>{{$sale->due_date}}</td>
                                                 <td>{{number_format($sale->amount, 2)}}</td>
                                                 <td>
-                                                    @if($sale->paid > 0)
-                                                        {{ $sale->payment == "cash" ? "كاش" : "بنك"}}
+                                                    @if($sale->paid + $sale->bank_paid > 0)
+                                                        @if($sale->payment == "cash")
+                                                            كاش
+                                                        @elseif($sale->payment == "bank")
+                                                            بنك
+                                                        @else
+                                                            جزء كاش وجزء بنك
+                                                        @endif
                                                     @endif
                                                 </td>
                                             </tr>

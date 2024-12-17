@@ -38,6 +38,7 @@ class Report extends Component
 
     public string $title = 'التقارير';
     public bool $show = false;
+    public $showType = null;
 
 
     public string $reportType = '';
@@ -552,6 +553,7 @@ class Report extends Component
 
         $this->invoice['date'] = $invoice['due_date'];
         $this->invoice['paid'] = $row['paid'];
+        $this->invoice['bank_paid'] = $row['bank_paid'];
         $this->invoice['remainder'] = $row['remainder'];
         $this->invoice['amount'] = $row['amount'];
         $this->invoice['discount'] = floatval($row['discount']);

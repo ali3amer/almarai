@@ -295,23 +295,23 @@ class Settings extends Component
 
     public function fixData()
     {
-        $gifts = EmployeeGift::all();
-        foreach ($gifts as $gift) {
-            SaleDebt::create([
-                'people_id' => $gift['people_id'],
-                'type' => $gift['type'] == "salary" ? "discount" : $gift['type'],
-                'amount' => floatval($gift['amount']),
-                'payment' => $gift['payment'],
-                'bank_id' => $gift['bank_id'],
-                'bank' => $gift['bank'],
-                'due_date' => $gift['due_date'],
-                'note' => $gift['type'] == "salary" ? "خصم (مرتب)" : $gift['note'],
-                'user_id' => auth()->id(),
-                'created_at' => $gift['created_at'],
-                'updated_at' => $gift['updated_at'],
-            ]);
+        $sales = \App\Models\Sale::all();
+        $purchases = \App\Models\Purchase::all();
 
-            $gift->delete();
+        foreach ($sales as $sale) {
+            if ($sale->payment == "bank") {
+                $sale->bank_paid = floatval($sale->paid);
+                $sale->paid = 0;
+                $sale->save();
+            }
+        }
+
+        foreach ($purchases as $purchase) {
+            if ($purchase->payment == "bank") {
+                $purchase->bank_paid = floatval($purchase->paid);
+                $purchase->paid = 0;
+                $purchase->save();
+            }
         }
     }
 }
