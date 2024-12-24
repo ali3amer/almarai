@@ -50,6 +50,7 @@ class Report extends Component
     public string $reportDuration = '';
 
     public array $currentPeople = [];
+    public array $prices = [];
     public array $currentProduct = [];
     public array $cart = [];
 
@@ -63,6 +64,7 @@ class Report extends Component
         'supplier' => 'تقرير مورد',
         'deposit' => 'تقرير العهد والأمانات',
         'sales' => 'تقرير مبيعات',
+        'percent' => 'تقرير نسبة المبيعات',
         'purchases' => 'تقرير مشتريات',
         'expenses' => 'تقرير المصروفات',
         'tracking' => 'تقرير متابعة حركة صنف',
@@ -350,7 +352,7 @@ class Report extends Component
                 $this->statements = collect($allMovements)->sortBy('due_date')->toArray();
             }
 
-        } elseif ($this->reportType == 'sales') {  // sale
+        } elseif ($this->reportType == 'sales' || $this->reportType == 'percent') {  // sale
 
             $sales = SaleDetail::join('sales', 'sales.id', '=', 'sale_details.sale_id')
                 ->join('products', 'products.id', '=', 'sale_details.product_id')
@@ -555,6 +557,7 @@ class Report extends Component
         $this->invoice['paid'] = $row['paid'];
         $this->invoice['bank_paid'] = $row['bank_paid'];
         $this->invoice['remainder'] = $row['remainder'];
+        $this->invoice['payment'] = $row['payment'];
         $this->invoice['amount'] = $row['amount'];
         $this->invoice['discount'] = floatval($row['discount']);
         $this->invoice['cost'] = $row['amount'] + floatval($row['discount']);
@@ -581,7 +584,7 @@ class Report extends Component
         }
         if ($this->reportType == 'client' || $this->reportType == 'supplier' || $this->reportType == 'employee' || $this->reportType == 'deposit') {
             $this->clients = \App\Models\People::where("type", $this->reportType)->where('name', 'LIKE', '%' . $this->clientSearch . '%')->get();
-        } elseif ($this->reportType == 'sales' || $this->reportType == 'purchases' || $this->reportType == 'tracking') {
+        } elseif ($this->reportType == 'sales' || $this->reportType == 'percent' || $this->reportType == 'purchases' || $this->reportType == 'tracking') {
             if ($this->store_id == 0) {
                 $this->products = \App\Models\Product::where('productName', 'LIKE', '%' . $this->productSearch . '%')->get();
             } else {

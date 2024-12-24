@@ -119,7 +119,7 @@ class Purchase extends Model
                     "real" => true,
                     "invoice_id" => $purchase->id,
                     "id" => $purchase->id,
-                    "debit" => $purchase->paid,
+                    "debit" => $purchase->bank_paid,
                     "credit" => 0,
                     "due_date" => $purchase->due_date,
                     "payment" => "bank",

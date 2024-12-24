@@ -21,7 +21,7 @@
                                     wire:click="choosePurchase({{$invoice['id']}})"><i class="bi bi-pen"></i>
                             </button>
                         @endif
-                        @if(!empty($invoice) && !$editMode && !isset($invoice['id']) && !session("closed") && $invoice['date'] == session("date") && ($payment == "cash" || ($payment == "bank" && $bank != "")))
+                        @if(!empty($invoice) && !$editMode && !isset($invoice['id']))
                             <button class="btn btn-success" wire:loading.class="visually-hidden"
                                     @if($id == 0) wire:click="save()" @else wire:click="editMessage()" @endif><i
                                     class="bi bi-bookmark-check"></i>
@@ -55,7 +55,7 @@
                                     style="cursor: pointer"><i class="bi bi-pen"></i></button>
                             <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#printModal"
                                     style="cursor: pointer"
-                                    wire:click="showInvoice()" @disabled(empty($cart) && empty($services)) @disabled(session("closed") && (floatval($paid) != 0 && $payment == "cash"))>
+                                    wire:click="showInvoice()" @disabled(empty($cart) && empty($services)) @disabled($paid < 0 || $bank_paid < 0) @disabled(session("closed") && (floatval($paid) != 0 && $payment == "cash"))>
                                 <i
                                     class="bi bi-bookmark-check"></i></button>
                             <button class="btn btn-danger"

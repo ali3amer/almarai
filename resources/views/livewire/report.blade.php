@@ -212,7 +212,7 @@
                         <input data-bs-toggle="modal" wire:model="currentPeople.name" readonly
                                placeholder="الإسم ...." class="form-control" data-bs-target="#peopleModal">
                     @endif
-                    @if($reportType =='inventory' || $reportType =='sales' || $reportType =='purchases' || $reportType =='tracking')
+                    @if($reportType =='inventory' || $reportType =='sales'|| $reportType =='percent' || $reportType =='purchases' || $reportType =='tracking')
                         <label for="store_id">المخزن</label>
                         <select class="form-select mt-2" wire:model.live="store_id" id="store_id">
                             <option value="0">-----------------</option>
@@ -221,7 +221,7 @@
                             @endforeach
                         </select>
 
-                        @if($store_id != 0 && ($reportType =='sales' || $reportType =='purchases' || $reportType =='tracking'))
+                        @if($store_id != 0 && ($reportType =='sales' || $reportType =='percent' || $reportType =='purchases' || $reportType =='tracking'))
                             <label for="product">المنتج</label>
                             <input id="product" data-bs-toggle="modal" wire:model="currentProduct.productName" readonly
                                    placeholder="إسم المنتج ...." class="form-control" data-bs-target="#productModal">
@@ -1182,6 +1182,71 @@
                 </div>
             </div>
         </div>
+    @elseif($reportType == 'percent')
+
+        <div class="card mt-2">
+            <div class="card-body invoice" dir="rtl">
+                <div class="card-title">
+                    <div class="row">
+                        <div class="col-3">
+                            <h5>نسبة الارباح من المبيعات</h5>
+                        </div>
+                        <div class="col-2">
+                            <input type="text" class="form-control text-center" wire:model.live="percent">
+                        </div>
+                    </div>
+                </div>
+                <div class="scroll">
+                    <table class="text-center printInvoice">
+                        <thead>
+                        <tr>
+                            <th>التاريخ</th>
+                            <th>إسم المنتج</th>
+                            <th>الكميه المباعة</th>
+                            <th>الكميه المطلوبة</th>
+                            <th>سعر اليوم</th>
+                            <th>الجمله</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        @foreach($sales as $index => $sale)
+                            @php $amount = $sale['quantity'] * floatval($percent) / 100; @endphp
+                            <tr>
+                                <td data-bs-toggle="modal" data-bs-target="#printModal"
+                                    wire:click="getInvoice({{$sale['sale_id']}}, 'sales')">{{$sale['due_date']}}</td>
+                                <td>{{ $sale['productName'] }}</td>
+                                <td>{{number_format($sale['quantity'], 2)}}</td>
+                                <td>{{$amount}}</td>
+                                <td><input wire:model.live="prices.{{$index}}" class="form-control text-center" /></td>
+                                <td>
+                                    @if(isset($prices[$index]))
+                                        {{ number_format($prices[$index] * $amount, 2) }}
+                                    @else
+                                        0
+                                    @endif
+                                </td>
+                            </tr>
+                        @endforeach
+                        </tbody>
+                        <tfoot>
+                        @if(!empty($currentProduct))
+                            <tr>
+                                <th colspan="4">الجــــــــــــــــــــملة</th>
+                                <th>{{number_format($quantity, 2)}}</th>
+                                <th>{{number_format($sum, 2)}}</th>
+                            </tr>
+                        @else
+                            <tr>
+                                <td colspan="5">الجــــــــــــــــــــملة</td>
+                                <td>{{number_format($sum, 2)}}</td>
+                            </tr>
+                        @endif
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+
     @elseif($reportType == 'purchases' && !empty($purchases))
         <div class="card mt-2">
             <div class="card-body invoice" dir="rtl">

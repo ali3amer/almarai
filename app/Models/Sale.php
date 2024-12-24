@@ -128,7 +128,7 @@ class Sale extends Model
                     "invoice_id" => $sale->id,
                     "id" => $sale->id,
                     "debit" => 0,
-                    "credit" => $sale->paid,
+                    "credit" => $sale->bank_paid,
                     "due_date" => $sale->due_date,
                     "payment" => "bank",
                     "bank" => $sale->bank,

@@ -190,6 +190,7 @@ class Sale extends Component
         $this->invoice['client'] = $this->currentClient['name'];
         $this->invoice['cart'] = $this->cart;
         $this->invoice['services'] = $this->services;
+        $this->invoice['payment'] = $this->payment;
         $this->invoice['remainder'] = $this->remainder;
         $this->invoice['discount'] = floatval($this->discount);
         $this->invoice['paid'] = floatval($this->paid);
@@ -212,19 +213,18 @@ class Sale extends Component
         }
     }
 
-    public function chooseProduct($id,bool $edit = false)
+    public function chooseProduct($id, bool $edit = false)
     {
         $product = \App\Models\Product::find($id);
-        $stock = $edit ? round($product->stock, 3) + $this->cart[$product->id]['quantity'] : round($product->stock, 3);
-        if ($product->stock > 0) {
+        $stock = $edit && $this->id != 0 ? round($product->stock, 3) + $this->cart[$product->id]['quantity'] : round($product->stock, 3);
+        if ($stock > 0) {
             $this->currentProduct = $product->toArray();
             $this->currentProduct['quantity'] = $edit ? $this->cart[$product->id]['quantity'] : 1;
             $this->currentProduct['price'] = floatval($product['sale_price']);
             $this->currentProduct['amount'] = floatval($product['sale_price']);
-            $this->currentProduct['stock'] =  $stock;
+            $this->currentProduct['stock'] = $stock;
             $this->productSearch = '';
         }
-
         if ($edit) {
             $this->deleteFromCart($id);
         }
@@ -412,8 +412,15 @@ class Sale extends Component
     {
         $this->amount = $this->cost - floatval($this->discount);
         if ($this->currentClient['cash'] && $this->buyer == "client") {
-            $this->paid = $this->amount;
-            $this->remainder = 0;
+            if ($this->payment == "cash") {
+                $this->paid = $this->amount;
+                $this->bank_paid = 0;
+            } elseif ($this->payment == "bank") {
+                $this->bank_paid = $this->amount;
+                $this->paid = 0;
+            } else {
+                $this->bank_paid = floatval($this->amount) - floatval($this->paid);
+            }
         } else {
             $this->remainder = floatval($this->amount) - floatval($this->paid) - floatval($this->bank_paid);
         }

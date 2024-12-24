@@ -19,8 +19,8 @@ class Bank extends Model
     public function getCurrentBalanceAttribute()
     {
         return $this->initialBalance
-            + Sale::where("bank_id", $this->id)->where("payment", "bank")->sum("paid")
-            - Purchase::where("bank_id", $this->id)->where("payment", "bank")->sum("paid")
+            + Sale::where("bank_id", $this->id)->where("payment", "bank")->sum("bank_paid")
+            - Purchase::where("bank_id", $this->id)->where("payment", "bank")->sum("bank_paid")
             + SaleDebt::where("bank_id", $this->id)->where("type", "pay")->where("payment", "bank")->sum("amount")
             - SaleDebt::where("bank_id", $this->id)->where("type", "debt")->where("payment", "bank")->sum("amount")
             + DepositDebt::where("bank_id", $this->id)->where("type", "pay")->where("payment", "bank")->sum("amount")
@@ -39,8 +39,8 @@ class Bank extends Model
     {
         $initial = Bank::where("startingDate", $date)->sum("initialBalance");
         return $initial
-            + Sale::where("payment", "bank")->where("due_date", $date)->sum("paid")
-            - Purchase::where("payment", "bank")->where("due_date", $date)->sum("paid")
+            + Sale::where("payment", "bank")->where("due_date", $date)->sum("bank_paid")
+            - Purchase::where("payment", "bank")->where("due_date", $date)->sum("bank_paid")
             + SaleDebt::where("type", "pay")->where("due_date", $date)->where("payment", "bank")->sum("amount")
             - SaleDebt::where("type", "debt")->where("due_date", $date)->where("payment", "bank")->sum("amount")
             + DepositDebt::where("type", "pay")->where("due_date", $date)->where("payment", "bank")->sum("amount")
@@ -59,8 +59,8 @@ class Bank extends Model
     {
         $initial = Bank::sum("initialBalance");
         return $initial
-            + Sale::where("payment", "bank")->where("due_date", "<", $date)->sum("paid")
-            - Purchase::where("payment", "bank")->where("due_date", "<", $date)->sum("paid")
+            + Sale::where("payment", "bank")->where("due_date", "<", $date)->sum("bank_paid")
+            - Purchase::where("payment", "bank")->where("due_date", "<", $date)->sum("bank_paid")
             + SaleDebt::where("type", "pay")->where("due_date", "<", $date)->where("payment", "bank")->sum("amount")
             - SaleDebt::where("type", "debt")->where("due_date", "<", $date)->where("payment", "bank")->sum("amount")
             + DepositDebt::where("type", "pay")->where("due_date", "<", $date)->where("payment", "bank")->sum("amount")
@@ -78,8 +78,8 @@ class Bank extends Model
     {
         $initial = Bank::whereBetween("startingDate", [$from, $to])->sum("initialBalance");
         return $initial
-            + Sale::where("payment", "bank")->whereBetween("due_date", [$from, $to])->sum("paid")
-            - Purchase::where("payment", "bank")->whereBetween("due_date", [$from, $to])->sum("paid")
+            + Sale::where("payment", "bank")->whereBetween("due_date", [$from, $to])->sum("bank_paid")
+            - Purchase::where("payment", "bank")->whereBetween("due_date", [$from, $to])->sum("bank_paid")
             + SaleDebt::where("type", "pay")->whereBetween("due_date", [$from, $to])->where("payment", "bank")->sum("amount")
             - SaleDebt::where("type", "debt")->whereBetween("due_date", [$from, $to])->where("payment", "bank")->sum("amount")
             + DepositDebt::where("type", "pay")->whereBetween("due_date", [$from, $to])->where("payment", "bank")->sum("amount")
@@ -97,8 +97,8 @@ class Bank extends Model
     public function getCurrentTotalBalance()
     {
         return Bank::sum("initialBalance")
-            + Sale::where("payment", "bank")->sum("paid")
-            - Purchase::where("payment", "bank")->sum("paid")
+            + Sale::where("payment", "bank")->sum("bank_paid")
+            - Purchase::where("payment", "bank")->sum("bank_paid")
             + SaleDebt::where("type", "pay")->where("payment", "bank")->sum("amount")
             - SaleDebt::where("type", "debt")->where("payment", "bank")->sum("amount")
             + DepositDebt::where("type", "pay")->where("payment", "bank")->sum("amount")

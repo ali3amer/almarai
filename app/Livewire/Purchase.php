@@ -203,6 +203,7 @@ class Purchase extends Component
         $this->invoice['client'] = $this->currentSupplier['name'];
         $this->invoice['cart'] = $this->cart;
         $this->invoice['services'] = $this->services;
+        $this->invoice['payment'] = $this->payment;
         $this->invoice['remainder'] = $this->remainder;
         $this->invoice['discount'] = floatval($this->discount);
         $this->invoice['paid'] = floatval($this->paid);
@@ -232,8 +233,8 @@ class Purchase extends Component
         $stock = $edit ? round($product->stock, 3) + $this->cart[$product->id]['quantity'] : round($product->stock, 3);
         $this->currentProduct = $product->toArray();
         $this->currentProduct['quantity'] = $edit ? $this->cart[$product->id]['quantity'] : 1;
-        $this->currentProduct['price'] = floatval($product['sale_price']);
-        $this->currentProduct['amount'] = floatval($product['sale_price']);
+        $this->currentProduct['price'] = floatval($product['purchase_price']);
+        $this->currentProduct['amount'] = floatval($product['purchase_price']);
         $this->currentProduct['stock'] = $stock;
         $this->productSearch = '';
 
@@ -409,7 +410,15 @@ class Purchase extends Component
     {
         $this->amount = $this->cost - floatval($this->discount);
         if ($this->currentSupplier['cash']) {
-            $this->paid = $this->amount;
+            if ($this->payment == "cash") {
+                $this->paid = $this->amount;
+                $this->bank_paid = 0;
+            } elseif ($this->payment == "bank") {
+                $this->bank_paid = $this->amount;
+                $this->paid = 0;
+            } else {
+                $this->bank_paid = floatval($this->amount) - floatval($this->paid);
+            }
         } else {
             $this->remainder = floatval($this->amount) - floatval($this->paid) - floatval($this->bank_paid);
         }
