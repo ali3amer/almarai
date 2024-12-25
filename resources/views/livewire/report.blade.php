@@ -1209,18 +1209,23 @@
                         </tr>
                         </thead>
                         <tbody>
+                        @php $total = 0 @endphp
                         @foreach($sales as $index => $sale)
-                            @php $amount = $sale['quantity'] * floatval($percent) / 100; @endphp
+                            @php
+                                $amount = $sale['quantity'] * floatval($percent) / 100;
+                                $total += isset($prices[$index]) ? floatval($amount) * floatval($prices[$index]) : 0;
+                            @endphp
+
                             <tr>
                                 <td data-bs-toggle="modal" data-bs-target="#printModal"
                                     wire:click="getInvoice({{$sale['sale_id']}}, 'sales')">{{$sale['due_date']}}</td>
                                 <td>{{ $sale['productName'] }}</td>
                                 <td>{{number_format($sale['quantity'], 2)}}</td>
                                 <td>{{$amount}}</td>
-                                <td><input wire:model.live="prices.{{$index}}" class="form-control text-center" /></td>
+                                <td><input wire:model.live="prices.{{$index}}" class="form-control text-center"/></td>
                                 <td>
                                     @if(isset($prices[$index]))
-                                        {{ number_format($prices[$index] * $amount, 2) }}
+                                        {{ number_format(floatval($prices[$index]) * $amount, 2) }}
                                     @else
                                         0
                                     @endif
@@ -1233,12 +1238,12 @@
                             <tr>
                                 <th colspan="4">الجــــــــــــــــــــملة</th>
                                 <th>{{number_format($quantity, 2)}}</th>
-                                <th>{{number_format($sum, 2)}}</th>
+                                <th>{{number_format($total, 2)}}</th>
                             </tr>
                         @else
                             <tr>
                                 <td colspan="5">الجــــــــــــــــــــملة</td>
-                                <td>{{number_format($sum, 2)}}</td>
+                                <td>{{number_format($total, 2)}}</td>
                             </tr>
                         @endif
                         </tfoot>
