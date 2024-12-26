@@ -1222,7 +1222,7 @@
                                 <td>{{ $sale['productName'] }}</td>
                                 <td>{{number_format($sale['quantity'], 2)}}</td>
                                 <td>{{$amount}}</td>
-                                <td><input wire:model.live="prices.{{$index}}" class="form-control text-center"/></td>
+                                <td><input wire:model.live="prices.{{$index}}" class="form-control text-center d-print-none"/> <span class="d-print-block d-none">{{$prices[$index]}}</span></td>
                                 <td>
                                     @if(isset($prices[$index]))
                                         {{ number_format(floatval($prices[$index]) * $amount, 2) }}

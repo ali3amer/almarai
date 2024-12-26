@@ -363,8 +363,6 @@ class Report extends Component
                     'products.productName',
                     DB::raw("people.name as ownerName")
                 )->get();
-
-
             if ($this->reportDuration == 'day') {
                 if (!empty($this->currentProduct)) {
                     $sales = $this->sales->where('product_id', $this->currentProduct['id'])->where('sales.due_date', $this->day);
@@ -387,11 +385,13 @@ class Report extends Component
 
             $this->sum = 0;
             $this->quantity = 0;
-            foreach ($this->sales as $sale) {
+            foreach ($this->sales as $index => $sale) {
                 $this->sum += $sale['quantity'] * $sale['price'];
                 if (!empty($this->currentProduct)) {
                     $this->quantity += $sale['quantity'];
                 }
+
+                $this->prices[$index] = 0;
             }
 
         } elseif ($this->reportType == 'purchases') {  // purchase
